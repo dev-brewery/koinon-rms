@@ -1,0 +1,141 @@
+# docker-compose.test.yml
+# Integration testing environment with test database and seed data
+# Usage: docker-compose -f docker-compose.test.yml up
+
+services:
+  # =============================================================================
+  # Test PostgreSQL Database (isolated from dev)
+  # =============================================================================
+  postgres-test:
+    image: postgres:16-alpine
+    container_name: koinon-postgres-test
+    environment:
+      POSTGRES_USER: koinon
+      POSTGRES_PASSWORD: koinon_test
+      POSTGRES_DB: koinon_test
+    ports:
+      - "5433:5432"  # Different port to avoid conflict
+    tmpfs:
+      - /var/lib/postgresql/data  # In-memory for speed
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U koinon -d koinon_test"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # =============================================================================
+  # Test Redis Cache (isolated from dev)
+  # =============================================================================
+  redis-test:
+    image: redis:7-alpine
+    container_name: koinon-redis-test
+    ports:
+      - "6380:6379"  # Different port to avoid conflict
+    tmpfs:
+      - /data  # In-memory for speed
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # =============================================================================
+  # Database Migration Runner
+  # Applies migrations to test database
+  # =============================================================================
+  migrate:
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine
+        WORKDIR /app
+        COPY . .
+        RUN dotnet tool install --global dotnet-ef
+        ENV PATH="/root/.dotnet/tools:${PATH}"
+        ENTRYPOINT ["dotnet", "ef"]
+    container_name: koinon-migrate-test
+    environment:
+      ConnectionStrings__KoinonDb: "Host=postgres-test;Port=5432;Database=koinon_test;Username=koinon;Password=koinon_test"
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    command: >
+      database update
+      --project src/Koinon.Infrastructure
+      --startup-project src/Koinon.Api
+    profiles:
+      - setup
+
+  # =============================================================================
+  # Test Data Seeder
+  # Generates seed data for testing
+  # =============================================================================
+  seed-data:
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine
+        WORKDIR /app
+        COPY . .
+        RUN dotnet build tools/TestData/TestData.csproj
+        ENTRYPOINT ["dotnet", "run", "--project", "tools/TestData/TestData.csproj", "--no-build", "--"]
+    container_name: koinon-seed-test
+    environment:
+      ConnectionStrings__KoinonDb: "Host=postgres-test;Port=5432;Database=koinon_test;Username=koinon;Password=koinon_test"
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    command: seed --size small
+    profiles:
+      - setup
+
+  # =============================================================================
+  # API Service for Integration Tests
+  # =============================================================================
+  api-test:
+    build:
+      context: .
+      dockerfile: src/Koinon.Api/Dockerfile
+      target: development
+    container_name: koinon-api-test
+    environment:
+      ASPNETCORE_ENVIRONMENT: Testing
+      ConnectionStrings__KoinonDb: "Host=postgres-test;Port=5432;Database=koinon_test;Username=koinon;Password=koinon_test"
+      ConnectionStrings__Redis: "redis-test:6379"
+    ports:
+      - "5001:8080"
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+    profiles:
+      - api
+
+# =============================================================================
+# Usage:
+# =============================================================================
+#
+# 1. Start test infrastructure only:
+#    docker-compose -f docker-compose.test.yml up -d
+#
+# 2. Setup test database (migrate + seed):
+#    docker-compose -f docker-compose.test.yml --profile setup up
+#
+# 3. Full integration test environment:
+#    docker-compose -f docker-compose.test.yml --profile setup --profile api up
+#
+# 4. Run .NET integration tests against this environment:
+#    ConnectionStrings__KoinonDb="Host=localhost;Port=5433;Database=koinon_test;Username=koinon;Password=koinon_test" \
+#    dotnet test tests/Koinon.Api.IntegrationTests
+#
+# 5. Cleanup:
+#    docker-compose -f docker-compose.test.yml down
+#
+# Test connection strings:
+#   PostgreSQL: Host=localhost;Port=5433;Database=koinon_test;Username=koinon;Password=koinon_test
+#   Redis: localhost:6380
+#   API: http://localhost:5001
+# =============================================================================

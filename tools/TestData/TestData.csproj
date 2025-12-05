@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Reference the domain and infrastructure projects once they're created -->
+    <!-- <ProjectReference Include="..\..\src\Koinon.Domain\Koinon.Domain.csproj" /> -->
+    <!-- <ProjectReference Include="..\..\src\Koinon.Infrastructure\Koinon.Infrastructure.csproj" /> -->
+
+    <!-- Test data generation -->
+    <PackageReference Include="Bogus" Version="35.3.0" />
+
+    <!-- Database -->
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+
+    <!-- CLI -->
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+  </ItemGroup>
+
+</Project>

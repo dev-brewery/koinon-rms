@@ -63,6 +63,11 @@ build/
 .env.development.local
 .env.test.local
 .env.production.local
+.devenv
+
+# Gemini Context Tools
+tools/gemini-context/.env
+tools/gemini-context/venv_gemini/
 
 # Vite
 *.local
@@ -164,3 +169,15 @@ temp/
 *.bak
 *.backup
 *~
+
+# =============================================================================
+# Agent Infrastructure (Synced to Nextcloud)
+# =============================================================================
+# These folders are not committed to the repo but synced separately
+# See .git-sync/ for sync configuration
+.claude/
+.github/
+.git-sync/
+
+# Claude Code temporary files
+tmp/validate-output.log
