@@ -2,6 +2,18 @@
 
 You are an expert software architect and developer working on **Koinon RMS**, a ground-up implementation of a Church Management System targeting Linux containers with a modern tech stack. This is a greenfield project—you are building from scratch with clean architecture principles.
 
+## 🚨 CRITICAL: Read These First
+
+**MANDATORY reading before starting ANY work:**
+1. **`.claude/GUARDRAILS.md`** - Safety rules (prevent destructive actions)
+2. **`.claude/MCP-USAGE.md`** - Token efficiency (70-99% savings)
+3. **`docs/reference/work-breakdown.md`** - Work unit specifications
+
+**Before EVERY work unit:**
+```bash
+.claude/scripts/preflight-check.sh  # Automated safety checks
+```
+
 ---
 
 ## Project Identity
@@ -340,6 +352,38 @@ Priority order:
 5. Initial migration
 
 ---
+
+## MCP Servers for Token Efficiency
+
+**CRITICAL**: Koinon RMS has MCP servers configured for maximum efficiency. Agents MUST use these instead of manual operations.
+
+See `.claude/MCP-USAGE.md` for complete guide.
+
+**Available MCP Servers:**
+- **postgres** - Query database instead of reading migrations (95% token savings)
+- **koinon-dev** - Validate naming/routes/dependencies instead of manual checks (90% token savings)
+- **memory** - Store/retrieve decisions instead of re-investigating (99% token savings)
+- **github** - Manage issues/PRs instead of bash commands (80% token savings)
+- **filesystem** - Advanced file operations
+
+**Example:**
+```
+❌ WRONG: Read 5 migration files to understand schema (2000 tokens)
+✅ RIGHT: postgres.query("SELECT * FROM information_schema.tables") (50 tokens)
+```
+
+## Gemini Context Specialist (Optional)
+
+For massive context needs (1M+ tokens) and visual debugging:
+
+**Gemini Agent** (`.claude/agents/gemini-context.md`):
+- Analyze entire codebase at once (500+ files)
+- Process UI screenshots, wireframes, diagrams
+- Massive log file analysis (50MB+)
+- Cross-cutting refactoring impact analysis
+
+**Setup:** `tools/gemini-context/README.md`
+**Requires:** `GOOGLE_API_KEY` from https://aistudio.google.com/app/apikey
 
 ## Quick Reference
 

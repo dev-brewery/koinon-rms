@@ -1,0 +1,31 @@
+{
+  "name": "@koinon/mcp-dev-server",
+  "version": "1.0.0",
+  "description": "Custom MCP server for Koinon RMS development validation and assistance",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "koinon-mcp-dev": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "start": "node dist/index.js"
+  },
+  "keywords": [
+    "mcp",
+    "koinon",
+    "development",
+    "validation"
+  ],
+  "author": "Koinon RMS",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.24.3",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  }
+}

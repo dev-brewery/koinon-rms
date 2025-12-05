@@ -1,0 +1,47 @@
+{
+  "$schema": "https://schema.claudecode.com/config.json",
+  "description": "Complete MCP server configuration for Koinon RMS project",
+  "mcpServers": {
+    "postgres": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://koinon:koinon@localhost:5432/koinon"
+      ],
+      "description": "PostgreSQL database server for querying and inspecting the Koinon database"
+    },
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "description": "Knowledge graph server for persisting architectural decisions and context"
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+      },
+      "description": "GitHub integration for issue and PR management"
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/home/mbrewer/projects/koinon-rms"
+      ],
+      "description": "Advanced filesystem operations and search within the project"
+    },
+    "koinon-dev": {
+      "command": "node",
+      "args": [
+        "/home/mbrewer/projects/koinon-rms/tools/mcp-koinon-dev/dist/index.js"
+      ],
+      "env": {
+        "KOINON_PROJECT_ROOT": "/home/mbrewer/projects/koinon-rms"
+      },
+      "description": "Custom Koinon RMS development validation and architectural guidance server"
+    }
+  }
+}
