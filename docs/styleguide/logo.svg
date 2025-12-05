@@ -1,0 +1,38 @@
+```html
+!-- 1. The Standalone Icon (The Hexagon Node) --
+svg id=koinon-rms-icon width=100 height=87 viewBox=0 0 100 87 xmlns=httpwww.w3.org2000svg
+  titleKoinon RMS Federated Node Icontitle
+  g
+    !-- Top Face  Bracket --
+    path d=M50 43.5 L0 21.75 L50 0 L100 21.75 Z fill=#3A7CA5
+    !-- Left Face  Bracket --
+    path d=M50 43.5 L0 21.75 L0 65.25 L50 87 Z fill=#0B1E3B
+    !-- Right Face  Bracket --
+    path d=M50 43.5 L100 21.75 L100 65.25 L50 87 Z fill=#00D4BD
+  g
+svg
+
+!-- 2. The Full Wordmark (Icon + Text) --
+svg id=koinon-rms-wordmark width=370 height=87 viewBox=0 0 370 87 xmlns=httpwww.w3.org2000svg
+  titleKoinon RMS Wordmarktitle
+  
+  !-- Icon Group --
+  g id=icon
+    !-- Top Face  Bracket --
+    path d=M50 43.5 L0 21.75 L50 0 L100 21.75 Z fill=#3A7CA5
+    !-- Left Face  Bracket --
+    path d=M50 43.5 L0 21.75 L0 65.25 L50 87 Z fill=#0B1E3B
+    !-- Right Face  Bracket --
+    path d=M50 43.5 L100 21.75 L100 65.25 L50 87 Z fill=#00D4BD
+  g
+
+  !-- Text Group --
+  text x=120 y=43.5 
+        font-family='Montserrat', 'Helvetica Neue', Arial, sans-serif 
+        font-size=42 
+        dominant-baseline=middle
+    tspan font-weight=600 fill=#0B1E3BKoinontspan
+    tspan font-weight=500 fill=#3A7CA5 dx=8RMStspan
+  text
+svg
+```

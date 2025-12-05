@@ -1,0 +1,110 @@
+# docker-compose.yml
+# Local development infrastructure for Koinon RMS
+# Usage: docker-compose up -d
+
+services:
+  # =============================================================================
+  # PostgreSQL Database
+  # =============================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: koinon-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: koinon
+      POSTGRES_PASSWORD: koinon
+      POSTGRES_DB: koinon
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./tools/db-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U koinon -d koinon"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # =============================================================================
+  # Redis Cache
+  # =============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: koinon-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # =============================================================================
+  # Adminer (Database UI) - Optional
+  # =============================================================================
+  adminer:
+    image: adminer:latest
+    container_name: koinon-adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    depends_on:
+      - postgres
+    profiles:
+      - tools
+
+  # =============================================================================
+  # Redis Commander (Redis UI) - Optional
+  # =============================================================================
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: koinon-redis-commander
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    depends_on:
+      - redis
+    profiles:
+      - tools
+
+volumes:
+  postgres_data:
+    name: koinon_postgres_data
+  redis_data:
+    name: koinon_redis_data
+
+# =============================================================================
+# Usage Notes:
+# =============================================================================
+#
+# Start core infrastructure:
+#   docker-compose up -d
+#
+# Start with admin tools:
+#   docker-compose --profile tools up -d
+#
+# View logs:
+#   docker-compose logs -f
+#
+# Stop everything:
+#   docker-compose down
+#
+# Reset database (destructive!):
+#   docker-compose down -v
+#
+# Connection strings for development:
+#   PostgreSQL: Host=localhost;Port=5432;Database=koinon;Username=koinon;Password=koinon
+#   Redis: localhost:6379
+#
+# Admin UIs (when using --profile tools):
+#   Adminer (Database): http://localhost:8080
+#   Redis Commander: http://localhost:8081
+# =============================================================================
