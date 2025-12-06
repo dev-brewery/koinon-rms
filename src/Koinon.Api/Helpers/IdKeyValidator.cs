@@ -3,8 +3,8 @@ using System.Text.RegularExpressions;
 namespace Koinon.Api.Helpers;
 
 /// <summary>
-/// Validator for IdKey format to prevent malicious input.
-/// IdKeys should be URL-safe Base64 encoded strings with specific length constraints.
+/// Validates IdKey format for API parameters.
+/// IdKeys are URL-safe Base64 encoded integer IDs.
 /// </summary>
 public static partial class IdKeyValidator
 {
@@ -14,10 +14,8 @@ public static partial class IdKeyValidator
     private static partial Regex IdKeyPattern();
 
     /// <summary>
-    /// Validates if a string matches the expected IdKey format.
+    /// Validates that the provided string is a valid IdKey format.
     /// </summary>
-    /// <param name="idKey">The IdKey string to validate.</param>
-    /// <returns>True if valid format; otherwise false.</returns>
     public static bool IsValid(string? idKey)
     {
         if (string.IsNullOrWhiteSpace(idKey))
@@ -25,24 +23,38 @@ public static partial class IdKeyValidator
             return false;
         }
 
-        return IdKeyPattern().IsMatch(idKey);
+        if (!IdKeyPattern().IsMatch(idKey))
+        {
+            return false;
+        }
+
+        // Attempt to decode as URL-safe Base64
+        try
+        {
+            // Convert URL-safe Base64 to standard Base64
+            var standardBase64 = idKey.Replace('-', '+').Replace('_', '/');
+            // Add padding if needed
+            switch (standardBase64.Length % 4)
+            {
+                case 2:
+                    standardBase64 += "==";
+                    break;
+                case 3:
+                    standardBase64 += "=";
+                    break;
+            }
+            var decoded = Convert.FromBase64String(standardBase64);
+            return decoded.Length >= 1; // Must decode to at least 1 byte
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     /// <summary>
-    /// Validates multiple IdKey values.
+    /// Returns a validation error message for invalid IdKeys.
     /// </summary>
-    /// <param name="idKeys">The IdKey strings to validate.</param>
-    /// <returns>True if all are valid format; otherwise false.</returns>
-    public static bool AreAllValid(params string?[] idKeys)
-    {
-        foreach (var idKey in idKeys)
-        {
-            if (!IsValid(idKey))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
+    public static string GetErrorMessage(string parameterName)
+        => $"The {parameterName} parameter must be a valid IdKey (URL-safe Base64 encoded identifier)";
 }
