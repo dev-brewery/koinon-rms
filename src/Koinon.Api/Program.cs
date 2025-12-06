@@ -40,7 +40,10 @@ builder.Services.AddDbContext<KoinonDbContext>(options =>
 // Configure JWT Authentication
 var jwtSecret = builder.Configuration["Jwt:Secret"]?.Trim();
 if (string.IsNullOrEmpty(jwtSecret))
+{
     throw new InvalidOperationException("JWT Secret not configured. Set Jwt:Secret in appsettings.Development.json or environment variable.");
+}
+
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "Koinon.Api";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "Koinon.Web";
 

@@ -109,7 +109,6 @@ export function CheckinPage() {
       await recordAttendanceMutation.mutateAsync({ checkins });
       setStep('confirmation');
     } catch (error) {
-      console.error('Check-in failed:', error);
       // Error handling would go here
     }
   };
@@ -299,7 +298,6 @@ export function CheckinPage() {
             recordAttendanceMutation.data.labels.length > 0
               ? () => {
                   // Print labels functionality would go here
-                  console.log('Print labels:', recordAttendanceMutation.data.labels);
                 }
               : undefined
           }
