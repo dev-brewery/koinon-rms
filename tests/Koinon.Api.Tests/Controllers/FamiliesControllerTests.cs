@@ -97,12 +97,13 @@ public class FamiliesControllerTests
     public async Task GetByIdKey_ReturnsNotFound_WhenFamilyDoesNotExist()
     {
         // Arrange
+        var nonExistentIdKey = IdKeyHelper.Encode(99999);
         _familyServiceMock
-            .Setup(s => s.GetByIdKeyAsync("IdKeyHelper.Encode(99999)", It.IsAny<CancellationToken>()))
+            .Setup(s => s.GetByIdKeyAsync(nonExistentIdKey, It.IsAny<CancellationToken>()))
             .ReturnsAsync((FamilyDto?)null);
 
         // Act
-        var result = await _controller.GetByIdKey("IdKeyHelper.Encode(99999)");
+        var result = await _controller.GetByIdKey(nonExistentIdKey);
 
         // Assert
         var notFoundResult = result.Should().BeOfType<NotFoundObjectResult>().Subject;
@@ -123,10 +124,10 @@ public class FamiliesControllerTests
         {
             new()
             {
-                IdKey = "_memberIdKey",
+                IdKey = _memberIdKey,
                 Person = new PersonSummaryDto
                 {
-                    IdKey = "_personIdKey",
+                    IdKey = _personIdKey,
                     FirstName = "John",
                     LastName = "Smith",
                     FullName = "John Smith",
@@ -134,7 +135,7 @@ public class FamiliesControllerTests
                 },
                 Role = new GroupTypeRoleDto
                 {
-                    IdKey = "_roleIdKey",
+                    IdKey = _roleIdKey,
                     Name = "Adult",
                     IsLeader = true
                 },
@@ -142,10 +143,10 @@ public class FamiliesControllerTests
             },
             new()
             {
-                IdKey = "IdKeyHelper.Encode(457)",
+                IdKey = IdKeyHelper.Encode(457),
                 Person = new PersonSummaryDto
                 {
-                    IdKey = "_person2IdKey",
+                    IdKey = _person2IdKey,
                     FirstName = "Jane",
                     LastName = "Smith",
                     FullName = "Jane Smith",
@@ -153,7 +154,7 @@ public class FamiliesControllerTests
                 },
                 Role = new GroupTypeRoleDto
                 {
-                    IdKey = "_roleIdKey",
+                    IdKey = _roleIdKey,
                     Name = "Adult",
                     IsLeader = false
                 },
@@ -163,7 +164,7 @@ public class FamiliesControllerTests
 
         var familyDto = new FamilyDto
         {
-            IdKey = "_familyIdKey",
+            IdKey = _familyIdKey,
             Guid = Guid.NewGuid(),
             Name = "Smith Family",
             IsActive = true,
@@ -172,11 +173,11 @@ public class FamiliesControllerTests
         };
 
         _familyServiceMock
-            .Setup(s => s.GetByIdKeyAsync("_familyIdKey", It.IsAny<CancellationToken>()))
+            .Setup(s => s.GetByIdKeyAsync(_familyIdKey, It.IsAny<CancellationToken>()))
             .ReturnsAsync(familyDto);
 
         // Act
-        var result = await _controller.GetMembers("_familyIdKey");
+        var result = await _controller.GetMembers(_familyIdKey);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -190,12 +191,13 @@ public class FamiliesControllerTests
     public async Task GetMembers_ReturnsNotFound_WhenFamilyDoesNotExist()
     {
         // Arrange
+        var nonExistentIdKey = IdKeyHelper.Encode(99999);
         _familyServiceMock
-            .Setup(s => s.GetByIdKeyAsync("IdKeyHelper.Encode(99999)", It.IsAny<CancellationToken>()))
+            .Setup(s => s.GetByIdKeyAsync(nonExistentIdKey, It.IsAny<CancellationToken>()))
             .ReturnsAsync((FamilyDto?)null);
 
         // Act
-        var result = await _controller.GetMembers("IdKeyHelper.Encode(99999)");
+        var result = await _controller.GetMembers(nonExistentIdKey);
 
         // Assert
         var notFoundResult = result.Should().BeOfType<NotFoundObjectResult>().Subject;
@@ -214,12 +216,12 @@ public class FamiliesControllerTests
         var request = new CreateFamilyRequest
         {
             Name = "New Family",
-            CampusId = "_campusIdKey"
+            CampusId = _campusIdKey
         };
 
         var createdFamily = new FamilyDto
         {
-            IdKey = "_newFamilyIdKey",
+            IdKey = _newFamilyIdKey,
             Guid = Guid.NewGuid(),
             Name = "New Family",
             IsActive = true,
@@ -237,11 +239,11 @@ public class FamiliesControllerTests
         // Assert
         var createdResult = result.Should().BeOfType<CreatedAtActionResult>().Subject;
         createdResult.ActionName.Should().Be(nameof(FamiliesController.GetByIdKey));
-        createdResult.RouteValues!["idKey"].Should().Be("_newFamilyIdKey");
+        createdResult.RouteValues!["idKey"].Should().Be(_newFamilyIdKey);
 
         var returnedFamily = createdResult.Value.Should().BeOfType<FamilyDto>().Subject;
         returnedFamily.Name.Should().Be("New Family");
-        returnedFamily.IdKey.Should().Be("_newFamilyIdKey");
+        returnedFamily.IdKey.Should().Be(_newFamilyIdKey);
     }
 
     [Fact]
@@ -312,16 +314,16 @@ public class FamiliesControllerTests
         // Arrange
         var request = new AddFamilyMemberRequest
         {
-            PersonId = "_personIdKey",
-            RoleId = "_roleIdKey"
+            PersonId = _personIdKey,
+            RoleId = _roleIdKey
         };
 
         var addedMember = new FamilyMemberDto
         {
-            IdKey = "IdKeyHelper.Encode(789)",
+            IdKey = IdKeyHelper.Encode(789),
             Person = new PersonSummaryDto
             {
-                IdKey = "_personIdKey",
+                IdKey = _personIdKey,
                 FirstName = "John",
                 LastName = "Doe",
                 FullName = "John Doe",
@@ -329,7 +331,7 @@ public class FamiliesControllerTests
             },
             Role = new GroupTypeRoleDto
             {
-                IdKey = "_roleIdKey",
+                IdKey = _roleIdKey,
                 Name = "Adult",
                 IsLeader = true
             },
@@ -337,29 +339,30 @@ public class FamiliesControllerTests
         };
 
         _familyServiceMock
-            .Setup(s => s.AddFamilyMemberAsync("_familyIdKey", request, It.IsAny<CancellationToken>()))
+            .Setup(s => s.AddFamilyMemberAsync(_familyIdKey, request, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<FamilyMemberDto>.Success(addedMember));
 
         // Act
-        var result = await _controller.AddMember("_familyIdKey", request);
+        var result = await _controller.AddMember(_familyIdKey, request);
 
         // Assert
         var createdResult = result.Should().BeOfType<CreatedAtActionResult>().Subject;
         createdResult.ActionName.Should().Be(nameof(FamiliesController.GetMembers));
-        createdResult.RouteValues!["idKey"].Should().Be("_familyIdKey");
+        createdResult.RouteValues!["idKey"].Should().Be(_familyIdKey);
 
         var returnedMember = createdResult.Value.Should().BeOfType<FamilyMemberDto>().Subject;
-        returnedMember.Person.IdKey.Should().Be("_personIdKey");
+        returnedMember.Person.IdKey.Should().Be(_personIdKey);
     }
 
     [Fact]
     public async Task AddMember_ReturnsNotFound_WhenFamilyDoesNotExist()
     {
         // Arrange
+        var nonExistentIdKey = IdKeyHelper.Encode(99999);
         var request = new AddFamilyMemberRequest
         {
-            PersonId = "_personIdKey",
-            RoleId = "_roleIdKey"
+            PersonId = _personIdKey,
+            RoleId = _roleIdKey
         };
 
         var error = new Error(
@@ -367,11 +370,11 @@ public class FamiliesControllerTests
             "Family not found");
 
         _familyServiceMock
-            .Setup(s => s.AddFamilyMemberAsync("IdKeyHelper.Encode(99999)", request, It.IsAny<CancellationToken>()))
+            .Setup(s => s.AddFamilyMemberAsync(nonExistentIdKey, request, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<FamilyMemberDto>.Failure(error));
 
         // Act
-        var result = await _controller.AddMember("IdKeyHelper.Encode(99999)", request);
+        var result = await _controller.AddMember(nonExistentIdKey, request);
 
         // Assert
         var notFoundResult = result.Should().BeOfType<NotFoundObjectResult>().Subject;
@@ -399,11 +402,11 @@ public class FamiliesControllerTests
             });
 
         _familyServiceMock
-            .Setup(s => s.AddFamilyMemberAsync("_familyIdKey", request, It.IsAny<CancellationToken>()))
+            .Setup(s => s.AddFamilyMemberAsync(_familyIdKey, request, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<FamilyMemberDto>.Failure(error));
 
         // Act
-        var result = await _controller.AddMember("_familyIdKey", request);
+        var result = await _controller.AddMember(_familyIdKey, request);
 
         // Assert
         var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
@@ -420,11 +423,11 @@ public class FamiliesControllerTests
     {
         // Arrange
         _familyServiceMock
-            .Setup(s => s.RemoveFamilyMemberAsync("_familyIdKey", "_person2IdKey", It.IsAny<CancellationToken>()))
+            .Setup(s => s.RemoveFamilyMemberAsync(_familyIdKey, _person2IdKey, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success());
 
         // Act
-        var result = await _controller.RemoveMember("_familyIdKey", "_person2IdKey");
+        var result = await _controller.RemoveMember(_familyIdKey, _person2IdKey);
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
@@ -434,16 +437,17 @@ public class FamiliesControllerTests
     public async Task RemoveMember_ReturnsNotFound_WhenFamilyOrPersonDoesNotExist()
     {
         // Arrange
+        var nonExistentPersonIdKey = IdKeyHelper.Encode(99999);
         var error = new Error(
             "NOT_FOUND",
             "Family or person not found");
 
         _familyServiceMock
-            .Setup(s => s.RemoveFamilyMemberAsync("_familyIdKey", "IdKeyHelper.Encode(99999)", It.IsAny<CancellationToken>()))
+            .Setup(s => s.RemoveFamilyMemberAsync(_familyIdKey, nonExistentPersonIdKey, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Failure(error));
 
         // Act
-        var result = await _controller.RemoveMember("_familyIdKey", "IdKeyHelper.Encode(99999)");
+        var result = await _controller.RemoveMember(_familyIdKey, nonExistentPersonIdKey);
 
         // Assert
         var notFoundResult = result.Should().BeOfType<NotFoundObjectResult>().Subject;
@@ -460,11 +464,11 @@ public class FamiliesControllerTests
             "Cannot remove the last member from a family");
 
         _familyServiceMock
-            .Setup(s => s.RemoveFamilyMemberAsync("_familyIdKey", "_person2IdKey", It.IsAny<CancellationToken>()))
+            .Setup(s => s.RemoveFamilyMemberAsync(_familyIdKey, _person2IdKey, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Failure(error));
 
         // Act
-        var result = await _controller.RemoveMember("_familyIdKey", "_person2IdKey");
+        var result = await _controller.RemoveMember(_familyIdKey, _person2IdKey);
 
         // Assert
         var unprocessableResult = result.Should().BeOfType<UnprocessableEntityObjectResult>().Subject;

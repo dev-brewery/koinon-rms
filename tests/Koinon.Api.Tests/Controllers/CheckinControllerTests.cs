@@ -57,18 +57,17 @@ public class CheckinControllerTests
     public async Task GetActiveAreas_WithValidCampusId_ReturnsOkWithAreas()
     {
         // Arrange
-        var campusId = "_campusIdKey";
         var expectedAreas = new List<CheckinAreaDto>
         {
             new()
             {
-                IdKey = "_areaIdKey",
+                IdKey = _areaIdKey,
                 Guid = Guid.NewGuid(),
                 Name = "Children's Ministry",
                 Description = "Ages 0-12",
                 GroupType = new GroupTypeDto
                 {
-                    IdKey = "gt1",
+                    IdKey = IdKeyHelper.Encode(1),
                     Guid = Guid.NewGuid(),
                     Name = "Check-in Area",
                     IsFamilyGroupType = false,
@@ -82,11 +81,11 @@ public class CheckinControllerTests
         };
 
         _configServiceMock
-            .Setup(s => s.GetActiveAreasAsync(campusId, null, It.IsAny<CancellationToken>()))
+            .Setup(s => s.GetActiveAreasAsync(_campusIdKey, null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedAreas);
 
         // Act
-        var result = await _controller.GetActiveAreas(campusId);
+        var result = await _controller.GetActiveAreas(_campusIdKey);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -112,13 +111,12 @@ public class CheckinControllerTests
     public async Task GetActiveAreas_WithValidCampusId_ReturnsEmptyList()
     {
         // Arrange
-        var campusId = "_campusIdKey";
         _configServiceMock
-            .Setup(s => s.GetActiveAreasAsync(campusId, null, It.IsAny<CancellationToken>()))
+            .Setup(s => s.GetActiveAreasAsync(_campusIdKey, null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<CheckinAreaDto>());
 
         // Act
-        var result = await _controller.GetActiveAreas(campusId);
+        var result = await _controller.GetActiveAreas(_campusIdKey);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -134,21 +132,20 @@ public class CheckinControllerTests
     public async Task GetConfiguration_WithValidCampusId_ReturnsOkWithConfig()
     {
         // Arrange
-        var campusId = "_campusIdKey";
         var expectedConfig = new CheckinConfigurationDto
         {
-            Campus = new CampusSummaryDto { IdKey = campusId, Name = "Main Campus" },
+            Campus = new CampusSummaryDto { IdKey = _campusIdKey, Name = "Main Campus" },
             Areas = new List<CheckinAreaDto>(),
             ActiveSchedules = new List<ScheduleDto>(),
             ServerTime = DateTime.UtcNow
         };
 
         _configServiceMock
-            .Setup(s => s.GetConfigurationByCampusAsync(campusId, It.IsAny<CancellationToken>()))
+            .Setup(s => s.GetConfigurationByCampusAsync(_campusIdKey, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedConfig);
 
         // Act
-        var result = await _controller.GetConfiguration(campusId, null);
+        var result = await _controller.GetConfiguration(_campusIdKey, null);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -160,21 +157,20 @@ public class CheckinControllerTests
     public async Task GetConfiguration_WithValidKioskId_ReturnsOkWithConfig()
     {
         // Arrange
-        var kioskId = "_kioskIdKey";
         var expectedConfig = new CheckinConfigurationDto
         {
-            Campus = new CampusSummaryDto { IdKey = "_campusIdKey", Name = "Main Campus" },
+            Campus = new CampusSummaryDto { IdKey = _campusIdKey, Name = "Main Campus" },
             Areas = new List<CheckinAreaDto>(),
             ActiveSchedules = new List<ScheduleDto>(),
             ServerTime = DateTime.UtcNow
         };
 
         _configServiceMock
-            .Setup(s => s.GetConfigurationByKioskAsync(kioskId, It.IsAny<CancellationToken>()))
+            .Setup(s => s.GetConfigurationByKioskAsync(_kioskIdKey, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedConfig);
 
         // Act
-        var result = await _controller.GetConfiguration(null, kioskId);
+        var result = await _controller.GetConfiguration(null, _kioskIdKey);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -198,13 +194,13 @@ public class CheckinControllerTests
     public async Task GetConfiguration_WithNonExistentCampus_ReturnsNotFound()
     {
         // Arrange
-        var campusId = "nonexistent";
+        var nonExistentCampusId = IdKeyHelper.Encode(99999);
         _configServiceMock
-            .Setup(s => s.GetConfigurationByCampusAsync(campusId, It.IsAny<CancellationToken>()))
+            .Setup(s => s.GetConfigurationByCampusAsync(nonExistentCampusId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((CheckinConfigurationDto?)null);
 
         // Act
-        var result = await _controller.GetConfiguration(campusId, null);
+        var result = await _controller.GetConfiguration(nonExistentCampusId, null);
 
         // Assert
         var notFoundResult = result.Should().BeOfType<NotFoundObjectResult>().Subject;
@@ -225,13 +221,13 @@ public class CheckinControllerTests
         {
             new()
             {
-                FamilyIdKey = "_familyIdKey",
+                FamilyIdKey = _familyIdKey,
                 FamilyName = "Doe Family",
                 Members = new List<CheckinFamilyMemberDto>
                 {
                     new()
                     {
-                        PersonIdKey = "person1",
+                        PersonIdKey = IdKeyHelper.Encode(201),
                         FullName = "John Doe",
                         FirstName = "John",
                         LastName = "Doe",
@@ -302,9 +298,9 @@ public class CheckinControllerTests
             {
                 new()
                 {
-                    PersonIdKey = "person1",
-                    LocationIdKey = "_locationIdKey",
-                    ScheduleIdKey = "schedule1",
+                    PersonIdKey = IdKeyHelper.Encode(201),
+                    LocationIdKey = _locationIdKey,
+                    ScheduleIdKey = IdKeyHelper.Encode(301),
                     GenerateSecurityCode = true
                 }
             });
@@ -314,11 +310,11 @@ public class CheckinControllerTests
             {
                 new(
                     Success: true,
-                    AttendanceIdKey: "_attendanceIdKey",
+                    AttendanceIdKey: _attendanceIdKey,
                     SecurityCode: "ABC123",
                     CheckInTime: DateTime.UtcNow,
-                    Person: new CheckinPersonSummaryDto("person1", "John Doe", "John", "Doe"),
-                    Location: new CheckinLocationSummaryDto("_locationIdKey", "Room 101", "Building A > Room 101"))
+                    Person: new CheckinPersonSummaryDto(IdKeyHelper.Encode(201), "John Doe", "John", "Doe"),
+                    Location: new CheckinLocationSummaryDto(_locationIdKey, "Room 101", "Building A > Room 101"))
             },
             SuccessCount: 1,
             FailureCount: 0,
@@ -362,8 +358,8 @@ public class CheckinControllerTests
             {
                 new()
                 {
-                    PersonIdKey = "person1",
-                    LocationIdKey = "_locationIdKey",
+                    PersonIdKey = IdKeyHelper.Encode(201),
+                    LocationIdKey = _locationIdKey,
                     GenerateSecurityCode = false
                 }
             });
@@ -399,14 +395,14 @@ public class CheckinControllerTests
             {
                 new()
                 {
-                    PersonIdKey = "person1",
-                    LocationIdKey = "_locationIdKey",
+                    PersonIdKey = IdKeyHelper.Encode(201),
+                    LocationIdKey = _locationIdKey,
                     GenerateSecurityCode = true
                 },
                 new()
                 {
-                    PersonIdKey = "person2",
-                    LocationIdKey = "_locationIdKey",
+                    PersonIdKey = IdKeyHelper.Encode(202),
+                    LocationIdKey = _locationIdKey,
                     GenerateSecurityCode = true
                 }
             });
@@ -416,11 +412,11 @@ public class CheckinControllerTests
             {
                 new(
                     Success: true,
-                    AttendanceIdKey: "_attendanceIdKey",
+                    AttendanceIdKey: _attendanceIdKey,
                     SecurityCode: "ABC123",
                     CheckInTime: DateTime.UtcNow,
-                    Person: new CheckinPersonSummaryDto("person1", "John Doe", "John", "Doe"),
-                    Location: new CheckinLocationSummaryDto("_locationIdKey", "Room 101", "Building A > Room 101")),
+                    Person: new CheckinPersonSummaryDto(IdKeyHelper.Encode(201), "John Doe", "John", "Doe"),
+                    Location: new CheckinLocationSummaryDto(_locationIdKey, "Room 101", "Building A > Room 101")),
                 new(Success: false, ErrorMessage: "Already checked in")
             },
             SuccessCount: 1,
@@ -450,13 +446,12 @@ public class CheckinControllerTests
     public async Task CheckOut_WithValidAttendanceId_ReturnsNoContent()
     {
         // Arrange
-        var attendanceIdKey = "_attendanceIdKey23";
         _attendanceServiceMock
-            .Setup(s => s.CheckOutAsync(attendanceIdKey, It.IsAny<CancellationToken>()))
+            .Setup(s => s.CheckOutAsync(_attendanceIdKey, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         // Act
-        var result = await _controller.CheckOut(attendanceIdKey);
+        var result = await _controller.CheckOut(_attendanceIdKey);
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
@@ -466,13 +461,13 @@ public class CheckinControllerTests
     public async Task CheckOut_WithNonExistentAttendance_ReturnsNotFound()
     {
         // Arrange
-        var attendanceIdKey = "nonexistent";
+        var nonExistentAttendanceIdKey = IdKeyHelper.Encode(99999);
         _attendanceServiceMock
-            .Setup(s => s.CheckOutAsync(attendanceIdKey, It.IsAny<CancellationToken>()))
+            .Setup(s => s.CheckOutAsync(nonExistentAttendanceIdKey, It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
         // Act
-        var result = await _controller.CheckOut(attendanceIdKey);
+        var result = await _controller.CheckOut(nonExistentAttendanceIdKey);
 
         // Assert
         var notFoundResult = result.Should().BeOfType<NotFoundObjectResult>().Subject;
@@ -488,10 +483,9 @@ public class CheckinControllerTests
     public async Task GetAttendanceLabels_WithValidAttendanceId_ReturnsOkWithLabels()
     {
         // Arrange
-        var attendanceIdKey = "_attendanceIdKey23";
         var expectedLabels = new LabelSetDto(
-            attendanceIdKey,
-            "person1",
+            _attendanceIdKey,
+            IdKeyHelper.Encode(201),
             new List<LabelDto>
             {
                 new(LabelType.ChildName, "ZPL content here", "ZPL", new Dictionary<string, string>
@@ -506,26 +500,26 @@ public class CheckinControllerTests
             .ReturnsAsync(expectedLabels);
 
         // Act
-        var result = await _controller.GetAttendanceLabels(attendanceIdKey);
+        var result = await _controller.GetAttendanceLabels(_attendanceIdKey);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var labels = okResult.Value.Should().BeOfType<LabelSetDto>().Subject;
         labels.Labels.Should().HaveCount(1);
-        labels.AttendanceIdKey.Should().Be(attendanceIdKey);
+        labels.AttendanceIdKey.Should().Be(_attendanceIdKey);
     }
 
     [Fact]
     public async Task GetAttendanceLabels_WithNonExistentAttendance_ReturnsNotFound()
     {
         // Arrange
-        var attendanceIdKey = "nonexistent";
+        var nonExistentAttendanceIdKey = IdKeyHelper.Encode(99999);
         _labelServiceMock
             .Setup(s => s.GenerateLabelsAsync(It.IsAny<LabelRequestDto>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Attendance not found"));
 
         // Act
-        var result = await _controller.GetAttendanceLabels(attendanceIdKey);
+        var result = await _controller.GetAttendanceLabels(nonExistentAttendanceIdKey);
 
         // Assert
         var notFoundResult = result.Should().BeOfType<NotFoundObjectResult>().Subject;
@@ -541,42 +535,40 @@ public class CheckinControllerTests
     public async Task GetLocationAttendance_WithValidLocationId_ReturnsOkWithAttendance()
     {
         // Arrange
-        var locationIdKey = "_locationIdKey23";
         var expectedAttendance = new List<AttendanceSummaryDto>
         {
             new(
-                "_attendanceIdKey",
-                new CheckinPersonSummaryDto("person1", "John Doe", "John", "Doe"),
-                new CheckinLocationSummaryDto(locationIdKey, "Room 101", "Building A > Room 101"),
+                _attendanceIdKey,
+                new CheckinPersonSummaryDto(IdKeyHelper.Encode(201), "John Doe", "John", "Doe"),
+                new CheckinLocationSummaryDto(_locationIdKey, "Room 101", "Building A > Room 101"),
                 DateTime.UtcNow.AddHours(-1),
                 SecurityCode: "ABC123")
         };
 
         _attendanceServiceMock
-            .Setup(s => s.GetCurrentAttendanceAsync(locationIdKey, It.IsAny<CancellationToken>()))
+            .Setup(s => s.GetCurrentAttendanceAsync(_locationIdKey, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedAttendance);
 
         // Act
-        var result = await _controller.GetLocationAttendance(locationIdKey);
+        var result = await _controller.GetLocationAttendance(_locationIdKey);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var attendance = okResult.Value.Should().BeAssignableTo<IReadOnlyList<AttendanceSummaryDto>>().Subject;
         attendance.Should().HaveCount(1);
-        attendance[0].Location.IdKey.Should().Be(locationIdKey);
+        attendance[0].Location.IdKey.Should().Be(_locationIdKey);
     }
 
     [Fact]
     public async Task GetLocationAttendance_WithNoAttendance_ReturnsOkWithEmptyList()
     {
         // Arrange
-        var locationIdKey = "_locationIdKey23";
         _attendanceServiceMock
-            .Setup(s => s.GetCurrentAttendanceAsync(locationIdKey, It.IsAny<CancellationToken>()))
+            .Setup(s => s.GetCurrentAttendanceAsync(_locationIdKey, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<AttendanceSummaryDto>());
 
         // Act
-        var result = await _controller.GetLocationAttendance(locationIdKey);
+        var result = await _controller.GetLocationAttendance(_locationIdKey);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
