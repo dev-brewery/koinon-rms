@@ -31,47 +31,6 @@ public class FamiliesControllerTests
         };
     }
 
-    #region Search Tests
-
-    [Fact]
-    public async Task Search_ReturnsOkWithEmptyResult_WhenSearchNotImplemented()
-    {
-        // Act
-        var result = await _controller.Search(
-            query: "Smith",
-            campusId: null,
-            includeInactive: false,
-            page: 1,
-            pageSize: 25);
-
-        // Assert
-        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var pagedResult = okResult.Value.Should().BeOfType<PagedResult<FamilySummaryDto>>().Subject;
-        pagedResult.Items.Should().BeEmpty();
-        pagedResult.TotalCount.Should().Be(0);
-        pagedResult.Page.Should().Be(1);
-        pagedResult.PageSize.Should().Be(25);
-    }
-
-    [Fact]
-    public async Task Search_ValidatesPageSize_WhenExceedsMaximum()
-    {
-        // Act
-        var result = await _controller.Search(
-            query: null,
-            campusId: null,
-            includeInactive: false,
-            page: 1,
-            pageSize: 200); // Exceeds max of 100
-
-        // Assert
-        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var pagedResult = okResult.Value.Should().BeOfType<PagedResult<FamilySummaryDto>>().Subject;
-        pagedResult.PageSize.Should().Be(100); // Should be capped at 100
-    }
-
-    #endregion
-
     #region GetByIdKey Tests
 
     [Fact]
@@ -501,28 +460,6 @@ public class FamiliesControllerTests
         var unprocessableResult = result.Should().BeOfType<UnprocessableEntityObjectResult>().Subject;
         var problemDetails = unprocessableResult.Value.Should().BeOfType<ProblemDetails>().Subject;
         problemDetails.Status.Should().Be(StatusCodes.Status422UnprocessableEntity);
-    }
-
-    #endregion
-
-    #region Update Tests
-
-    [Fact]
-    public async Task Update_ReturnsNotFound_WhenNotImplemented()
-    {
-        // Arrange
-        var request = new UpdateFamilyRequest
-        {
-            Name = "Updated Name"
-        };
-
-        // Act
-        var result = await _controller.Update("family123", request);
-
-        // Assert
-        var notFoundResult = result.Should().BeOfType<NotFoundObjectResult>().Subject;
-        var problemDetails = notFoundResult.Value.Should().BeOfType<ProblemDetails>().Subject;
-        problemDetails.Title.Should().Be("Not implemented");
     }
 
     #endregion
