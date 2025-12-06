@@ -77,7 +77,10 @@ public class CheckinDataLoader(IApplicationDbContext context, ILogger<CheckinDat
         CancellationToken ct = default)
     {
         var ids = personIds.ToList();
-        if (ids.Count == 0) return new();
+        if (ids.Count == 0)
+        {
+            return new();
+        }
 
         // SINGLE optimized query
         var result = await context.People
@@ -145,7 +148,10 @@ public class CheckinDataLoader(IApplicationDbContext context, ILogger<CheckinDat
         CancellationToken ct = default)
     {
         var ids = personIds.ToList();
-        if (ids.Count == 0) return new();
+        if (ids.Count == 0)
+        {
+            return new();
+        }
 
         // QUERY 1: Get all aliases for these people
         var personAliasIds = await context.PersonAliases
@@ -154,7 +160,10 @@ public class CheckinDataLoader(IApplicationDbContext context, ILogger<CheckinDat
             .Select(pa => pa.Id)
             .ToListAsync(ct);
 
-        if (personAliasIds.Count == 0) return new();
+        if (personAliasIds.Count == 0)
+        {
+            return new();
+        }
 
         // QUERY 2: Get all attendances for those aliases
         var attendances = await context.Attendances
@@ -216,7 +225,10 @@ public class CheckinDataLoader(IApplicationDbContext context, ILogger<CheckinDat
         CancellationToken ct = default)
     {
         var ids = familyIds.ToList();
-        if (ids.Count == 0) return new();
+        if (ids.Count == 0)
+        {
+            return new();
+        }
 
         // QUERY 1: Families with all active members and their roles
         var families = await context.Groups
