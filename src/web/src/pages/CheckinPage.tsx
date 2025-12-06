@@ -111,6 +111,11 @@ export function CheckinPage() {
   };
 
   const handleReset = () => {
+    // Clear TanStack Query cache to prevent privacy leak
+    queryClient.removeQueries({ queryKey: ['checkin-search'] });
+    queryClient.removeQueries({ queryKey: ['checkin-opportunities'] });
+    queryClient.removeQueries({ queryKey: ['checkin'] });
+
     setStep('search');
     setSearchValue('');
     setSelectedFamily(null);
