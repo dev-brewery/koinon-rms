@@ -682,4 +682,116 @@ public class CheckinSearchServiceTests : IDisposable
 
         return (family, adultRole, childRole);
     }
+
+    [Fact]
+    public async Task SearchByNameAsync_PopulatesLastCheckInDate()
+    {
+        // Arrange
+        var (family, person, _) = await CreateTestFamilyAsync("TestFamily", "John", "Doe");
+        var (attendanceCode, attendance) = await CreateTestAttendanceAsync(person);
+
+        // Act
+        var results = await _sut.SearchByNameAsync("John");
+
+        // Assert
+        results.Should().NotBeEmpty();
+        var result = results.First();
+        var member = result.Members.First(m => m.FirstName == "John");
+        member.LastCheckIn.Should().NotBeNull();
+        member.LastCheckIn.Should().BeCloseTo(attendance.StartDateTime, TimeSpan.FromSeconds(1));
+    }
+
+    [Fact]
+    public async Task SearchByNameAsync_WithNoCheckIns_LastCheckInIsNull()
+    {
+        // Arrange
+        await CreateTestFamilyAsync("TestFamily", "Jane", "Doe");
+
+        // Act
+        var results = await _sut.SearchByNameAsync("Jane");
+
+        // Assert
+        results.Should().NotBeEmpty();
+        var member = results.First().Members.First(m => m.FirstName == "Jane");
+        member.LastCheckIn.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task SearchByNameAsync_PopulatesGradeForChildren()
+    {
+        // Arrange
+        var (family, _, childRole) = await CreateTestFamilyWithRolesAsync();
+
+        // Calculate graduation year for a 5th grader
+        var currentYear = DateTime.Today.Year;
+        var currentMonth = DateTime.Today.Month;
+        var schoolYear = currentMonth >= 8 ? currentYear + 1 : currentYear;
+        var graduationYear = schoolYear + 7; // 7 years until graduation = 5th grade
+
+        var child = new Person
+        {
+            FirstName = "Billy",
+            LastName = "Doe",
+            BirthYear = DateTime.UtcNow.Year - 10,
+            BirthMonth = 1,
+            BirthDay = 1,
+            Gender = Gender.Male,
+            GraduationYear = graduationYear
+        };
+        await _context.People.AddAsync(child);
+
+        var childMember = new GroupMember
+        {
+            GroupId = family.Id,
+            PersonId = child.Id,
+            GroupRoleId = childRole.Id,
+            GroupMemberStatus = GroupMemberStatus.Active,
+            DateTimeAdded = DateTime.UtcNow
+        };
+        await _context.GroupMembers.AddAsync(childMember);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var results = await _sut.SearchByNameAsync("Doe");
+
+        // Assert
+        results.Should().NotBeEmpty();
+        var result = results.First();
+        var billyMember = result.Members.FirstOrDefault(m => m.FirstName == "Billy");
+        billyMember.Should().NotBeNull();
+        billyMember!.Grade.Should().Be("5th Grade");
+    }
+
+    [Fact]
+    public async Task SearchByNameAsync_WithoutGraduationYear_GradeIsNull()
+    {
+        // Arrange
+        await CreateTestFamilyAsync("TestFamily", "Adult", "Person");
+
+        // Act
+        var results = await _sut.SearchByNameAsync("Adult");
+
+        // Assert
+        results.Should().NotBeEmpty();
+        var member = results.First().Members.First(m => m.FirstName == "Adult");
+        member.Grade.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task SearchByNameAsync_WithGraduatedPerson_GradeShowsGraduated()
+    {
+        // Arrange
+        var (family, _, _) = await CreateTestFamilyAsync("TestFamily", "Graduate", "Person");
+        var person = family.Members.First().Person!;
+        person.GraduationYear = DateTime.Today.Year - 2; // Graduated 2 years ago
+        await _context.SaveChangesAsync();
+
+        // Act
+        var results = await _sut.SearchByNameAsync("Graduate");
+
+        // Assert
+        results.Should().NotBeEmpty();
+        var member = results.First().Members.First(m => m.FirstName == "Graduate");
+        member.Grade.Should().Be("Graduated");
+    }
 }
