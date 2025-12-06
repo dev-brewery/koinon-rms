@@ -3,6 +3,7 @@ import type {
   CheckinPersonDto,
   PersonOpportunitiesDto,
   CheckinOptionDto,
+  CurrentAttendanceDto,
 } from '@/services/api/types';
 import { createSelectionKey } from '@/utils/checkinHelpers';
 
@@ -60,7 +61,7 @@ export function FamilyMemberList({
 interface PersonCardProps {
   person: CheckinPersonDto;
   availableOptions: CheckinOptionDto[];
-  currentAttendance: any[];
+  currentAttendance: CurrentAttendanceDto[];
   selectedOptions: OpportunitySelection[];
   onSelect: (
     groupId: string,
