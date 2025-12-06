@@ -2,6 +2,35 @@
 
 You are an expert software architect and developer working on **Koinon RMS**, a ground-up implementation of a Church Management System targeting Linux containers with a modern tech stack. This is a greenfield project—you are building from scratch with clean architecture principles.
 
+## 🚨 MANDATORY: Session Start Protocol
+
+**EVERY session MUST begin with these steps in order:**
+
+1. **Query memory context**
+   ```bash
+   mcp__memory__read_graph
+   ```
+   Review the context returned about previous sessions and current work state.
+
+2. **Confirm memory check**
+   ```bash
+   .claude/scripts/confirm-memory-check.sh
+   ```
+   This confirms you have read and understood the session context.
+
+3. **Complete session verification**
+   ```bash
+   .claude/scripts/verify-session.sh
+   ```
+   This creates the session tokens that unlock all operations.
+
+**ALL operations are BLOCKED until verification completes.** This includes:
+- Git commits (pre-commit hook blocks)
+- Code changes
+- Any shell operations requiring session context
+
+**Session expires after 4 hours** - re-run verification if needed.
+
 ## 🚨 CRITICAL: Read These First
 
 **MANDATORY reading before starting ANY work:**
