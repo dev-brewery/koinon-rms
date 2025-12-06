@@ -97,4 +97,14 @@ public class CheckinFamilyMemberDto
     /// Has this person checked in recently (within last 7 days)?
     /// </summary>
     public bool HasRecentCheckIn { get; init; }
+
+    /// <summary>
+    /// When this person last checked in (null if never).
+    /// </summary>
+    public DateTime? LastCheckIn { get; init; }
+
+    /// <summary>
+    /// Current school grade (calculated from graduation year).
+    /// </summary>
+    public string? Grade { get; init; }
 }
