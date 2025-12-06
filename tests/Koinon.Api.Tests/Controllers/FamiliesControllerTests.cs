@@ -23,7 +23,7 @@ public class FamiliesControllerTests
     private readonly string _familyIdKey = IdKeyHelper.Encode(123);
     private readonly string _memberIdKey = IdKeyHelper.Encode(456);
     private readonly string _personIdKey = IdKeyHelper.Encode(789);
-    private readonly string __person2IdKeyIdKey = IdKeyHelper.Encode(790);
+    private readonly string _person2IdKey = IdKeyHelper.Encode(790);
     private readonly string _roleIdKey = IdKeyHelper.Encode(10);
     private readonly string _campusIdKey = IdKeyHelper.Encode(5);
     private readonly string _newFamilyIdKey = IdKeyHelper.Encode(999);
@@ -420,11 +420,11 @@ public class FamiliesControllerTests
     {
         // Arrange
         _familyServiceMock
-            .Setup(s => s.RemoveFamilyMemberAsync("_familyIdKey", "__person2IdKeyIdKey", It.IsAny<CancellationToken>()))
+            .Setup(s => s.RemoveFamilyMemberAsync("_familyIdKey", "_person2IdKey", It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success());
 
         // Act
-        var result = await _controller.RemoveMember("_familyIdKey", "__person2IdKeyIdKey");
+        var result = await _controller.RemoveMember("_familyIdKey", "_person2IdKey");
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
@@ -460,11 +460,11 @@ public class FamiliesControllerTests
             "Cannot remove the last member from a family");
 
         _familyServiceMock
-            .Setup(s => s.RemoveFamilyMemberAsync("_familyIdKey", "__person2IdKeyIdKey", It.IsAny<CancellationToken>()))
+            .Setup(s => s.RemoveFamilyMemberAsync("_familyIdKey", "_person2IdKey", It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Failure(error));
 
         // Act
-        var result = await _controller.RemoveMember("_familyIdKey", "__person2IdKeyIdKey");
+        var result = await _controller.RemoveMember("_familyIdKey", "_person2IdKey");
 
         // Assert
         var unprocessableResult = result.Should().BeOfType<UnprocessableEntityObjectResult>().Subject;

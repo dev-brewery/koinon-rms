@@ -15,7 +15,9 @@ public static class IdKeyValidator
     public static bool IsValid(string? idKey)
     {
         if (string.IsNullOrWhiteSpace(idKey))
+        {
             return false;
+        }
 
         return IdKeyHelper.TryDecode(idKey, out _);
     }
