@@ -188,69 +188,6 @@ public class CheckinController(
     }
 
     /// <summary>
-    /// Gets check-in opportunities for a family.
-    /// Returns available locations and schedules for each family member.
-    /// </summary>
-    /// <param name="familyIdKey">Family IdKey</param>
-    /// <param name="areaIdKey">Optional area IdKey to filter opportunities</param>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>Check-in opportunities for family members</returns>
-    /// <response code="200">Returns check-in opportunities</response>
-    /// <response code="400">Invalid IdKey format</response>
-    /// <response code="401">Missing or invalid kiosk authentication</response>
-    /// <response code="404">Family not found</response>
-    [HttpGet("family/{familyIdKey}/opportunities")]
-    [KioskAuthorize]
-    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public Task<IActionResult> GetFamilyOpportunities(
-        string familyIdKey,
-        [FromQuery] string? areaIdKey,
-        CancellationToken ct = default)
-    {
-        // Validate IdKey formats
-        if (!IdKeyValidator.IsValid(familyIdKey))
-        {
-            return Task.FromResult<IActionResult>(BadRequest(new ProblemDetails
-            {
-                Title = "Invalid request",
-                Detail = "Family IdKey must be in valid format",
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            }));
-        }
-
-        if (!string.IsNullOrWhiteSpace(areaIdKey) && !IdKeyValidator.IsValid(areaIdKey))
-        {
-            return Task.FromResult<IActionResult>(BadRequest(new ProblemDetails
-            {
-                Title = "Invalid request",
-                Detail = "Area IdKey must be in valid format",
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            }));
-        }
-
-        // Note: This endpoint needs a service method that doesn't exist yet in the interfaces.
-        // For now, returning a placeholder indicating the service needs to be implemented.
-        // The actual implementation would combine family search with area/location/schedule data.
-
-        logger.LogWarning(
-            "GetFamilyOpportunities called but service method not yet implemented: FamilyIdKey={FamilyIdKey}",
-            familyIdKey);
-
-        return Task.FromResult<IActionResult>(StatusCode(StatusCodes.Status501NotImplemented, new ProblemDetails
-        {
-            Title = "Not Implemented",
-            Detail = "This endpoint requires additional service methods to be implemented",
-            Status = StatusCodes.Status501NotImplemented,
-            Instance = HttpContext.Request.Path
-        }));
-    }
-
-    /// <summary>
     /// Records attendance (checks in) one or more people.
     /// </summary>
     /// <param name="request">Batch check-in request with person/location/schedule details</param>

@@ -2,6 +2,7 @@ using FluentAssertions;
 using Koinon.Api.Controllers;
 using Koinon.Application.DTOs;
 using Koinon.Application.Interfaces;
+using Koinon.Domain.Data;
 using Koinon.Domain.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -19,6 +20,14 @@ public class CheckinControllerTests
     private readonly Mock<ILabelGenerationService> _labelServiceMock;
     private readonly Mock<ILogger<CheckinController>> _loggerMock;
     private readonly CheckinController _controller;
+
+    // Valid IdKeys for testing (using IdKeyHelper.Encode)
+    private readonly string _campusIdKey = IdKeyHelper.Encode(123);
+    private readonly string _kioskIdKey = IdKeyHelper.Encode(456);
+    private readonly string _areaIdKey = IdKeyHelper.Encode(1);
+    private readonly string _familyIdKey = IdKeyHelper.Encode(100);
+    private readonly string _locationIdKey = IdKeyHelper.Encode(200);
+    private readonly string _attendanceIdKey = IdKeyHelper.Encode(300);
 
     public CheckinControllerTests()
     {
@@ -48,12 +57,12 @@ public class CheckinControllerTests
     public async Task GetActiveAreas_WithValidCampusId_ReturnsOkWithAreas()
     {
         // Arrange
-        var campusId = "campus123";
+        var campusId = "_campusIdKey";
         var expectedAreas = new List<CheckinAreaDto>
         {
             new()
             {
-                IdKey = "area1",
+                IdKey = "_areaIdKey",
                 Guid = Guid.NewGuid(),
                 Name = "Children's Ministry",
                 Description = "Ages 0-12",
@@ -103,7 +112,7 @@ public class CheckinControllerTests
     public async Task GetActiveAreas_WithValidCampusId_ReturnsEmptyList()
     {
         // Arrange
-        var campusId = "campus123";
+        var campusId = "_campusIdKey";
         _configServiceMock
             .Setup(s => s.GetActiveAreasAsync(campusId, null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<CheckinAreaDto>());
@@ -125,7 +134,7 @@ public class CheckinControllerTests
     public async Task GetConfiguration_WithValidCampusId_ReturnsOkWithConfig()
     {
         // Arrange
-        var campusId = "campus123";
+        var campusId = "_campusIdKey";
         var expectedConfig = new CheckinConfigurationDto
         {
             Campus = new CampusSummaryDto { IdKey = campusId, Name = "Main Campus" },
@@ -151,10 +160,10 @@ public class CheckinControllerTests
     public async Task GetConfiguration_WithValidKioskId_ReturnsOkWithConfig()
     {
         // Arrange
-        var kioskId = "kiosk456";
+        var kioskId = "_kioskIdKey";
         var expectedConfig = new CheckinConfigurationDto
         {
-            Campus = new CampusSummaryDto { IdKey = "campus123", Name = "Main Campus" },
+            Campus = new CampusSummaryDto { IdKey = "_campusIdKey", Name = "Main Campus" },
             Areas = new List<CheckinAreaDto>(),
             ActiveSchedules = new List<ScheduleDto>(),
             ServerTime = DateTime.UtcNow
@@ -216,7 +225,7 @@ public class CheckinControllerTests
         {
             new()
             {
-                FamilyIdKey = "family1",
+                FamilyIdKey = "_familyIdKey",
                 FamilyName = "Doe Family",
                 Members = new List<CheckinFamilyMemberDto>
                 {
@@ -294,7 +303,7 @@ public class CheckinControllerTests
                 new()
                 {
                     PersonIdKey = "person1",
-                    LocationIdKey = "location1",
+                    LocationIdKey = "_locationIdKey",
                     ScheduleIdKey = "schedule1",
                     GenerateSecurityCode = true
                 }
@@ -305,11 +314,11 @@ public class CheckinControllerTests
             {
                 new(
                     Success: true,
-                    AttendanceIdKey: "attendance1",
+                    AttendanceIdKey: "_attendanceIdKey",
                     SecurityCode: "ABC123",
                     CheckInTime: DateTime.UtcNow,
                     Person: new CheckinPersonSummaryDto("person1", "John Doe", "John", "Doe"),
-                    Location: new CheckinLocationSummaryDto("location1", "Room 101", "Building A > Room 101"))
+                    Location: new CheckinLocationSummaryDto("_locationIdKey", "Room 101", "Building A > Room 101"))
             },
             SuccessCount: 1,
             FailureCount: 0,
@@ -354,7 +363,7 @@ public class CheckinControllerTests
                 new()
                 {
                     PersonIdKey = "person1",
-                    LocationIdKey = "location1",
+                    LocationIdKey = "_locationIdKey",
                     GenerateSecurityCode = false
                 }
             });
@@ -391,13 +400,13 @@ public class CheckinControllerTests
                 new()
                 {
                     PersonIdKey = "person1",
-                    LocationIdKey = "location1",
+                    LocationIdKey = "_locationIdKey",
                     GenerateSecurityCode = true
                 },
                 new()
                 {
                     PersonIdKey = "person2",
-                    LocationIdKey = "location1",
+                    LocationIdKey = "_locationIdKey",
                     GenerateSecurityCode = true
                 }
             });
@@ -407,11 +416,11 @@ public class CheckinControllerTests
             {
                 new(
                     Success: true,
-                    AttendanceIdKey: "attendance1",
+                    AttendanceIdKey: "_attendanceIdKey",
                     SecurityCode: "ABC123",
                     CheckInTime: DateTime.UtcNow,
                     Person: new CheckinPersonSummaryDto("person1", "John Doe", "John", "Doe"),
-                    Location: new CheckinLocationSummaryDto("location1", "Room 101", "Building A > Room 101")),
+                    Location: new CheckinLocationSummaryDto("_locationIdKey", "Room 101", "Building A > Room 101")),
                 new(Success: false, ErrorMessage: "Already checked in")
             },
             SuccessCount: 1,
@@ -441,7 +450,7 @@ public class CheckinControllerTests
     public async Task CheckOut_WithValidAttendanceId_ReturnsNoContent()
     {
         // Arrange
-        var attendanceIdKey = "attendance123";
+        var attendanceIdKey = "_attendanceIdKey23";
         _attendanceServiceMock
             .Setup(s => s.CheckOutAsync(attendanceIdKey, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
@@ -479,7 +488,7 @@ public class CheckinControllerTests
     public async Task GetAttendanceLabels_WithValidAttendanceId_ReturnsOkWithLabels()
     {
         // Arrange
-        var attendanceIdKey = "attendance123";
+        var attendanceIdKey = "_attendanceIdKey23";
         var expectedLabels = new LabelSetDto(
             attendanceIdKey,
             "person1",
@@ -532,11 +541,11 @@ public class CheckinControllerTests
     public async Task GetLocationAttendance_WithValidLocationId_ReturnsOkWithAttendance()
     {
         // Arrange
-        var locationIdKey = "location123";
+        var locationIdKey = "_locationIdKey23";
         var expectedAttendance = new List<AttendanceSummaryDto>
         {
             new(
-                "attendance1",
+                "_attendanceIdKey",
                 new CheckinPersonSummaryDto("person1", "John Doe", "John", "Doe"),
                 new CheckinLocationSummaryDto(locationIdKey, "Room 101", "Building A > Room 101"),
                 DateTime.UtcNow.AddHours(-1),
@@ -561,7 +570,7 @@ public class CheckinControllerTests
     public async Task GetLocationAttendance_WithNoAttendance_ReturnsOkWithEmptyList()
     {
         // Arrange
-        var locationIdKey = "location123";
+        var locationIdKey = "_locationIdKey23";
         _attendanceServiceMock
             .Setup(s => s.GetCurrentAttendanceAsync(locationIdKey, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<AttendanceSummaryDto>());

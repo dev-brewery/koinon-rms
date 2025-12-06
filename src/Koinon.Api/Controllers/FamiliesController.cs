@@ -1,3 +1,4 @@
+using Koinon.Api.Helpers;
 using Koinon.Application.Common;
 using Koinon.Application.DTOs;
 using Koinon.Application.DTOs.Requests;
@@ -31,6 +32,17 @@ public class FamiliesController(
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetByIdKey(string idKey, CancellationToken ct = default)
     {
+        if (!IdKeyValidator.IsValid(idKey))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid IdKey format",
+                Detail = IdKeyValidator.GetErrorMessage("idKey"),
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
         var family = await familyService.GetByIdKeyAsync(idKey, ct);
 
         if (family == null)
@@ -62,6 +74,17 @@ public class FamiliesController(
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetMembers(string idKey, CancellationToken ct = default)
     {
+        if (!IdKeyValidator.IsValid(idKey))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid IdKey format",
+                Detail = IdKeyValidator.GetErrorMessage("idKey"),
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
         var family = await familyService.GetByIdKeyAsync(idKey, ct);
 
         if (family == null)
@@ -161,6 +184,17 @@ public class FamiliesController(
         [FromBody] AddFamilyMemberRequest request,
         CancellationToken ct = default)
     {
+        if (!IdKeyValidator.IsValid(idKey))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid IdKey format",
+                Detail = IdKeyValidator.GetErrorMessage("idKey"),
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
         var result = await familyService.AddFamilyMemberAsync(idKey, request, ct);
 
         if (result.IsFailure)
@@ -229,6 +263,28 @@ public class FamiliesController(
         string personIdKey,
         CancellationToken ct = default)
     {
+        if (!IdKeyValidator.IsValid(idKey))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid IdKey format",
+                Detail = IdKeyValidator.GetErrorMessage("idKey"),
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        if (!IdKeyValidator.IsValid(personIdKey))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid IdKey format",
+                Detail = IdKeyValidator.GetErrorMessage("personIdKey"),
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
         var result = await familyService.RemoveFamilyMemberAsync(idKey, personIdKey, ct);
 
         if (result.IsFailure)
