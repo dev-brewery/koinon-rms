@@ -38,8 +38,9 @@ builder.Services.AddDbContext<KoinonDbContext>(options =>
 });
 
 // Configure JWT Authentication
-var jwtSecret = builder.Configuration["Jwt:Secret"]
-    ?? throw new InvalidOperationException("JWT Secret not configured");
+var jwtSecret = builder.Configuration["Jwt:Secret"]?.Trim();
+if (string.IsNullOrEmpty(jwtSecret))
+    throw new InvalidOperationException("JWT Secret not configured. Set Jwt:Secret in appsettings.Development.json or environment variable.");
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "Koinon.Api";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "Koinon.Web";
 
@@ -59,7 +60,7 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = jwtIssuer,
         ValidAudience = jwtAudience,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
-        ClockSkew = TimeSpan.FromSeconds(60) // 60 second tolerance for clock drift
+        ClockSkew = TimeSpan.FromSeconds(30) // 30 second tolerance for clock drift
     };
 });
 

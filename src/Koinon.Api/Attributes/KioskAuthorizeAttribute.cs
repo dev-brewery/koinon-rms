@@ -22,6 +22,6 @@ public class KioskAuthorizeAttribute : Attribute, IAuthorizationFilter
                 Status = StatusCodes.Status401Unauthorized
             });
         }
-        // TODO(#TBD): Validate token against registered kiosks in database
+        // TODO(#41): Validate token against registered kiosks in database
     }
 }

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   KioskLayout,
   PhoneSearch,
@@ -26,6 +27,9 @@ const IDLE_CONFIG = {
 };
 
 export function CheckinPage() {
+  // Query client for cache management
+  const queryClient = useQueryClient();
+
   // State
   const [step, setStep] = useState<CheckinStep>('search');
   const [searchMode, setSearchMode] = useState<SearchMode>('phone');
