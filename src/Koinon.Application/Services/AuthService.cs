@@ -150,13 +150,17 @@ public class AuthService(
     private async Task<bool> ValidatePasswordAsync(Person person, string password, CancellationToken ct = default)
     {
         if (string.IsNullOrEmpty(person.PasswordHash))
+        {
             return false;
+        }
 
         try
         {
             var combined = Convert.FromBase64String(person.PasswordHash);
             if (combined.Length < 48) // 16 salt + 32 hash minimum
+            {
                 return false;
+            }
 
             var salt = new byte[16];
             var storedHash = new byte[combined.Length - 16];
@@ -337,13 +341,17 @@ public class AuthService(
     private static int? CalculateAge(DateOnly? birthDate)
     {
         if (!birthDate.HasValue)
+        {
             return null;
+        }
 
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var age = today.Year - birthDate.Value.Year;
 
         if (birthDate.Value.AddYears(age) > today)
+        {
             age--;
+        }
 
         return age;
     }
