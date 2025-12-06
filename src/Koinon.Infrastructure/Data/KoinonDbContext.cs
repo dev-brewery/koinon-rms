@@ -41,6 +41,9 @@ public class KoinonDbContext : DbContext, IApplicationDbContext
     public DbSet<AttendanceOccurrence> AttendanceOccurrences { get; set; } = null!;
     public DbSet<AttendanceCode> AttendanceCodes { get; set; } = null!;
 
+    // Authentication entities
+    public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

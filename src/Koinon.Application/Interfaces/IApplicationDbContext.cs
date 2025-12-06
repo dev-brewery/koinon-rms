@@ -25,6 +25,7 @@ public interface IApplicationDbContext
     DbSet<Attendance> Attendances { get; }
     DbSet<AttendanceOccurrence> AttendanceOccurrences { get; }
     DbSet<AttendanceCode> AttendanceCodes { get; }
+    DbSet<RefreshToken> RefreshTokens { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     EntityEntry<TEntity> Entry<TEntity>(TEntity entity) where TEntity : class;

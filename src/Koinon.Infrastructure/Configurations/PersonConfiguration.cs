@@ -102,6 +102,11 @@ public class PersonConfiguration : IEntityTypeConfiguration<Person>
         builder.Property(p => p.PhotoId)
             .HasColumnName("photo_id");
 
+        // Password hash
+        builder.Property(p => p.PasswordHash)
+            .HasColumnName("password_hash")
+            .HasMaxLength(512); // Base64 encoded hash with salt
+
         // Birth date components
         builder.Property(p => p.BirthDay)
             .HasColumnName("birth_day");
