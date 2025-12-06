@@ -93,11 +93,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const response = await authApi.refresh(token);
 
-      // Get current refresh token again since it might have changed
-      const currentToken = getRefreshToken();
-      if (currentToken) {
-        setTokens(response.accessToken, currentToken);
-      }
+      // Store the new tokens from the response (token rotation)
+      setTokens(response.accessToken, response.refreshToken);
 
       // Token refreshed successfully, but we need user info
       // For now, mark as authenticated but user data will be fetched separately
@@ -157,6 +154,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
  * Use authentication context
  * Must be used within AuthProvider
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuthContext() {
   const context = useContext(AuthContext);
 

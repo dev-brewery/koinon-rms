@@ -86,6 +86,7 @@ export interface RefreshRequest {
 
 export interface RefreshResponse {
   accessToken: string;
+  refreshToken: string;  // Backend rotates tokens
   expiresAt: DateTime;
 }
 

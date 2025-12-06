@@ -1,3 +1,5 @@
+using Koinon.Api.Attributes;
+using Koinon.Api.Helpers;
 using Koinon.Application.DTOs;
 using Koinon.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -28,20 +30,22 @@ public class CheckinController(
     /// <returns>List of active check-in areas</returns>
     /// <response code="200">Returns list of active check-in areas</response>
     /// <response code="400">Invalid campus IdKey</response>
+    /// <response code="401">Missing or invalid kiosk authentication</response>
     [HttpGet("areas")]
-    [AllowAnonymous] // Kiosk mode doesn't require authentication
+    [KioskAuthorize]
     [ProducesResponseType(typeof(List<CheckinAreaDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetActiveAreas(
         [FromQuery] string campusId,
         CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(campusId))
+        if (string.IsNullOrWhiteSpace(campusId) || !IdKeyValidator.IsValid(campusId))
         {
             return BadRequest(new ProblemDetails
             {
                 Title = "Invalid request",
-                Detail = "Campus IdKey is required",
+                Detail = "Campus IdKey is required and must be in valid format",
                 Status = StatusCodes.Status400BadRequest,
                 Instance = HttpContext.Request.Path
             });
@@ -65,11 +69,13 @@ public class CheckinController(
     /// <returns>Check-in configuration</returns>
     /// <response code="200">Returns check-in configuration</response>
     /// <response code="400">Neither campusId nor kioskId provided</response>
+    /// <response code="401">Missing or invalid kiosk authentication</response>
     /// <response code="404">Campus or kiosk not found</response>
     [HttpGet("configuration")]
-    [AllowAnonymous] // Kiosk mode doesn't require authentication
+    [KioskAuthorize]
     [ProducesResponseType(typeof(CheckinConfigurationDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetConfiguration(
         [FromQuery] string? campusId,
@@ -82,6 +88,29 @@ public class CheckinController(
             {
                 Title = "Invalid request",
                 Detail = "Either campusId or kioskId must be provided",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        // Validate IdKey formats
+        if (!string.IsNullOrWhiteSpace(campusId) && !IdKeyValidator.IsValid(campusId))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid request",
+                Detail = "Campus IdKey must be in valid format",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        if (!string.IsNullOrWhiteSpace(kioskId) && !IdKeyValidator.IsValid(kioskId))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid request",
+                Detail = "Kiosk IdKey must be in valid format",
                 Status = StatusCodes.Status400BadRequest,
                 Instance = HttpContext.Request.Path
             });
@@ -127,10 +156,12 @@ public class CheckinController(
     /// <returns>List of matching families</returns>
     /// <response code="200">Returns list of matching families</response>
     /// <response code="400">Invalid or missing search query</response>
+    /// <response code="401">Missing or invalid kiosk authentication</response>
     [HttpGet("search")]
-    [AllowAnonymous] // Kiosk mode doesn't require authentication
+    [KioskAuthorize]
     [ProducesResponseType(typeof(List<CheckinFamilySearchResultDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> SearchFamilies(
         [FromQuery] string query,
         CancellationToken ct = default)
@@ -157,42 +188,6 @@ public class CheckinController(
     }
 
     /// <summary>
-    /// Gets check-in opportunities for a family.
-    /// Returns available locations and schedules for each family member.
-    /// </summary>
-    /// <param name="familyIdKey">Family IdKey</param>
-    /// <param name="areaIdKey">Optional area IdKey to filter opportunities</param>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>Check-in opportunities for family members</returns>
-    /// <response code="200">Returns check-in opportunities</response>
-    /// <response code="404">Family not found</response>
-    [HttpGet("family/{familyIdKey}/opportunities")]
-    [AllowAnonymous] // Kiosk mode doesn't require authentication
-    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public Task<IActionResult> GetFamilyOpportunities(
-        string familyIdKey,
-        [FromQuery] string? areaIdKey,
-        CancellationToken ct = default)
-    {
-        // Note: This endpoint needs a service method that doesn't exist yet in the interfaces.
-        // For now, returning a placeholder indicating the service needs to be implemented.
-        // The actual implementation would combine family search with area/location/schedule data.
-
-        logger.LogWarning(
-            "GetFamilyOpportunities called but service method not yet implemented: FamilyIdKey={FamilyIdKey}",
-            familyIdKey);
-
-        return Task.FromResult<IActionResult>(StatusCode(StatusCodes.Status501NotImplemented, new ProblemDetails
-        {
-            Title = "Not Implemented",
-            Detail = "This endpoint requires additional service methods to be implemented",
-            Status = StatusCodes.Status501NotImplemented,
-            Instance = HttpContext.Request.Path
-        }));
-    }
-
-    /// <summary>
     /// Records attendance (checks in) one or more people.
     /// </summary>
     /// <param name="request">Batch check-in request with person/location/schedule details</param>
@@ -200,11 +195,13 @@ public class CheckinController(
     /// <returns>Check-in results with attendance records and security codes</returns>
     /// <response code="201">Check-in successful</response>
     /// <response code="400">Validation failed</response>
+    /// <response code="401">Missing or invalid kiosk authentication</response>
     /// <response code="422">Business rule violation (duplicate check-in, capacity, etc.)</response>
     [HttpPost("attendance")]
-    [AllowAnonymous] // Kiosk mode doesn't require authentication
+    [KioskAuthorize]
     [ProducesResponseType(typeof(BatchCheckinResultDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> RecordAttendance(
         [FromBody] BatchCheckinRequestDto request,
@@ -261,13 +258,28 @@ public class CheckinController(
     /// <param name="ct">Cancellation token</param>
     /// <returns>No content on success</returns>
     /// <response code="204">Check-out successful</response>
+    /// <response code="400">Invalid IdKey format</response>
+    /// <response code="401">Missing or invalid kiosk authentication</response>
     /// <response code="404">Attendance record not found</response>
     [HttpPost("checkout/{attendanceIdKey}")]
-    [AllowAnonymous] // Kiosk mode doesn't require authentication
+    [KioskAuthorize]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> CheckOut(string attendanceIdKey, CancellationToken ct = default)
     {
+        if (!IdKeyValidator.IsValid(attendanceIdKey))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid request",
+                Detail = "Attendance IdKey must be in valid format",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
         var success = await attendanceService.CheckOutAsync(attendanceIdKey, ct);
 
         if (!success)
@@ -295,13 +307,28 @@ public class CheckinController(
     /// <param name="ct">Cancellation token</param>
     /// <returns>Label data for printing</returns>
     /// <response code="200">Returns label data</response>
+    /// <response code="400">Invalid IdKey format</response>
+    /// <response code="401">Missing or invalid kiosk authentication</response>
     /// <response code="404">Attendance record not found</response>
     [HttpGet("labels/{attendanceIdKey}")]
-    [AllowAnonymous] // Kiosk mode doesn't require authentication
+    [KioskAuthorize]
     [ProducesResponseType(typeof(LabelSetDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetAttendanceLabels(string attendanceIdKey, CancellationToken ct = default)
     {
+        if (!IdKeyValidator.IsValid(attendanceIdKey))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid request",
+                Detail = "Attendance IdKey must be in valid format",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
         var request = new LabelRequestDto
         {
             AttendanceIdKey = attendanceIdKey
@@ -342,12 +369,25 @@ public class CheckinController(
     /// <param name="ct">Cancellation token</param>
     /// <returns>List of current attendance records</returns>
     /// <response code="200">Returns current attendance</response>
+    /// <response code="400">Invalid IdKey format</response>
     [HttpGet("locations/{locationIdKey}/attendance")]
     [ProducesResponseType(typeof(List<AttendanceSummaryDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetLocationAttendance(
         string locationIdKey,
         CancellationToken ct = default)
     {
+        if (!IdKeyValidator.IsValid(locationIdKey))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid request",
+                Detail = "Location IdKey must be in valid format",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
         var attendance = await attendanceService.GetCurrentAttendanceAsync(locationIdKey, ct);
 
         logger.LogInformation(

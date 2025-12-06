@@ -4,6 +4,7 @@ using Koinon.Application.Common;
 using Koinon.Application.DTOs;
 using Koinon.Application.DTOs.Requests;
 using Koinon.Application.Interfaces;
+using Koinon.Domain.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -17,6 +18,15 @@ public class PeopleControllerTests
     private readonly Mock<IPersonService> _personServiceMock;
     private readonly Mock<ILogger<PeopleController>> _loggerMock;
     private readonly PeopleController _controller;
+
+    // Valid IdKeys for testing (using IdKeyHelper.Encode)
+    private readonly string _personIdKey = IdKeyHelper.Encode(123);
+    private readonly string _person2IdKey = IdKeyHelper.Encode(456);
+    private readonly string _familyIdKey = IdKeyHelper.Encode(100);
+    private readonly string _campusIdKey = IdKeyHelper.Encode(5);
+    private readonly string _statusIdKey = IdKeyHelper.Encode(10);
+    private readonly string _connectionStatusIdKey = IdKeyHelper.Encode(20);
+    private readonly string _newPersonIdKey = IdKeyHelper.Encode(999);
 
     public PeopleControllerTests()
     {
@@ -40,8 +50,8 @@ public class PeopleControllerTests
         var expectedResult = new PagedResult<PersonSummaryDto>(
             new List<PersonSummaryDto>
             {
-                new() { IdKey = "test1", FirstName = "John", LastName = "Doe", FullName = "John Doe", Gender = "Male" },
-                new() { IdKey = "test2", FirstName = "Jane", LastName = "Smith", FullName = "Jane Smith", Gender = "Female" }
+                new() { IdKey = _personIdKey, FirstName = "John", LastName = "Doe", FullName = "John Doe", Gender = "Male" },
+                new() { IdKey = _person2IdKey, FirstName = "Jane", LastName = "Smith", FullName = "Jane Smith", Gender = "Female" }
             },
             totalCount: 2,
             page: 1,
@@ -91,9 +101,9 @@ public class PeopleControllerTests
         // Act
         await _controller.Search(
             query: "test",
-            campusId: "campus123",
-            recordStatusId: "status456",
-            connectionStatusId: "conn789",
+            campusId: _campusIdKey,
+            recordStatusId: _statusIdKey,
+            connectionStatusId: _connectionStatusIdKey,
             includeInactive: true,
             page: 2,
             pageSize: 50);
@@ -101,9 +111,9 @@ public class PeopleControllerTests
         // Assert
         capturedParameters.Should().NotBeNull();
         capturedParameters!.Query.Should().Be("test");
-        capturedParameters.CampusId.Should().Be("campus123");
-        capturedParameters.RecordStatusId.Should().Be("status456");
-        capturedParameters.ConnectionStatusId.Should().Be("conn789");
+        capturedParameters.CampusId.Should().Be(_campusIdKey);
+        capturedParameters.RecordStatusId.Should().Be(_statusIdKey);
+        capturedParameters.ConnectionStatusId.Should().Be(_connectionStatusIdKey);
         capturedParameters.IncludeInactive.Should().BeTrue();
         capturedParameters.Page.Should().Be(2);
         capturedParameters.PageSize.Should().Be(50);
@@ -119,7 +129,7 @@ public class PeopleControllerTests
         // Arrange
         var expectedPerson = new PersonDto
         {
-            IdKey = "test123",
+            IdKey = _personIdKey,
             Guid = Guid.NewGuid(),
             FirstName = "John",
             LastName = "Doe",
@@ -131,16 +141,16 @@ public class PeopleControllerTests
         };
 
         _personServiceMock
-            .Setup(s => s.GetByIdKeyAsync("test123", It.IsAny<CancellationToken>()))
+            .Setup(s => s.GetByIdKeyAsync(_personIdKey, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedPerson);
 
         // Act
-        var result = await _controller.GetByIdKey("test123");
+        var result = await _controller.GetByIdKey(_personIdKey);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var person = okResult.Value.Should().BeOfType<PersonDto>().Subject;
-        person.IdKey.Should().Be("test123");
+        person.IdKey.Should().Be(_personIdKey);
         person.FullName.Should().Be("John Doe");
     }
 
@@ -148,18 +158,19 @@ public class PeopleControllerTests
     public async Task GetByIdKey_WithNonExistentPerson_ReturnsNotFound()
     {
         // Arrange
+        var nonExistentIdKey = IdKeyHelper.Encode(99999);
         _personServiceMock
-            .Setup(s => s.GetByIdKeyAsync("nonexistent", It.IsAny<CancellationToken>()))
+            .Setup(s => s.GetByIdKeyAsync(nonExistentIdKey, It.IsAny<CancellationToken>()))
             .ReturnsAsync((PersonDto?)null);
 
         // Act
-        var result = await _controller.GetByIdKey("nonexistent");
+        var result = await _controller.GetByIdKey(nonExistentIdKey);
 
         // Assert
         var notFoundResult = result.Should().BeOfType<NotFoundObjectResult>().Subject;
         var problemDetails = notFoundResult.Value.Should().BeOfType<ProblemDetails>().Subject;
         problemDetails.Status.Should().Be(StatusCodes.Status404NotFound);
-        problemDetails.Detail.Should().Contain("nonexistent");
+        problemDetails.Detail.Should().Contain(nonExistentIdKey);
     }
 
     #endregion
@@ -179,7 +190,7 @@ public class PeopleControllerTests
 
         var createdPerson = new PersonDto
         {
-            IdKey = "new123",
+            IdKey = _newPersonIdKey,
             Guid = Guid.NewGuid(),
             FirstName = "John",
             LastName = "Doe",
@@ -202,10 +213,10 @@ public class PeopleControllerTests
         var createdResult = result.Should().BeOfType<CreatedAtActionResult>().Subject;
         createdResult.ActionName.Should().Be(nameof(PeopleController.GetByIdKey));
         createdResult.RouteValues.Should().ContainKey("idKey");
-        createdResult.RouteValues!["idKey"].Should().Be("new123");
+        createdResult.RouteValues!["idKey"].Should().Be(_newPersonIdKey);
 
         var person = createdResult.Value.Should().BeOfType<PersonDto>().Subject;
-        person.IdKey.Should().Be("new123");
+        person.IdKey.Should().Be(_newPersonIdKey);
         person.FullName.Should().Be("John Doe");
     }
 
@@ -283,7 +294,7 @@ public class PeopleControllerTests
 
         var updatedPerson = new PersonDto
         {
-            IdKey = "test123",
+            IdKey = _personIdKey,
             Guid = Guid.NewGuid(),
             FirstName = "John Updated",
             LastName = "Doe",
@@ -297,16 +308,16 @@ public class PeopleControllerTests
         };
 
         _personServiceMock
-            .Setup(s => s.UpdateAsync("test123", request, It.IsAny<CancellationToken>()))
+            .Setup(s => s.UpdateAsync(_personIdKey, request, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<PersonDto>.Success(updatedPerson));
 
         // Act
-        var result = await _controller.Update("test123", request);
+        var result = await _controller.Update(_personIdKey, request);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var person = okResult.Value.Should().BeOfType<PersonDto>().Subject;
-        person.IdKey.Should().Be("test123");
+        person.IdKey.Should().Be(_personIdKey);
         person.FirstName.Should().Be("John Updated");
         person.ModifiedDateTime.Should().NotBeNull();
     }
@@ -315,19 +326,20 @@ public class PeopleControllerTests
     public async Task Update_WithNonExistentPerson_ReturnsNotFound()
     {
         // Arrange
+        var nonExistentIdKey = IdKeyHelper.Encode(99999);
         var request = new UpdatePersonRequest
         {
             FirstName = "John"
         };
 
-        var error = Error.NotFound("Person", "nonexistent");
+        var error = Error.NotFound("Person", nonExistentIdKey);
 
         _personServiceMock
-            .Setup(s => s.UpdateAsync("nonexistent", request, It.IsAny<CancellationToken>()))
+            .Setup(s => s.UpdateAsync(nonExistentIdKey, request, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<PersonDto>.Failure(error));
 
         // Act
-        var result = await _controller.Update("nonexistent", request);
+        var result = await _controller.Update(nonExistentIdKey, request);
 
         // Assert
         var notFoundResult = result.Should().BeOfType<NotFoundObjectResult>().Subject;
@@ -354,11 +366,11 @@ public class PeopleControllerTests
         );
 
         _personServiceMock
-            .Setup(s => s.UpdateAsync("test123", request, It.IsAny<CancellationToken>()))
+            .Setup(s => s.UpdateAsync(_personIdKey, request, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<PersonDto>.Failure(error));
 
         // Act
-        var result = await _controller.Update("test123", request);
+        var result = await _controller.Update(_personIdKey, request);
 
         // Assert
         var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
@@ -374,11 +386,11 @@ public class PeopleControllerTests
     {
         // Arrange
         _personServiceMock
-            .Setup(s => s.DeleteAsync("test123", It.IsAny<CancellationToken>()))
+            .Setup(s => s.DeleteAsync(_personIdKey, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success());
 
         // Act
-        var result = await _controller.Delete("test123");
+        var result = await _controller.Delete(_personIdKey);
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
@@ -388,14 +400,15 @@ public class PeopleControllerTests
     public async Task Delete_WithNonExistentPerson_ReturnsNotFound()
     {
         // Arrange
-        var error = Error.NotFound("Person", "nonexistent");
+        var nonExistentIdKey = IdKeyHelper.Encode(99999);
+        var error = Error.NotFound("Person", nonExistentIdKey);
 
         _personServiceMock
-            .Setup(s => s.DeleteAsync("nonexistent", It.IsAny<CancellationToken>()))
+            .Setup(s => s.DeleteAsync(nonExistentIdKey, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Failure(error));
 
         // Act
-        var result = await _controller.Delete("nonexistent");
+        var result = await _controller.Delete(nonExistentIdKey);
 
         // Assert
         var notFoundResult = result.Should().BeOfType<NotFoundObjectResult>().Subject;
@@ -410,11 +423,11 @@ public class PeopleControllerTests
         var error = Error.UnprocessableEntity("Cannot delete person with active attendance");
 
         _personServiceMock
-            .Setup(s => s.DeleteAsync("test123", It.IsAny<CancellationToken>()))
+            .Setup(s => s.DeleteAsync(_personIdKey, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Failure(error));
 
         // Act
-        var result = await _controller.Delete("test123");
+        var result = await _controller.Delete(_personIdKey);
 
         // Assert
         var unprocessableResult = result.Should().BeOfType<UnprocessableEntityObjectResult>().Subject;
@@ -432,22 +445,22 @@ public class PeopleControllerTests
         // Arrange
         var expectedFamily = new FamilySummaryDto
         {
-            IdKey = "family123",
+            IdKey = _familyIdKey,
             Name = "Doe Family",
             MemberCount = 4
         };
 
         _personServiceMock
-            .Setup(s => s.GetFamilyAsync("test123", It.IsAny<CancellationToken>()))
+            .Setup(s => s.GetFamilyAsync(_personIdKey, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedFamily);
 
         // Act
-        var result = await _controller.GetFamily("test123");
+        var result = await _controller.GetFamily(_personIdKey);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var family = okResult.Value.Should().BeOfType<FamilySummaryDto>().Subject;
-        family.IdKey.Should().Be("family123");
+        family.IdKey.Should().Be(_familyIdKey);
         family.Name.Should().Be("Doe Family");
         family.MemberCount.Should().Be(4);
     }
@@ -457,17 +470,17 @@ public class PeopleControllerTests
     {
         // Arrange
         _personServiceMock
-            .Setup(s => s.GetFamilyAsync("test123", It.IsAny<CancellationToken>()))
+            .Setup(s => s.GetFamilyAsync(_personIdKey, It.IsAny<CancellationToken>()))
             .ReturnsAsync((FamilySummaryDto?)null);
 
         // Act
-        var result = await _controller.GetFamily("test123");
+        var result = await _controller.GetFamily(_personIdKey);
 
         // Assert
         var notFoundResult = result.Should().BeOfType<NotFoundObjectResult>().Subject;
         var problemDetails = notFoundResult.Value.Should().BeOfType<ProblemDetails>().Subject;
         problemDetails.Status.Should().Be(StatusCodes.Status404NotFound);
-        problemDetails.Detail.Should().Contain("test123");
+        problemDetails.Detail.Should().Contain(_personIdKey);
     }
 
     #endregion
