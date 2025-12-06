@@ -1,9 +1,9 @@
+using System.Security.Cryptography;
 using Koinon.Application.Interfaces;
 using Koinon.Domain.Data;
 using Koinon.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Security.Cryptography;
 
 namespace Koinon.Application.Services.Common;
 
@@ -269,7 +269,9 @@ public class ConcurrentOperationHelper(IApplicationDbContext context, ILogger<Co
     {
         var innerException = ex.InnerException;
         if (innerException == null)
+        {
             return false;
+        }
 
         // Check for PostgreSQL unique violation via reflection
         var exceptionType = innerException.GetType();
@@ -280,7 +282,9 @@ public class ConcurrentOperationHelper(IApplicationDbContext context, ILogger<Co
             {
                 var sqlState = sqlStateProperty.GetValue(innerException) as string;
                 if (sqlState == "23505") // UNIQUE_VIOLATION
+                {
                     return true;
+                }
             }
         }
 

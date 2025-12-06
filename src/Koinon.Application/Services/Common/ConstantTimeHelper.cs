@@ -71,11 +71,15 @@ public static class ConstantTimeHelper
     {
         // Quick out for null references (both must be same)
         if (ReferenceEquals(a, b))
+        {
             return true;
+        }
 
         // If either is null but not both, they're not equal
         if (a == null || b == null)
+        {
             return false;
+        }
 
         // XOR all bytes - result is zero only if all bytes match
         int result = a.Length ^ b.Length;
