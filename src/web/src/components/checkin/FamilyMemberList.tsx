@@ -5,6 +5,13 @@ import type {
   CheckinOptionDto,
 } from '@/services/api/types';
 
+/**
+ * Creates a unique key for identifying a specific opportunity selection.
+ * Used for consistent selection matching across the component.
+ */
+const createSelectionKey = (groupId: string, locationId: string, scheduleId: string): string =>
+  `${groupId}|${locationId}|${scheduleId}`;
+
 export interface OpportunitySelection {
   groupId: string;
   locationId: string;
@@ -149,11 +156,9 @@ function PersonCard({
                 location.schedules
                   .filter((schedule) => schedule.isSelected)
                   .map((schedule) => {
+                    const selectionKey = createSelectionKey(option.groupIdKey, location.locationIdKey, schedule.scheduleIdKey);
                     const isSelected = selectedOptions.some(
-                      (sel) =>
-                        sel.groupId === option.groupIdKey &&
-                        sel.locationId === location.locationIdKey &&
-                        sel.scheduleId === schedule.scheduleIdKey
+                      (sel) => createSelectionKey(sel.groupId, sel.locationId, sel.scheduleId) === selectionKey
                     );
 
                     return (
@@ -170,6 +175,7 @@ function PersonCard({
                             schedule.startTime
                           )
                         }
+                        aria-label={`${isSelected ? 'Uncheck' : 'Check'} ${option.groupName} at ${location.locationName}, ${schedule.startTime}`}
                         className={`w-full text-left p-4 rounded-lg border-2 transition-all min-h-[64px] ${
                           isSelected
                             ? 'border-blue-600 bg-blue-50'

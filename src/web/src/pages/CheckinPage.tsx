@@ -7,7 +7,7 @@ import {
   CheckinConfirmation,
   IdleWarningModal,
 } from '@/components/checkin';
-import type { OpportunitySelection } from '@/components/checkin/FamilyMemberList';
+import type { OpportunitySelection } from '@/components/checkin';
 import { Button, Card } from '@/components/ui';
 import {
   useCheckinSearch,
@@ -25,6 +25,26 @@ const IDLE_CONFIG = {
   timeout: 60 * 1000, // 60 seconds total
   warningTime: 50 * 1000, // Warning at 50 seconds (10s countdown)
 };
+
+/**
+ * Helper to get total count of selected activities across all people.
+ * Centralizes logic used in both UI display and check-in submission.
+ */
+const getTotalActivitiesCount = (selectedCheckins: Map<string, OpportunitySelection[]>): number => {
+  let count = 0;
+  selectedCheckins.forEach((selections) => {
+    if (Array.isArray(selections)) {
+      count += selections.length;
+    }
+  });
+  return count;
+};
+
+/**
+ * Creates a unique key for identifying a specific opportunity selection.
+ */
+const createSelectionKey = (groupId: string, locationId: string, scheduleId: string): string =>
+  `${groupId}|${locationId}|${scheduleId}`;
 
 export function CheckinPage() {
   // State
@@ -81,12 +101,10 @@ export function CheckinPage() {
     const newSelected = new Map(selectedCheckins);
     const existingSelections = newSelected.get(personId) || [];
 
-    // Check if this opportunity is already selected
+    // Check if this opportunity is already selected using consistent key
+    const selectionKey = createSelectionKey(groupId, locationId, scheduleId);
     const selectionIndex = existingSelections.findIndex(
-      (sel) =>
-        sel.groupId === groupId &&
-        sel.locationId === locationId &&
-        sel.scheduleId === scheduleId
+      (sel) => createSelectionKey(sel.groupId, sel.locationId, sel.scheduleId) === selectionKey
     );
 
     if (selectionIndex >= 0) {
@@ -293,7 +311,7 @@ export function CheckinPage() {
                   size="lg"
                   className="w-full text-xl"
                 >
-                  Check In {selectedCheckins.size > 0 && `(${Array.from(selectedCheckins.values()).reduce((sum, selections) => sum + selections.length, 0)} activities)`}
+                  Check In {selectedCheckins.size > 0 && `(${getTotalActivitiesCount(selectedCheckins)} ${getTotalActivitiesCount(selectedCheckins) === 1 ? 'activity' : 'activities'})`}
                 </Button>
               </div>
             </>
@@ -317,8 +335,7 @@ export function CheckinPage() {
           onPrintLabels={
             recordAttendanceMutation.data.labels.length > 0
               ? () => {
-                  // Print labels functionality would go here
-                  console.log('Print labels:', recordAttendanceMutation.data.labels);
+                  // TODO: Implement label printing (P0 - see docs/plans/ux-improvements-plan.md)
                 }
               : undefined
           }
