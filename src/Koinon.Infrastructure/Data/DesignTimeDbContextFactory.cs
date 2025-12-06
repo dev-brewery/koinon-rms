@@ -15,9 +15,10 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<KoinonDbCo
     {
         var optionsBuilder = new DbContextOptionsBuilder<KoinonDbContext>();
 
-        // Default connection string for design-time operations (migrations)
-        // This matches the development environment defaults from docker-compose.yml
-        var connectionString = "Host=localhost;Port=5432;Database=koinon;Username=koinon;Password=koinon";
+        // Check environment variable first (for CI), then fall back to development defaults
+        var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+            ?? Environment.GetEnvironmentVariable("ConnectionStrings__KoinonDb")
+            ?? "Host=localhost;Port=5432;Database=koinon;Username=koinon;Password=koinon";
 
         // Use the PostgreSQL provider for configuration
         var provider = new PostgreSqlProvider();
