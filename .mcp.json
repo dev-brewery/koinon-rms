@@ -13,11 +13,8 @@
       "args": ["-y", "@modelcontextprotocol/server-memory"]
     },
     "github": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
-      "env": {
-        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
-      }
+      "command": "/home/mbrewer/projects/koinon-rms/tools/github-mcp-wrapper.sh",
+      "args": []
     },
     "filesystem": {
       "command": "npx",
