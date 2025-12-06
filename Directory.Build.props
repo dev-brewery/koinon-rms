@@ -1,0 +1,30 @@
+<Project>
+  <!-- Common settings for all projects -->
+
+  <PropertyGroup>
+    <!-- Target Framework -->
+    <TargetFramework>net8.0</TargetFramework>
+
+    <!-- Language Features -->
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- Code Style -->
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+    <!-- Assembly Info -->
+    <Company>Koinon</Company>
+    <Product>Koinon RMS</Product>
+    <Description>Church Resource Management System</Description>
+    <Authors>Koinon Contributors</Authors>
+    <RepositoryUrl>https://github.com/koinon-dev/koinon-rms</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <Version>0.1.0</Version>
+
+    <!-- Package defaults -->
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+</Project>

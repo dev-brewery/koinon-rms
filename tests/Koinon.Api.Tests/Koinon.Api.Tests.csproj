@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>Koinon.Api.Tests</AssemblyName>
+    <RootNamespace>Koinon.Api.Tests</RootNamespace>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <!-- Dependencies -->
+  <ItemGroup>
+    <ProjectReference Include="../../src/Koinon.Domain/Koinon.Domain.csproj" />
+    <ProjectReference Include="../../src/Koinon.Application/Koinon.Application.csproj" />
+    <ProjectReference Include="../../src/Koinon.Infrastructure/Koinon.Infrastructure.csproj" />
+    <ProjectReference Include="../../src/Koinon.Api/Koinon.Api.csproj" />
+  </ItemGroup>
+
+  <!-- Testing packages -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="Moq" />
+    <PackageReference Include="Testcontainers" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
+  </ItemGroup>
+
+</Project>

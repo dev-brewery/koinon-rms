@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>Koinon.Domain</AssemblyName>
+    <RootNamespace>Koinon.Domain</RootNamespace>
+  </PropertyGroup>
+
+  <!-- No package references - Domain has no external dependencies -->
+
+</Project>

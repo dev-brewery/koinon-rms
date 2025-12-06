@@ -1,0 +1,40 @@
+{
+  "mcpServers": {
+    "postgres": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://koinon:koinon@localhost:5432/koinon"
+      ]
+    },
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+      }
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/home/mbrewer/projects/koinon-rms"
+      ]
+    },
+    "koinon-dev": {
+      "command": "node",
+      "args": [
+        "/home/mbrewer/projects/koinon-rms/tools/mcp-koinon-dev/dist/index.js"
+      ],
+      "env": {
+        "KOINON_PROJECT_ROOT": "/home/mbrewer/projects/koinon-rms"
+      }
+    }
+  }
+}

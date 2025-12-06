@@ -1,0 +1,685 @@
+using FluentAssertions;
+using Koinon.Application.Services;
+using Koinon.Application.Services.Common;
+using Koinon.Application.Tests.Fakes;
+using Koinon.Domain.Entities;
+using Koinon.Domain.Enums;
+using Koinon.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Moq;
+using Xunit;
+
+namespace Koinon.Application.Tests.Services;
+
+public class CheckinSearchServiceTests : IDisposable
+{
+    private readonly KoinonDbContext _context;
+    private readonly CheckinSearchService _sut;
+    private readonly Mock<ILogger<CheckinSearchService>> _mockLogger;
+    private readonly Mock<ILogger<CheckinDataLoader>> _mockDataLoaderLogger;
+    private readonly FakeUserContext _userContext;
+    private readonly CheckinDataLoader _dataLoader;
+
+    public CheckinSearchServiceTests()
+    {
+        // Setup in-memory database
+        var options = new DbContextOptionsBuilder<KoinonDbContext>()
+            .UseInMemoryDatabase(databaseName: $"KoinonTestDb_{Guid.NewGuid()}")
+            .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning))
+            .Options;
+
+        _context = new KoinonDbContext(options);
+        _context.Database.EnsureCreated();
+
+        _mockLogger = new Mock<ILogger<CheckinSearchService>>();
+        _mockDataLoaderLogger = new Mock<ILogger<CheckinDataLoader>>();
+        _userContext = new FakeUserContext();
+        _dataLoader = new CheckinDataLoader(_context, _mockDataLoaderLogger.Object);
+        _sut = new CheckinSearchService(_context, _userContext, _mockLogger.Object, _dataLoader);
+    }
+
+    public void Dispose()
+    {
+        _context.Database.EnsureDeleted();
+        _context.Dispose();
+    }
+
+    [Fact]
+    public async Task SearchByPhoneAsync_WithLast4Digits_ReturnsMatchingFamilies()
+    {
+        // Arrange
+        var (family, _, _) = await CreateTestFamilyAsync();
+        var person = family.Members.First().Person!;
+
+        var phone = new PhoneNumber
+        {
+            PersonId = person.Id,
+            Number = "5551234567",
+            NumberNormalized = "5551234567",
+            CountryCode = "1"
+        };
+        await _context.PhoneNumbers.AddAsync(phone);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var results = await _sut.SearchByPhoneAsync("4567");
+
+        // Assert
+        results.Should().NotBeEmpty();
+        results.Should().Contain(r => r.FamilyIdKey == family.IdKey);
+        results.First().Members.Should().NotBeEmpty();
+    }
+
+    [Fact]
+    public async Task SearchByPhoneAsync_WithFullNumber_ReturnsMatchingFamilies()
+    {
+        // Arrange
+        var (family, _, _) = await CreateTestFamilyAsync();
+        var person = family.Members.First().Person!;
+
+        var phone = new PhoneNumber
+        {
+            PersonId = person.Id,
+            Number = "5551234567",
+            NumberNormalized = "5551234567",
+            CountryCode = "1"
+        };
+        await _context.PhoneNumbers.AddAsync(phone);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var results = await _sut.SearchByPhoneAsync("5551234567");
+
+        // Assert
+        results.Should().NotBeEmpty();
+        results.Should().Contain(r => r.FamilyIdKey == family.IdKey);
+    }
+
+    [Fact]
+    public async Task SearchByPhoneAsync_WithFormattedNumber_ReturnsMatchingFamilies()
+    {
+        // Arrange
+        var (family, _, _) = await CreateTestFamilyAsync();
+        var person = family.Members.First().Person!;
+
+        var phone = new PhoneNumber
+        {
+            PersonId = person.Id,
+            Number = "555-123-4567",
+            NumberNormalized = "5551234567",
+            CountryCode = "1"
+        };
+        await _context.PhoneNumbers.AddAsync(phone);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var results = await _sut.SearchByPhoneAsync("4567");
+
+        // Assert
+        results.Should().NotBeEmpty();
+        results.Should().Contain(r => r.FamilyIdKey == family.IdKey);
+    }
+
+    [Fact]
+    public async Task SearchByPhoneAsync_WithNoMatches_ReturnsEmptyList()
+    {
+        // Arrange
+        await CreateTestFamilyAsync();
+
+        // Act
+        var results = await _sut.SearchByPhoneAsync("9999");
+
+        // Assert
+        results.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task SearchByPhoneAsync_WithTooFewDigits_ReturnsEmptyList()
+    {
+        // Arrange
+        await CreateTestFamilyAsync();
+
+        // Act
+        var results = await _sut.SearchByPhoneAsync("123");
+
+        // Assert
+        results.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task SearchByNameAsync_WithFirstName_ReturnsMatchingFamilies()
+    {
+        // Arrange
+        var (family, _, _) = await CreateTestFamilyAsync("TestFamily", "John", "Doe");
+
+        // Act
+        var results = await _sut.SearchByNameAsync("John");
+
+        // Assert
+        results.Should().NotBeEmpty();
+        results.Should().Contain(r => r.FamilyIdKey == family.IdKey);
+        results.First().Members.Should().Contain(m => m.FirstName == "John");
+    }
+
+    [Fact]
+    public async Task SearchByNameAsync_WithLastName_ReturnsMatchingFamilies()
+    {
+        // Arrange
+        var (family, _, _) = await CreateTestFamilyAsync("TestFamily", "John", "Doe");
+
+        // Act
+        var results = await _sut.SearchByNameAsync("Doe");
+
+        // Assert
+        results.Should().NotBeEmpty();
+        results.Should().Contain(r => r.FamilyIdKey == family.IdKey);
+    }
+
+    [Fact]
+    public async Task SearchByNameAsync_WithNickName_ReturnsMatchingFamilies()
+    {
+        // Arrange
+        var (family, _, _) = await CreateTestFamilyAsync();
+        var person = family.Members.First().Person!;
+        person.NickName = "Johnny";
+        await _context.SaveChangesAsync();
+
+        // Act
+        var results = await _sut.SearchByNameAsync("Johnny");
+
+        // Assert
+        results.Should().NotBeEmpty();
+        results.Should().Contain(r => r.FamilyIdKey == family.IdKey);
+    }
+
+    [Fact]
+    public async Task SearchByNameAsync_WithPartialName_ReturnsMatchingFamilies()
+    {
+        // Arrange
+        var (family, _, _) = await CreateTestFamilyAsync("TestFamily", "Jonathan", "Smith");
+
+        // Act
+        var results = await _sut.SearchByNameAsync("Jon");
+
+        // Assert
+        results.Should().NotBeEmpty();
+        results.Should().Contain(r => r.FamilyIdKey == family.IdKey);
+    }
+
+    [Fact]
+    public async Task SearchByNameAsync_IsCaseInsensitive()
+    {
+        // Arrange
+        var (family, _, _) = await CreateTestFamilyAsync("TestFamily", "John", "Doe");
+
+        // Act
+        var results = await _sut.SearchByNameAsync("JOHN");
+
+        // Assert
+        results.Should().NotBeEmpty();
+        results.Should().Contain(r => r.FamilyIdKey == family.IdKey);
+    }
+
+    [Fact]
+    public async Task SearchByNameAsync_WithNoMatches_ReturnsEmptyList()
+    {
+        // Arrange
+        await CreateTestFamilyAsync();
+
+        // Act
+        var results = await _sut.SearchByNameAsync("NonExistent");
+
+        // Assert
+        results.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task SearchByNameAsync_ExcludesDeceasedPersons()
+    {
+        // Arrange
+        var (family, _, _) = await CreateTestFamilyAsync("TestFamily", "John", "Doe");
+        var person = family.Members.First().Person!;
+        person.IsDeceased = true;
+        await _context.SaveChangesAsync();
+
+        // Act
+        var results = await _sut.SearchByNameAsync("John");
+
+        // Assert
+        results.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task SearchByCodeAsync_WithValidCodeToday_ReturnsFamily()
+    {
+        // Arrange
+        var (family, person, _) = await CreateTestFamilyAsync();
+        var (attendanceCode, _) = await CreateTestAttendanceAsync(person!);
+
+        // Act
+        var result = await _sut.SearchByCodeAsync(attendanceCode.Code);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.FamilyIdKey.Should().Be(family.IdKey);
+        result.Members.Should().NotBeEmpty();
+    }
+
+    [Fact]
+    public async Task SearchByCodeAsync_WithOldCode_ReturnsNull()
+    {
+        // Arrange
+        var (_, person, _) = await CreateTestFamilyAsync();
+        var attendanceCode = new AttendanceCode
+        {
+            Code = "ABC",
+            IssueDateTime = DateTime.UtcNow.AddDays(-2) // 2 days ago
+        };
+        await _context.AttendanceCodes.AddAsync(attendanceCode);
+
+        var occurrence = await CreateTestOccurrenceAsync();
+        var personAlias = await _context.PersonAliases
+            .FirstAsync(pa => pa.PersonId == person.Id);
+
+        var attendance = new Attendance
+        {
+            OccurrenceId = occurrence.Id,
+            PersonAliasId = personAlias.Id,
+            AttendanceCodeId = attendanceCode.Id,
+            StartDateTime = DateTime.UtcNow.AddDays(-2)
+        };
+        await _context.Attendances.AddAsync(attendance);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.SearchByCodeAsync("ABC");
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task SearchByCodeAsync_WithInvalidCode_ReturnsNull()
+    {
+        // Arrange
+        await CreateTestFamilyAsync();
+
+        // Act
+        var result = await _sut.SearchByCodeAsync("XYZ");
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task SearchByCodeAsync_IsCaseInsensitive()
+    {
+        // Arrange
+        var (family, person, _) = await CreateTestFamilyAsync();
+        var (attendanceCode, _) = await CreateTestAttendanceAsync(person);
+
+        // Act - search with lowercase
+        var result = await _sut.SearchByCodeAsync(attendanceCode.Code.ToLowerInvariant());
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.FamilyIdKey.Should().Be(family.IdKey);
+    }
+
+    [Fact]
+    public async Task SearchAsync_WithDigits_UsesPhoneSearch()
+    {
+        // Arrange
+        var (family, _, _) = await CreateTestFamilyAsync();
+        var person = family.Members.First().Person!;
+
+        var phone = new PhoneNumber
+        {
+            PersonId = person.Id,
+            Number = "5551234567",
+            NumberNormalized = "5551234567",
+            CountryCode = "1"
+        };
+        await _context.PhoneNumbers.AddAsync(phone);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var results = await _sut.SearchAsync("4567");
+
+        // Assert
+        results.Should().NotBeEmpty();
+        results.Should().Contain(r => r.FamilyIdKey == family.IdKey);
+    }
+
+    [Fact]
+    public async Task SearchAsync_WithShortAlphanumeric_TriesCodeSearch()
+    {
+        // Arrange
+        var (family, person, _) = await CreateTestFamilyAsync();
+        var (attendanceCode, _) = await CreateTestAttendanceAsync(person);
+
+        // Act
+        var results = await _sut.SearchAsync(attendanceCode.Code);
+
+        // Assert
+        results.Should().NotBeEmpty();
+        results.Should().Contain(r => r.FamilyIdKey == family.IdKey);
+    }
+
+    [Fact]
+    public async Task SearchAsync_WithName_UsesNameSearch()
+    {
+        // Arrange
+        var (family, _, _) = await CreateTestFamilyAsync("TestFamily", "John", "Doe");
+
+        // Act
+        var results = await _sut.SearchAsync("John");
+
+        // Assert
+        results.Should().NotBeEmpty();
+        results.Should().Contain(r => r.FamilyIdKey == family.IdKey);
+    }
+
+    [Fact]
+    public async Task GetFamiliesWithMembersAsync_SortsMembersCorrectly()
+    {
+        // Arrange
+        var (family, adultRole, childRole) = await CreateTestFamilyWithRolesAsync();
+
+        // Add a child member
+        var child = new Person
+        {
+            FirstName = "Child",
+            LastName = "Doe",
+            BirthYear = DateTime.UtcNow.Year - 8,
+            BirthMonth = 1,
+            BirthDay = 1
+        };
+        await _context.People.AddAsync(child);
+
+        var childMember = new GroupMember
+        {
+            GroupId = family.Id,
+            PersonId = child.Id,
+            GroupRoleId = childRole.Id,
+            GroupMemberStatus = GroupMemberStatus.Active,
+            DateTimeAdded = DateTime.UtcNow
+        };
+        await _context.GroupMembers.AddAsync(childMember);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var results = await _sut.SearchByNameAsync("Doe");
+
+        // Assert
+        results.Should().NotBeEmpty();
+        var result = results.First();
+        result.Members.Should().HaveCountGreaterThan(1);
+
+        // Adults should be listed before children
+        var firstMember = result.Members.First();
+        var lastMember = result.Members.Last();
+
+        firstMember.IsChild.Should().BeFalse();
+        lastMember.IsChild.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetFamiliesWithMembersAsync_IncludesCampusName()
+    {
+        // Arrange
+        var campus = new Campus
+        {
+            Name = "Main Campus",
+            IsActive = true
+        };
+        await _context.Campuses.AddAsync(campus);
+        await _context.SaveChangesAsync();
+
+        var (family, _, _) = await CreateTestFamilyAsync();
+        family.CampusId = campus.Id;
+        await _context.SaveChangesAsync();
+
+        // Act
+        var results = await _sut.SearchByNameAsync("Test");
+
+        // Assert
+        results.Should().NotBeEmpty();
+        results.First().CampusName.Should().Be("Main Campus");
+    }
+
+    [Fact]
+    public async Task SearchByPhoneAsync_WithEmptyString_ReturnsEmptyList()
+    {
+        // Act
+        var results = await _sut.SearchByPhoneAsync("");
+
+        // Assert
+        results.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task SearchByNameAsync_WithEmptyString_ReturnsEmptyList()
+    {
+        // Act
+        var results = await _sut.SearchByNameAsync("");
+
+        // Assert
+        results.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task SearchByCodeAsync_WithEmptyString_ReturnsNull()
+    {
+        // Act
+        var result = await _sut.SearchByCodeAsync("");
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task SearchByPhoneAsync_WhenNotAuthenticated_ThrowsUnauthorizedAccessException()
+    {
+        // Arrange
+        _userContext.IsAuthenticated = false;
+        var (family, _, _) = await CreateTestFamilyAsync();
+        var person = family.Members.First().Person!;
+
+        var phone = new PhoneNumber
+        {
+            PersonId = person.Id,
+            Number = "5551234567",
+            NumberNormalized = "5551234567",
+            CountryCode = "1"
+        };
+        await _context.PhoneNumbers.AddAsync(phone);
+        await _context.SaveChangesAsync();
+
+        // Act & Assert
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(
+            async () => await _sut.SearchByPhoneAsync("4567"));
+    }
+
+    [Fact]
+    public async Task SearchByNameAsync_WhenNotAuthenticated_ThrowsUnauthorizedAccessException()
+    {
+        // Arrange
+        _userContext.IsAuthenticated = false;
+        await CreateTestFamilyAsync("TestFamily", "John", "Doe");
+
+        // Act & Assert
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(
+            async () => await _sut.SearchByNameAsync("John"));
+    }
+
+    [Fact]
+    public async Task SearchByCodeAsync_WhenNotAuthenticated_ThrowsUnauthorizedAccessException()
+    {
+        // Arrange
+        _userContext.IsAuthenticated = false;
+        var (_, person, _) = await CreateTestFamilyAsync();
+        var (attendanceCode, _) = await CreateTestAttendanceAsync(person);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(
+            async () => await _sut.SearchByCodeAsync(attendanceCode.Code));
+    }
+
+    // Helper methods
+
+    private async Task<(Group family, Person person, GroupMember member)> CreateTestFamilyAsync(
+        string familyName = "Test Family",
+        string firstName = "Test",
+        string lastName = "Person")
+    {
+        // Get or create family group type
+        var familyGroupType = await _context.GroupTypes.FirstOrDefaultAsync(gt => gt.IsFamilyGroupType);
+        if (familyGroupType == null)
+        {
+            familyGroupType = new GroupType
+            {
+                Name = "Family",
+                IsFamilyGroupType = true,
+                GroupTerm = "Family",
+                GroupMemberTerm = "Family Member"
+            };
+            await _context.GroupTypes.AddAsync(familyGroupType);
+            await _context.SaveChangesAsync();
+        }
+
+        // Get or create roles
+        var adultRole = await _context.GroupTypeRoles
+            .FirstOrDefaultAsync(r => r.GroupTypeId == familyGroupType.Id && r.Name == "Adult");
+        if (adultRole == null)
+        {
+            adultRole = new GroupTypeRole
+            {
+                GroupTypeId = familyGroupType.Id,
+                Name = "Adult",
+                IsLeader = true
+            };
+            await _context.GroupTypeRoles.AddAsync(adultRole);
+            await _context.SaveChangesAsync();
+        }
+
+        var childRole = await _context.GroupTypeRoles
+            .FirstOrDefaultAsync(r => r.GroupTypeId == familyGroupType.Id && r.Name == "Child");
+        if (childRole == null)
+        {
+            childRole = new GroupTypeRole
+            {
+                GroupTypeId = familyGroupType.Id,
+                Name = "Child",
+                IsLeader = false
+            };
+            await _context.GroupTypeRoles.AddAsync(childRole);
+            await _context.SaveChangesAsync();
+        }
+
+        // Create person
+        var person = new Person
+        {
+            FirstName = firstName,
+            LastName = lastName,
+            Gender = Gender.Male,
+            BirthYear = 1980,
+            BirthMonth = 1,
+            BirthDay = 1
+        };
+        await _context.People.AddAsync(person);
+        await _context.SaveChangesAsync();
+
+        // Create person alias
+        var personAlias = new PersonAlias
+        {
+            PersonId = person.Id,
+            AliasPersonId = person.Id
+        };
+        await _context.PersonAliases.AddAsync(personAlias);
+
+        // Create family
+        var family = new Group
+        {
+            Name = familyName,
+            GroupTypeId = familyGroupType.Id,
+            IsActive = true
+        };
+        await _context.Groups.AddAsync(family);
+        await _context.SaveChangesAsync();
+
+        // Create group member
+        var member = new GroupMember
+        {
+            GroupId = family.Id,
+            PersonId = person.Id,
+            GroupRoleId = adultRole.Id,
+            GroupMemberStatus = GroupMemberStatus.Active,
+            DateTimeAdded = DateTime.UtcNow
+        };
+        await _context.GroupMembers.AddAsync(member);
+
+        // Set primary family
+        person.PrimaryFamilyId = family.Id;
+        await _context.SaveChangesAsync();
+
+        return (family, person, member);
+    }
+
+    private async Task<(AttendanceCode code, Attendance attendance)> CreateTestAttendanceAsync(Person person)
+    {
+        // Create attendance code
+        var attendanceCode = new AttendanceCode
+        {
+            Code = "ABC",
+            IssueDateTime = DateTime.UtcNow
+        };
+        await _context.AttendanceCodes.AddAsync(attendanceCode);
+
+        // Create occurrence
+        var occurrence = await CreateTestOccurrenceAsync();
+
+        // Get person alias
+        var personAlias = await _context.PersonAliases
+            .FirstAsync(pa => pa.PersonId == person.Id);
+
+        // Create attendance
+        var attendance = new Attendance
+        {
+            OccurrenceId = occurrence.Id,
+            PersonAliasId = personAlias.Id,
+            AttendanceCodeId = attendanceCode.Id,
+            StartDateTime = DateTime.UtcNow
+        };
+        await _context.Attendances.AddAsync(attendance);
+        await _context.SaveChangesAsync();
+
+        return (attendanceCode, attendance);
+    }
+
+    private async Task<AttendanceOccurrence> CreateTestOccurrenceAsync()
+    {
+        var occurrence = new AttendanceOccurrence
+        {
+            OccurrenceDate = DateOnly.FromDateTime(DateTime.UtcNow),
+            SundayDate = DateOnly.FromDateTime(DateTime.UtcNow)
+        };
+        await _context.AttendanceOccurrences.AddAsync(occurrence);
+        await _context.SaveChangesAsync();
+        return occurrence;
+    }
+
+    private async Task<(Group family, GroupTypeRole adultRole, GroupTypeRole childRole)> CreateTestFamilyWithRolesAsync()
+    {
+        var (family, _, _) = await CreateTestFamilyAsync("Test Family", "Test", "Person");
+
+        var familyGroupType = await _context.GroupTypes.FirstAsync(gt => gt.IsFamilyGroupType);
+        var adultRole = await _context.GroupTypeRoles
+            .FirstAsync(r => r.GroupTypeId == familyGroupType.Id && r.Name == "Adult");
+        var childRole = await _context.GroupTypeRoles
+            .FirstAsync(r => r.GroupTypeId == familyGroupType.Id && r.Name == "Child");
+
+        return (family, adultRole, childRole);
+    }
+}
