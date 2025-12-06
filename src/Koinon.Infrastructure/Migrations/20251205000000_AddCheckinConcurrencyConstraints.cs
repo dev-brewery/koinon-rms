@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Koinon.Infrastructure.Data.Migrations;
+namespace Koinon.Infrastructure.Migrations;
 
 /// <inheritdoc />
 public partial class AddCheckinConcurrencyConstraints : Migration
