@@ -79,6 +79,11 @@ public class Person : Entity
     public int? PhotoId { get; set; }
 
     /// <summary>
+    /// Argon2id hash of the user's password. Format: Base64(salt[16] + hash[32])
+    /// </summary>
+    public string? PasswordHash { get; set; }
+
+    /// <summary>
     /// Day component of birth date (1-31).
     /// </summary>
     public int? BirthDay { get; set; }
