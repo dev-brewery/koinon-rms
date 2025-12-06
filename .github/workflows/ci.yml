@@ -243,8 +243,9 @@ jobs:
 
         MIGRATIONS_DIR="src/Koinon.Infrastructure/Migrations"
         TEMP_FILE="/tmp/destructive_check.txt"
+        UP_METHODS_FILE="/tmp/up_methods.txt"
 
-        echo "Checking for destructive database changes..."
+        echo "Checking for destructive database changes in Up() methods..."
 
         # List of destructive EF Core migration methods
         DESTRUCTIVE_PATTERNS=(
@@ -262,13 +263,36 @@ jobs:
 
         DESTRUCTIVE_FOUND=false
 
-        # Check each new migration file for destructive operations
+        # Get list of new migration files
+        NEW_MIGRATIONS=$(git diff --name-only origin/main...HEAD -- "$MIGRATIONS_DIR/*.cs" | \
+          grep -E "Migrations/[0-9]{14}_.*\.cs$" | \
+          grep -v "\.Designer\.cs$" | \
+          grep -v "ModelSnapshot\.cs$" || true)
+
+        if [ -z "$NEW_MIGRATIONS" ]; then
+          echo "No new migration files to check"
+          exit 0
+        fi
+
+        # Extract only Up() method content from each new migration
+        # Down() methods contain legitimate rollback code (drops) - we ignore those
+        > "$UP_METHODS_FILE"
+        for migration in $NEW_MIGRATIONS; do
+          if [ -f "$migration" ]; then
+            echo "Checking: $migration"
+            # Extract content between 'protected override void Up(' and 'protected override void Down('
+            # This ensures we only check the Up() method, not the Down() rollback method
+            awk '/protected override void Up\(/,/protected override void Down\(/' "$migration" | \
+              head -n -1 >> "$UP_METHODS_FILE"
+          fi
+        done
+
+        # Check Up() method content for destructive operations
         for pattern in "${DESTRUCTIVE_PATTERNS[@]}"; do
-          if git diff origin/main...HEAD -- "$MIGRATIONS_DIR/*.cs" | \
-             grep -n "migrationBuilder\.$pattern" > "$TEMP_FILE"; then
+          if grep -n "migrationBuilder\.$pattern" "$UP_METHODS_FILE" > "$TEMP_FILE" 2>/dev/null; then
             if [ -s "$TEMP_FILE" ]; then
               echo ""
-              echo "⚠️ WARNING: Potentially destructive operation detected: $pattern"
+              echo "⚠️ WARNING: Potentially destructive operation detected in Up(): $pattern"
               echo "Location:"
               cat "$TEMP_FILE"
               echo ""
@@ -280,7 +304,7 @@ jobs:
         if [ "$DESTRUCTIVE_FOUND" = true ]; then
           echo "❌ DESTRUCTIVE MIGRATION DETECTED"
           echo ""
-          echo "This migration contains operations that may result in data loss:"
+          echo "This migration's Up() method contains operations that may result in data loss:"
           echo "- DropTable: Entire table and data removed"
           echo "- DropColumn: Column and all data removed"
           echo "- DropIndex: Performance impact"
@@ -291,12 +315,14 @@ jobs:
           echo "2. Add comment in migration explaining why data loss is acceptable"
           echo "3. Update this job's DESTRUCTIVE_PATTERNS to exclude safe patterns"
           echo ""
+          echo "Note: Down() methods are NOT checked - rollback code legitimately uses drops"
           exit 1
         else
-          echo "✅ No destructive changes detected"
+          echo "✅ No destructive changes detected in Up() methods"
+          echo "   (Down() methods with rollback drops are expected and not flagged)"
         fi
 
-        rm -f "$TEMP_FILE"
+        rm -f "$TEMP_FILE" "$UP_METHODS_FILE"
 
   # Integration smoke test
   integration:
