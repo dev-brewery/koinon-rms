@@ -49,7 +49,7 @@ public class AuthService(
         }
 
         // Verify password
-        if (person == null || !await ValidatePasswordAsync(person, request.Password, ct))
+        if (!await ValidatePasswordAsync(person, request.Password, ct))
         {
             // Add jitter to prevent timing attacks (100-300ms random delay)
             await Task.Delay(Random.Shared.Next(100, 300), ct);

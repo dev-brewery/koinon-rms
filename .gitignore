@@ -184,3 +184,7 @@ temp/
 
 # Claude Code temporary files
 tmp/validate-output.log
+
+# MCP configuration (contains local secrets)
+.mcp.json
+.mcp.json

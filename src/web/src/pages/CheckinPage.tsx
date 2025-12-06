@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   KioskLayout,
   PhoneSearch,
@@ -26,6 +27,9 @@ const IDLE_CONFIG = {
 };
 
 export function CheckinPage() {
+  // Query client for cache management
+  const queryClient = useQueryClient();
+
   // State
   const [step, setStep] = useState<CheckinStep>('search');
   const [searchMode, setSearchMode] = useState<SearchMode>('phone');
@@ -105,12 +109,16 @@ export function CheckinPage() {
       await recordAttendanceMutation.mutateAsync({ checkins });
       setStep('confirmation');
     } catch (error) {
-      console.error('Check-in failed:', error);
       // Error handling would go here
     }
   };
 
   const handleReset = () => {
+    // Clear TanStack Query cache to prevent privacy leak
+    queryClient.removeQueries({ queryKey: ['checkin-search'] });
+    queryClient.removeQueries({ queryKey: ['checkin-opportunities'] });
+    queryClient.removeQueries({ queryKey: ['checkin'] });
+
     setStep('search');
     setSearchValue('');
     setSelectedFamily(null);
@@ -290,7 +298,6 @@ export function CheckinPage() {
             recordAttendanceMutation.data.labels.length > 0
               ? () => {
                   // Print labels functionality would go here
-                  console.log('Print labels:', recordAttendanceMutation.data.labels);
                 }
               : undefined
           }

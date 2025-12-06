@@ -1,3 +1,4 @@
+using Koinon.Api.Helpers;
 using Koinon.Application.Common;
 using Koinon.Application.DTOs;
 using Koinon.Application.DTOs.Requests;
@@ -43,6 +44,40 @@ public class PeopleController(
         [FromQuery] int pageSize = 25,
         CancellationToken ct = default)
     {
+        // Validate optional IdKey parameters
+        if (!string.IsNullOrWhiteSpace(campusId) && !IdKeyValidator.IsValid(campusId))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid IdKey format",
+                Detail = IdKeyValidator.GetErrorMessage("campusId"),
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        if (!string.IsNullOrWhiteSpace(recordStatusId) && !IdKeyValidator.IsValid(recordStatusId))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid IdKey format",
+                Detail = IdKeyValidator.GetErrorMessage("recordStatusId"),
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        if (!string.IsNullOrWhiteSpace(connectionStatusId) && !IdKeyValidator.IsValid(connectionStatusId))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid IdKey format",
+                Detail = IdKeyValidator.GetErrorMessage("connectionStatusId"),
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
         var parameters = new PersonSearchParameters
         {
             Query = query,
@@ -78,6 +113,17 @@ public class PeopleController(
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetByIdKey(string idKey, CancellationToken ct = default)
     {
+        if (!IdKeyValidator.IsValid(idKey))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid IdKey format",
+                Detail = IdKeyValidator.GetErrorMessage("idKey"),
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
         var person = await personService.GetByIdKeyAsync(idKey, ct);
 
         if (person == null)
@@ -176,6 +222,17 @@ public class PeopleController(
         [FromBody] UpdatePersonRequest request,
         CancellationToken ct = default)
     {
+        if (!IdKeyValidator.IsValid(idKey))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid IdKey format",
+                Detail = IdKeyValidator.GetErrorMessage("idKey"),
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
         var result = await personService.UpdateAsync(idKey, request, ct);
 
         if (result.IsFailure)
@@ -237,6 +294,17 @@ public class PeopleController(
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> Delete(string idKey, CancellationToken ct = default)
     {
+        if (!IdKeyValidator.IsValid(idKey))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid IdKey format",
+                Detail = IdKeyValidator.GetErrorMessage("idKey"),
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
         var result = await personService.DeleteAsync(idKey, ct);
 
         if (result.IsFailure)
@@ -282,6 +350,17 @@ public class PeopleController(
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetFamily(string idKey, CancellationToken ct = default)
     {
+        if (!IdKeyValidator.IsValid(idKey))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid IdKey format",
+                Detail = IdKeyValidator.GetErrorMessage("idKey"),
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
         var family = await personService.GetFamilyAsync(idKey, ct);
 
         if (family == null)
