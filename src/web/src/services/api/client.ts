@@ -4,12 +4,20 @@
  */
 
 import type { ApiError } from './types';
+import {
+  ApiErrorSchema,
+  RefreshResponseSchema,
+  parseWithSchema,
+  safeJsonParse,
+} from './validators';
 
 // ============================================================================
 // Configuration
 // ============================================================================
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+const DEFAULT_TIMEOUT_MS = 10000; // 10 seconds
+const UPLOAD_TIMEOUT_MS = 60000; // 60 seconds for uploads
 
 // ============================================================================
 // Token Storage (in memory, not localStorage for security)
@@ -61,15 +69,36 @@ async function parseErrorResponse(response: Response): Promise<ApiError['error']
 
   if (contentType?.includes('application/json')) {
     try {
-      const json = await response.json() as ApiError;
-      return json.error;
-    } catch {
+      const text = await response.text();
+      const json = safeJsonParse(text);
+
+      if (json) {
+        // Validate against ApiErrorSchema
+        const validated = parseWithSchema(
+          ApiErrorSchema,
+          json,
+          'error response'
+        );
+        return validated.error;
+      }
+    } catch (error) {
+      console.error('Failed to parse error response:', {
+        error,
+        status: response.status,
+        statusText: response.statusText,
+      });
       // Fall through to default error
     }
   }
 
   // Fallback for non-JSON errors
-  const text = await response.text();
+  let text = '';
+  try {
+    text = await response.text();
+  } catch (error) {
+    console.error('Failed to read error response text:', error);
+  }
+
   return {
     code: 'UNKNOWN_ERROR',
     message: text || response.statusText || 'An unknown error occurred',
@@ -91,34 +120,77 @@ async function tryRefreshToken(): Promise<boolean> {
   }
 
   if (!refreshToken) {
+    console.warn('Cannot refresh token: no refresh token available');
     return false;
   }
 
   // Create the refresh promise
   tokenRefreshPromise = (async () => {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
+
       const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ refreshToken }),
+        signal: controller.signal,
       });
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
+        console.error('Token refresh failed:', {
+          status: response.status,
+          statusText: response.statusText,
+        });
         clearTokens();
         return false;
       }
 
-      const data = await response.json();
-      if (!data.data?.accessToken || !data.data?.refreshToken) {
+      const text = await response.text();
+      const json = safeJsonParse(text);
+
+      if (!json) {
+        console.error('Token refresh response is not valid JSON');
         clearTokens();
         return false;
       }
-      accessToken = data.data.accessToken;
-      refreshToken = data.data.refreshToken;
+
+      // Validate the response structure
+      const data = json as { data?: unknown };
+      if (!data.data) {
+        console.error('Token refresh response missing data envelope');
+        clearTokens();
+        return false;
+      }
+
+      const validated = parseWithSchema(
+        RefreshResponseSchema,
+        data.data,
+        'token refresh'
+      );
+
+      accessToken = validated.accessToken;
+      refreshToken = validated.refreshToken;
+
+      console.info('Token refresh successful');
       return true;
-    } catch {
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          console.error('Token refresh timeout');
+        } else {
+          console.error('Token refresh error:', {
+            message: error.message,
+            name: error.name,
+          });
+        }
+      } else {
+        console.error('Token refresh unknown error:', error);
+      }
       clearTokens();
       return false;
     } finally {
@@ -135,6 +207,7 @@ async function tryRefreshToken(): Promise<boolean> {
 
 export interface ApiClientOptions extends RequestInit {
   skipAuth?: boolean;
+  timeout?: number; // Custom timeout in milliseconds
 }
 
 /**
@@ -145,8 +218,17 @@ export async function apiClient<T>(
   endpoint: string,
   options: ApiClientOptions = {}
 ): Promise<T> {
-  const { skipAuth = false, ...requestInit } = options;
+  const { skipAuth = false, timeout, ...requestInit } = options;
   const url = `${API_BASE_URL}${endpoint}`;
+
+  // Determine timeout based on request type
+  const timeoutMs = timeout ?? (requestInit.method === 'POST' || requestInit.method === 'PUT' || requestInit.method === 'PATCH'
+    ? UPLOAD_TIMEOUT_MS
+    : DEFAULT_TIMEOUT_MS);
+
+  // Create AbortController for timeout
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   const headers = new Headers(requestInit.headers);
 
@@ -160,45 +242,129 @@ export async function apiClient<T>(
     headers.set('Authorization', `Bearer ${accessToken}`);
   }
 
-  // Make the request
-  let response = await fetch(url, {
-    ...requestInit,
-    headers,
-  });
+  try {
+    // Make the request
+    let response = await fetch(url, {
+      ...requestInit,
+      headers,
+      signal: controller.signal,
+    });
 
-  // Handle 401 - try to refresh token and retry
-  if (response.status === 401 && !skipAuth && refreshToken) {
-    const refreshed = await tryRefreshToken();
+    clearTimeout(timeoutId);
 
-    if (refreshed && accessToken) {
-      // Retry the request with new token
-      headers.set('Authorization', `Bearer ${accessToken}`);
-      response = await fetch(url, {
-        ...requestInit,
-        headers,
-      });
+    // Handle 401 - try to refresh token and retry
+    if (response.status === 401 && !skipAuth && refreshToken) {
+      console.info('Received 401, attempting token refresh');
+      const refreshed = await tryRefreshToken();
+
+      if (refreshed && accessToken) {
+        // Retry the request with new token
+        console.info('Retrying request with new token');
+        headers.set('Authorization', `Bearer ${accessToken}`);
+
+        // Create new timeout for retry
+        const retryController = new AbortController();
+        const retryTimeoutId = setTimeout(() => retryController.abort(), timeoutMs);
+
+        response = await fetch(url, {
+          ...requestInit,
+          headers,
+          signal: retryController.signal,
+        });
+
+        clearTimeout(retryTimeoutId);
+      } else {
+        console.warn('Token refresh failed, request will fail with 401');
+      }
     }
-  }
 
-  // Handle error responses
-  if (!response.ok) {
-    const error = await parseErrorResponse(response);
-    throw new ApiClientError(response.status, error);
-  }
+    // Handle error responses
+    if (!response.ok) {
+      const error = await parseErrorResponse(response);
+      console.error('API request failed:', {
+        endpoint,
+        status: response.status,
+        error,
+      });
+      throw new ApiClientError(response.status, error);
+    }
 
-  // Handle 204 No Content
-  if (response.status === 204) {
-    return undefined as T;
-  }
+    // Handle 204 No Content
+    if (response.status === 204) {
+      return undefined as T;
+    }
 
-  // Parse and return JSON response
-  const contentType = response.headers.get('content-type');
-  if (contentType?.includes('application/json')) {
-    return response.json();
-  }
+    // Parse and return JSON response
+    const contentType = response.headers.get('content-type');
+    if (contentType?.includes('application/json')) {
+      const text = await response.text();
+      const json = safeJsonParse(text);
 
-  // For non-JSON responses, return text
-  return response.text() as T;
+      if (json === null) {
+        console.error('Response is not valid JSON:', {
+          endpoint,
+          contentType,
+          preview: text.substring(0, 200),
+        });
+        throw new Error('Invalid JSON response from server');
+      }
+
+      // Note: Callers should validate the specific response type
+      // This ensures we at least have valid JSON
+      return json as T;
+    }
+
+    // For non-JSON responses, return text
+    const text = await response.text();
+    return text as T;
+  } catch (error) {
+    clearTimeout(timeoutId);
+
+    if (error instanceof ApiClientError) {
+      // Re-throw API errors
+      throw error;
+    }
+
+    if (error instanceof Error) {
+      if (error.name === 'AbortError') {
+        console.error('API request timeout:', {
+          endpoint,
+          timeout: timeoutMs,
+        });
+        throw new ApiClientError(
+          408,
+          {
+            code: 'REQUEST_TIMEOUT',
+            message: `Request timeout after ${timeoutMs}ms`,
+          },
+          'Request timeout'
+        );
+      }
+
+      console.error('API request error:', {
+        endpoint,
+        message: error.message,
+        name: error.name,
+      });
+
+      // Re-throw the error as-is to preserve the message
+      throw error;
+    }
+
+    console.error('API request unknown error:', {
+      endpoint,
+      error,
+    });
+
+    throw new ApiClientError(
+      0,
+      {
+        code: 'UNKNOWN_ERROR',
+        message: 'An unknown error occurred',
+      },
+      'Unknown error'
+    );
+  }
 }
 
 // ============================================================================

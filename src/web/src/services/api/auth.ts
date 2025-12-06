@@ -3,6 +3,7 @@
  */
 
 import { post, setTokens, clearTokens } from './client';
+import { TokenResponseSchema, RefreshResponseSchema, parseWithSchema } from './validators';
 import type {
   LoginRequest,
   TokenResponse,
@@ -16,14 +17,17 @@ import type {
  * Returns access token, refresh token, and user info
  */
 export async function login(request: LoginRequest): Promise<TokenResponse> {
-  const response = await post<{ data: TokenResponse }>('/auth/login', request, {
+  const response = await post<{ data: unknown }>('/auth/login', request, {
     skipAuth: true,
   });
 
-  // Store tokens in memory
-  setTokens(response.data.accessToken, response.data.refreshToken);
+  // Validate the response
+  const validated = parseWithSchema(TokenResponseSchema, response.data, 'login');
 
-  return response.data;
+  // Store tokens in memory
+  setTokens(validated.accessToken, validated.refreshToken);
+
+  return validated;
 }
 
 /**
@@ -31,11 +35,14 @@ export async function login(request: LoginRequest): Promise<TokenResponse> {
  */
 export async function refresh(refreshToken: string): Promise<RefreshResponse> {
   const request: RefreshRequest = { refreshToken };
-  const response = await post<{ data: RefreshResponse }>('/auth/refresh', request, {
+  const response = await post<{ data: unknown }>('/auth/refresh', request, {
     skipAuth: true,
   });
 
-  return response.data;
+  // Validate the response
+  const validated = parseWithSchema(RefreshResponseSchema, response.data, 'refresh');
+
+  return validated;
 }
 
 /**

@@ -3,7 +3,7 @@ namespace Koinon.Application.DTOs.Requests;
 /// <summary>
 /// Request to create a new group.
 /// </summary>
-public class CreateGroupRequest
+public record CreateGroupRequest
 {
     public required string Name { get; init; }
     public string? Description { get; init; }
@@ -20,7 +20,7 @@ public class CreateGroupRequest
 /// <summary>
 /// Request to update an existing group.
 /// </summary>
-public class UpdateGroupRequest
+public record UpdateGroupRequest
 {
     public string? Name { get; init; }
     public string? Description { get; init; }
@@ -35,7 +35,7 @@ public class UpdateGroupRequest
 /// <summary>
 /// Request to add a member to a group.
 /// </summary>
-public class AddGroupMemberRequest
+public record AddGroupMemberRequest
 {
     public required string PersonId { get; init; }
     public required string RoleId { get; init; }
@@ -45,27 +45,14 @@ public class AddGroupMemberRequest
 /// <summary>
 /// Search parameters for groups.
 /// </summary>
-public class GroupSearchParameters
+public record GroupSearchParameters
 {
-    public string? Query { get; set; }
-    public string? GroupTypeId { get; set; }
-    public string? CampusId { get; set; }
-    public string? ParentGroupId { get; set; }
-    public bool IncludeInactive { get; set; } = false;
-    public bool IncludeArchived { get; set; } = false;
-    public int Page { get; set; } = 1;
-    public int PageSize { get; set; } = 50;
-
-    public void ValidatePageSize()
-    {
-        if (PageSize > 100)
-        {
-            PageSize = 100;
-        }
-
-        if (PageSize < 1)
-        {
-            PageSize = 50;
-        }
-    }
+    public string? Query { get; init; }
+    public string? GroupTypeId { get; init; }
+    public string? CampusId { get; init; }
+    public string? ParentGroupId { get; init; }
+    public bool IncludeInactive { get; init; } = false;
+    public bool IncludeArchived { get; init; } = false;
+    public int Page { get; init; } = 1;
+    public int PageSize { get; init; } = 50;
 }

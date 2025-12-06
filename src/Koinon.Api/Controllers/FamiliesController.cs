@@ -26,9 +26,11 @@ public class FamiliesController(
     /// <param name="ct">Cancellation token</param>
     /// <returns>Family details with members</returns>
     /// <response code="200">Returns the family details</response>
+    /// <response code="403">Not authorized to access this family</response>
     /// <response code="404">Family not found</response>
     [HttpGet("{idKey}")]
     [ProducesResponseType(typeof(FamilyDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetByIdKey(string idKey, CancellationToken ct = default)
     {
@@ -43,22 +45,36 @@ public class FamiliesController(
             });
         }
 
-        var family = await familyService.GetByIdKeyAsync(idKey, ct);
-
-        if (family == null)
+        try
         {
-            logger.LogWarning("Family not found: IdKey={IdKey}", idKey);
-            return NotFound(new ProblemDetails
+            var family = await familyService.GetByIdKeyAsync(idKey, ct);
+
+            if (family == null)
             {
-                Title = "Family not found",
-                Detail = $"No family found with IdKey '{idKey}'",
-                Status = StatusCodes.Status404NotFound,
+                logger.LogWarning("Family not found: IdKey={IdKey}", idKey);
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Family not found",
+                    Detail = $"No family found with IdKey '{idKey}'",
+                    Status = StatusCodes.Status404NotFound,
+                    Instance = HttpContext.Request.Path
+                });
+            }
+
+            logger.LogInformation("Family retrieved: IdKey={IdKey}, Name={Name}", idKey, family.Name);
+            return Ok(family);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            logger.LogWarning(ex, "Unauthorized access attempt to family: IdKey={IdKey}", idKey);
+            return StatusCode(StatusCodes.Status403Forbidden, new ProblemDetails
+            {
+                Title = "Access denied",
+                Detail = "You are not authorized to access this family",
+                Status = StatusCodes.Status403Forbidden,
                 Instance = HttpContext.Request.Path
             });
         }
-
-        logger.LogInformation("Family retrieved: IdKey={IdKey}, Name={Name}", idKey, family.Name);
-        return Ok(family);
     }
 
     /// <summary>
@@ -68,9 +84,11 @@ public class FamiliesController(
     /// <param name="ct">Cancellation token</param>
     /// <returns>List of family members</returns>
     /// <response code="200">Returns the family members</response>
+    /// <response code="403">Not authorized to access this family</response>
     /// <response code="404">Family not found</response>
     [HttpGet("{idKey}/members")]
     [ProducesResponseType(typeof(List<FamilyMemberDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetMembers(string idKey, CancellationToken ct = default)
     {
@@ -85,25 +103,39 @@ public class FamiliesController(
             });
         }
 
-        var family = await familyService.GetByIdKeyAsync(idKey, ct);
-
-        if (family == null)
+        try
         {
-            logger.LogWarning("Family not found: IdKey={IdKey}", idKey);
-            return NotFound(new ProblemDetails
+            var family = await familyService.GetByIdKeyAsync(idKey, ct);
+
+            if (family == null)
             {
-                Title = "Family not found",
-                Detail = $"No family found with IdKey '{idKey}'",
-                Status = StatusCodes.Status404NotFound,
+                logger.LogWarning("Family not found: IdKey={IdKey}", idKey);
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Family not found",
+                    Detail = $"No family found with IdKey '{idKey}'",
+                    Status = StatusCodes.Status404NotFound,
+                    Instance = HttpContext.Request.Path
+                });
+            }
+
+            logger.LogInformation(
+                "Family members retrieved: IdKey={IdKey}, MemberCount={MemberCount}",
+                idKey, family.Members.Count);
+
+            return Ok(family.Members);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            logger.LogWarning(ex, "Unauthorized access attempt to family members: IdKey={IdKey}", idKey);
+            return StatusCode(StatusCodes.Status403Forbidden, new ProblemDetails
+            {
+                Title = "Access denied",
+                Detail = "You are not authorized to access this family",
+                Status = StatusCodes.Status403Forbidden,
                 Instance = HttpContext.Request.Path
             });
         }
-
-        logger.LogInformation(
-            "Family members retrieved: IdKey={IdKey}, MemberCount={MemberCount}",
-            idKey, family.Members.Count);
-
-        return Ok(family.Members);
     }
 
     /// <summary>
@@ -222,6 +254,13 @@ public class FamiliesController(
                     Instance = HttpContext.Request.Path,
                     Extensions = { ["errors"] = result.Error.Details }
                 }),
+                "FORBIDDEN" => StatusCode(StatusCodes.Status403Forbidden, new ProblemDetails
+                {
+                    Title = "Access denied",
+                    Detail = result.Error.Message,
+                    Status = StatusCodes.Status403Forbidden,
+                    Instance = HttpContext.Request.Path
+                }),
                 _ => UnprocessableEntity(new ProblemDetails
                 {
                     Title = result.Error.Code,
@@ -300,6 +339,13 @@ public class FamiliesController(
                     Title = "Resource not found",
                     Detail = result.Error.Message,
                     Status = StatusCodes.Status404NotFound,
+                    Instance = HttpContext.Request.Path
+                }),
+                "FORBIDDEN" => StatusCode(StatusCodes.Status403Forbidden, new ProblemDetails
+                {
+                    Title = "Access denied",
+                    Detail = result.Error.Message,
+                    Status = StatusCodes.Status403Forbidden,
                     Instance = HttpContext.Request.Path
                 }),
                 _ => UnprocessableEntity(new ProblemDetails

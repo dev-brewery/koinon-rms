@@ -89,8 +89,6 @@ public class PeopleController(
             PageSize = pageSize
         };
 
-        parameters.ValidatePageSize();
-
         var result = await personService.SearchAsync(parameters, ct);
 
         logger.LogInformation(

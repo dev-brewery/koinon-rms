@@ -3,45 +3,45 @@ namespace Koinon.Application.DTOs;
 /// <summary>
 /// Full person details DTO.
 /// </summary>
-public class PersonDto
+public record PersonDto
 {
-    public string IdKey { get; init; } = null!;
-    public Guid Guid { get; init; }
-    public string FirstName { get; init; } = null!;
+    public required string IdKey { get; init; }
+    public required Guid Guid { get; init; }
+    public required string FirstName { get; init; }
     public string? NickName { get; init; }
     public string? MiddleName { get; init; }
-    public string LastName { get; init; } = null!;
-    public string FullName { get; init; } = null!;
+    public required string LastName { get; init; }
+    public required string FullName { get; init; }
     public DateOnly? BirthDate { get; init; }
     public int? Age { get; init; }
-    public string Gender { get; init; } = null!;
+    public required string Gender { get; init; }
     public string? Email { get; init; }
     public bool IsEmailActive { get; init; }
-    public string EmailPreference { get; init; } = null!;
-    public IReadOnlyList<PhoneNumberDto> PhoneNumbers { get; init; } = null!;
+    public required string EmailPreference { get; init; }
+    public required IReadOnlyList<PhoneNumberDto> PhoneNumbers { get; init; }
     public DefinedValueDto? RecordStatus { get; init; }
     public DefinedValueDto? ConnectionStatus { get; init; }
     public FamilySummaryDto? PrimaryFamily { get; init; }
     public CampusSummaryDto? PrimaryCampus { get; init; }
     public string? PhotoUrl { get; init; }
-    public DateTime CreatedDateTime { get; init; }
+    public required DateTime CreatedDateTime { get; init; }
     public DateTime? ModifiedDateTime { get; init; }
 }
 
 /// <summary>
 /// Summary person DTO for lists and search results.
 /// </summary>
-public class PersonSummaryDto
+public record PersonSummaryDto
 {
-    public string IdKey { get; init; } = null!;
-    public string FirstName { get; init; } = null!;
+    public required string IdKey { get; init; }
+    public required string FirstName { get; init; }
     public string? NickName { get; init; }
-    public string LastName { get; init; } = null!;
-    public string FullName { get; init; } = null!;
+    public required string LastName { get; init; }
+    public required string FullName { get; init; }
     public string? Email { get; init; }
     public string? PhotoUrl { get; init; }
     public int? Age { get; init; }
-    public string Gender { get; init; } = null!;
+    public required string Gender { get; init; }
     public DefinedValueDto? ConnectionStatus { get; init; }
     public DefinedValueDto? RecordStatus { get; init; }
 }
@@ -49,11 +49,11 @@ public class PersonSummaryDto
 /// <summary>
 /// Phone number DTO.
 /// </summary>
-public class PhoneNumberDto
+public record PhoneNumberDto
 {
-    public string IdKey { get; init; } = null!;
-    public string Number { get; init; } = null!;
-    public string NumberFormatted { get; init; } = null!;
+    public required string IdKey { get; init; }
+    public required string Number { get; init; }
+    public required string NumberFormatted { get; init; }
     public string? Extension { get; init; }
     public DefinedValueDto? PhoneType { get; init; }
     public bool IsMessagingEnabled { get; init; }
@@ -63,11 +63,11 @@ public class PhoneNumberDto
 /// <summary>
 /// Defined value DTO.
 /// </summary>
-public class DefinedValueDto
+public record DefinedValueDto
 {
-    public string IdKey { get; init; } = null!;
-    public Guid Guid { get; init; }
-    public string Value { get; init; } = null!;
+    public required string IdKey { get; init; }
+    public required Guid Guid { get; init; }
+    public required string Value { get; init; }
     public string? Description { get; init; }
     public bool IsActive { get; init; }
     public int Order { get; init; }
@@ -76,19 +76,19 @@ public class DefinedValueDto
 /// <summary>
 /// Family summary DTO.
 /// </summary>
-public class FamilySummaryDto
+public record FamilySummaryDto
 {
-    public string IdKey { get; init; } = null!;
-    public string Name { get; init; } = null!;
+    public required string IdKey { get; init; }
+    public required string Name { get; init; }
     public int MemberCount { get; init; }
 }
 
 /// <summary>
 /// Campus summary DTO.
 /// </summary>
-public class CampusSummaryDto
+public record CampusSummaryDto
 {
-    public string IdKey { get; init; } = null!;
-    public string Name { get; init; } = null!;
+    public required string IdKey { get; init; }
+    public required string Name { get; init; }
     public string? ShortCode { get; init; }
 }

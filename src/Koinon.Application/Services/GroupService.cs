@@ -79,8 +79,6 @@ public class GroupService(
         GroupSearchParameters parameters,
         CancellationToken ct = default)
     {
-        parameters.ValidatePageSize();
-
         var query = context.Groups
             .AsNoTracking()
             .Include(g => g.GroupType)

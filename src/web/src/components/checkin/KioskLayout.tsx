@@ -39,7 +39,7 @@ export function KioskLayout({ children, title, onReset }: KioskLayoutProps) {
           {onReset && (
             <button
               onClick={onReset}
-              className="px-6 py-3 text-gray-600 hover:text-gray-900 font-medium transition-colors"
+              className="px-6 py-3 min-h-[48px] text-gray-600 hover:text-gray-900 font-medium transition-colors"
             >
               Start Over
             </button>

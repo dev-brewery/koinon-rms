@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { LoginForm, ProtectedRoute } from './components/auth';
 import { useAuth } from './hooks/useAuth';
 import { CheckinPage } from './pages/CheckinPage';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -110,27 +111,29 @@ function NotFoundPage() {
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route
-        path="/people"
-        element={
-          <ProtectedRoute>
-            <PeoplePage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/checkin"
-        element={
-          <ProtectedRoute>
-            <CheckinPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+    <ErrorBoundary>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/people"
+          element={
+            <ProtectedRoute>
+              <PeoplePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/checkin"
+          element={
+            <ProtectedRoute>
+              <CheckinPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </ErrorBoundary>
   );
 }
 

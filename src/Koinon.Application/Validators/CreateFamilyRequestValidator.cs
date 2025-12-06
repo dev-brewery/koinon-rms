@@ -1,5 +1,6 @@
 using FluentValidation;
 using Koinon.Application.DTOs.Requests;
+using Koinon.Domain.Data;
 
 namespace Koinon.Application.Validators;
 
@@ -17,6 +18,10 @@ public class CreateFamilyRequestValidator : AbstractValidator<CreateFamilyReques
         RuleFor(x => x.Description)
             .MaximumLength(500).WithMessage("Description cannot exceed 500 characters")
             .When(x => !string.IsNullOrEmpty(x.Description));
+
+        RuleFor(x => x.CampusId)
+            .Must(BeValidIdKey).WithMessage("Campus ID must be a valid IdKey format")
+            .When(x => !string.IsNullOrWhiteSpace(x.CampusId));
 
         // Address validation
         When(x => x.Address != null, () =>
@@ -37,5 +42,15 @@ public class CreateFamilyRequestValidator : AbstractValidator<CreateFamilyReques
                 .NotEmpty().WithMessage("Postal code is required")
                 .MaximumLength(20).WithMessage("Postal code cannot exceed 20 characters");
         });
+    }
+
+    private static bool BeValidIdKey(string? idKey)
+    {
+        if (string.IsNullOrWhiteSpace(idKey))
+        {
+            return false;
+        }
+
+        return IdKeyHelper.TryDecode(idKey, out _);
     }
 }

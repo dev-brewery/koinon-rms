@@ -435,20 +435,21 @@ public class PersonServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task SearchAsync_ValidatesPageSize()
+    public async Task SearchAsync_UsesProvidedPageSize()
     {
-        // Arrange
+        // Arrange - PageSize validation is now handled by FluentValidation at API layer
+        // Service trusts the validated input
         var parameters = new PersonSearchParameters
         {
             Page = 1,
-            PageSize = 200 // Over max
+            PageSize = 50
         };
 
         // Act
         var result = await _service.SearchAsync(parameters);
 
-        // Assert - should have capped at 100
-        result.PageSize.Should().Be(100);
+        // Assert - service uses the provided page size
+        result.PageSize.Should().Be(50);
     }
 
     [Fact]

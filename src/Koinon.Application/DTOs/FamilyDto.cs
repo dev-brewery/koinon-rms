@@ -3,7 +3,7 @@ namespace Koinon.Application.DTOs;
 /// <summary>
 /// Full family details DTO with members.
 /// </summary>
-public class FamilyDto
+public record FamilyDto
 {
     public required string IdKey { get; init; }
     public required Guid Guid { get; init; }
@@ -20,7 +20,7 @@ public class FamilyDto
 /// <summary>
 /// Family member DTO representing a person's membership in a family.
 /// </summary>
-public class FamilyMemberDto
+public record FamilyMemberDto
 {
     public required string IdKey { get; init; }
     public required PersonSummaryDto Person { get; init; }
@@ -32,7 +32,7 @@ public class FamilyMemberDto
 /// <summary>
 /// Location/Address DTO.
 /// </summary>
-public class LocationDto
+public record LocationDto
 {
     public required string IdKey { get; init; }
     public string? Street1 { get; init; }
@@ -47,7 +47,7 @@ public class LocationDto
 /// <summary>
 /// Group type role DTO.
 /// </summary>
-public class GroupTypeRoleDto
+public record GroupTypeRoleDto
 {
     public required string IdKey { get; init; }
     public required string Name { get; init; }
