@@ -8,6 +8,7 @@ import {
   CheckinConfirmation,
   IdleWarningModal,
 } from '@/components/checkin';
+import type { OpportunitySelection } from '@/components/checkin';
 import { Button, Card } from '@/components/ui';
 import {
   useCheckinSearch,
@@ -16,6 +17,7 @@ import {
 } from '@/hooks/useCheckin';
 import { useIdleTimeout } from '@/hooks/useIdleTimeout';
 import type { CheckinFamilyDto, CheckinRequestItem } from '@/services/api/types';
+import { createSelectionKey, getTotalActivitiesCount } from '@/utils/checkinHelpers';
 
 type CheckinStep = 'search' | 'select-family' | 'select-members' | 'confirmation';
 type SearchMode = 'phone' | 'name';
@@ -36,7 +38,7 @@ export function CheckinPage() {
   const [searchValue, setSearchValue] = useState<string>('');
   const [selectedFamily, setSelectedFamily] = useState<CheckinFamilyDto | null>(null);
   const [selectedCheckins, setSelectedCheckins] = useState<
-    Map<string, { groupId: string; locationId: string; scheduleId: string }>
+    Map<string, OpportunitySelection[]>
   >(new Map());
 
   // Queries
@@ -75,35 +77,60 @@ export function CheckinPage() {
     personId: string,
     groupId: string,
     locationId: string,
-    scheduleId: string
+    scheduleId: string,
+    groupName: string,
+    locationName: string,
+    scheduleName: string,
+    startTime: string
   ) => {
     const newSelected = new Map(selectedCheckins);
-    const existing = newSelected.get(personId);
+    const existingSelections = newSelected.get(personId) || [];
 
-    if (
-      existing?.groupId === groupId &&
-      existing?.locationId === locationId &&
-      existing?.scheduleId === scheduleId
-    ) {
-      // Deselect
-      newSelected.delete(personId);
+    // Check if this opportunity is already selected using consistent key
+    const selectionKey = createSelectionKey(groupId, locationId, scheduleId);
+    const selectionIndex = existingSelections.findIndex(
+      (sel) => createSelectionKey(sel.groupId, sel.locationId, sel.scheduleId) === selectionKey
+    );
+
+    if (selectionIndex >= 0) {
+      // Deselect - remove this opportunity
+      const updatedSelections = existingSelections.filter((_, idx) => idx !== selectionIndex);
+      if (updatedSelections.length === 0) {
+        newSelected.delete(personId);
+      } else {
+        newSelected.set(personId, updatedSelections);
+      }
     } else {
-      // Select
-      newSelected.set(personId, { groupId, locationId, scheduleId });
+      // Select - add this opportunity
+      const newSelection: OpportunitySelection = {
+        groupId,
+        locationId,
+        scheduleId,
+        groupName,
+        locationName,
+        scheduleName,
+        startTime,
+      };
+      newSelected.set(personId, [...existingSelections, newSelection]);
     }
 
     setSelectedCheckins(newSelected);
   };
 
   const handleCheckIn = async () => {
-    const checkins: CheckinRequestItem[] = Array.from(selectedCheckins.entries()).map(
-      ([personIdKey, selection]) => ({
-        personIdKey,
-        groupIdKey: selection.groupId,
-        locationIdKey: selection.locationId,
-        scheduleIdKey: selection.scheduleId,
-      })
-    );
+    // Flatten all selections into a single array of check-in items
+    const checkins: CheckinRequestItem[] = [];
+
+    selectedCheckins.forEach((selections, personIdKey) => {
+      selections.forEach((selection) => {
+        checkins.push({
+          personIdKey,
+          groupIdKey: selection.groupId,
+          locationIdKey: selection.locationId,
+          scheduleIdKey: selection.scheduleId,
+        });
+      });
+    });
 
     try {
       await recordAttendanceMutation.mutateAsync({ checkins });
@@ -243,51 +270,56 @@ export function CheckinPage() {
       )}
 
       {/* Step 3: Select Members */}
-      {step === 'select-members' && opportunitiesQuery.data && (
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-8 text-gray-900">
-            Who's Checking In?
-          </h2>
+      {step === 'select-members' && opportunitiesQuery.data && (() => {
+        // Calculate total activities count once for performance
+        const totalActivities = getTotalActivitiesCount(selectedCheckins);
 
-          {opportunitiesQuery.isLoading && (
-            <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-              <p className="mt-4 text-gray-600">Loading options...</p>
-            </div>
-          )}
+        return (
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl font-bold text-center mb-8 text-gray-900">
+              Who's Checking In?
+            </h2>
 
-          {opportunitiesQuery.data && (
-            <>
-              <FamilyMemberList
-                opportunities={opportunitiesQuery.data.opportunities}
-                selectedCheckins={selectedCheckins}
-                onToggleCheckin={handleToggleCheckin}
-              />
-
-              {/* Check-in Button */}
-              <div className="mt-8 sticky bottom-0 bg-gradient-to-t from-blue-100 via-blue-100 to-transparent pt-6 pb-4">
-                <Button
-                  onClick={handleCheckIn}
-                  disabled={selectedCheckins.size === 0}
-                  loading={recordAttendanceMutation.isPending}
-                  size="lg"
-                  className="w-full text-xl"
-                >
-                  Check In {selectedCheckins.size > 0 && `(${selectedCheckins.size})`}
-                </Button>
+            {opportunitiesQuery.isLoading && (
+              <div className="text-center py-12">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <p className="mt-4 text-gray-600">Loading options...</p>
               </div>
-            </>
-          )}
+            )}
 
-          {opportunitiesQuery.isError && (
-            <Card className="bg-red-50 border border-red-200">
-              <p className="text-red-800 text-center">
-                Failed to load check-in options. Please try again.
-              </p>
-            </Card>
-          )}
-        </div>
-      )}
+            {opportunitiesQuery.data && (
+              <>
+                <FamilyMemberList
+                  opportunities={opportunitiesQuery.data.opportunities}
+                  selectedCheckins={selectedCheckins}
+                  onToggleCheckin={handleToggleCheckin}
+                />
+
+                {/* Check-in Button */}
+                <div className="mt-8 sticky bottom-0 bg-gradient-to-t from-blue-100 via-blue-100 to-transparent pt-6 pb-4">
+                  <Button
+                    onClick={handleCheckIn}
+                    disabled={selectedCheckins.size === 0}
+                    loading={recordAttendanceMutation.isPending}
+                    size="lg"
+                    className="w-full text-xl"
+                  >
+                    Check In {selectedCheckins.size > 0 && `(${totalActivities} ${totalActivities === 1 ? 'activity' : 'activities'})`}
+                  </Button>
+                </div>
+              </>
+            )}
+
+            {opportunitiesQuery.isError && (
+              <Card className="bg-red-50 border border-red-200">
+                <p className="text-red-800 text-center">
+                  Failed to load check-in options. Please try again.
+                </p>
+              </Card>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Step 4: Confirmation */}
       {step === 'confirmation' && recordAttendanceMutation.data && (
@@ -297,7 +329,7 @@ export function CheckinPage() {
           onPrintLabels={
             recordAttendanceMutation.data.labels.length > 0
               ? () => {
-                  // Print labels functionality would go here
+                  // TODO: Implement label printing (P0 - see docs/plans/ux-improvements-plan.md)
                 }
               : undefined
           }

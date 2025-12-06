@@ -8,7 +8,7 @@ export { FamilySearch } from './FamilySearch';
 export type { FamilySearchProps } from './FamilySearch';
 
 export { FamilyMemberList } from './FamilyMemberList';
-export type { FamilyMemberListProps } from './FamilyMemberList';
+export type { FamilyMemberListProps, OpportunitySelection } from './FamilyMemberList';
 
 export { CheckinConfirmation } from './CheckinConfirmation';
 export type { CheckinConfirmationProps } from './CheckinConfirmation';
