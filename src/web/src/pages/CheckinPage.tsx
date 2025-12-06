@@ -16,6 +16,7 @@ import {
 } from '@/hooks/useCheckin';
 import { useIdleTimeout } from '@/hooks/useIdleTimeout';
 import type { CheckinFamilyDto, CheckinRequestItem } from '@/services/api/types';
+import { createSelectionKey, getTotalActivitiesCount } from '@/utils/checkinHelpers';
 
 type CheckinStep = 'search' | 'select-family' | 'select-members' | 'confirmation';
 type SearchMode = 'phone' | 'name';
@@ -25,26 +26,6 @@ const IDLE_CONFIG = {
   timeout: 60 * 1000, // 60 seconds total
   warningTime: 50 * 1000, // Warning at 50 seconds (10s countdown)
 };
-
-/**
- * Helper to get total count of selected activities across all people.
- * Centralizes logic used in both UI display and check-in submission.
- */
-const getTotalActivitiesCount = (selectedCheckins: Map<string, OpportunitySelection[]>): number => {
-  let count = 0;
-  selectedCheckins.forEach((selections) => {
-    if (Array.isArray(selections)) {
-      count += selections.length;
-    }
-  });
-  return count;
-};
-
-/**
- * Creates a unique key for identifying a specific opportunity selection.
- */
-const createSelectionKey = (groupId: string, locationId: string, scheduleId: string): string =>
-  `${groupId}|${locationId}|${scheduleId}`;
 
 export function CheckinPage() {
   // State
@@ -281,51 +262,56 @@ export function CheckinPage() {
       )}
 
       {/* Step 3: Select Members */}
-      {step === 'select-members' && opportunitiesQuery.data && (
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-8 text-gray-900">
-            Who's Checking In?
-          </h2>
+      {step === 'select-members' && opportunitiesQuery.data && (() => {
+        // Calculate total activities count once for performance
+        const totalActivities = getTotalActivitiesCount(selectedCheckins);
 
-          {opportunitiesQuery.isLoading && (
-            <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-              <p className="mt-4 text-gray-600">Loading options...</p>
-            </div>
-          )}
+        return (
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl font-bold text-center mb-8 text-gray-900">
+              Who's Checking In?
+            </h2>
 
-          {opportunitiesQuery.data && (
-            <>
-              <FamilyMemberList
-                opportunities={opportunitiesQuery.data.opportunities}
-                selectedCheckins={selectedCheckins}
-                onToggleCheckin={handleToggleCheckin}
-              />
-
-              {/* Check-in Button */}
-              <div className="mt-8 sticky bottom-0 bg-gradient-to-t from-blue-100 via-blue-100 to-transparent pt-6 pb-4">
-                <Button
-                  onClick={handleCheckIn}
-                  disabled={selectedCheckins.size === 0}
-                  loading={recordAttendanceMutation.isPending}
-                  size="lg"
-                  className="w-full text-xl"
-                >
-                  Check In {selectedCheckins.size > 0 && `(${getTotalActivitiesCount(selectedCheckins)} ${getTotalActivitiesCount(selectedCheckins) === 1 ? 'activity' : 'activities'})`}
-                </Button>
+            {opportunitiesQuery.isLoading && (
+              <div className="text-center py-12">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <p className="mt-4 text-gray-600">Loading options...</p>
               </div>
-            </>
-          )}
+            )}
 
-          {opportunitiesQuery.isError && (
-            <Card className="bg-red-50 border border-red-200">
-              <p className="text-red-800 text-center">
-                Failed to load check-in options. Please try again.
-              </p>
-            </Card>
-          )}
-        </div>
-      )}
+            {opportunitiesQuery.data && (
+              <>
+                <FamilyMemberList
+                  opportunities={opportunitiesQuery.data.opportunities}
+                  selectedCheckins={selectedCheckins}
+                  onToggleCheckin={handleToggleCheckin}
+                />
+
+                {/* Check-in Button */}
+                <div className="mt-8 sticky bottom-0 bg-gradient-to-t from-blue-100 via-blue-100 to-transparent pt-6 pb-4">
+                  <Button
+                    onClick={handleCheckIn}
+                    disabled={selectedCheckins.size === 0}
+                    loading={recordAttendanceMutation.isPending}
+                    size="lg"
+                    className="w-full text-xl"
+                  >
+                    Check In {selectedCheckins.size > 0 && `(${totalActivities} ${totalActivities === 1 ? 'activity' : 'activities'})`}
+                  </Button>
+                </div>
+              </>
+            )}
+
+            {opportunitiesQuery.isError && (
+              <Card className="bg-red-50 border border-red-200">
+                <p className="text-red-800 text-center">
+                  Failed to load check-in options. Please try again.
+                </p>
+              </Card>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Step 4: Confirmation */}
       {step === 'confirmation' && recordAttendanceMutation.data && (

@@ -4,13 +4,7 @@ import type {
   PersonOpportunitiesDto,
   CheckinOptionDto,
 } from '@/services/api/types';
-
-/**
- * Creates a unique key for identifying a specific opportunity selection.
- * Used for consistent selection matching across the component.
- */
-const createSelectionKey = (groupId: string, locationId: string, scheduleId: string): string =>
-  `${groupId}|${locationId}|${scheduleId}`;
+import { createSelectionKey } from '@/utils/checkinHelpers';
 
 export interface OpportunitySelection {
   groupId: string;
