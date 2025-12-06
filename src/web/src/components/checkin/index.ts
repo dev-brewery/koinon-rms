@@ -12,3 +12,6 @@ export type { FamilyMemberListProps } from './FamilyMemberList';
 
 export { CheckinConfirmation } from './CheckinConfirmation';
 export type { CheckinConfirmationProps } from './CheckinConfirmation';
+
+export { IdleWarningModal } from './IdleWarningModal';
+export type { IdleWarningModalProps } from './IdleWarningModal';

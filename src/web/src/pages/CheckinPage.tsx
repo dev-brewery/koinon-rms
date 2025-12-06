@@ -5,6 +5,7 @@ import {
   FamilySearch,
   FamilyMemberList,
   CheckinConfirmation,
+  IdleWarningModal,
 } from '@/components/checkin';
 import { Button, Card } from '@/components/ui';
 import {
@@ -12,10 +13,17 @@ import {
   useCheckinOpportunities,
   useRecordAttendance,
 } from '@/hooks/useCheckin';
+import { useIdleTimeout } from '@/hooks/useIdleTimeout';
 import type { CheckinFamilyDto, CheckinRequestItem } from '@/services/api/types';
 
 type CheckinStep = 'search' | 'select-family' | 'select-members' | 'confirmation';
 type SearchMode = 'phone' | 'name';
+
+// Idle timeout configuration
+const IDLE_CONFIG = {
+  timeout: 60 * 1000, // 60 seconds total
+  warningTime: 50 * 1000, // Warning at 50 seconds (10s countdown)
+};
 
 export function CheckinPage() {
   // State
@@ -113,16 +121,25 @@ export function CheckinPage() {
     handleReset();
   };
 
+  // Idle timeout - only active when NOT on search screen
+  const { isWarning, secondsRemaining, resetTimer } = useIdleTimeout({
+    timeout: IDLE_CONFIG.timeout,
+    warningTime: IDLE_CONFIG.warningTime,
+    onTimeout: handleReset,
+    enabled: step !== 'search',
+  });
+
   // Render
   return (
-    <KioskLayout
-      title={
-        step === 'select-members' && selectedFamily
-          ? selectedFamily.name
-          : undefined
-      }
-      onReset={step !== 'search' ? handleReset : undefined}
-    >
+    <>
+      <KioskLayout
+        title={
+          step === 'select-members' && selectedFamily
+            ? selectedFamily.name
+            : undefined
+        }
+        onReset={step !== 'search' ? handleReset : undefined}
+      >
       {/* Step 1: Search */}
       {step === 'search' && (
         <div className="space-y-6">
@@ -279,6 +296,14 @@ export function CheckinPage() {
           }
         />
       )}
-    </KioskLayout>
+      </KioskLayout>
+
+      {/* Idle Warning Modal */}
+      <IdleWarningModal
+        isOpen={isWarning}
+        secondsRemaining={secondsRemaining}
+        onStayActive={resetTimer}
+      />
+    </>
   );
 }
