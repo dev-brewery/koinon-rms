@@ -1,0 +1,78 @@
+name: PR Quick Validation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  quick-check:
+    name: Quick PR Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Check PR title format
+      run: |
+        PR_TITLE="${{ github.event.pull_request.title }}"
+        # Check if PR title starts with WU-X.X.X or conventional commit type
+        if [[ $PR_TITLE =~ ^(WU-[0-9]+\.[0-9]+\.[0-9]+|feat|fix|docs|refactor|test|chore): ]]; then
+          echo "✅ PR title format is valid"
+        else
+          echo "❌ PR title should start with WU-X.X.X or conventional commit type (feat|fix|docs|refactor|test|chore)"
+          echo "Example: 'WU-1.2.1: Create Person entity' or 'feat: add check-in search'"
+          exit 1
+        fi
+
+    - name: Check for untracked task markers
+      run: |
+        # Find task markers that don't reference an issue
+        # Using variable to avoid self-match in pre-commit hook
+        MARKER="TO""DO"
+        MATCHES=$(git diff origin/main...HEAD | grep "^\+.*$MARKER" | grep -v "$MARKER(#" | grep -v "$MARKER: #" || true)
+        if [ -n "$MATCHES" ]; then
+          echo "⚠️ Found task markers without issue references:"
+          echo "$MATCHES"
+          echo ""
+          echo "Please either:"
+          echo "  1. Create an issue and reference it: ${MARKER}(#123)"
+          echo "  2. Remove the marker and handle it immediately"
+          exit 1
+        fi
+
+    - name: Check for console.log in production code
+      run: |
+        LOGS=$(git diff origin/main...HEAD -- "src/web/src/**/*.ts" "src/web/src/**/*.tsx" | grep "^\+.*console\.log" || true)
+        if [ -n "$LOGS" ]; then
+          echo "⚠️ Found console.log in production code:"
+          echo "$LOGS"
+          echo ""
+          echo "Please use proper logging or remove debug statements"
+          exit 1
+        fi
+
+    - name: Check for large files
+      run: |
+        LARGE_FILES=$(git diff --stat origin/main...HEAD | awk '{if ($3 > 1000) print $0}')
+        if [ -n "$LARGE_FILES" ]; then
+          echo "⚠️ Found large file changes (>1000 lines):"
+          echo "$LARGE_FILES"
+          echo ""
+          echo "Consider breaking this PR into smaller work units"
+        fi
+
+    - name: Check work unit completion marker
+      run: |
+        if [[ "${{ github.event.pull_request.title }}" =~ ^WU-([0-9]+\.[0-9]+\.[0-9]+) ]]; then
+          WU_ID="${BASH_REMATCH[1]}"
+          echo "Work Unit: WU-$WU_ID"
+
+          # Check if work-units.json was updated
+          if git diff origin/main...HEAD -- .claude/work-units.json | grep -q "WU-$WU_ID"; then
+            echo "✅ work-units.json updated for WU-$WU_ID"
+          else
+            echo "⚠️ work-units.json not updated. Run: .claude/scripts/wu-complete.sh WU-$WU_ID"
+          fi
+        fi
