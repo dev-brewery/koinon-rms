@@ -9,7 +9,7 @@ export class ApiException extends Error {
     public statusText: string,
     public response: string,
     public headers: Record<string, string>,
-    public result?: any
+    public result?: unknown
   ) {
     super(`HTTP ${status}: ${statusText}`);
     this.name = 'ApiException';

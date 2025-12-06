@@ -13,17 +13,17 @@
     <!-- <ProjectReference Include="..\..\src\Koinon.Infrastructure\Koinon.Infrastructure.csproj" /> -->
 
     <!-- Test data generation -->
-    <PackageReference Include="Bogus" Version="35.3.0" />
+    <PackageReference Include="Bogus" />
 
     <!-- Database -->
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0">
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
 
     <!-- CLI -->
-    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+    <PackageReference Include="System.CommandLine" />
   </ItemGroup>
 
 </Project>

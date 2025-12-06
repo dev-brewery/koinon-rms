@@ -4,10 +4,10 @@
 
 services:
   # =============================================================================
-  # PostgreSQL Database
+  # PostgreSQL Database with PostGIS
   # =============================================================================
   postgres:
-    image: postgres:16-alpine
+    image: postgis/postgis:16-3.4-alpine
     container_name: koinon-postgres
     restart: unless-stopped
     environment:

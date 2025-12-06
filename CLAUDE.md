@@ -436,3 +436,6 @@ Redis: localhost:6379
 | API endpoint contract? | `docs/reference/api-contracts.md` |
 | Work unit scope? | `docs/reference/work-breakdown.md` |
 | Architecture decision? | `docs/architecture.md` |
+- Always use code agents to affect the codebase. You are the manager, not the developer
+- The code critic agent must inspect code after each phase completion
+- Never proceed to new work if the code critic rejects old work
