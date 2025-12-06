@@ -17,6 +17,10 @@ jobs:
     name: Backend Build & Test
     runs-on: ubuntu-latest
 
+    permissions:
+      checks: write
+      contents: read
+
     services:
       postgres:
         image: postgres:16-alpine
@@ -136,6 +140,10 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
 
+    permissions:
+      checks: write
+      contents: read
+
     services:
       postgres:
         image: postgres:16-alpine
@@ -163,7 +171,7 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
     - name: Install EF Core tools
-      run: dotnet tool install --global dotnet-ef
+      run: dotnet tool update --global dotnet-ef --version 8.0.11 || dotnet tool install --global dotnet-ef --version 8.0.11
 
     - name: Check for migrations
       id: check-migrations
