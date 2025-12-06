@@ -176,8 +176,15 @@ temp/
 # These folders are not committed to the repo but synced separately
 # See .git-sync/ for sync configuration
 .claude/
-.github/
 .git-sync/
+
+# GitHub - ignore most but KEEP workflows for CI/CD
+.github/*
+!.github/workflows/
 
 # Claude Code temporary files
 tmp/validate-output.log
+
+# MCP configuration (contains local secrets)
+.mcp.json
+.mcp.json

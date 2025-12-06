@@ -111,7 +111,12 @@ async function tryRefreshToken(): Promise<boolean> {
       }
 
       const data = await response.json();
+      if (!data.data?.accessToken || !data.data?.refreshToken) {
+        clearTokens();
+        return false;
+      }
       accessToken = data.data.accessToken;
+      refreshToken = data.data.refreshToken;
       return true;
     } catch {
       clearTokens();

@@ -124,6 +124,12 @@ dotnet_naming_rule.types_should_be_pascal_case.severity = warning
 dotnet_naming_rule.types_should_be_pascal_case.symbols = types
 dotnet_naming_rule.types_should_be_pascal_case.style = pascal_case
 
+# Const fields should be PascalCase (not _camelCase)
+dotnet_naming_rule.const_fields_should_be_pascal_case.severity = warning
+dotnet_naming_rule.const_fields_should_be_pascal_case.symbols = const_fields
+dotnet_naming_rule.const_fields_should_be_pascal_case.style = pascal_case
+
+# Private instance fields (non-const) should be _camelCase
 dotnet_naming_rule.private_field_should_be_camel_case_with_underscore.severity = warning
 dotnet_naming_rule.private_field_should_be_camel_case_with_underscore.symbols = private_field
 dotnet_naming_rule.private_field_should_be_camel_case_with_underscore.style = camel_case_with_underscore
@@ -133,6 +139,9 @@ dotnet_naming_symbols.interface.applicable_accessibilities = public, internal, p
 
 dotnet_naming_symbols.types.applicable_kinds = class, struct, interface, enum
 dotnet_naming_symbols.types.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
+
+dotnet_naming_symbols.const_fields.applicable_kinds = field
+dotnet_naming_symbols.const_fields.required_modifiers = const
 
 dotnet_naming_symbols.private_field.applicable_kinds = field
 dotnet_naming_symbols.private_field.applicable_accessibilities = private

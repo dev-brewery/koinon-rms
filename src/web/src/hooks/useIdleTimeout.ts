@@ -54,7 +54,8 @@ export function useIdleTimeout(options: UseIdleTimeoutOptions): UseIdleTimeoutRe
   const [isWarning, setIsWarning] = useState(false);
   const [secondsRemaining, setSecondsRemaining] = useState(0);
 
-  // Refs to track timers
+  // Refs to track timers and mount status
+  const isMountedRef = useRef(true);
   const lastActivityRef = useRef<number>(Date.now());
   const timeoutTimerRef = useRef<number | null>(null);
   const warningTimerRef = useRef<number | null>(null);
@@ -86,12 +87,17 @@ export function useIdleTimeout(options: UseIdleTimeoutOptions): UseIdleTimeoutRe
   // Start countdown interval when warning shown
   const startCountdown = useCallback(() => {
     // Update immediately
-    setSecondsRemaining(calculateSecondsRemaining());
+    if (isMountedRef.current) {
+      setSecondsRemaining(calculateSecondsRemaining());
+    }
 
     // Update every second
     countdownIntervalRef.current = window.setInterval(() => {
       const remaining = calculateSecondsRemaining();
-      setSecondsRemaining(remaining);
+
+      if (isMountedRef.current) {
+        setSecondsRemaining(remaining);
+      }
 
       if (remaining === 0) {
         if (countdownIntervalRef.current !== null) {
@@ -105,8 +111,12 @@ export function useIdleTimeout(options: UseIdleTimeoutOptions): UseIdleTimeoutRe
   // Reset timer to current time and restart all timers
   const resetTimer = useCallback(() => {
     lastActivityRef.current = Date.now();
-    setIsWarning(false);
-    setSecondsRemaining(0);
+
+    if (isMountedRef.current) {
+      setIsWarning(false);
+      setSecondsRemaining(0);
+    }
+
     clearTimers();
 
     if (!enabled) {
@@ -115,16 +125,22 @@ export function useIdleTimeout(options: UseIdleTimeoutOptions): UseIdleTimeoutRe
 
     // Set timeout for warning
     warningTimerRef.current = window.setTimeout(() => {
-      setIsWarning(true);
-      onWarning?.();
-      startCountdown();
+      if (isMountedRef.current) {
+        setIsWarning(true);
+        onWarning?.();
+        startCountdown();
+      }
     }, warningTime);
 
     // Set timeout for final timeout
     timeoutTimerRef.current = window.setTimeout(() => {
       onTimeout();
-      setIsWarning(false);
-      setSecondsRemaining(0);
+
+      if (isMountedRef.current) {
+        setIsWarning(false);
+        setSecondsRemaining(0);
+      }
+
       clearTimers();
     }, timeout);
   }, [enabled, timeout, warningTime, onTimeout, onWarning, clearTimers, startCountdown]);
@@ -142,10 +158,15 @@ export function useIdleTimeout(options: UseIdleTimeoutOptions): UseIdleTimeoutRe
 
   // Setup event listeners
   useEffect(() => {
+    // Set mounted status
+    isMountedRef.current = true;
+
     if (!enabled) {
       clearTimers();
-      setIsWarning(false);
-      setSecondsRemaining(0);
+      if (isMountedRef.current) {
+        setIsWarning(false);
+        setSecondsRemaining(0);
+      }
       return;
     }
 
@@ -159,6 +180,7 @@ export function useIdleTimeout(options: UseIdleTimeoutOptions): UseIdleTimeoutRe
 
     // Cleanup
     return () => {
+      isMountedRef.current = false;
       ACTIVITY_EVENTS.forEach((event) => {
         window.removeEventListener(event, handleActivity);
       });
