@@ -59,7 +59,7 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = jwtIssuer,
         ValidAudience = jwtAudience,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
-        ClockSkew = TimeSpan.Zero // No tolerance for expiration time
+        ClockSkew = TimeSpan.FromSeconds(60) // 60 second tolerance for clock drift
     };
 });
 

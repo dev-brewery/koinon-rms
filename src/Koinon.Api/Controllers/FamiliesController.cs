@@ -18,10 +18,55 @@ public class FamiliesController(
     IFamilyService familyService,
     ILogger<FamiliesController> logger) : ControllerBase
 {
+    /// <summary>
+    /// Gets a family by their IdKey with full details including members.
+    /// </summary>
+    /// <param name="idKey">The family's unique IdKey</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Family details with members</returns>
+    /// <response code="200">Returns the family details</response>
+    /// <response code="404">Family not found</response>
+    [HttpGet("{idKey}")]
+    [ProducesResponseType(typeof(FamilyDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetByIdKey(string idKey, CancellationToken ct = default)
+    {
+        var family = await familyService.GetByIdKeyAsync(idKey, ct);
+
         if (family == null)
         {
             logger.LogWarning("Family not found: IdKey={IdKey}", idKey);
+            return NotFound(new ProblemDetails
+            {
+                Title = "Family not found",
+                Detail = $"No family found with IdKey '{idKey}'",
+                Status = StatusCodes.Status404NotFound,
+                Instance = HttpContext.Request.Path
+            });
+        }
 
+        logger.LogInformation("Family retrieved: IdKey={IdKey}, Name={Name}", idKey, family.Name);
+        return Ok(family);
+    }
+
+    /// <summary>
+    /// Gets all members of a family.
+    /// </summary>
+    /// <param name="idKey">The family's unique IdKey</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>List of family members</returns>
+    /// <response code="200">Returns the family members</response>
+    /// <response code="404">Family not found</response>
+    [HttpGet("{idKey}/members")]
+    [ProducesResponseType(typeof(List<FamilyMemberDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetMembers(string idKey, CancellationToken ct = default)
+    {
+        var family = await familyService.GetByIdKeyAsync(idKey, ct);
+
+        if (family == null)
+        {
+            logger.LogWarning("Family not found: IdKey={IdKey}", idKey);
             return NotFound(new ProblemDetails
             {
                 Title = "Family not found",
