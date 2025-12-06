@@ -12,13 +12,24 @@ namespace Koinon.Application.Services;
 /// Service for validating kiosk/device tokens with Redis caching.
 /// Implements security checks for kiosk authentication.
 /// </summary>
-public class DeviceValidationService(
-    IApplicationDbContext context,
-    IDistributedCache? cache,
-    ILogger<DeviceValidationService> logger) : IDeviceValidationService
+public class DeviceValidationService : IDeviceValidationService
 {
+    private readonly IApplicationDbContext _context;
+    private readonly IDistributedCache? _cache;
+    private readonly ILogger<DeviceValidationService> _logger;
+
     private const string CacheKeyPrefix = "kiosk:token:";
-    private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(15);
+    private static readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(15);
+
+    public DeviceValidationService(
+        IApplicationDbContext context,
+        IDistributedCache? cache,
+        ILogger<DeviceValidationService> logger)
+    {
+        _context = context;
+        _cache = cache;
+        _logger = logger;
+    }
 
     /// <summary>
     /// Validates a kiosk token and returns the device ID if valid.
@@ -32,17 +43,17 @@ public class DeviceValidationService(
         }
 
         // Try cache first (if available)
-        if (cache != null)
+        if (_cache != null)
         {
             var cacheKey = $"{CacheKeyPrefix}{token}";
-            var cachedValue = await cache.GetStringAsync(cacheKey, ct);
+            var cachedValue = await _cache.GetStringAsync(cacheKey, ct);
 
             if (!string.IsNullOrEmpty(cachedValue))
             {
                 var cachedData = JsonSerializer.Deserialize<CachedTokenValidation>(cachedValue);
                 if (cachedData != null)
                 {
-                    logger.LogDebug(
+                    _logger.LogDebug(
                         "Kiosk token validation cache hit: DeviceId={DeviceId}",
                         cachedData.DeviceId);
                     return cachedData.DeviceId;
@@ -51,7 +62,7 @@ public class DeviceValidationService(
         }
 
         // Cache miss or no cache - query database
-        var device = await context.Devices
+        var device = await _context.Devices
             .AsNoTracking()
             .Where(d => d.KioskToken == token)
             .Where(d => d.IsActive)
@@ -61,18 +72,18 @@ public class DeviceValidationService(
 
         if (device == null)
         {
-            logger.LogWarning(
+            _logger.LogWarning(
                 "Invalid kiosk token rejected: Token={TokenPrefix}...",
                 token.Length > 8 ? token.Substring(0, 8) : token);
             return null;
         }
 
-        logger.LogInformation(
+        _logger.LogInformation(
             "Kiosk token validated: DeviceId={DeviceId}, DeviceName={DeviceName}",
             device.Id, device.Name);
 
         // Cache the result (if cache available)
-        if (cache != null)
+        if (_cache != null)
         {
             var cacheKey = $"{CacheKeyPrefix}{token}";
             var cacheData = new CachedTokenValidation
@@ -84,18 +95,18 @@ public class DeviceValidationService(
 
             var cacheOptions = new DistributedCacheEntryOptions
             {
-                AbsoluteExpirationRelativeToNow = CacheDuration
+                AbsoluteExpirationRelativeToNow = _cacheDuration
             };
 
-            await cache.SetStringAsync(
+            await _cache.SetStringAsync(
                 cacheKey,
                 JsonSerializer.Serialize(cacheData),
                 cacheOptions,
                 ct);
 
-            logger.LogDebug(
+            _logger.LogDebug(
                 "Kiosk token validation cached: DeviceId={DeviceId}, Duration={Duration}",
-                device.Id, CacheDuration);
+                device.Id, _cacheDuration);
         }
 
         return device.Id;
@@ -108,17 +119,17 @@ public class DeviceValidationService(
     {
         if (!IdKeyHelper.TryDecode(deviceIdKey, out var deviceId))
         {
-            logger.LogWarning("Invalid IdKey format for token revocation: {IdKey}", deviceIdKey);
+            _logger.LogWarning("Invalid IdKey format for token revocation: {IdKey}", deviceIdKey);
             return false;
         }
 
-        var device = await context.Devices
+        var device = await _context.Devices
             .Where(d => d.Id == deviceId)
             .FirstOrDefaultAsync(ct);
 
         if (device == null)
         {
-            logger.LogWarning("Device not found for token revocation: IdKey={IdKey}", deviceIdKey);
+            _logger.LogWarning("Device not found for token revocation: IdKey={IdKey}", deviceIdKey);
             return false;
         }
 
@@ -129,21 +140,21 @@ public class DeviceValidationService(
         device.KioskTokenExpiresAt = null;
         device.ModifiedDateTime = DateTime.UtcNow;
 
-        await context.SaveChangesAsync(ct);
+        await _context.SaveChangesAsync(ct);
 
         // Invalidate cache (if available and token existed)
-        if (cache != null && !string.IsNullOrEmpty(oldToken))
+        if (_cache != null && !string.IsNullOrEmpty(oldToken))
         {
             var cacheKey = $"{CacheKeyPrefix}{oldToken}";
-            await cache.RemoveAsync(cacheKey, ct);
+            await _cache.RemoveAsync(cacheKey, ct);
 
-            logger.LogInformation(
+            _logger.LogInformation(
                 "Kiosk token revoked and cache invalidated: DeviceId={DeviceId}, DeviceName={DeviceName}",
                 device.Id, device.Name);
         }
         else
         {
-            logger.LogInformation(
+            _logger.LogInformation(
                 "Kiosk token revoked: DeviceId={DeviceId}, DeviceName={DeviceName}",
                 device.Id, device.Name);
         }
@@ -164,7 +175,7 @@ public class DeviceValidationService(
             throw new ArgumentException("Invalid IdKey format", nameof(deviceIdKey));
         }
 
-        var device = await context.Devices
+        var device = await _context.Devices
             .Where(d => d.Id == deviceId)
             .FirstOrDefaultAsync(ct);
 
@@ -174,10 +185,10 @@ public class DeviceValidationService(
         }
 
         // Revoke old token if it exists (to invalidate cache)
-        if (!string.IsNullOrEmpty(device.KioskToken) && cache != null)
+        if (!string.IsNullOrEmpty(device.KioskToken) && _cache != null)
         {
             var oldCacheKey = $"{CacheKeyPrefix}{device.KioskToken}";
-            await cache.RemoveAsync(oldCacheKey, ct);
+            await _cache.RemoveAsync(oldCacheKey, ct);
         }
 
         // Generate a new secure token (64 bytes = 128 hex characters)
@@ -189,9 +200,9 @@ public class DeviceValidationService(
         device.KioskTokenExpiresAt = expiresAt;
         device.ModifiedDateTime = DateTime.UtcNow;
 
-        await context.SaveChangesAsync(ct);
+        await _context.SaveChangesAsync(ct);
 
-        logger.LogInformation(
+        _logger.LogInformation(
             "New kiosk token generated: DeviceId={DeviceId}, DeviceName={DeviceName}, ExpiresAt={ExpiresAt}",
             device.Id, device.Name, expiresAt);
 
