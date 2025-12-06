@@ -7,6 +7,7 @@ import {
   CheckinConfirmation,
   IdleWarningModal,
 } from '@/components/checkin';
+import type { OpportunitySelection } from '@/components/checkin/FamilyMemberList';
 import { Button, Card } from '@/components/ui';
 import {
   useCheckinSearch,
@@ -32,7 +33,7 @@ export function CheckinPage() {
   const [searchValue, setSearchValue] = useState<string>('');
   const [selectedFamily, setSelectedFamily] = useState<CheckinFamilyDto | null>(null);
   const [selectedCheckins, setSelectedCheckins] = useState<
-    Map<string, { groupId: string; locationId: string; scheduleId: string }>
+    Map<string, OpportunitySelection[]>
   >(new Map());
 
   // Queries
@@ -71,35 +72,62 @@ export function CheckinPage() {
     personId: string,
     groupId: string,
     locationId: string,
-    scheduleId: string
+    scheduleId: string,
+    groupName: string,
+    locationName: string,
+    scheduleName: string,
+    startTime: string
   ) => {
     const newSelected = new Map(selectedCheckins);
-    const existing = newSelected.get(personId);
+    const existingSelections = newSelected.get(personId) || [];
 
-    if (
-      existing?.groupId === groupId &&
-      existing?.locationId === locationId &&
-      existing?.scheduleId === scheduleId
-    ) {
-      // Deselect
-      newSelected.delete(personId);
+    // Check if this opportunity is already selected
+    const selectionIndex = existingSelections.findIndex(
+      (sel) =>
+        sel.groupId === groupId &&
+        sel.locationId === locationId &&
+        sel.scheduleId === scheduleId
+    );
+
+    if (selectionIndex >= 0) {
+      // Deselect - remove this opportunity
+      const updatedSelections = existingSelections.filter((_, idx) => idx !== selectionIndex);
+      if (updatedSelections.length === 0) {
+        newSelected.delete(personId);
+      } else {
+        newSelected.set(personId, updatedSelections);
+      }
     } else {
-      // Select
-      newSelected.set(personId, { groupId, locationId, scheduleId });
+      // Select - add this opportunity
+      const newSelection: OpportunitySelection = {
+        groupId,
+        locationId,
+        scheduleId,
+        groupName,
+        locationName,
+        scheduleName,
+        startTime,
+      };
+      newSelected.set(personId, [...existingSelections, newSelection]);
     }
 
     setSelectedCheckins(newSelected);
   };
 
   const handleCheckIn = async () => {
-    const checkins: CheckinRequestItem[] = Array.from(selectedCheckins.entries()).map(
-      ([personIdKey, selection]) => ({
-        personIdKey,
-        groupIdKey: selection.groupId,
-        locationIdKey: selection.locationId,
-        scheduleIdKey: selection.scheduleId,
-      })
-    );
+    // Flatten all selections into a single array of check-in items
+    const checkins: CheckinRequestItem[] = [];
+
+    selectedCheckins.forEach((selections, personIdKey) => {
+      selections.forEach((selection) => {
+        checkins.push({
+          personIdKey,
+          groupIdKey: selection.groupId,
+          locationIdKey: selection.locationId,
+          scheduleIdKey: selection.scheduleId,
+        });
+      });
+    });
 
     try {
       await recordAttendanceMutation.mutateAsync({ checkins });
@@ -265,7 +293,7 @@ export function CheckinPage() {
                   size="lg"
                   className="w-full text-xl"
                 >
-                  Check In {selectedCheckins.size > 0 && `(${selectedCheckins.size})`}
+                  Check In {selectedCheckins.size > 0 && `(${Array.from(selectedCheckins.values()).reduce((sum, selections) => sum + selections.length, 0)} activities)`}
                 </Button>
               </div>
             </>

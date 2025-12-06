@@ -5,14 +5,28 @@ import type {
   CheckinOptionDto,
 } from '@/services/api/types';
 
+export interface OpportunitySelection {
+  groupId: string;
+  locationId: string;
+  scheduleId: string;
+  groupName: string;
+  locationName: string;
+  scheduleName: string;
+  startTime: string;
+}
+
 export interface FamilyMemberListProps {
   opportunities: PersonOpportunitiesDto[];
-  selectedCheckins: Map<string, { groupId: string; locationId: string; scheduleId: string }>;
+  selectedCheckins: Map<string, OpportunitySelection[]>;
   onToggleCheckin: (
     personId: string,
     groupId: string,
     locationId: string,
-    scheduleId: string
+    scheduleId: string,
+    groupName: string,
+    locationName: string,
+    scheduleName: string,
+    startTime: string
   ) => void;
 }
 
@@ -32,9 +46,9 @@ export function FamilyMemberList({
           person={opp.person}
           availableOptions={opp.availableOptions}
           currentAttendance={opp.currentAttendance}
-          selectedOption={selectedCheckins.get(opp.person.idKey)}
-          onSelect={(groupId, locationId, scheduleId) =>
-            onToggleCheckin(opp.person.idKey, groupId, locationId, scheduleId)
+          selectedOptions={selectedCheckins.get(opp.person.idKey) || []}
+          onSelect={(groupId, locationId, scheduleId, groupName, locationName, scheduleName, startTime) =>
+            onToggleCheckin(opp.person.idKey, groupId, locationId, scheduleId, groupName, locationName, scheduleName, startTime)
           }
         />
       ))}
@@ -46,15 +60,23 @@ interface PersonCardProps {
   person: CheckinPersonDto;
   availableOptions: CheckinOptionDto[];
   currentAttendance: any[];
-  selectedOption?: { groupId: string; locationId: string; scheduleId: string };
-  onSelect: (groupId: string, locationId: string, scheduleId: string) => void;
+  selectedOptions: OpportunitySelection[];
+  onSelect: (
+    groupId: string,
+    locationId: string,
+    scheduleId: string,
+    groupName: string,
+    locationName: string,
+    scheduleName: string,
+    startTime: string
+  ) => void;
 }
 
 function PersonCard({
   person,
   availableOptions,
   currentAttendance,
-  selectedOption,
+  selectedOptions,
   onSelect,
 }: PersonCardProps) {
   // If already checked in, show current attendance
@@ -105,9 +127,16 @@ function PersonCard({
           </div>
         )}
         <div className="flex-1">
-          <h3 className="text-xl font-semibold text-gray-900 mb-1">
-            {person.fullName}
-          </h3>
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="text-xl font-semibold text-gray-900">
+              {person.fullName}
+            </h3>
+            {selectedOptions.length > 0 && (
+              <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium">
+                {selectedOptions.length} {selectedOptions.length === 1 ? 'activity' : 'activities'} selected
+              </span>
+            )}
+          </div>
           <p className="text-gray-600 mb-3">
             {person.age && `Age ${person.age}`}
             {person.grade && ` • ${person.grade}`}
@@ -120,10 +149,12 @@ function PersonCard({
                 location.schedules
                   .filter((schedule) => schedule.isSelected)
                   .map((schedule) => {
-                    const isSelected =
-                      selectedOption?.groupId === option.groupIdKey &&
-                      selectedOption?.locationId === location.locationIdKey &&
-                      selectedOption?.scheduleId === schedule.scheduleIdKey;
+                    const isSelected = selectedOptions.some(
+                      (sel) =>
+                        sel.groupId === option.groupIdKey &&
+                        sel.locationId === location.locationIdKey &&
+                        sel.scheduleId === schedule.scheduleIdKey
+                    );
 
                     return (
                       <button
@@ -132,7 +163,11 @@ function PersonCard({
                           onSelect(
                             option.groupIdKey,
                             location.locationIdKey,
-                            schedule.scheduleIdKey
+                            schedule.scheduleIdKey,
+                            option.groupName,
+                            location.locationName,
+                            schedule.scheduleName,
+                            schedule.startTime
                           )
                         }
                         className={`w-full text-left p-4 rounded-lg border-2 transition-all min-h-[64px] ${
@@ -142,28 +177,36 @@ function PersonCard({
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-semibold text-gray-900">
-                              {option.groupName}
-                            </p>
-                            <p className="text-sm text-gray-600">
-                              {location.locationName} • {schedule.startTime}
-                            </p>
-                          </div>
-                          <div className="flex items-center">
-                            {isSelected && (
-                              <svg
-                                className="w-6 h-6 text-blue-600"
-                                fill="currentColor"
-                                viewBox="0 0 20 20"
-                              >
-                                <path
-                                  fillRule="evenodd"
-                                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                  clipRule="evenodd"
-                                />
-                              </svg>
-                            )}
+                          <div className="flex items-center gap-3">
+                            <div className={`flex-shrink-0 w-6 h-6 rounded border-2 flex items-center justify-center ${
+                              isSelected
+                                ? 'bg-blue-600 border-blue-600'
+                                : 'border-gray-300 bg-white'
+                            }`}>
+                              {isSelected && (
+                                <svg
+                                  className="w-4 h-4 text-white"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={3}
+                                    d="M5 13l4 4L19 7"
+                                  />
+                                </svg>
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-semibold text-gray-900">
+                                {option.groupName}
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                {location.locationName} • {schedule.startTime}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </button>
