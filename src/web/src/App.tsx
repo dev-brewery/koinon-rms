@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { LoginForm, ProtectedRoute } from './components/auth';
 import { useAuth } from './hooks/useAuth';
+import { CheckinPage } from './pages/CheckinPage';
 
 function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -86,32 +87,6 @@ function PeoplePage() {
         </div>
       </div>
       <p className="text-gray-600">People management coming soon...</p>
-    </div>
-  );
-}
-
-function CheckinPage() {
-  const { user, logout } = useAuth();
-
-  return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-3xl font-bold">Check-in</h1>
-        <div className="flex items-center gap-4">
-          {user && (
-            <span className="text-gray-600">
-              {user.firstName} {user.lastName}
-            </span>
-          )}
-          <button
-            onClick={logout}
-            className="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 border border-gray-300 rounded-md hover:bg-gray-50"
-          >
-            Sign Out
-          </button>
-        </div>
-      </div>
-      <p className="text-gray-600">Check-in kiosk coming soon...</p>
     </div>
   );
 }
