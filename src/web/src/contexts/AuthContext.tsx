@@ -154,6 +154,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
  * Use authentication context
  * Must be used within AuthProvider
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuthContext() {
   const context = useContext(AuthContext);
 
