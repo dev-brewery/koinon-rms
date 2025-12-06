@@ -254,7 +254,8 @@ public class CheckinDataLoader(IApplicationDbContext context, ILogger<CheckinDat
             return ids.ToDictionary(id => id, _ => new FamilyDataDto(
                 Family: null!,
                 PersonAliases: new(),
-                RecentCheckInPeople: new HashSet<int>()));
+                RecentCheckInPeople: new HashSet<int>(),
+                LastCheckInByPersonId: new Dictionary<int, DateTime>()));
         }
 
         // QUERY 2: All person aliases (for later lookup of attendances)
@@ -263,18 +264,28 @@ public class CheckinDataLoader(IApplicationDbContext context, ILogger<CheckinDat
             .Where(pa => pa.PersonId.HasValue && personIds.Contains(pa.PersonId.Value))
             .ToListAsync(ct);
 
-        // QUERY 3: People with recent check-ins
-        var recentCheckInPeople = await context.Attendances
+        // QUERY 3: People with recent check-ins and last check-in dates
+        var recentCheckIns = await context.Attendances
             .AsNoTracking()
             .Where(a => a.StartDateTime >= recentCheckInThreshold &&
                        a.PersonAliasId.HasValue &&
                        a.PersonAlias != null &&
                        a.PersonAlias.PersonId.HasValue)
-            .Select(a => a.PersonAlias!.PersonId!.Value)
-            .Distinct()
+            .Select(a => new
+            {
+                PersonId = a.PersonAlias!.PersonId!.Value,
+                StartDateTime = a.StartDateTime
+            })
             .ToListAsync(ct);
 
-        var recentCheckInSet = new HashSet<int>(recentCheckInPeople);
+        var recentCheckInSet = new HashSet<int>(recentCheckIns.Select(a => a.PersonId).Distinct());
+
+        // Build dictionary of last check-in dates per person
+        var lastCheckInByPerson = recentCheckIns
+            .GroupBy(a => a.PersonId)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Max(a => a.StartDateTime));
 
         // Build result dictionary (O(1) lookup)
         var result = new Dictionary<int, FamilyDataDto>();
@@ -287,7 +298,8 @@ public class CheckinDataLoader(IApplicationDbContext context, ILogger<CheckinDat
             var familyData = new FamilyDataDto(
                 Family: family,
                 PersonAliases: familyPersonAliases,
-                RecentCheckInPeople: recentCheckInSet);
+                RecentCheckInPeople: recentCheckInSet,
+                LastCheckInByPersonId: lastCheckInByPerson);
 
             // CRITICAL: Log warning if family has zero accessible members (data quality issue)
             var accessibleMemberCount = family.Members
@@ -318,4 +330,5 @@ public record PersonWithAliasDto(Person Person, PersonAlias? PrimaryAlias);
 public record FamilyDataDto(
     Group Family,
     List<PersonAlias> PersonAliases,
-    HashSet<int> RecentCheckInPeople);
+    HashSet<int> RecentCheckInPeople,
+    Dictionary<int, DateTime> LastCheckInByPersonId);

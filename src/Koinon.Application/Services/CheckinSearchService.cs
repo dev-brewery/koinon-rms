@@ -7,6 +7,7 @@ using Koinon.Domain.Entities;
 using Koinon.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using static Koinon.Application.Services.Common.GradeCalculationHelper;
 
 namespace Koinon.Application.Services;
 
@@ -414,6 +415,7 @@ public class CheckinSearchService(
 
         var family = familyData.Family;
         var recentCheckInPeople = familyData.RecentCheckInPeople;
+        var lastCheckInByPerson = familyData.LastCheckInByPersonId;
 
         var members = new List<CheckinFamilyMemberDto>();
 
@@ -426,6 +428,9 @@ public class CheckinSearchService(
 
             // Use pre-loaded check-in data (O(1) HashSet lookup)
             var hasRecentCheckIn = recentCheckInPeople.Contains(groupMember.PersonId);
+
+            // Get last check-in date (O(1) dictionary lookup)
+            lastCheckInByPerson.TryGetValue(groupMember.PersonId, out var lastCheckIn);
 
             // Calculate age
             int? age = null;
@@ -442,6 +447,9 @@ public class CheckinSearchService(
             // Determine if child (typically under 18 or based on role)
             var isChild = age.HasValue && age.Value < 18;
 
+            // Calculate grade from graduation year
+            var grade = CalculateGrade(groupMember.Person.GraduationYear);
+
             members.Add(new CheckinFamilyMemberDto
             {
                 PersonIdKey = groupMember.Person.IdKey,
@@ -454,7 +462,9 @@ public class CheckinSearchService(
                 PhotoUrl = null, // Photo URLs require BinaryFile entity (not yet implemented)
                 RoleName = groupMember.GroupRole?.Name ?? "Member",
                 IsChild = isChild,
-                HasRecentCheckIn = hasRecentCheckIn
+                HasRecentCheckIn = hasRecentCheckIn,
+                LastCheckIn = lastCheckIn == default ? null : lastCheckIn,
+                Grade = grade
             });
         }
 
