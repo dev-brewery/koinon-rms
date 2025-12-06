@@ -1,6 +1,9 @@
+using FluentValidation;
+using Koinon.Application.DTOs.Auth;
 using Koinon.Application.Interfaces;
 using Koinon.Application.Services;
 using Koinon.Application.Services.Common;
+using Koinon.Application.Validators;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Koinon.Application.Extensions;
@@ -24,6 +27,12 @@ public static class ServiceCollectionExtensions
         // NOTE: IUserContext is required by services but must be registered by the calling layer
         // (API or Infrastructure) before this method is called. This is intentional to keep
         // the Application layer independent of HTTP context or authentication implementation.
+
+        // Authentication service
+        services.AddScoped<IAuthService, AuthService>();
+
+        // Validators
+        services.AddScoped<IValidator<LoginRequest>, LoginRequestValidator>();
 
         // Core entity services
         services.AddScoped<IPersonService, PersonService>();
