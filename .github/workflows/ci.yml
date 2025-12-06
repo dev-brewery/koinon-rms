@@ -169,32 +169,125 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
+        global-json-file: global.json
 
-    - name: Install EF Core tools
-      run: dotnet tool update --global dotnet-ef --version 8.0.11 || dotnet tool install --global dotnet-ef --version 8.0.11
+    - name: Restore dependencies
+      run: dotnet restore
 
-    - name: Check for migrations
+    - name: Install local EF Core tools
+      run: dotnet tool restore
+
+    - name: Check for new migrations
       id: check-migrations
       run: |
-        MIGRATIONS=$(find src/Koinon.Infrastructure/Migrations -name "*.cs" -newer .git/FETCH_HEAD 2>/dev/null | wc -l)
-        echo "count=$MIGRATIONS" >> $GITHUB_OUTPUT
+        set -e
+
+        MIGRATIONS_DIR="src/Koinon.Infrastructure/Migrations"
+
+        if [ ! -d "$MIGRATIONS_DIR" ]; then
+          echo "migrations_found=false" >> $GITHUB_OUTPUT
+          echo "⚠️ Migrations directory not found"
+          exit 0
+        fi
+
+        # Find actual migration files (exclude Designer.cs and ModelSnapshot.cs)
+        # Compare against origin/main to find new migrations
+        if git diff --name-only origin/main...HEAD -- "$MIGRATIONS_DIR/*.cs" | \
+           grep -E "Migrations/[0-9]{14}_.*\.cs$" | \
+           grep -v "\.Designer\.cs$" | \
+           grep -v "ModelSnapshot\.cs$" > /tmp/new_migrations.txt; then
+
+          if [ -s /tmp/new_migrations.txt ]; then
+            echo "migrations_found=true" >> $GITHUB_OUTPUT
+            echo "Found new migrations:"
+            cat /tmp/new_migrations.txt
+          else
+            echo "migrations_found=false" >> $GITHUB_OUTPUT
+          fi
+        else
+          echo "migrations_found=false" >> $GITHUB_OUTPUT
+        fi
 
     - name: Validate migrations can apply
-      if: steps.check-migrations.outputs.count > 0
+      if: steps.check-migrations.outputs.migrations_found == 'true'
       run: |
-        dotnet ef database update --project src/Koinon.Infrastructure --startup-project src/Koinon.Api
+        set -e
+
+        echo "Restoring Infrastructure project..."
+        dotnet restore src/Koinon.Infrastructure/Koinon.Infrastructure.csproj
+
+        echo "Validating migrations can apply to database..."
+        dotnet ef database update \
+          --project src/Koinon.Infrastructure \
+          --startup-project src/Koinon.Api \
+          --verbose
+
+        echo "✅ All migrations validated successfully"
+
       env:
         ConnectionStrings__KoinonDb: "Host=localhost;Port=5432;Database=koinon_test;Username=koinon;Password=koinon_test"
 
     - name: Check for destructive changes
-      if: steps.check-migrations.outputs.count > 0
+      if: steps.check-migrations.outputs.migrations_found == 'true'
       run: |
-        # Check for DROP statements in new migrations
-        if git diff origin/main...HEAD -- "src/Koinon.Infrastructure/Migrations/*.cs" | grep -i "DropColumn\|DropTable"; then
-          echo "⚠️ WARNING: Destructive migration detected!"
-          echo "Please review the migration carefully and ensure data backup procedures are in place."
+        set -e
+
+        MIGRATIONS_DIR="src/Koinon.Infrastructure/Migrations"
+        TEMP_FILE="/tmp/destructive_check.txt"
+
+        echo "Checking for destructive database changes..."
+
+        # List of destructive EF Core migration methods
+        DESTRUCTIVE_PATTERNS=(
+          "DropTable"
+          "DropColumn"
+          "DropIndex"
+          "DropConstraint"
+          "DropForeignKey"
+          "DropPrimaryKey"
+          "DropUnique"
+          "RenameTable"
+          "RenameColumn"
+          "RenameIndex"
+        )
+
+        DESTRUCTIVE_FOUND=false
+
+        # Check each new migration file for destructive operations
+        for pattern in "${DESTRUCTIVE_PATTERNS[@]}"; do
+          if git diff origin/main...HEAD -- "$MIGRATIONS_DIR/*.cs" | \
+             grep -n "migrationBuilder\.$pattern" > "$TEMP_FILE"; then
+            if [ -s "$TEMP_FILE" ]; then
+              echo ""
+              echo "⚠️ WARNING: Potentially destructive operation detected: $pattern"
+              echo "Location:"
+              cat "$TEMP_FILE"
+              echo ""
+              DESTRUCTIVE_FOUND=true
+            fi
+          fi
+        done
+
+        if [ "$DESTRUCTIVE_FOUND" = true ]; then
+          echo "❌ DESTRUCTIVE MIGRATION DETECTED"
+          echo ""
+          echo "This migration contains operations that may result in data loss:"
+          echo "- DropTable: Entire table and data removed"
+          echo "- DropColumn: Column and all data removed"
+          echo "- DropIndex: Performance impact"
+          echo "- Other drop/rename operations: May cause service disruption"
+          echo ""
+          echo "REQUIRED: Please address one of the following:"
+          echo "1. Refactor migration to preserve data (e.g., archive instead of drop)"
+          echo "2. Add comment in migration explaining why data loss is acceptable"
+          echo "3. Update this job's DESTRUCTIVE_PATTERNS to exclude safe patterns"
+          echo ""
           exit 1
+        else
+          echo "✅ No destructive changes detected"
         fi
+
+        rm -f "$TEMP_FILE"
 
   # Integration smoke test
   integration:
