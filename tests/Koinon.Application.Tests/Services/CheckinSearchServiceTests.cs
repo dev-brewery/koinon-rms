@@ -2,6 +2,7 @@ using FluentAssertions;
 using Koinon.Application.Services;
 using Koinon.Application.Services.Common;
 using Koinon.Application.Tests.Fakes;
+using Koinon.Domain.Data;
 using Koinon.Domain.Entities;
 using Koinon.Domain.Enums;
 using Koinon.Infrastructure.Data;
@@ -793,5 +794,170 @@ public class CheckinSearchServiceTests : IDisposable
         results.Should().NotBeEmpty();
         var member = results.First().Members.First(m => m.FirstName == "Graduate");
         member.Grade.Should().Be("Graduated");
+    }
+
+    [Fact]
+    public async Task GetFamilyByIdKeyAsync_WithValidIdKey_ReturnsFamily()
+    {
+        // Arrange
+        var (family, _, _) = await CreateTestFamilyAsync("QR Test Family", "QR", "Person");
+
+        // Act
+        var result = await _sut.GetFamilyByIdKeyAsync(family.IdKey);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.FamilyIdKey.Should().Be(family.IdKey);
+        result.FamilyName.Should().Be("QR Test Family");
+        result.Members.Should().NotBeEmpty();
+        result.Members.Should().Contain(m => m.FirstName == "QR");
+    }
+
+    [Fact]
+    public async Task GetFamilyByIdKeyAsync_WithInvalidIdKey_ReturnsNull()
+    {
+        // Arrange
+        await CreateTestFamilyAsync();
+
+        // Act
+        var result = await _sut.GetFamilyByIdKeyAsync("invalid-idkey-format");
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetFamilyByIdKeyAsync_WithNonExistentIdKey_ReturnsNull()
+    {
+        // Arrange
+        await CreateTestFamilyAsync();
+
+        // Create a valid IdKey format but for a non-existent ID
+        var nonExistentIdKey = IdKeyHelper.Encode(99999);
+
+        // Act
+        var result = await _sut.GetFamilyByIdKeyAsync(nonExistentIdKey);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetFamilyByIdKeyAsync_WithNonFamilyGroup_ReturnsNull()
+    {
+        // Arrange
+        // Create a non-family group type
+        var nonFamilyGroupType = new GroupType
+        {
+            Name = "Small Group",
+            IsFamilyGroupType = false,
+            GroupTerm = "Group",
+            GroupMemberTerm = "Member"
+        };
+        await _context.GroupTypes.AddAsync(nonFamilyGroupType);
+        await _context.SaveChangesAsync();
+
+        // Create a non-family group
+        var smallGroup = new Group
+        {
+            Name = "Bible Study Group",
+            GroupTypeId = nonFamilyGroupType.Id,
+            IsActive = true
+        };
+        await _context.Groups.AddAsync(smallGroup);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.GetFamilyByIdKeyAsync(smallGroup.IdKey);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetFamilyByIdKeyAsync_WithNullIdKey_ReturnsNull()
+    {
+        // Arrange
+        await CreateTestFamilyAsync();
+
+        // Act
+        var result = await _sut.GetFamilyByIdKeyAsync(null!);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetFamilyByIdKeyAsync_WithEmptyIdKey_ReturnsNull()
+    {
+        // Arrange
+        await CreateTestFamilyAsync();
+
+        // Act
+        var result = await _sut.GetFamilyByIdKeyAsync("");
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetFamilyByIdKeyAsync_WhenNotAuthenticated_ThrowsUnauthorizedAccessException()
+    {
+        // Arrange
+        var (family, _, _) = await CreateTestFamilyAsync();
+        _userContext.IsAuthenticated = false;
+
+        // Act & Assert
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(
+            async () => await _sut.GetFamilyByIdKeyAsync(family.IdKey));
+    }
+
+    [Fact]
+    public async Task GetFamilyByIdKeyAsync_AvoidN1Queries_LoadsMembersInBatch()
+    {
+        // Arrange
+        var (family, adultRole, childRole) = await CreateTestFamilyWithRolesAsync();
+
+        // Add multiple family members
+        for (int i = 0; i < 5; i++)
+        {
+            var person = new Person
+            {
+                FirstName = $"Child{i}",
+                LastName = "Test",
+                Gender = Gender.Male,
+                BirthYear = 2015,
+                BirthMonth = 1,
+                BirthDay = 1,
+                PrimaryFamilyId = family.Id
+            };
+            await _context.People.AddAsync(person);
+            await _context.SaveChangesAsync();
+
+            var personAlias = new PersonAlias
+            {
+                PersonId = person.Id,
+                AliasPersonId = person.Id
+            };
+            await _context.PersonAliases.AddAsync(personAlias);
+
+            var member = new GroupMember
+            {
+                GroupId = family.Id,
+                PersonId = person.Id,
+                GroupRoleId = childRole.Id,
+                GroupMemberStatus = GroupMemberStatus.Active
+            };
+            await _context.GroupMembers.AddAsync(member);
+        }
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.GetFamilyByIdKeyAsync(family.IdKey);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Members.Should().HaveCountGreaterThan(5); // Original member + 5 children
+        result.Members.Should().AllSatisfy(m => m.FullName.Should().NotBeNullOrEmpty());
     }
 }

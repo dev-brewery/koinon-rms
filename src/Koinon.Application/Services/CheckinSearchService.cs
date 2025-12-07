@@ -365,6 +365,90 @@ public class CheckinSearchService(
         return await SearchByNameAsync(trimmedQuery, ct);
     }
 
+    public async Task<CheckinFamilySearchResultDto?> GetFamilyByIdKeyAsync(
+        string idKey,
+        CancellationToken ct = default)
+    {
+        // SECURITY: Start timing BEFORE any input validation to prevent timing leaks
+        var stopwatch = Stopwatch.StartNew();
+
+        // Authorization check - must be authenticated
+        AuthorizeAuthentication(nameof(GetFamilyByIdKeyAsync));
+
+        if (string.IsNullOrWhiteSpace(idKey))
+        {
+            return null;
+        }
+
+        // Validate and decode IdKey format
+        if (!IdKeyHelper.TryDecode(idKey, out int familyId))
+        {
+            Logger.LogWarning("Invalid IdKey format for family lookup: {IdKey}", idKey);
+            return null;
+        }
+
+        // Use constant-time search to prevent timing attacks
+        // SECURITY: Uses 50k iterations similar to phone/name searches
+        var result = await ConstantTimeHelper.SearchWithConstantTiming(
+            searchOperation: async () =>
+            {
+                // Verify family exists and is actually a family group
+                var familyExists = await Context.Groups
+                    .AsNoTracking()
+                    .AnyAsync(g => g.Id == familyId &&
+                                  g.GroupType != null &&
+                                  g.GroupType.IsFamilyGroupType,
+                                  ct);
+
+                if (!familyExists)
+                {
+                    Logger.LogInformation("Family not found for IdKey: {IdKey}", idKey);
+                    return null;
+                }
+
+                // Get family with members using batch loader
+                var recentCheckInDate = DateTime.UtcNow.AddDays(-RecentCheckInDays);
+                var familyDataDict = await _dataLoader.LoadFamilyDataAsync(
+                    new[] { familyId },
+                    recentCheckInDate,
+                    ct);
+
+                if (!familyDataDict.TryGetValue(familyId, out var familyData))
+                {
+                    return null;
+                }
+
+                // SECURITY: Validate loaded data before processing
+                if (familyData.Family == null)
+                {
+                    Logger.LogWarning("Family {FamilyId} loaded with null Family object - skipping", familyId);
+                    return null;
+                }
+
+                return BuildFamilySearchResult(familyData);
+            },
+            busyWorkOperation: ConstantTimeHelper.CreateHashingBusyWork(idKey, iterations: 50_000)
+        );
+
+        stopwatch.Stop();
+
+        // Always log with consistent timing to prevent timing attacks
+        if (stopwatch.ElapsedMilliseconds > 100)
+        {
+            Logger.LogWarning(
+                "Family IdKey lookup exceeded 100ms target: {Elapsed}ms for {IdKey}",
+                stopwatch.ElapsedMilliseconds, idKey);
+        }
+        else
+        {
+            Logger.LogInformation(
+                "Family IdKey lookup completed in {Elapsed}ms for {IdKey}, found: {Found}",
+                stopwatch.ElapsedMilliseconds, idKey, result != null);
+        }
+
+        return result;
+    }
+
     /// <summary>
     /// Retrieves full family information with all active members.
     /// Uses CheckinDataLoader to batch load all data and eliminate N+1 patterns.

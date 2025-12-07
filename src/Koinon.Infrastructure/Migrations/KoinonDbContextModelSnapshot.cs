@@ -1592,6 +1592,11 @@ namespace Koinon.Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("suffix_value_id");
 
+                    b.Property<string>("SupervisorPinHash")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("supervisor_pin_hash");
+
                     b.Property<string>("SystemNote")
                         .HasColumnType("text")
                         .HasColumnName("system_note");

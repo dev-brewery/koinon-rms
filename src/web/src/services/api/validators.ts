@@ -69,6 +69,35 @@ export const ValidateSupervisorPinResponseSchema = z.object({
 });
 
 // ============================================================================
+// Check-in Validators
+// ============================================================================
+
+export const CheckinFamilyMemberSchema = z.object({
+  personIdKey: z.string(),
+  fullName: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  nickName: z.string().nullable(),
+  age: z.number().nullable(),
+  gender: z.string(),
+  photoUrl: z.string().nullable(),
+  roleName: z.string(),
+  isChild: z.boolean(),
+  hasRecentCheckIn: z.boolean(),
+  lastCheckIn: z.string().nullable(),
+  grade: z.string().nullable(),
+});
+
+export const CheckinFamilySearchResultSchema = z.object({
+  familyIdKey: z.string(),
+  familyName: z.string(),
+  addressSummary: z.string().nullable(),
+  campusName: z.string().nullable(),
+  members: z.array(CheckinFamilyMemberSchema),
+  recentCheckInCount: z.number(),
+});
+
+// ============================================================================
 // Helper Functions
 // ============================================================================
 

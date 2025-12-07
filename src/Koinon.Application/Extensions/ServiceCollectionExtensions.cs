@@ -30,9 +30,11 @@ public static class ServiceCollectionExtensions
 
         // Authentication service
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<ISupervisorService, SupervisorService>();
 
         // Validators
         services.AddScoped<IValidator<LoginRequest>, LoginRequestValidator>();
+        services.AddScoped<IValidator<ValidateSupervisorPinRequest>, ValidateSupervisorPinRequestValidator>();
 
         // Core entity services
         services.AddScoped<IPersonService, PersonService>();

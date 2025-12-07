@@ -13,7 +13,9 @@ namespace Koinon.Api.Controllers;
 [Route("api/v1/auth")]
 public class AuthController(
     IAuthService authService,
+    ISupervisorService supervisorService,
     IValidator<LoginRequest> loginValidator,
+    IValidator<ValidateSupervisorPinRequest> supervisorPinValidator,
     ILogger<AuthController> logger) : ControllerBase
 {
     /// <summary>
@@ -162,6 +164,48 @@ public class AuthController(
         // Return 204 regardless of whether token was found
         // (prevents information leakage about token validity)
         return NoContent();
+    }
+
+    /// <summary>
+    /// Validates a supervisor PIN for kiosk override operations.
+    /// </summary>
+    /// <param name="request">Supervisor PIN to validate</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Validation result with supervisor information if valid</returns>
+    /// <response code="200">PIN validation result (check Valid property)</response>
+    /// <response code="400">Invalid request (validation errors)</response>
+    [HttpPost("supervisor/validate")]
+    [ProducesResponseType(typeof(ValidateSupervisorPinResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ValidateSupervisorPin(
+        [FromBody] ValidateSupervisorPinRequest request,
+        CancellationToken ct)
+    {
+        // Validate request
+        var validationResult = await supervisorPinValidator.ValidateAsync(request, ct);
+        if (!validationResult.IsValid)
+        {
+            var errors = validationResult.Errors
+                .GroupBy(e => e.PropertyName)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(e => e.ErrorMessage).ToArray()
+                );
+
+            return ValidationProblem(new ValidationProblemDetails(errors)
+            {
+                Title = "Validation failed",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        // Validate PIN
+        var response = await supervisorService.ValidatePinAsync(request.Pin, ct);
+
+        // Always return 200 with Valid flag to prevent information leakage
+        // (don't use 401 for invalid PIN as it reveals existence)
+        return Ok(response);
     }
 }
 
