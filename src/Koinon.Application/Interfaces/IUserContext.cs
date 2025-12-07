@@ -45,4 +45,12 @@ public interface IUserContext
     /// <param name="locationId">The ID of the location to check access for.</param>
     /// <returns>True if access is allowed, false otherwise.</returns>
     bool CanAccessLocation(int locationId);
+
+    /// <summary>
+    /// Determines if the current user can access data for the specified family.
+    /// This checks if the user is a member of the family or has staff permissions.
+    /// </summary>
+    /// <param name="familyId">The ID of the family to check access for.</param>
+    /// <returns>True if access is allowed, false otherwise.</returns>
+    bool CanAccessFamily(int familyId);
 }

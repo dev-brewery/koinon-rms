@@ -40,6 +40,7 @@ public class KoinonDbContext : DbContext, IApplicationDbContext
     public DbSet<Attendance> Attendances { get; set; } = null!;
     public DbSet<AttendanceOccurrence> AttendanceOccurrences { get; set; } = null!;
     public DbSet<AttendanceCode> AttendanceCodes { get; set; } = null!;
+    public DbSet<Device> Devices { get; set; } = null!;
 
     // Authentication entities
     public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;

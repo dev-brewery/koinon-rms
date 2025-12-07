@@ -1,5 +1,6 @@
 using FluentValidation;
 using Koinon.Application.DTOs.Requests;
+using Koinon.Domain.Data;
 
 namespace Koinon.Application.Validators;
 
@@ -11,9 +12,21 @@ public class AddFamilyMemberRequestValidator : AbstractValidator<AddFamilyMember
     public AddFamilyMemberRequestValidator()
     {
         RuleFor(x => x.PersonId)
-            .NotEmpty().WithMessage("Person ID is required");
+            .NotEmpty().WithMessage("Person ID is required")
+            .Must(BeValidIdKey).WithMessage("Person ID must be a valid IdKey format");
 
         RuleFor(x => x.RoleId)
-            .NotEmpty().WithMessage("Role ID is required");
+            .NotEmpty().WithMessage("Role ID is required")
+            .Must(BeValidIdKey).WithMessage("Role ID must be a valid IdKey format");
+    }
+
+    private static bool BeValidIdKey(string? idKey)
+    {
+        if (string.IsNullOrWhiteSpace(idKey))
+        {
+            return false;
+        }
+
+        return IdKeyHelper.TryDecode(idKey, out _);
     }
 }

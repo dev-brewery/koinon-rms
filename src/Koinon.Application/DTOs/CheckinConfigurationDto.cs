@@ -4,7 +4,7 @@ namespace Koinon.Application.DTOs;
 /// Check-in configuration for a kiosk or campus.
 /// Contains all settings needed to run check-in operations.
 /// </summary>
-public class CheckinConfigurationDto
+public record CheckinConfigurationDto
 {
     /// <summary>
     /// Campus information for this check-in configuration.
@@ -30,7 +30,7 @@ public class CheckinConfigurationDto
 /// <summary>
 /// Represents a check-in area (special group type for children's ministry, volunteers, etc.).
 /// </summary>
-public class CheckinAreaDto
+public record CheckinAreaDto
 {
     /// <summary>
     /// IdKey of the group representing this check-in area.
@@ -81,7 +81,7 @@ public class CheckinAreaDto
 /// <summary>
 /// Represents a location within a check-in area.
 /// </summary>
-public class CheckinLocationDto
+public record CheckinLocationDto
 {
     /// <summary>
     /// IdKey of the location.
@@ -132,7 +132,7 @@ public class CheckinLocationDto
 /// <summary>
 /// Schedule information for check-in.
 /// </summary>
-public class ScheduleDto
+public record ScheduleDto
 {
     /// <summary>
     /// IdKey of the schedule.

@@ -112,6 +112,26 @@ public class FamiliesControllerTests
         problemDetails.Title.Should().Be("Family not found");
     }
 
+    [Fact]
+    public async Task GetByIdKey_ReturnsForbidden_WhenUserNotAuthorized()
+    {
+        // Arrange
+        var unauthorizedIdKey = IdKeyHelper.Encode(99999);
+        _familyServiceMock
+            .Setup(s => s.GetByIdKeyAsync(unauthorizedIdKey, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new UnauthorizedAccessException("Not authorized to access this family"));
+
+        // Act
+        var result = await _controller.GetByIdKey(unauthorizedIdKey);
+
+        // Assert
+        var forbiddenResult = result.Should().BeOfType<ObjectResult>().Subject;
+        forbiddenResult.StatusCode.Should().Be(StatusCodes.Status403Forbidden);
+        var problemDetails = forbiddenResult.Value.Should().BeOfType<ProblemDetails>().Subject;
+        problemDetails.Status.Should().Be(StatusCodes.Status403Forbidden);
+        problemDetails.Title.Should().Be("Access denied");
+    }
+
     #endregion
 
     #region GetMembers Tests
@@ -203,6 +223,26 @@ public class FamiliesControllerTests
         var notFoundResult = result.Should().BeOfType<NotFoundObjectResult>().Subject;
         var problemDetails = notFoundResult.Value.Should().BeOfType<ProblemDetails>().Subject;
         problemDetails.Status.Should().Be(StatusCodes.Status404NotFound);
+    }
+
+    [Fact]
+    public async Task GetMembers_ReturnsForbidden_WhenUserNotAuthorized()
+    {
+        // Arrange
+        var unauthorizedIdKey = IdKeyHelper.Encode(99999);
+        _familyServiceMock
+            .Setup(s => s.GetByIdKeyAsync(unauthorizedIdKey, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new UnauthorizedAccessException("Not authorized to access this family"));
+
+        // Act
+        var result = await _controller.GetMembers(unauthorizedIdKey);
+
+        // Assert
+        var forbiddenResult = result.Should().BeOfType<ObjectResult>().Subject;
+        forbiddenResult.StatusCode.Should().Be(StatusCodes.Status403Forbidden);
+        var problemDetails = forbiddenResult.Value.Should().BeOfType<ProblemDetails>().Subject;
+        problemDetails.Status.Should().Be(StatusCodes.Status403Forbidden);
+        problemDetails.Title.Should().Be("Access denied");
     }
 
     #endregion
@@ -414,6 +454,35 @@ public class FamiliesControllerTests
         problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
     }
 
+    [Fact]
+    public async Task AddMember_ReturnsForbidden_WhenUserNotAuthorized()
+    {
+        // Arrange
+        var request = new AddFamilyMemberRequest
+        {
+            PersonId = _personIdKey,
+            RoleId = _roleIdKey
+        };
+
+        var error = new Error(
+            "FORBIDDEN",
+            "Not authorized to modify this family");
+
+        _familyServiceMock
+            .Setup(s => s.AddFamilyMemberAsync(_familyIdKey, request, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<FamilyMemberDto>.Failure(error));
+
+        // Act
+        var result = await _controller.AddMember(_familyIdKey, request);
+
+        // Assert
+        var forbiddenResult = result.Should().BeOfType<ObjectResult>().Subject;
+        forbiddenResult.StatusCode.Should().Be(StatusCodes.Status403Forbidden);
+        var problemDetails = forbiddenResult.Value.Should().BeOfType<ProblemDetails>().Subject;
+        problemDetails.Status.Should().Be(StatusCodes.Status403Forbidden);
+        problemDetails.Title.Should().Be("Access denied");
+    }
+
     #endregion
 
     #region RemoveMember Tests
@@ -474,6 +543,29 @@ public class FamiliesControllerTests
         var unprocessableResult = result.Should().BeOfType<UnprocessableEntityObjectResult>().Subject;
         var problemDetails = unprocessableResult.Value.Should().BeOfType<ProblemDetails>().Subject;
         problemDetails.Status.Should().Be(StatusCodes.Status422UnprocessableEntity);
+    }
+
+    [Fact]
+    public async Task RemoveMember_ReturnsForbidden_WhenUserNotAuthorized()
+    {
+        // Arrange
+        var error = new Error(
+            "FORBIDDEN",
+            "Not authorized to modify this family");
+
+        _familyServiceMock
+            .Setup(s => s.RemoveFamilyMemberAsync(_familyIdKey, _person2IdKey, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Failure(error));
+
+        // Act
+        var result = await _controller.RemoveMember(_familyIdKey, _person2IdKey);
+
+        // Assert
+        var forbiddenResult = result.Should().BeOfType<ObjectResult>().Subject;
+        forbiddenResult.StatusCode.Should().Be(StatusCodes.Status403Forbidden);
+        var problemDetails = forbiddenResult.Value.Should().BeOfType<ProblemDetails>().Subject;
+        problemDetails.Status.Should().Be(StatusCodes.Status403Forbidden);
+        problemDetails.Title.Should().Be("Access denied");
     }
 
     #endregion

@@ -18,6 +18,7 @@ namespace Koinon.Application.Services;
 public class FamilyService(
     IApplicationDbContext context,
     IMapper mapper,
+    IUserContext userContext,
     IValidator<CreateFamilyRequest> createFamilyValidator,
     IValidator<AddFamilyMemberRequest> addMemberValidator,
     ILogger<FamilyService> logger) : IFamilyService
@@ -26,6 +27,9 @@ public class FamilyService(
 
     public async Task<FamilyDto?> GetByIdAsync(int id, CancellationToken ct = default)
     {
+        // Authorization check - throws if user doesn't have access
+        await AuthorizeFamilyAccessAsync(id, nameof(GetByIdAsync), ct);
+
         var family = await context.Groups
             .AsNoTracking()
             .Include(g => g.GroupType)
@@ -129,6 +133,18 @@ public class FamilyService(
             return Result<FamilyMemberDto>.Failure(Error.NotFound("Family", familyIdKey));
         }
 
+        // Authorization check - throws if user doesn't have access
+        try
+        {
+            await AuthorizeFamilyAccessAsync(familyId, nameof(AddFamilyMemberAsync), ct);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            logger.LogWarning(ex, "Unauthorized attempt to add member to family {FamilyId}", familyId);
+            return Result<FamilyMemberDto>.Failure(
+                Error.Forbidden("Not authorized to modify this family"));
+        }
+
         var family = await context.Groups
             .Include(g => g.GroupType)
             .FirstOrDefaultAsync(g => g.Id == familyId && g.GroupType!.IsFamilyGroupType, ct);
@@ -221,6 +237,18 @@ public class FamilyService(
             return Result.Failure(Error.NotFound("Family", familyIdKey));
         }
 
+        // Authorization check - throws if user doesn't have access
+        try
+        {
+            await AuthorizeFamilyAccessAsync(familyId, nameof(RemoveFamilyMemberAsync), ct);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            logger.LogWarning(ex, "Unauthorized attempt to remove member from family {FamilyId}", familyId);
+            return Result.Failure(
+                Error.Forbidden("Not authorized to modify this family"));
+        }
+
         var family = await context.Groups
             .Include(g => g.GroupType)
             .FirstOrDefaultAsync(g => g.Id == familyId && g.GroupType!.IsFamilyGroupType, ct);
@@ -281,6 +309,18 @@ public class FamilyService(
         if (!IdKeyHelper.TryDecode(familyIdKey, out int familyId))
         {
             return Result.Failure(Error.NotFound("Family", familyIdKey));
+        }
+
+        // Authorization check - throws if user doesn't have access
+        try
+        {
+            await AuthorizeFamilyAccessAsync(familyId, nameof(SetPrimaryFamilyAsync), ct);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            logger.LogWarning(ex, "Unauthorized attempt to set primary family {FamilyId} for person {PersonId}", familyId, personId);
+            return Result.Failure(
+                Error.Forbidden("Not authorized to modify this family"));
         }
 
         var family = await context.Groups
@@ -352,5 +392,48 @@ public class FamilyService(
         };
 
         return Task.FromResult(result);
+    }
+
+    /// <summary>
+    /// Checks if the current user can access the specified family.
+    /// Returns true if: user is Admin/Staff, or user is a member of the family.
+    /// </summary>
+    private async Task<bool> CanUserAccessFamilyAsync(int familyId, CancellationToken ct)
+    {
+        // First check role-based authorization (Admin, Staff)
+        if (userContext.CanAccessFamily(familyId))
+        {
+            return true;
+        }
+
+        // Not authenticated or doesn't have role-based access
+        if (!userContext.IsAuthenticated || !userContext.CurrentPersonId.HasValue)
+        {
+            return false;
+        }
+
+        // Check if current user is a member of this family
+        var isMember = await context.GroupMembers
+            .AnyAsync(
+                gm => gm.GroupId == familyId
+                    && gm.PersonId == userContext.CurrentPersonId.Value
+                    && gm.GroupMemberStatus == GroupMemberStatus.Active,
+                ct);
+
+        return isMember;
+    }
+
+    /// <summary>
+    /// Throws UnauthorizedAccessException if user cannot access the family.
+    /// </summary>
+    private async Task AuthorizeFamilyAccessAsync(int familyId, string operationName, CancellationToken ct)
+    {
+        if (!await CanUserAccessFamilyAsync(familyId, ct))
+        {
+            logger.LogWarning(
+                "Authorization denied: User {UserId} denied access for {Operation} on family {FamilyId}",
+                userContext.CurrentPersonId, operationName, familyId);
+            throw new UnauthorizedAccessException("Not authorized to access this family");
+        }
     }
 }

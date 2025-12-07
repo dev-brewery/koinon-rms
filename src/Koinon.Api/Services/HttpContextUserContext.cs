@@ -108,4 +108,36 @@ public class HttpContextUserContext(IHttpContextAccessor httpContextAccessor) : 
         // Future: Check group membership for location-specific access
         return false;
     }
+
+    public bool CanAccessFamily(int familyId)
+    {
+        if (!IsAuthenticated)
+        {
+            return false;
+        }
+
+        // Admin role has access to all families
+        if (IsInRole("Admin"))
+        {
+            return true;
+        }
+
+        // Staff role has access to all families
+        if (IsInRole("Staff"))
+        {
+            return true;
+        }
+
+        // Check if user has explicit permission claim for this family
+        var permissionClaim = httpContextAccessor.HttpContext?.User
+            .FindFirst($"can_access_family_{familyId}");
+        if (permissionClaim != null)
+        {
+            return true;
+        }
+
+        // Family membership check requires database lookup
+        // This is handled in the service layer (FamilyService)
+        return false;
+    }
 }

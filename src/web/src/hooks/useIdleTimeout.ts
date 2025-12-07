@@ -151,8 +151,7 @@ export function useIdleTimeout(options: UseIdleTimeoutOptions): UseIdleTimeoutRe
       return;
     }
 
-    // Only reset if not already in warning state OR if warning is active
-    // This allows any interaction during warning to cancel it
+    // Reset timer on any activity (cancels warning if active)
     resetTimer();
   }, [enabled, resetTimer]);
 

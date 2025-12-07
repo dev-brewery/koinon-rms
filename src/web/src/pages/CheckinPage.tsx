@@ -40,6 +40,7 @@ export function CheckinPage() {
   const [selectedCheckins, setSelectedCheckins] = useState<
     Map<string, OpportunitySelection[]>
   >(new Map());
+  const [checkinError, setCheckinError] = useState<string | null>(null);
 
   // Queries
   const searchQuery = useCheckinSearch(
@@ -118,6 +119,9 @@ export function CheckinPage() {
   };
 
   const handleCheckIn = async () => {
+    // Clear any previous errors
+    setCheckinError(null);
+
     // Flatten all selections into a single array of check-in items
     const checkins: CheckinRequestItem[] = [];
 
@@ -134,9 +138,16 @@ export function CheckinPage() {
 
     try {
       await recordAttendanceMutation.mutateAsync({ checkins });
+      setCheckinError(null);
       setStep('confirmation');
     } catch (error) {
-      // Error handling would go here
+      // Log error details for debugging
+      console.error('Check-in failed:', error);
+
+      // Show user-friendly error message
+      setCheckinError(
+        'Check-in failed. Please try again or contact the welcome desk for assistance.'
+      );
     }
   };
 
@@ -150,18 +161,18 @@ export function CheckinPage() {
     setSearchValue('');
     setSelectedFamily(null);
     setSelectedCheckins(new Map());
+    setCheckinError(null);
   };
 
   const handleDone = () => {
     handleReset();
   };
 
-  // Idle timeout - only active when NOT on search screen
+  // Idle timeout - always active for privacy protection
   const { isWarning, secondsRemaining, resetTimer } = useIdleTimeout({
     timeout: IDLE_CONFIG.timeout,
     warningTime: IDLE_CONFIG.warningTime,
     onTimeout: handleReset,
-    enabled: step !== 'search',
   });
 
   // Render
@@ -295,6 +306,17 @@ export function CheckinPage() {
                   onToggleCheckin={handleToggleCheckin}
                 />
 
+                {/* Check-in Error */}
+                {checkinError && (
+                  <div className="mt-4">
+                    <Card className="bg-red-50 border border-red-200">
+                      <p className="text-red-800 text-center font-medium">
+                        {checkinError}
+                      </p>
+                    </Card>
+                  </div>
+                )}
+
                 {/* Check-in Button */}
                 <div className="mt-8 sticky bottom-0 bg-gradient-to-t from-blue-100 via-blue-100 to-transparent pt-6 pb-4">
                   <Button
@@ -329,7 +351,7 @@ export function CheckinPage() {
           onPrintLabels={
             recordAttendanceMutation.data.labels.length > 0
               ? () => {
-                  // TODO: Implement label printing (P0 - see docs/plans/ux-improvements-plan.md)
+                  // TODO: Issue #5 - Implement label printing
                 }
               : undefined
           }

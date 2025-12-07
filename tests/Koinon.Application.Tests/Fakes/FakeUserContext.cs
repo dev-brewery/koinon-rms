@@ -51,4 +51,13 @@ public class FakeUserContext : IUserContext
     /// <param name="locationId">The ID of the location to check access for.</param>
     /// <returns>True (default).</returns>
     public bool CanAccessLocation(int locationId) => true;
+
+    /// <summary>
+    /// Determines if the current user can access the specified family.
+    /// Default implementation returns true for all families.
+    /// Override or set to false for specific test scenarios.
+    /// </summary>
+    /// <param name="familyId">The ID of the family to check access for.</param>
+    /// <returns>True (default).</returns>
+    public bool CanAccessFamily(int familyId) => true;
 }

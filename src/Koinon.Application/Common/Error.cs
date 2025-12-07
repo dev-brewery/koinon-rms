@@ -52,4 +52,10 @@ public record Error(string Code, string Message, Dictionary<string, string[]>? D
     /// </summary>
     public static Error NotImplemented(string message) =>
         new("NOT_IMPLEMENTED", message);
+
+    /// <summary>
+    /// Creates a forbidden error (user lacks permission).
+    /// </summary>
+    public static Error Forbidden(string message) =>
+        new("FORBIDDEN", message);
 }

@@ -49,6 +49,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICheckinAttendanceService, CheckinAttendanceService>();
         services.AddScoped<ILabelGenerationService, LabelGenerationService>();
 
+        // Device/Kiosk validation service
+        services.AddScoped<IDeviceValidationService, DeviceValidationService>();
+
         // Future: Add MediatR, AutoMapper, FluentValidation when needed
         // services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(ServiceCollectionExtensions).Assembly));
         // services.AddAutoMapper(typeof(ServiceCollectionExtensions).Assembly);
