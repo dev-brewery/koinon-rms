@@ -182,6 +182,20 @@ public class PersonConfiguration : IEntityTypeConfiguration<Person>
         builder.HasIndex(p => p.PrimaryCampusId)
             .HasDatabaseName("ix_person_primary_campus_id");
 
+        // Allergy and special needs fields
+        builder.Property(p => p.Allergies)
+            .HasColumnName("allergies")
+            .HasMaxLength(500); // Limited for label printing compatibility
+
+        builder.Property(p => p.HasCriticalAllergies)
+            .HasColumnName("has_critical_allergies")
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.Property(p => p.SpecialNeeds)
+            .HasColumnName("special_needs")
+            .HasMaxLength(2000); // Supervisor notes can be longer
+
         // Audit fields
         builder.Property(p => p.CreatedDateTime)
             .HasColumnName("created_date_time")

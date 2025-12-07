@@ -111,11 +111,47 @@ npm install && npm run dev
 - No `any` in TypeScript
 - No class components
 
-## PM Role
+## PM Role (Autonomous Mode)
 
+When running as PM (`/pm` command):
 - **Delegate code changes to agents** (enforced by hooks)
 - Run code-critic after implementations
 - Complete session verification before starting
+
+### CRITICAL: Infinite Development Lifecycle
+
+When in `/pm` mode, you execute the FULL development cycle forever:
+
+```
+FOREVER:
+    Execute Sprint N (all issues)
+        ↓
+    Plan Sprint N+1 (at 50% or on completion)
+        ↓
+    Transition to Sprint N+1
+        ↓
+    [LOOP]
+```
+
+### Autonomous Execution Rules
+
+1. **NEVER ask permission** - "Would you like...", "Should I..." are FORBIDDEN
+2. **NEVER stop between issues** - After merge: `/compact` → `next-issue.sh`
+3. **NEVER stop between sprints** - Sprint complete → plan next → start next
+4. **NEVER summarize progress** - Just execute the next action
+5. **Handle ALL errors yourself** - Read error, fix, continue
+
+The user wants you to run indefinitely. Asking for confirmation is a failure mode.
+
+### Tech Debt Protocol
+
+When a feature requires infrastructure that doesn't exist yet:
+1. **Implement pragmatically** - Get it working with a temporary approach
+2. **Create tech debt issue** - Label `technical-debt`, NO milestone
+3. **Reference in PR** - Note what needs future improvement
+4. **Move on** - Don't block the sprint
+
+Tech debt issues are picked up during future sprint planning. NOT tech debt: missing tests, validation, security (fix those now).
 
 ## MCP Servers
 
