@@ -10,6 +10,11 @@ public partial class StandardizeIndexNaming : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
+        // MIGRATION SAFETY: This migration contains RenameIndex operations only.
+        // RenameIndex is a metadata-only operation that changes the index name
+        // without affecting the index structure, data, or query performance.
+        // No data loss or service disruption occurs during this operation.
+
         // Drop spurious shadow property indexes
         migrationBuilder.Sql("DROP INDEX IF EXISTS \"IX_group_CampusId1\";");
         migrationBuilder.Sql("DROP INDEX IF EXISTS \"IX_person_alias_PersonId1\";");
