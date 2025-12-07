@@ -28,28 +28,9 @@ public class KioskAuthorizeAttribute : Attribute, IAsyncAuthorizationFilter
             return;
         }
 
-        // Get validation service from DI container
+        // Get validation service from DI container (Issue #41 - fail fast if not registered)
         var validationService = context.HttpContext.RequestServices
-            .GetService<IDeviceValidationService>();
-
-        if (validationService == null)
-        {
-            var logger = context.HttpContext.RequestServices
-                .GetService<ILogger<KioskAuthorizeAttribute>>();
-            logger?.LogError("IDeviceValidationService not registered in DI container");
-
-            context.Result = new ObjectResult(new ProblemDetails
-            {
-                Title = "Service configuration error",
-                Detail = "Kiosk validation service is not available",
-                Status = StatusCodes.Status500InternalServerError,
-                Instance = context.HttpContext.Request.Path
-            })
-            {
-                StatusCode = StatusCodes.Status500InternalServerError
-            };
-            return;
-        }
+            .GetRequiredService<IDeviceValidationService>();
 
         // Validate token against database
         var deviceId = await validationService.ValidateKioskTokenAsync(
