@@ -36,6 +36,7 @@ try
     // Add services
     builder.Services.AddSingleton<PrinterDiscoveryService>();
     builder.Services.AddSingleton<ZplPrintService>();
+    builder.Services.AddSingleton<WindowsPrintService>();
     builder.Services.AddControllers();
     builder.Services.AddCors(options =>
     {
@@ -167,16 +168,17 @@ internal class SystemTrayIcon
     {
         try
         {
-            var printService = _services.GetRequiredService<ZplPrintService>();
+            var zplPrintService = _services.GetRequiredService<ZplPrintService>();
+            var windowsPrintService = _services.GetRequiredService<WindowsPrintService>();
             var printerDiscovery = _services.GetRequiredService<PrinterDiscoveryService>();
 
             var printers = await printerDiscovery.GetAvailablePrintersAsync();
-            var zebraPrinter = printers.FirstOrDefault(p => p.IsZebraPrinter);
+            var labelPrinter = printers.FirstOrDefault(p => p.IsZebraPrinter || p.IsDymoPrinter);
 
-            if (zebraPrinter == null)
+            if (labelPrinter == null)
             {
                 MessageBox.Show(
-                    "No Zebra printer found. Please ensure a Zebra thermal printer is installed and turned on.",
+                    "No label printer found. Please ensure a Zebra or Dymo label printer is installed and turned on.",
                     "No Printer Found",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning
@@ -184,19 +186,31 @@ internal class SystemTrayIcon
                 return;
             }
 
-            // Generate test label
-            var testZpl = @"^XA
+            // Print using appropriate method based on printer type
+            if (labelPrinter.IsZebraPrinter)
+            {
+                // Generate test ZPL label
+                var testZpl = @"^XA
 ^FO50,50^A0N,50,50^FDTest Label^FS
 ^FO50,120^A0N,30,30^FD" + DateTime.Now.ToString("g") + @"^FS
 ^FO50,160^A0N,25,25^FDKoinon Print Bridge^FS
 ^XZ";
 
-            await printService.PrintZplAsync(zebraPrinter.Name, testZpl);
+                await zplPrintService.PrintZplAsync(labelPrinter.Name, testZpl);
+            }
+            else if (labelPrinter.IsDymoPrinter)
+            {
+                // Print simple text label for Dymo
+                await windowsPrintService.PrintTextLabelAsync(
+                    labelPrinter.Name,
+                    $"Test Label\n{DateTime.Now:g}\nKoinon Print Bridge",
+                    "default");
+            }
 
             _notifyIcon.ShowBalloonTip(
                 3000,
                 "Test Print Sent",
-                $"Test label sent to {zebraPrinter.Name}",
+                $"Test label sent to {labelPrinter.Name}",
                 ToolTipIcon.Info
             );
         }
@@ -229,8 +243,10 @@ internal class SystemTrayIcon
                 foreach (var printer in printers)
                 {
                     message += $"• {printer.Name}\n";
-                    message += $"  Type: {(printer.IsZebraPrinter ? "Zebra Thermal" : "Other")}\n";
-                    message += $"  Status: {printer.Status}\n\n";
+                    message += $"  Type: {printer.PrinterType}\n";
+                    message += $"  Status: {printer.Status}\n";
+                    message += $"  Supports ZPL: {(printer.SupportsZpl ? "Yes" : "No")}\n";
+                    message += $"  Supports Image: {(printer.SupportsImage ? "Yes" : "No")}\n\n";
                 }
             }
 
