@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   KioskLayout,
@@ -8,6 +8,7 @@ import {
   CheckinConfirmation,
   IdleWarningModal,
   PrintStatus,
+  QrScanner,
 } from '@/components/checkin';
 import type { OpportunitySelection } from '@/components/checkin';
 import { Button, Card } from '@/components/ui';
@@ -22,7 +23,7 @@ import { createSelectionKey, getTotalActivitiesCount } from '@/utils/checkinHelp
 import { printBridgeClient, type PrinterInfo } from '@/services/printing/PrintBridgeClient';
 
 type CheckinStep = 'search' | 'select-family' | 'select-members' | 'confirmation';
-type SearchMode = 'phone' | 'name';
+type SearchMode = 'phone' | 'name' | 'qr';
 
 // Idle timeout configuration
 const IDLE_CONFIG = {
@@ -38,6 +39,7 @@ export function CheckinPage() {
   const [step, setStep] = useState<CheckinStep>('search');
   const [searchMode, setSearchMode] = useState<SearchMode>('phone');
   const [searchValue, setSearchValue] = useState<string>('');
+  const [qrScannedIdKey, setQrScannedIdKey] = useState<string | null>(null);
   const [selectedFamily, setSelectedFamily] = useState<CheckinFamilyDto | null>(null);
   const [selectedCheckins, setSelectedCheckins] = useState<
     Map<string, OpportunitySelection[]>
@@ -47,11 +49,16 @@ export function CheckinPage() {
   const [printStatus, setPrintStatus] = useState<'idle' | 'printing' | 'success' | 'error'>('idle');
   const [printError, setPrintError] = useState<string | null>(null);
 
+  // Determine search type based on mode
+  const getSearchType = (): 'Phone' | 'Name' | 'Auto' => {
+    if (searchMode === 'phone') return 'Phone';
+    if (searchMode === 'name') return 'Name';
+    // QR mode uses 'Auto' which will interpret IdKey
+    return 'Auto';
+  };
+
   // Queries
-  const searchQuery = useCheckinSearch(
-    searchValue,
-    searchMode === 'phone' ? 'Phone' : 'Name'
-  );
+  const searchQuery = useCheckinSearch(searchValue, getSearchType());
 
   const opportunitiesQuery = useCheckinOpportunities(selectedFamily?.idKey);
 
@@ -62,6 +69,13 @@ export function CheckinPage() {
     setSearchValue(value);
     // When query succeeds, move to family selection if multiple results
     // or directly to member selection if single result
+  };
+
+  const handleQrScan = (familyIdKey: string) => {
+    // QR scan uses IdKey search - set mode to 'qr' and trigger search via effect
+    // This prevents race condition where searchValue might be updated before searchMode
+    setQrScannedIdKey(familyIdKey);
+    setSearchMode('qr');
   };
 
   // Effect: Check printer availability on mount
@@ -75,8 +89,16 @@ export function CheckinPage() {
     checkPrinter();
   }, []);
 
+  // Effect: Handle QR scan state sequencing to prevent race condition
+  useEffect(() => {
+    if (qrScannedIdKey && searchMode === 'qr') {
+      setSearchValue(qrScannedIdKey);
+      setQrScannedIdKey(null); // Clear after applying
+    }
+  }, [qrScannedIdKey, searchMode]);
+
   // Effect: Auto-advance when search returns single family
-  React.useEffect(() => {
+  useEffect(() => {
     if (searchQuery.data && searchQuery.data.length === 1 && step === 'search') {
       setSelectedFamily(searchQuery.data[0]);
       setStep('select-members');
@@ -215,6 +237,7 @@ export function CheckinPage() {
 
     setStep('search');
     setSearchValue('');
+    setQrScannedIdKey(null);
     setSelectedFamily(null);
     setSelectedCheckins(new Map());
     setCheckinError(null);
@@ -258,6 +281,16 @@ export function CheckinPage() {
           {/* Search Mode Toggle */}
           <div className="flex justify-center gap-4 mb-8">
             <button
+              onClick={() => setSearchMode('qr')}
+              className={`px-8 py-4 rounded-lg font-semibold transition-colors min-h-[56px] ${
+                searchMode === 'qr'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-700 border-2 border-gray-300'
+              }`}
+            >
+              Scan QR Code
+            </button>
+            <button
               onClick={() => setSearchMode('phone')}
               className={`px-8 py-4 rounded-lg font-semibold transition-colors min-h-[56px] ${
                 searchMode === 'phone'
@@ -280,14 +313,19 @@ export function CheckinPage() {
           </div>
 
           {/* Search Component */}
-          {searchMode === 'phone' ? (
+          {searchMode === 'qr' ? (
+            <QrScanner
+              onScan={handleQrScan}
+              onCancel={() => setSearchMode('phone')}
+            />
+          ) : searchMode === 'phone' ? (
             <PhoneSearch onSearch={handleSearch} loading={searchQuery.isFetching} />
           ) : (
             <FamilySearch onSearch={handleSearch} loading={searchQuery.isFetching} />
           )}
 
           {/* Error */}
-          {searchQuery.isError && (
+          {searchQuery.isError && searchMode !== 'qr' && (
             <div className="max-w-2xl mx-auto mt-4">
               <Card className="bg-red-50 border border-red-200">
                 <p className="text-red-800 text-center">
@@ -298,7 +336,7 @@ export function CheckinPage() {
           )}
 
           {/* No Results */}
-          {searchQuery.data && searchQuery.data.length === 0 && (
+          {searchQuery.data && searchQuery.data.length === 0 && searchMode !== 'qr' && (
             <div className="max-w-2xl mx-auto mt-4">
               <Card className="bg-yellow-50 border border-yellow-200">
                 <p className="text-yellow-900 text-center font-medium">

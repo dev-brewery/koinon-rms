@@ -18,3 +18,9 @@ export type { IdleWarningModalProps } from './IdleWarningModal';
 
 export { PrintStatus } from './PrintStatus';
 export type { PrintStatusProps } from './PrintStatus';
+
+export { QrScanner } from './QrScanner';
+export type { QrScannerProps } from './QrScanner';
+
+export { FamilyQrCard } from './FamilyQrCard';
+export type { FamilyQrCardProps } from './FamilyQrCard';
