@@ -147,5 +147,8 @@ public class AttendanceConfiguration : IEntityTypeConfiguration<Attendance>
 
         builder.HasIndex(e => e.AttendanceCodeId)
             .HasDatabaseName("ix_attendance_code_id");
+
+        builder.HasIndex(e => e.DeviceId)
+            .HasDatabaseName("ix_attendance_device_id");
     }
 }

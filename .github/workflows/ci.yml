@@ -248,6 +248,7 @@ jobs:
         echo "Checking for destructive database changes in Up() methods..."
 
         # List of destructive EF Core migration methods
+        # Note: RenameIndex is excluded as it's a metadata-only operation (no data loss)
         DESTRUCTIVE_PATTERNS=(
           "DropTable"
           "DropColumn"
@@ -258,7 +259,6 @@ jobs:
           "DropUnique"
           "RenameTable"
           "RenameColumn"
-          "RenameIndex"
         )
 
         DESTRUCTIVE_FOUND=false

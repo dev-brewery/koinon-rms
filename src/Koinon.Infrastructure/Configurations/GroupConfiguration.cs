@@ -141,6 +141,9 @@ public class GroupConfiguration : IEntityTypeConfiguration<Group>
             .HasDatabaseName("ix_group_is_archived")
             .HasFilter("is_archived = false");
 
+        builder.HasIndex(e => e.ScheduleId)
+            .HasDatabaseName("ix_group_schedule_id");
+
         // Relationships
         builder.HasOne(e => e.GroupType)
             .WithMany(gt => gt.Groups)

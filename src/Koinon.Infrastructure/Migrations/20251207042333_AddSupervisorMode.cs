@@ -53,7 +53,7 @@ public partial class AddSupervisorMode : Migration
             column: "expires_at");
 
         migrationBuilder.CreateIndex(
-            name: "IX_supervisor_session_person_id",
+            name: "ix_supervisor_session_person_id",
             table: "supervisor_session",
             column: "person_id");
 

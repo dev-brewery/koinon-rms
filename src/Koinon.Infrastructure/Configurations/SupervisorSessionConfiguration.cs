@@ -37,6 +37,8 @@ public class SupervisorSessionConfiguration : IEntityTypeConfiguration<Superviso
             .WithMany()
             .HasForeignKey(s => s.PersonId)
             .OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(s => s.PersonId)
+            .HasDatabaseName("ix_supervisor_session_person_id");
 
         // Token (unique, indexed)
         builder.Property(s => s.Token)
