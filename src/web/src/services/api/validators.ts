@@ -62,6 +62,12 @@ export const RefreshResponseSchema = z.object({
   expiresAt: z.string(),
 });
 
+export const ValidateSupervisorPinResponseSchema = z.object({
+  valid: z.boolean(),
+  supervisorName: z.string().optional(),
+  personIdKey: z.string().optional(),
+});
+
 // ============================================================================
 // Helper Functions
 // ============================================================================
@@ -84,10 +90,12 @@ export function parseWithSchema<T>(
         .map((err: z.ZodIssue) => `${err.path.join('.')}: ${err.message}`)
         .join(', ');
 
-      console.error(`Validation error${contextMsg}:`, {
-        errors: error.issues,
-        data,
-      });
+      if (import.meta.env.DEV) {
+        console.error(`Validation error${contextMsg}:`, {
+          errors: error.issues,
+          data,
+        });
+      }
 
       throw new Error(
         `Invalid API response format${contextMsg}: ${errorDetails}`
@@ -105,10 +113,12 @@ export function safeJsonParse(text: string): unknown {
   try {
     return JSON.parse(text);
   } catch (error) {
-    console.error('Failed to parse JSON:', {
-      error,
-      text: text.substring(0, 200), // Log first 200 chars
-    });
+    if (import.meta.env.DEV) {
+      console.error('Failed to parse JSON:', {
+        error,
+        text: text.substring(0, 200), // Log first 200 chars
+      });
+    }
     return null;
   }
 }

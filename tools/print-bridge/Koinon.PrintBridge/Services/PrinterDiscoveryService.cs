@@ -37,7 +37,9 @@ public class PrinterDiscoveryService
                 {
                     var name = obj["Name"]?.ToString();
                     if (string.IsNullOrEmpty(name))
+                    {
                         continue;
+                    }
 
                     var status = GetPrinterStatus(obj);
                     var isDefault = name == defaultPrinter;
@@ -109,7 +111,9 @@ public class PrinterDiscoveryService
     {
         var defaultName = GetDefaultPrinterName();
         if (string.IsNullOrEmpty(defaultName))
+        {
             return null;
+        }
 
         return GetPrinterByName(defaultName);
     }
@@ -120,7 +124,9 @@ public class PrinterDiscoveryService
     private string? GetDefaultPrinterName()
     {
         if (_defaultPrinterName != null)
+        {
             return _defaultPrinterName;
+        }
 
         try
         {
@@ -182,13 +188,19 @@ public class PrinterDiscoveryService
         var lowerName = printerName.ToLowerInvariant();
 
         if (lowerName.Contains("zebra"))
+        {
             return "ZPL";
+        }
 
         if (lowerName.Contains("dymo"))
+        {
             return "EPL";
+        }
 
         if (lowerName.Contains("thermal"))
+        {
             return "ZPL";
+        }
 
         return "Unknown";
     }

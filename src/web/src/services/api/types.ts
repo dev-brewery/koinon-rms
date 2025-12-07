@@ -94,6 +94,16 @@ export interface LogoutRequest {
   refreshToken: string;
 }
 
+export interface ValidateSupervisorPinRequest {
+  pin: string;
+}
+
+export interface ValidateSupervisorPinResponse {
+  valid: boolean;
+  supervisorName?: string;
+  personIdKey?: string;
+}
+
 // ============================================================================
 // Person Types
 // ============================================================================
