@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text.Json;
 using Koinon.Application.Interfaces;
+using Koinon.Application.Services.Common;
 using Koinon.Domain.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
@@ -19,7 +20,7 @@ public class DeviceValidationService : IDeviceValidationService
     private readonly ILogger<DeviceValidationService> _logger;
 
     private const string CacheKeyPrefix = "kiosk:token:";
-    private static readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(15);
+    private static readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(5);
 
     public DeviceValidationService(
         IApplicationDbContext context,
@@ -53,28 +54,44 @@ public class DeviceValidationService : IDeviceValidationService
                 var cachedData = JsonSerializer.Deserialize<CachedTokenValidation>(cachedValue);
                 if (cachedData != null)
                 {
-                    _logger.LogDebug(
-                        "Kiosk token validation cache hit: DeviceId={DeviceId}",
-                        cachedData.DeviceId);
-                    return cachedData.DeviceId;
+                    // Verify token hasn't expired since cached (Issue #41 - Cache Poisoning Fix)
+                    if (cachedData.TokenExpiresAt.HasValue && cachedData.TokenExpiresAt <= DateTime.UtcNow)
+                    {
+                        // Token expired - remove from cache and re-validate
+                        await _cache.RemoveAsync(cacheKey, ct);
+                        _logger.LogDebug(
+                            "Cached kiosk token expired, re-validating: DeviceId={DeviceId}",
+                            cachedData.DeviceId);
+                    }
+                    else
+                    {
+                        _logger.LogDebug(
+                            "Kiosk token validation cache hit: DeviceId={DeviceId}",
+                            cachedData.DeviceId);
+                        return cachedData.DeviceId;
+                    }
                 }
             }
         }
 
-        // Cache miss or no cache - query database
-        var device = await _context.Devices
+        // Cache miss or no cache - query database (Issue #41 - Timing Attack Fix)
+        // Fetch all active devices with non-expired tokens, then use constant-time comparison
+        var devices = await _context.Devices
             .AsNoTracking()
-            .Where(d => d.KioskToken == token)
             .Where(d => d.IsActive)
+            .Where(d => d.KioskToken != null)
             .Where(d => d.KioskTokenExpiresAt == null || d.KioskTokenExpiresAt > DateTime.UtcNow)
-            .Select(d => new { d.Id, d.Name })
-            .FirstOrDefaultAsync(ct);
+            .Select(d => new { d.Id, d.Name, d.KioskToken, d.KioskTokenExpiresAt })
+            .ToListAsync(ct);
+
+        // Use constant-time comparison to prevent timing attacks
+        var device = devices.FirstOrDefault(d =>
+            ConstantTimeHelper.ConstantTimeEquals(d.KioskToken, token));
 
         if (device == null)
         {
-            _logger.LogWarning(
-                "Invalid kiosk token rejected: Token={TokenPrefix}...",
-                token.Length > 8 ? token.Substring(0, 8) : token);
+            // Issue #41 - Token Logging Fix: Never log token values
+            _logger.LogWarning("Invalid kiosk token rejected from request");
             return null;
         }
 
@@ -90,7 +107,8 @@ public class DeviceValidationService : IDeviceValidationService
             {
                 DeviceId = device.Id,
                 DeviceName = device.Name,
-                ValidatedAt = DateTime.UtcNow
+                ValidatedAt = DateTime.UtcNow,
+                TokenExpiresAt = device.KioskTokenExpiresAt
             };
 
             var cacheOptions = new DistributedCacheEntryOptions
@@ -217,5 +235,6 @@ public class DeviceValidationService : IDeviceValidationService
         public required int DeviceId { get; init; }
         public required string DeviceName { get; init; }
         public required DateTime ValidatedAt { get; init; }
+        public DateTime? TokenExpiresAt { get; init; }
     }
 }
