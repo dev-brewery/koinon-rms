@@ -8,6 +8,7 @@ import type {
   CheckinConfigParams,
   CheckinSearchRequest,
   CheckinFamilyDto,
+  CheckinFamilySearchResultDto,
   CheckinOpportunitiesParams,
   CheckinOpportunitiesResponse,
   RecordAttendanceRequest,
@@ -16,7 +17,9 @@ import type {
   CheckoutResponse,
   LabelDto,
   LabelParams,
+  ApiResponse,
 } from './types';
+import { CheckinFamilySearchResultSchema, parseWithSchema } from './validators';
 
 /**
  * Get check-in configuration for current kiosk/campus
@@ -103,4 +106,20 @@ export async function getLabels(
 
   const response = await get<{ data: LabelDto[] }>(endpoint);
   return response.data;
+}
+
+/**
+ * Get family by IdKey (for QR code check-in)
+ */
+export async function getFamilyByIdKey(
+  idKey: string
+): Promise<CheckinFamilySearchResultDto> {
+  const response = await get<ApiResponse<CheckinFamilySearchResultDto>>(
+    `/checkin/families/${idKey}`
+  );
+  return parseWithSchema(
+    CheckinFamilySearchResultSchema,
+    response.data,
+    'getFamilyByIdKey'
+  );
 }

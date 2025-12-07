@@ -159,7 +159,7 @@ export function useQrScanner({ onScan, onError }: UseQrScannerOptions): UseQrSca
       setIsScanning(false);
       onError?.(userMsg);
     }
-  }, [onScan, onError]);
+  }, [isScanning, onScan, onError]);
 
   return {
     isScanning,
