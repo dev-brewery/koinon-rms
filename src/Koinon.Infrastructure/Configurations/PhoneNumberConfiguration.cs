@@ -75,6 +75,8 @@ public class PhoneNumberConfiguration : IEntityTypeConfiguration<PhoneNumber>
         // Foreign key to DefinedValue for number type
         builder.Property(p => p.NumberTypeValueId)
             .HasColumnName("number_type_value_id");
+        builder.HasIndex(p => p.NumberTypeValueId)
+            .HasDatabaseName("ix_phone_number_number_type_value_id");
 
         // Configure relationship to NumberTypeValue
         builder.HasOne(p => p.NumberTypeValue)

@@ -52,6 +52,8 @@ public class PersonConfiguration : IEntityTypeConfiguration<Person>
 
         builder.Property(p => p.ConnectionStatusValueId)
             .HasColumnName("connection_status_value_id");
+        builder.HasIndex(p => p.ConnectionStatusValueId)
+            .HasDatabaseName("ix_person_connection_status_value_id");
 
         // Notes
         builder.Property(p => p.ReviewReasonNote)

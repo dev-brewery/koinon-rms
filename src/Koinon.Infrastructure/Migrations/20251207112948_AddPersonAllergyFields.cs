@@ -10,48 +10,41 @@ public partial class AddPersonAllergyFields : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.AlterColumn<string>(
-            name: "special_needs",
-            table: "person",
-            type: "character varying(2000)",
-            maxLength: 2000,
-            nullable: true,
-            oldClrType: typeof(string),
-            oldType: "text",
-            oldNullable: true);
-
-        migrationBuilder.AlterColumn<string>(
+        migrationBuilder.AddColumn<string>(
             name: "allergies",
             table: "person",
             type: "character varying(500)",
             maxLength: 500,
-            nullable: true,
-            oldClrType: typeof(string),
-            oldType: "text",
-            oldNullable: true);
+            nullable: true);
+
+        migrationBuilder.AddColumn<bool>(
+            name: "has_critical_allergies",
+            table: "person",
+            type: "boolean",
+            nullable: false,
+            defaultValue: false);
+
+        migrationBuilder.AddColumn<string>(
+            name: "special_needs",
+            table: "person",
+            type: "character varying(2000)",
+            maxLength: 2000,
+            nullable: true);
     }
 
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.AlterColumn<string>(
-            name: "special_needs",
-            table: "person",
-            type: "text",
-            nullable: true,
-            oldClrType: typeof(string),
-            oldType: "character varying(2000)",
-            oldMaxLength: 2000,
-            oldNullable: true);
-
-        migrationBuilder.AlterColumn<string>(
+        migrationBuilder.DropColumn(
             name: "allergies",
-            table: "person",
-            type: "text",
-            nullable: true,
-            oldClrType: typeof(string),
-            oldType: "character varying(500)",
-            oldMaxLength: 500,
-            oldNullable: true);
+            table: "person");
+
+        migrationBuilder.DropColumn(
+            name: "has_critical_allergies",
+            table: "person");
+
+        migrationBuilder.DropColumn(
+            name: "special_needs",
+            table: "person");
     }
 }

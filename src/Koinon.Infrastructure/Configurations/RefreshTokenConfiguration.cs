@@ -33,6 +33,8 @@ public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
         builder.Property(rt => rt.PersonId)
             .HasColumnName("person_id")
             .IsRequired();
+        builder.HasIndex(rt => rt.PersonId)
+            .HasDatabaseName("ix_refresh_token_person_id");
 
         // Token
         builder.Property(rt => rt.Token)
