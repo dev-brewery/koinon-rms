@@ -107,4 +107,19 @@ public record CheckinFamilyMemberDto
     /// Current school grade (calculated from graduation year).
     /// </summary>
     public string? Grade { get; init; }
+
+    /// <summary>
+    /// Known allergies for this person.
+    /// </summary>
+    public string? Allergies { get; init; }
+
+    /// <summary>
+    /// Whether this person has critical/severe allergies.
+    /// </summary>
+    public bool HasCriticalAllergies { get; init; }
+
+    /// <summary>
+    /// Special needs notes (shown only in supervisor mode).
+    /// </summary>
+    public string? SpecialNeeds { get; init; }
 }

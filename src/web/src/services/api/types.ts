@@ -504,6 +504,9 @@ export interface CheckinPersonDto {
   grade?: string;
   photoUrl?: string;
   lastCheckIn?: DateTime;
+  allergies?: string;
+  hasCriticalAllergies: boolean;
+  specialNeeds?: string;
 }
 
 export interface CheckinOpportunitiesParams {
