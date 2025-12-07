@@ -2,8 +2,10 @@ using AutoMapper;
 using FluentAssertions;
 using FluentValidation;
 using Koinon.Application.DTOs.Requests;
+using Koinon.Application.Interfaces;
 using Koinon.Application.Mapping;
 using Koinon.Application.Services;
+using Koinon.Application.Tests.Fakes;
 using Koinon.Application.Validators;
 using Koinon.Domain.Entities;
 using Koinon.Domain.Enums;
@@ -22,6 +24,7 @@ public class FamilyServiceTests : IDisposable
 {
     private readonly KoinonDbContext _context;
     private readonly IMapper _mapper;
+    private readonly IUserContext _userContext;
     private readonly IValidator<CreateFamilyRequest> _createFamilyValidator;
     private readonly IValidator<AddFamilyMemberRequest> _addMemberValidator;
     private readonly Mock<ILogger<FamilyService>> _mockLogger;
@@ -54,6 +57,9 @@ public class FamilyServiceTests : IDisposable
         _createFamilyValidator = new CreateFamilyRequestValidator();
         _addMemberValidator = new AddFamilyMemberRequestValidator();
 
+        // Setup user context (default allows all access)
+        _userContext = new FakeUserContext();
+
         // Setup logger mock
         _mockLogger = new Mock<ILogger<FamilyService>>();
 
@@ -61,6 +67,7 @@ public class FamilyServiceTests : IDisposable
         _service = new FamilyService(
             _context,
             _mapper,
+            _userContext,
             _createFamilyValidator,
             _addMemberValidator,
             _mockLogger.Object

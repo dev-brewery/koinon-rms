@@ -1,3 +1,5 @@
+import { useEffect, useRef } from 'react';
+
 export interface IdleWarningModalProps {
   isOpen: boolean;
   secondsRemaining: number;
@@ -15,6 +17,15 @@ export function IdleWarningModal({
   secondsRemaining,
   onStayActive,
 }: IdleWarningModalProps) {
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  // Focus the Continue button when modal opens
+  useEffect(() => {
+    if (isOpen && buttonRef.current) {
+      buttonRef.current.focus();
+    }
+  }, [isOpen]);
+
   if (!isOpen) {
     return null;
   }
@@ -80,6 +91,7 @@ export function IdleWarningModal({
 
         {/* Continue Button */}
         <button
+          ref={buttonRef}
           onClick={onStayActive}
           className="px-12 py-6 bg-blue-600 text-white text-2xl font-semibold rounded-xl hover:bg-blue-700 transition-colors shadow-lg min-h-[80px] min-w-[300px]"
         >

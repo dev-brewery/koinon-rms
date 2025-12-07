@@ -67,6 +67,8 @@ public class CheckinSearchService(
         }
 
         // Use constant-time search to prevent timing attacks
+        // SECURITY: Uses 50k iterations (vs 100k for code search) because phone/name searches
+        // are expected to be slower due to LIKE queries and larger result sets
         var results = await ConstantTimeHelper.SearchWithConstantTiming(
             searchOperation: async () =>
             {
@@ -147,6 +149,8 @@ public class CheckinSearchService(
             .Replace("_", "\\_");   // Escape underscore wildcard
 
         // Use constant-time search to prevent timing attacks
+        // SECURITY: Uses 50k iterations (vs 100k for code search) because phone/name searches
+        // are expected to be slower due to LIKE queries and larger result sets
         var results = await ConstantTimeHelper.SearchWithConstantTiming(
             searchOperation: async () =>
             {
@@ -217,6 +221,9 @@ public class CheckinSearchService(
         string code,
         CancellationToken ct = default)
     {
+        // SECURITY: Start timing BEFORE any input validation to prevent timing leaks
+        var stopwatch = Stopwatch.StartNew();
+
         // Authorization check - must be authenticated
         AuthorizeAuthentication(nameof(SearchByCodeAsync));
 
@@ -225,8 +232,6 @@ public class CheckinSearchService(
             return null;
         }
 
-        var stopwatch = Stopwatch.StartNew();
-
         // Normalize code (uppercase, trim)
         var normalizedCode = code.Trim().ToUpperInvariant();
 
@@ -234,6 +239,8 @@ public class CheckinSearchService(
         var today = DateTime.UtcNow.Date;
 
         // Use constant-time search to prevent timing attacks
+        // SECURITY: Uses 100k iterations (vs 50k for phone/name) because code searches are fast
+        // (indexed lookup by code + date) and need more busy work to mask timing differences
         var result = await ConstantTimeHelper.SearchWithConstantTiming(
             searchOperation: async () =>
             {

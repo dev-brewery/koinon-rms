@@ -25,6 +25,7 @@ public interface IApplicationDbContext
     DbSet<Attendance> Attendances { get; }
     DbSet<AttendanceOccurrence> AttendanceOccurrences { get; }
     DbSet<AttendanceCode> AttendanceCodes { get; }
+    DbSet<Device> Devices { get; }
     DbSet<RefreshToken> RefreshTokens { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);

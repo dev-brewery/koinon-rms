@@ -152,6 +152,8 @@ namespace Koinon.Infrastructure.Migrations
                     b.HasIndex("AttendanceCodeId")
                         .HasDatabaseName("ix_attendance_code_id");
 
+                    b.HasIndex("DeviceId");
+
                     b.HasIndex("DidAttend")
                         .HasDatabaseName("ix_attendance_did_attend")
                         .HasFilter("did_attend = true");
@@ -603,6 +605,108 @@ namespace Koinon.Infrastructure.Migrations
                         .HasDatabaseName("ix_defined_value_type_active_order");
 
                     b.ToTable("defined_value", (string)null);
+                });
+
+            modelBuilder.Entity("Koinon.Domain.Entities.Device", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CampusId")
+                        .HasColumnType("integer")
+                        .HasColumnName("campus_id");
+
+                    b.Property<int?>("CreatedByPersonAliasId")
+                        .HasColumnType("integer")
+                        .HasColumnName("created_by_person_alias_id");
+
+                    b.Property<DateTime>("CreatedDateTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_date_time");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("description");
+
+                    b.Property<int?>("DeviceTypeValueId")
+                        .HasColumnType("integer")
+                        .HasColumnName("device_type_value_id");
+
+                    b.Property<Guid>("Guid")
+                        .HasColumnType("uuid")
+                        .HasColumnName("guid");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(45)
+                        .HasColumnType("character varying(45)")
+                        .HasColumnName("ip_address");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("KioskToken")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("kiosk_token");
+
+                    b.Property<DateTime?>("KioskTokenExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("kiosk_token_expires_at");
+
+                    b.Property<string>("Locations")
+                        .HasColumnType("text")
+                        .HasColumnName("locations");
+
+                    b.Property<int?>("ModifiedByPersonAliasId")
+                        .HasColumnType("integer")
+                        .HasColumnName("modified_by_person_alias_id");
+
+                    b.Property<DateTime?>("ModifiedDateTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("modified_date_time");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("PrinterSettings")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("printer_settings");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CampusId")
+                        .HasDatabaseName("ix_device_campus_id")
+                        .HasFilter("campus_id IS NOT NULL");
+
+                    b.HasIndex("DeviceTypeValueId");
+
+                    b.HasIndex("Guid")
+                        .IsUnique()
+                        .HasDatabaseName("uix_device_guid");
+
+                    b.HasIndex("IsActive")
+                        .HasDatabaseName("ix_device_is_active");
+
+                    b.HasIndex("KioskToken")
+                        .IsUnique()
+                        .HasDatabaseName("uix_device_kiosk_token")
+                        .HasFilter("kiosk_token IS NOT NULL");
+
+                    b.HasIndex("Name")
+                        .HasDatabaseName("ix_device_name");
+
+                    b.ToTable("device", (string)null);
                 });
 
             modelBuilder.Entity("Koinon.Domain.Entities.Group", b =>
@@ -1881,6 +1985,10 @@ namespace Koinon.Infrastructure.Migrations
                         .HasForeignKey("AttendanceCodeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("Koinon.Domain.Entities.Device", null)
+                        .WithMany("Attendances")
+                        .HasForeignKey("DeviceId");
+
                     b.HasOne("Koinon.Domain.Entities.AttendanceOccurrence", "Occurrence")
                         .WithMany("Attendances")
                         .HasForeignKey("OccurrenceId")
@@ -1941,6 +2049,23 @@ namespace Koinon.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("DefinedType");
+                });
+
+            modelBuilder.Entity("Koinon.Domain.Entities.Device", b =>
+                {
+                    b.HasOne("Koinon.Domain.Entities.Campus", "Campus")
+                        .WithMany()
+                        .HasForeignKey("CampusId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Koinon.Domain.Entities.DefinedValue", "DeviceTypeValue")
+                        .WithMany()
+                        .HasForeignKey("DeviceTypeValueId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Campus");
+
+                    b.Navigation("DeviceTypeValue");
                 });
 
             modelBuilder.Entity("Koinon.Domain.Entities.Group", b =>
@@ -2122,6 +2247,11 @@ namespace Koinon.Infrastructure.Migrations
             modelBuilder.Entity("Koinon.Domain.Entities.DefinedType", b =>
                 {
                     b.Navigation("DefinedValues");
+                });
+
+            modelBuilder.Entity("Koinon.Domain.Entities.Device", b =>
+                {
+                    b.Navigation("Attendances");
                 });
 
             modelBuilder.Entity("Koinon.Domain.Entities.Group", b =>

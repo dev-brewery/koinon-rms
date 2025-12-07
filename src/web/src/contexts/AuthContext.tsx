@@ -3,7 +3,7 @@
  * Provides authentication state and methods throughout the application
  */
 
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from 'react';
 import { authApi, setTokens, clearTokens, getAccessToken, getRefreshToken } from '../services/api';
 import type { LoginRequest, UserSummaryDto } from '../services/api/types';
 
@@ -15,6 +15,7 @@ interface AuthState {
   user: UserSummaryDto | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  error: string | null;
 }
 
 interface AuthContextValue extends AuthState {
@@ -42,20 +43,37 @@ export function AuthProvider({ children }: AuthProviderProps) {
     user: null,
     isAuthenticated: false,
     isLoading: true,
+    error: null,
   });
+
+  // Track if we've already checked auth on mount to prevent race conditions
+  const hasCheckedAuth = useRef(false);
 
   /**
    * Login with username and password
    * Stores tokens in memory and sets user state
    */
   const login = useCallback(async (request: LoginRequest) => {
-    const response = await authApi.login(request);
+    setState(prev => ({ ...prev, isLoading: true, error: null }));
 
-    setState({
-      user: response.user,
-      isAuthenticated: true,
-      isLoading: false,
-    });
+    try {
+      const response = await authApi.login(request);
+
+      setState({
+        user: response.user,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      });
+    } catch (error) {
+      setState({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: error instanceof Error ? error.message : 'Login failed',
+      });
+      throw error; // Re-throw so LoginForm can handle it
+    }
   }, []);
 
   /**
@@ -74,6 +92,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         user: null,
         isAuthenticated: false,
         isLoading: false,
+        error: null,
       });
     }
   }, []);
@@ -81,6 +100,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   /**
    * Refresh authentication state
    * Attempts to refresh token and validate session
+   * IMPORTANT: Preserves existing user state - refresh token endpoint doesn't return user data
    */
   const refreshAuth = useCallback(async () => {
     const token = getRefreshToken();
@@ -96,19 +116,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Store the new tokens from the response (token rotation)
       setTokens(response.accessToken, response.refreshToken);
 
-      // Token refreshed successfully, but we need user info
-      // For now, mark as authenticated but user data will be fetched separately
-      setState({
-        user: null, // User data should be fetched from /me endpoint
+      // FIX: Keep existing user data - refresh endpoint doesn't return user info
+      // The user was set during login and remains valid
+      setState(prev => ({
+        ...prev,
         isAuthenticated: true,
         isLoading: false,
-      });
+        error: null,
+      }));
     } catch {
       clearTokens();
       setState({
         user: null,
         isAuthenticated: false,
         isLoading: false,
+        error: null,
       });
     }
   }, []);
@@ -118,6 +140,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
    * Attempts to refresh token if one exists
    */
   useEffect(() => {
+    // Prevent race condition - only check auth once on mount
+    if (hasCheckedAuth.current) {
+      return;
+    }
+
+    hasCheckedAuth.current = true;
+
     const checkAuth = async () => {
       const token = getAccessToken();
 
@@ -130,7 +159,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
 
     checkAuth();
-  }, [refreshAuth]);
+    // Empty dependency array - only run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const value: AuthContextValue = {
     ...state,

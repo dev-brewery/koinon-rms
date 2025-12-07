@@ -4,7 +4,7 @@ namespace Koinon.Application.DTOs;
 /// Family search result for check-in kiosk operations.
 /// Includes family summary and all active members for quick selection.
 /// </summary>
-public class CheckinFamilySearchResultDto
+public record CheckinFamilySearchResultDto
 {
     /// <summary>
     /// Family IdKey.
@@ -29,7 +29,7 @@ public class CheckinFamilySearchResultDto
     /// <summary>
     /// List of active family members available for check-in.
     /// </summary>
-    public required List<CheckinFamilyMemberDto> Members { get; init; }
+    public required IReadOnlyList<CheckinFamilyMemberDto> Members { get; init; }
 
     /// <summary>
     /// Number of recent check-ins for this family (optional, for context).
@@ -41,7 +41,7 @@ public class CheckinFamilySearchResultDto
 /// Family member summary for check-in selection.
 /// Optimized for quick display and selection on kiosk touch screen.
 /// </summary>
-public class CheckinFamilyMemberDto
+public record CheckinFamilyMemberDto
 {
     /// <summary>
     /// Person IdKey.

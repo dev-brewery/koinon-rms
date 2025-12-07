@@ -57,8 +57,6 @@ public class PersonService(
         PersonSearchParameters parameters,
         CancellationToken ct = default)
     {
-        parameters.ValidatePageSize();
-
         var query = context.People.AsNoTracking();
 
         // Apply full-text search if query provided

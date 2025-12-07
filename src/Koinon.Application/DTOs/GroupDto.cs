@@ -3,7 +3,7 @@ namespace Koinon.Application.DTOs;
 /// <summary>
 /// Full group details DTO.
 /// </summary>
-public class GroupDto
+public record GroupDto
 {
     public required string IdKey { get; init; }
     public required Guid Guid { get; init; }
@@ -29,7 +29,7 @@ public class GroupDto
 /// <summary>
 /// Summary group DTO for lists and references.
 /// </summary>
-public class GroupSummaryDto
+public record GroupSummaryDto
 {
     public required string IdKey { get; init; }
     public required string Name { get; init; }
@@ -42,7 +42,7 @@ public class GroupSummaryDto
 /// <summary>
 /// Group member DTO representing a person's membership in a group.
 /// </summary>
-public class GroupMemberDto
+public record GroupMemberDto
 {
     public required string IdKey { get; init; }
     public required PersonSummaryDto Person { get; init; }
@@ -56,7 +56,7 @@ public class GroupMemberDto
 /// <summary>
 /// Group type DTO.
 /// </summary>
-public class GroupTypeDto
+public record GroupTypeDto
 {
     public required string IdKey { get; init; }
     public required Guid Guid { get; init; }
