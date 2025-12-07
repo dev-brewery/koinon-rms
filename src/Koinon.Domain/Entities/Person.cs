@@ -275,4 +275,6 @@ public class Person : Entity
     /// PersonAlias provides historical tracking of name changes and alternate identifiers.
     /// </summary>
     public virtual ICollection<PersonAlias> PersonAliases { get; set; } = new List<PersonAlias>();
+
+    // CI validation test v2
 }
