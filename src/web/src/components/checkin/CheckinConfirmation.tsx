@@ -6,6 +6,9 @@ export interface CheckinConfirmationProps {
   attendances: AttendanceResultDto[];
   onDone: () => void;
   onPrintLabels?: () => void;
+  printStatus?: 'idle' | 'printing' | 'success' | 'error';
+  printError?: string | null;
+  printerAvailable?: boolean;
 }
 
 /**
@@ -15,6 +18,9 @@ export function CheckinConfirmation({
   attendances,
   onDone,
   onPrintLabels,
+  printStatus = 'idle',
+  printError = null,
+  printerAvailable = false,
 }: CheckinConfirmationProps) {
   return (
     <div className="max-w-4xl mx-auto">
@@ -73,6 +79,47 @@ export function CheckinConfirmation({
         ))}
       </div>
 
+      {/* Print Status */}
+      {printStatus === 'printing' && (
+        <div className="mb-4">
+          <Card className="bg-blue-50 border-blue-200">
+            <div className="flex items-center gap-3">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+              <p className="text-blue-800 text-sm">Printing labels...</p>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {printStatus === 'success' && (
+        <div className="mb-4">
+          <Card className="bg-green-50 border-green-200">
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <p className="text-green-800 text-sm font-medium">Labels printed successfully!</p>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {printStatus === 'error' && printError && (
+        <div className="mb-4">
+          <Card className="bg-red-50 border-red-200">
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              <div>
+                <p className="text-red-800 text-sm font-medium">Print failed</p>
+                <p className="text-red-700 text-xs">{printError}</p>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
       {/* Action Buttons */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {onPrintLabels && (
@@ -81,8 +128,10 @@ export function CheckinConfirmation({
             variant="secondary"
             size="lg"
             className="text-xl"
+            disabled={printStatus === 'printing'}
+            loading={printStatus === 'printing'}
           >
-            Print Labels
+            {printStatus === 'success' ? 'Reprint Labels' : 'Print Labels'}
           </Button>
         )}
         <Button
@@ -100,7 +149,12 @@ export function CheckinConfirmation({
         <ul className="text-blue-800 space-y-1">
           <li>• Keep your security code to pick up your child</li>
           <li>• Present your code at the check-out desk</li>
-          <li>• Labels will be available at the printer</li>
+          {printerAvailable && printStatus === 'success' && (
+            <li>• Collect your printed labels from the printer</li>
+          )}
+          {!printerAvailable && (
+            <li>• Labels can be printed later from the welcome desk</li>
+          )}
         </ul>
       </div>
     </div>
