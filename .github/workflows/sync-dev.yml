@@ -26,4 +26,3 @@
             git checkout dev
             git rebase main
             git push origin dev --force-with-lease
-  EOF
