@@ -44,6 +44,8 @@ public class KoinonDbContext : DbContext, IApplicationDbContext
 
     // Authentication entities
     public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
+    public DbSet<SupervisorSession> SupervisorSessions { get; set; } = null!;
+    public DbSet<SupervisorAuditLog> SupervisorAuditLogs { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

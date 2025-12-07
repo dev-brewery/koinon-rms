@@ -603,6 +603,27 @@ export interface LabelParams {
 }
 
 // ============================================================================
+// Supervisor Mode Types
+// ============================================================================
+
+export interface SupervisorLoginRequest {
+  pin: string;                   // 4-6 digit PIN
+}
+
+export interface SupervisorLoginResponse {
+  sessionToken: string;          // Time-limited session token
+  expiresAt: DateTime;           // Session expiration
+  supervisor: SupervisorInfoDto;
+}
+
+export interface SupervisorInfoDto {
+  idKey: IdKey;
+  fullName: string;
+  firstName: string;
+  lastName: string;
+}
+
+// ============================================================================
 // Reference Data Types
 // ============================================================================
 

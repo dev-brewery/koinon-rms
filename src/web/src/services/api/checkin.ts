@@ -16,6 +16,8 @@ import type {
   CheckoutResponse,
   LabelDto,
   LabelParams,
+  SupervisorLoginRequest,
+  SupervisorLoginResponse,
 } from './types';
 
 /**
@@ -103,4 +105,51 @@ export async function getLabels(
 
   const response = await get<{ data: LabelDto[] }>(endpoint);
   return response.data;
+}
+
+/**
+ * Supervisor Mode API
+ */
+
+/**
+ * Authenticate supervisor with PIN
+ */
+export async function supervisorLogin(
+  request: SupervisorLoginRequest
+): Promise<SupervisorLoginResponse> {
+  const response = await post<SupervisorLoginResponse>(
+    '/checkin/supervisor/login',
+    request
+  );
+  return response;
+}
+
+/**
+ * End supervisor session
+ */
+export async function supervisorLogout(sessionToken: string): Promise<void> {
+  await post('/checkin/supervisor/logout', undefined, {
+    headers: {
+      'X-Supervisor-Session': sessionToken,
+    },
+  });
+}
+
+/**
+ * Reprint label for an attendance record (supervisor mode)
+ */
+export async function supervisorReprint(
+  attendanceIdKey: string,
+  sessionToken: string
+): Promise<LabelDto[]> {
+  const response = await post<{ labels: LabelDto[] }>(
+    `/checkin/supervisor/reprint/${attendanceIdKey}`,
+    undefined,
+    {
+      headers: {
+        'X-Supervisor-Session': sessionToken,
+      },
+    }
+  );
+  return response.labels;
 }
