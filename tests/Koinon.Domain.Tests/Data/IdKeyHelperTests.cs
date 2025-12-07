@@ -183,4 +183,6 @@ public class IdKeyHelperTests
         // Assert
         idKey1.Should().Be(idKey2);
     }
+
+    // Hook test - intentional change
 }
