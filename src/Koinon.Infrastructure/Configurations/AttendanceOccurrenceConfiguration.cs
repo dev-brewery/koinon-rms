@@ -114,5 +114,11 @@ public class AttendanceOccurrenceConfiguration : IEntityTypeConfiguration<Attend
 
         builder.HasIndex(e => e.GroupId)
             .HasDatabaseName("ix_attendance_occurrence_group_id");
+
+        builder.HasIndex(e => e.LocationId)
+            .HasDatabaseName("ix_attendance_occurrence_location_id");
+
+        builder.HasIndex(e => e.ScheduleId)
+            .HasDatabaseName("ix_attendance_occurrence_schedule_id");
     }
 }

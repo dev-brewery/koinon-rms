@@ -98,6 +98,9 @@ public class CampusConfiguration : IEntityTypeConfiguration<Campus>
         builder.HasIndex(c => c.Order)
             .HasDatabaseName("ix_campus_order");
 
+        builder.HasIndex(c => c.CampusStatusValueId)
+            .HasDatabaseName("ix_campus_campus_status_value_id");
+
         // Foreign keys
         builder.HasOne(c => c.CampusStatusValue)
             .WithMany()

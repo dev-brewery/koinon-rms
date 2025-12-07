@@ -99,6 +99,9 @@ public class DeviceConfiguration : IEntityTypeConfiguration<Device>
             .HasDatabaseName("uix_device_kiosk_token")
             .HasFilter("kiosk_token IS NOT NULL");
 
+        builder.HasIndex(d => d.DeviceTypeValueId)
+            .HasDatabaseName("ix_device_device_type_value_id");
+
         // Foreign keys
         builder.HasOne(d => d.DeviceTypeValue)
             .WithMany()
