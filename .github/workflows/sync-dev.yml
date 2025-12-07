@@ -1,0 +1,29 @@
+  name: Sync Dev Branch
+
+  on:
+    push:
+      branches: [main]
+
+  jobs:
+    sync-dev:
+      runs-on: ubuntu-latest
+      permissions:
+        contents: write
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
+          with:
+            fetch-depth: 0
+            token: ${{ secrets.GITHUB_TOKEN }}
+
+        - name: Configure git
+          run: |
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+
+        - name: Rebase dev onto main
+          run: |
+            git checkout dev
+            git rebase main
+            git push origin dev --force-with-lease
+  EOF
