@@ -28,6 +28,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Koinon.Infrastructure.Tests
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Koinon.Api.Tests", "tests\Koinon.Api.Tests\Koinon.Api.Tests.csproj", "{89A5878C-1667-4710-9DBB-C06E9F57BF25}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Koinon.PrintBridge", "tools\print-bridge\Koinon.PrintBridge\Koinon.PrintBridge.csproj", "{F5A9E8D2-1E9C-4D1A-B6F3-9C7D2E8F1A9B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -74,6 +76,10 @@ Global
 		{89A5878C-1667-4710-9DBB-C06E9F57BF25}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{89A5878C-1667-4710-9DBB-C06E9F57BF25}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{89A5878C-1667-4710-9DBB-C06E9F57BF25}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F5A9E8D2-1E9C-4D1A-B6F3-9C7D2E8F1A9B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5A9E8D2-1E9C-4D1A-B6F3-9C7D2E8F1A9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5A9E8D2-1E9C-4D1A-B6F3-9C7D2E8F1A9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5A9E8D2-1E9C-4D1A-B6F3-9C7D2E8F1A9B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -89,6 +95,7 @@ Global
 		{8FE0C6E6-EE8A-430D-8EC1-DBF567925DB8} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{837B62BA-7ECB-4ECE-964C-9FC8F9C96F03} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{89A5878C-1667-4710-9DBB-C06E9F57BF25} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+		{F5A9E8D2-1E9C-4D1A-B6F3-9C7D2E8F1A9B} = {07C2787E-EAC7-C090-1BA3-A61EC2A24D84}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F001814A-656B-4A5F-BD99-AC0777725551}
