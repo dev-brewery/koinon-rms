@@ -30,3 +30,9 @@ export type { PinEntryProps } from './PinEntry';
 
 export { SupervisorMode } from './SupervisorMode';
 export type { SupervisorModeProps } from './SupervisorMode';
+
+export { CheckoutFlow } from './CheckoutFlow';
+export type { CheckoutFlowProps } from './CheckoutFlow';
+
+export { SecurityCodeVerify } from './SecurityCodeVerify';
+export type { SecurityCodeVerifyProps } from './SecurityCodeVerify';
