@@ -24,3 +24,9 @@ export type { QrScannerProps } from './QrScanner';
 
 export { FamilyQrCard } from './FamilyQrCard';
 export type { FamilyQrCardProps } from './FamilyQrCard';
+
+export { PinEntry } from './PinEntry';
+export type { PinEntryProps } from './PinEntry';
+
+export { SupervisorMode } from './SupervisorMode';
+export type { SupervisorModeProps } from './SupervisorMode';

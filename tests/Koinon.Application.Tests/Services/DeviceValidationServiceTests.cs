@@ -263,5 +263,7 @@ public class DeviceValidationServiceTests : IDisposable
         public DbSet<AttendanceCode> AttendanceCodes { get; set; } = null!;
         public DbSet<Device> Devices { get; set; } = null!;
         public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
+        public DbSet<SupervisorSession> SupervisorSessions { get; set; } = null!;
+        public DbSet<SupervisorAuditLog> SupervisorAuditLogs { get; set; } = null!;
     }
 }

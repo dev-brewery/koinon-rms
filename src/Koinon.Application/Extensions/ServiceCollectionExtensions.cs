@@ -52,6 +52,9 @@ public static class ServiceCollectionExtensions
         // Device/Kiosk validation service
         services.AddScoped<IDeviceValidationService, DeviceValidationService>();
 
+        // Supervisor mode service
+        services.AddScoped<ISupervisorModeService, SupervisorModeService>();
+
         // Future: Add MediatR, AutoMapper, FluentValidation when needed
         // services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(ServiceCollectionExtensions).Assembly));
         // services.AddAutoMapper(typeof(ServiceCollectionExtensions).Assembly);

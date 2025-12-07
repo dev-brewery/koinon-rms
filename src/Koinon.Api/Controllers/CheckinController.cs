@@ -20,6 +20,7 @@ public class CheckinController(
     ICheckinSearchService searchService,
     ICheckinAttendanceService attendanceService,
     ILabelGenerationService labelService,
+    ISupervisorModeService supervisorService,
     ILogger<CheckinController> logger) : ControllerBase
 {
     /// <summary>
@@ -395,5 +396,208 @@ public class CheckinController(
             locationIdKey, attendance.Count);
 
         return Ok(attendance);
+    }
+
+    /// <summary>
+    /// Authenticates a supervisor using their PIN code.
+    /// Creates a time-limited session for supervisor operations.
+    /// </summary>
+    /// <param name="request">PIN authentication request</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Supervisor session information</returns>
+    /// <response code="200">Login successful</response>
+    /// <response code="400">Invalid PIN format</response>
+    /// <response code="401">Missing or invalid kiosk authentication OR invalid PIN</response>
+    [HttpPost("supervisor/login")]
+    [KioskAuthorize]
+    [ProducesResponseType(typeof(SupervisorLoginResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> SupervisorLogin(
+        [FromBody] SupervisorLoginRequest request,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(request.Pin))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid request",
+                Detail = "PIN is required",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var response = await supervisorService.LoginAsync(request, ipAddress, ct);
+
+        if (response == null)
+        {
+            logger.LogWarning("Supervisor login failed from IP: {IP}", ipAddress ?? "unknown");
+
+            return Unauthorized(new ProblemDetails
+            {
+                Title = "Authentication failed",
+                Detail = "Invalid PIN or supervisor not authorized",
+                Status = StatusCodes.Status401Unauthorized,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        logger.LogInformation(
+            "Supervisor login successful: {SupervisorName}",
+            response.Supervisor.FullName);
+
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Ends a supervisor session.
+    /// </summary>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>No content on success</returns>
+    /// <response code="204">Logout successful</response>
+    /// <response code="400">Missing session token header</response>
+    /// <response code="401">Missing or invalid kiosk authentication</response>
+    /// <response code="404">Session not found or already ended</response>
+    [HttpPost("supervisor/logout")]
+    [KioskAuthorize]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SupervisorLogout(CancellationToken ct = default)
+    {
+        // Read session token from header
+        if (!HttpContext.Request.Headers.TryGetValue("X-Supervisor-Session", out var sessionToken) ||
+            string.IsNullOrWhiteSpace(sessionToken))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid request",
+                Detail = "X-Supervisor-Session header is required",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        var tokenValue = sessionToken.ToString();
+        var success = await supervisorService.LogoutAsync(tokenValue, ct);
+
+        if (!success)
+        {
+            return NotFound(new ProblemDetails
+            {
+                Title = "Session not found",
+                Detail = "Supervisor session not found or already ended",
+                Status = StatusCodes.Status404NotFound,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        logger.LogInformation("Supervisor logout successful");
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Reprints a label for an attendance record (supervisor mode only).
+    /// </summary>
+    /// <param name="attendanceIdKey">Attendance record IdKey</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Label data for reprinting</returns>
+    /// <response code="200">Returns label data</response>
+    /// <response code="400">Invalid IdKey format or missing session token header</response>
+    /// <response code="401">Missing or invalid kiosk authentication OR invalid supervisor session</response>
+    /// <response code="404">Attendance record not found</response>
+    [HttpPost("supervisor/reprint/{attendanceIdKey}")]
+    [KioskAuthorize]
+    [ProducesResponseType(typeof(LabelSetDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SupervisorReprint(
+        string attendanceIdKey,
+        CancellationToken ct = default)
+    {
+        if (!IdKeyValidator.IsValid(attendanceIdKey))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid request",
+                Detail = "Attendance IdKey must be in valid format",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        // Read session token from header
+        if (!HttpContext.Request.Headers.TryGetValue("X-Supervisor-Session", out var sessionToken) ||
+            string.IsNullOrWhiteSpace(sessionToken))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid request",
+                Detail = "X-Supervisor-Session header is required",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        var tokenValue = sessionToken.ToString();
+
+        // Validate supervisor session
+        var supervisor = await supervisorService.ValidateSessionAsync(tokenValue, ct);
+        if (supervisor == null)
+        {
+            logger.LogWarning("Supervisor reprint failed: Invalid or expired session");
+
+            return Unauthorized(new ProblemDetails
+            {
+                Title = "Authentication failed",
+                Detail = "Invalid or expired supervisor session",
+                Status = StatusCodes.Status401Unauthorized,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        var request = new LabelRequestDto
+        {
+            AttendanceIdKey = attendanceIdKey
+        };
+
+        try
+        {
+            var labels = await labelService.GenerateLabelsAsync(request, ct);
+
+            // Log supervisor action
+            await supervisorService.LogActionAsync(
+                tokenValue,
+                "Reprint label",
+                "Attendance",
+                attendanceIdKey,
+                ct);
+
+            logger.LogInformation(
+                "Supervisor reprint: AttendanceIdKey={AttendanceIdKey}, Supervisor={SupervisorName}",
+                attendanceIdKey,
+                supervisor.FullName);
+
+            return Ok(labels);
+        }
+        catch (InvalidOperationException ex)
+        {
+            logger.LogWarning(
+                ex,
+                "Supervisor reprint failed - attendance not found: AttendanceIdKey={AttendanceIdKey}",
+                attendanceIdKey);
+
+            return NotFound(new ProblemDetails
+            {
+                Title = "Attendance not found",
+                Detail = $"No attendance record found with IdKey '{attendanceIdKey}'",
+                Status = StatusCodes.Status404NotFound,
+                Instance = HttpContext.Request.Path
+            });
+        }
     }
 }

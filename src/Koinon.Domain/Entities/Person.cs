@@ -84,6 +84,12 @@ public class Person : Entity
     public string? PasswordHash { get; set; }
 
     /// <summary>
+    /// Argon2id hash of the supervisor PIN (4-6 digits). Format: Base64(salt[16] + hash[32])
+    /// Used for kiosk supervisor mode authentication.
+    /// </summary>
+    public string? SupervisorPinHash { get; set; }
+
+    /// <summary>
     /// Day component of birth date (1-31).
     /// </summary>
     public int? BirthDay { get; set; }

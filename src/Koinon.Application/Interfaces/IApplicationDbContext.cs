@@ -27,6 +27,8 @@ public interface IApplicationDbContext
     DbSet<AttendanceCode> AttendanceCodes { get; }
     DbSet<Device> Devices { get; }
     DbSet<RefreshToken> RefreshTokens { get; }
+    DbSet<SupervisorSession> SupervisorSessions { get; }
+    DbSet<SupervisorAuditLog> SupervisorAuditLogs { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     EntityEntry<TEntity> Entry<TEntity>(TEntity entity) where TEntity : class;
