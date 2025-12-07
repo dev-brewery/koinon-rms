@@ -198,6 +198,23 @@ public class Person : Entity
     public int? PrimaryCampusId { get; set; }
 
     /// <summary>
+    /// Known allergies (e.g., "Peanuts, Shellfish"). Displayed on check-in screens and labels.
+    /// Maximum 500 characters. Content is sanitized before printing to prevent ZPL injection.
+    /// </summary>
+    public string? Allergies { get; set; }
+
+    /// <summary>
+    /// Whether this person has critical/severe allergies requiring immediate attention.
+    /// </summary>
+    public bool HasCriticalAllergies { get; set; }
+
+    /// <summary>
+    /// Special needs or additional care notes (visible to supervisors only).
+    /// Maximum 2000 characters.
+    /// </summary>
+    public string? SpecialNeeds { get; set; }
+
+    /// <summary>
     /// Computed full name using either NickName or FirstName, whichever is appropriate.
     /// </summary>
     public string FullName

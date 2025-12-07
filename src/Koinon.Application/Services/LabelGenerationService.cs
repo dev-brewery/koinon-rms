@@ -286,9 +286,11 @@ public class LabelGenerationService(
             labels.Add(LabelType.ChildName);
             labels.Add(LabelType.ParentClaim);
 
-            // Add allergy label if person has allergies (would check attributes in full implementation)
-            // For MVP, we'll add this as a placeholder
-            // if (person.HasAllergies) labels.Add(LabelType.Allergy);
+            // Add allergy label if person has allergies
+            if (!string.IsNullOrWhiteSpace(person.Allergies))
+            {
+                labels.Add(LabelType.Allergy);
+            }
         }
         else
         {
@@ -327,6 +329,18 @@ public class LabelGenerationService(
         {
             fields["Age"] = age.Value.ToString();
         }
+
+        // Add allergy information with sanitization for ZPL safety
+        var allergiesValue = person.Allergies ?? "";
+        // Remove all ZPL control characters: ^ ~ \ (field delimiter, tilde commands, backslash)
+        allergiesValue = System.Text.RegularExpressions.Regex.Replace(allergiesValue, @"[\^~\\]", "");
+        if (allergiesValue.Length > 50)
+        {
+            allergiesValue = allergiesValue.Substring(0, 47) + "...";
+        }
+
+        fields["Allergies"] = allergiesValue;
+        fields["HasCriticalAllergies"] = person.HasCriticalAllergies ? "CRITICAL" : "";
 
         // Merge custom fields
         if (customFields != null)

@@ -471,7 +471,10 @@ public class CheckinSearchService(
                 IsChild = isChild,
                 HasRecentCheckIn = hasRecentCheckIn,
                 LastCheckIn = lastCheckIn == default ? null : lastCheckIn,
-                Grade = grade
+                Grade = grade,
+                Allergies = groupMember.Person.Allergies,
+                HasCriticalAllergies = groupMember.Person.HasCriticalAllergies,
+                SpecialNeeds = groupMember.Person.SpecialNeeds
             });
         }
 
