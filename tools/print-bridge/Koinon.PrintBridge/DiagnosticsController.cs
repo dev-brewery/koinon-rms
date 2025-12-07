@@ -10,16 +10,19 @@ namespace Koinon.PrintBridge;
 public class DiagnosticsController : ControllerBase
 {
     private readonly PrinterDiscoveryService _printerDiscovery;
-    private readonly ZplPrintService _printService;
+    private readonly ZplPrintService _zplPrintService;
+    private readonly WindowsPrintService _windowsPrintService;
     private readonly ILogger<DiagnosticsController> _logger;
 
     public DiagnosticsController(
         PrinterDiscoveryService printerDiscovery,
-        ZplPrintService printService,
+        ZplPrintService zplPrintService,
+        WindowsPrintService windowsPrintService,
         ILogger<DiagnosticsController> logger)
     {
         _printerDiscovery = printerDiscovery;
-        _printService = printService;
+        _zplPrintService = zplPrintService;
+        _windowsPrintService = windowsPrintService;
         _logger = logger;
     }
 
@@ -55,11 +58,16 @@ public class DiagnosticsController : ControllerBase
                     status = p.Status,
                     isDefault = p.IsDefault,
                     isZebraPrinter = p.IsZebraPrinter,
+                    isDymoPrinter = p.IsDymoPrinter,
+                    printerType = p.PrinterType,
+                    supportsZpl = p.SupportsZpl,
+                    supportsImage = p.SupportsImage,
                     driverName = p.DriverName,
                     portName = p.PortName
                 }),
                 count = printers.Count,
-                zebraCount = printers.Count(p => p.IsZebraPrinter)
+                zebraCount = printers.Count(p => p.IsZebraPrinter),
+                dymoCount = printers.Count(p => p.IsDymoPrinter)
             });
         }
         catch (Exception ex)
@@ -121,7 +129,7 @@ public class DiagnosticsController : ControllerBase
 ^FO50,160^A0N,25,25^FDKoinon Print Bridge^FS
 ^XZ";
 
-            await _printService.PrintZplAsync(request.PrinterName, testZpl);
+            await _zplPrintService.PrintZplAsync(request.PrinterName, testZpl);
 
             _logger.LogInformation("Test label printed successfully to {PrinterName}", request.PrinterName);
 
@@ -161,7 +169,7 @@ public class DiagnosticsController : ControllerBase
         }
 
         // Validate ZPL content with comprehensive security checks
-        var validationResult = _printService.ValidateZplWithSecurity(request.ZplContent);
+        var validationResult = _zplPrintService.ValidateZplWithSecurity(request.ZplContent);
         if (!validationResult.IsValid)
         {
             return BadRequest(new
@@ -173,7 +181,7 @@ public class DiagnosticsController : ControllerBase
 
         try
         {
-            await _printService.PrintZplAsync(request.PrinterName, request.ZplContent);
+            await _zplPrintService.PrintZplAsync(request.PrinterName, request.ZplContent);
 
             _logger.LogInformation("Label printed successfully to {PrinterName}", request.PrinterName);
 
@@ -229,7 +237,7 @@ public class DiagnosticsController : ControllerBase
         var invalidLabels = new List<string>();
         for (int i = 0; i < request.ZplContents.Count; i++)
         {
-            var validationResult = _printService.ValidateZplWithSecurity(request.ZplContents[i]);
+            var validationResult = _zplPrintService.ValidateZplWithSecurity(request.ZplContents[i]);
             if (!validationResult.IsValid)
             {
                 invalidLabels.Add($"Label {i}: {validationResult.ErrorMessage}");
@@ -247,7 +255,7 @@ public class DiagnosticsController : ControllerBase
 
         try
         {
-            await _printService.PrintBatchZplAsync(request.PrinterName, request.ZplContents);
+            await _zplPrintService.PrintBatchZplAsync(request.PrinterName, request.ZplContents);
 
             _logger.LogInformation("Batch of {Count} labels printed successfully to {PrinterName}",
                 request.ZplContents.Count, request.PrinterName);
@@ -270,6 +278,125 @@ public class DiagnosticsController : ControllerBase
                 printerName = request.PrinterName
             });
         }
+    }
+
+    /// <summary>
+    /// Prints a label from a base64-encoded image.
+    /// Suitable for all Windows printers including Dymo, generic printers, etc.
+    /// </summary>
+    [HttpPost("print/image")]
+    public async Task<IActionResult> PrintImage([FromBody] ImagePrintRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.PrinterName))
+        {
+            return BadRequest(new { error = "Printer name is required" });
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Base64Image))
+        {
+            return BadRequest(new { error = "Image data is required" });
+        }
+
+        // Validate image data
+        var validationResult = _windowsPrintService.ValidateImageData(request.Base64Image);
+        if (!validationResult.IsValid)
+        {
+            return BadRequest(new
+            {
+                error = "Invalid image data",
+                message = validationResult.ErrorMessage
+            });
+        }
+
+        try
+        {
+            await _windowsPrintService.PrintLabelAsync(
+                request.PrinterName,
+                request.Base64Image,
+                request.LabelSize ?? "default");
+
+            _logger.LogInformation("Image label printed successfully to {PrinterName}", request.PrinterName);
+
+            return Ok(new
+            {
+                success = true,
+                message = $"Image label sent to {request.PrinterName}",
+                printerName = request.PrinterName
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to print image label to {PrinterName}", request.PrinterName);
+            return StatusCode(500, new
+            {
+                error = "Failed to print image label",
+                message = ex.Message,
+                printerName = request.PrinterName
+            });
+        }
+    }
+
+    /// <summary>
+    /// Prints a simple text label using GDI rendering.
+    /// </summary>
+    [HttpPost("print/text")]
+    public async Task<IActionResult> PrintTextLabel([FromBody] TextPrintRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.PrinterName))
+        {
+            return BadRequest(new { error = "Printer name is required" });
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Text))
+        {
+            return BadRequest(new { error = "Text content is required" });
+        }
+
+        try
+        {
+            await _windowsPrintService.PrintTextLabelAsync(
+                request.PrinterName,
+                request.Text,
+                request.LabelSize ?? "default");
+
+            _logger.LogInformation("Text label printed successfully to {PrinterName}", request.PrinterName);
+
+            return Ok(new
+            {
+                success = true,
+                message = $"Text label sent to {request.PrinterName}",
+                printerName = request.PrinterName
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to print text label to {PrinterName}", request.PrinterName);
+            return StatusCode(500, new
+            {
+                error = "Failed to print text label",
+                message = ex.Message,
+                printerName = request.PrinterName
+            });
+        }
+    }
+
+    /// <summary>
+    /// Gets available label size presets.
+    /// </summary>
+    [HttpGet("label-sizes")]
+    public IActionResult GetLabelSizes()
+    {
+        var sizes = WindowsPrintService.GetAvailableLabelSizes();
+
+        return Ok(new
+        {
+            labelSizes = sizes.Select(s => new
+            {
+                name = s.Key,
+                widthInches = s.Value.width,
+                heightInches = s.Value.height
+            })
+        });
     }
 }
 
@@ -297,4 +424,24 @@ public class BatchPrintRequest
 {
     public required string PrinterName { get; init; }
     public required List<string> ZplContents { get; init; }
+}
+
+/// <summary>
+/// Request model for printing an image label.
+/// </summary>
+public class ImagePrintRequest
+{
+    public required string PrinterName { get; init; }
+    public required string Base64Image { get; init; }
+    public string? LabelSize { get; init; }
+}
+
+/// <summary>
+/// Request model for printing a text label.
+/// </summary>
+public class TextPrintRequest
+{
+    public required string PrinterName { get; init; }
+    public required string Text { get; init; }
+    public string? LabelSize { get; init; }
 }

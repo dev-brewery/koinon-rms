@@ -29,15 +29,27 @@ public class PrinterDiscoveryService
         _logger.LogInformation("Discovered {Count} printers", printers.Count);
 
         var zebraPrinters = printers.Where(p => p.IsZebraPrinter).ToList();
-        if (zebraPrinters.Count == 0)
+        var dymoPrinters = printers.Where(p => p.IsDymoPrinter).ToList();
+
+        if (zebraPrinters.Count == 0 && dymoPrinters.Count == 0)
         {
-            _logger.LogWarning("No Zebra thermal printers found. Label printing will not be available.");
+            _logger.LogWarning("No Zebra or Dymo label printers found. Label printing will not be available.");
         }
         else
         {
-            _logger.LogInformation("Found {Count} Zebra thermal printer(s): {Printers}",
-                zebraPrinters.Count,
-                string.Join(", ", zebraPrinters.Select(p => p.Name)));
+            if (zebraPrinters.Count > 0)
+            {
+                _logger.LogInformation("Found {Count} Zebra thermal printer(s): {Printers}",
+                    zebraPrinters.Count,
+                    string.Join(", ", zebraPrinters.Select(p => p.Name)));
+            }
+
+            if (dymoPrinters.Count > 0)
+            {
+                _logger.LogInformation("Found {Count} Dymo label printer(s): {Printers}",
+                    dymoPrinters.Count,
+                    string.Join(", ", dymoPrinters.Select(p => p.Name)));
+            }
         }
     }
 
@@ -67,8 +79,8 @@ public class PrinterDiscoveryService
                     {
                         var info = GetPrinterInfo(printerName);
                         printers.Add(info);
-                        _logger.LogDebug("Discovered printer: {Name} (Zebra: {IsZebra})",
-                            info.Name, info.IsZebraPrinter);
+                        _logger.LogDebug("Discovered printer: {Name} (Type: {Type})",
+                            info.Name, info.PrinterType);
                     }
                     catch (Exception ex)
                     {
@@ -96,15 +108,22 @@ public class PrinterDiscoveryService
     public PrinterInfo GetPrinterInfo(string printerName)
     {
         var settings = new PrinterSettings { PrinterName = printerName };
+        var driverName = GetDriverName(printerName);
+        var isZebra = IsZebraPrinter(printerName, driverName);
+        var isDymo = IsDymoPrinter(printerName, driverName);
 
         var info = new PrinterInfo
         {
             Name = printerName,
             Status = settings.IsValid ? "Ready" : "Offline",
             IsDefault = settings.IsDefaultPrinter,
-            IsZebraPrinter = IsZebraPrinter(printerName),
-            DriverName = GetDriverName(printerName),
-            PortName = GetPortName(printerName)
+            IsZebraPrinter = isZebra,
+            IsDymoPrinter = isDymo,
+            DriverName = driverName,
+            PortName = GetPortName(printerName),
+            PrinterType = DeterminePrinterType(isZebra, isDymo),
+            SupportsZpl = isZebra,
+            SupportsImage = true  // All Windows printers support GDI image printing
         };
 
         return info;
@@ -123,7 +142,7 @@ public class PrinterDiscoveryService
     /// <summary>
     /// Determines if a printer is a Zebra thermal printer based on name and driver.
     /// </summary>
-    private static bool IsZebraPrinter(string printerName)
+    private static bool IsZebraPrinter(string printerName, string driverName)
     {
         // Check printer name
         var nameLower = printerName.ToLowerInvariant();
@@ -133,10 +152,9 @@ public class PrinterDiscoveryService
         }
 
         // Check driver name
-        var driver = GetDriverName(printerName);
-        if (!string.IsNullOrEmpty(driver))
+        if (!string.IsNullOrEmpty(driverName))
         {
-            var driverLower = driver.ToLowerInvariant();
+            var driverLower = driverName.ToLowerInvariant();
             if (driverLower.Contains("zebra") || driverLower.Contains("zpl"))
             {
                 return true;
@@ -144,6 +162,41 @@ public class PrinterDiscoveryService
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Determines if a printer is a Dymo label printer based on name and driver.
+    /// </summary>
+    private static bool IsDymoPrinter(string printerName, string driverName)
+    {
+        // Check printer name
+        var nameLower = printerName.ToLowerInvariant();
+        if (nameLower.Contains("dymo") || nameLower.Contains("labelwriter"))
+        {
+            return true;
+        }
+
+        // Check driver name
+        if (!string.IsNullOrEmpty(driverName))
+        {
+            var driverLower = driverName.ToLowerInvariant();
+            if (driverLower.Contains("dymo") || driverLower.Contains("labelwriter"))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determines the printer type based on detected capabilities.
+    /// </summary>
+    private static string DeterminePrinterType(bool isZebra, bool isDymo)
+    {
+        if (isZebra) return "Zebra";
+        if (isDymo) return "Dymo";
+        return "Generic";
     }
 
     /// <summary>
@@ -201,17 +254,4 @@ public class PrinterDiscoveryService
 
         return string.Empty;
     }
-}
-
-/// <summary>
-/// Information about a discovered printer.
-/// </summary>
-public class PrinterInfo
-{
-    public required string Name { get; init; }
-    public required string Status { get; init; }
-    public required bool IsDefault { get; init; }
-    public required bool IsZebraPrinter { get; init; }
-    public required string DriverName { get; init; }
-    public required string PortName { get; init; }
 }
