@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { printBridgeClient, type PrinterInfo } from '@/services/printing/PrintBridgeClient';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -17,7 +17,7 @@ export function PrintStatus({ onPrinterAvailable, onPrinterUnavailable }: PrintS
   const [printer, setPrinter] = useState<PrinterInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const checkPrintBridge = async () => {
+  const checkPrintBridge = useCallback(async () => {
     setStatus('checking');
     setError(null);
 
@@ -51,7 +51,7 @@ export function PrintStatus({ onPrinterAvailable, onPrinterUnavailable }: PrintS
     setStatus('available');
     setPrinter(printerResult.data);
     onPrinterAvailable?.(printerResult.data);
-  };
+  }, [onPrinterAvailable, onPrinterUnavailable]);
 
   useEffect(() => {
     checkPrintBridge();
@@ -60,7 +60,7 @@ export function PrintStatus({ onPrinterAvailable, onPrinterUnavailable }: PrintS
     const interval = setInterval(checkPrintBridge, 30000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [checkPrintBridge]);
 
   if (status === 'checking') {
     return (
