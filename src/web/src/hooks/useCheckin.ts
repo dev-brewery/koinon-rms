@@ -67,12 +67,15 @@ export function useRecordAttendance() {
 
 /**
  * Check out a person
+ * Note: Error handling is performed at the component level for better UX control
  */
 export function useCheckout() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (attendanceIdKey: string) => checkinApi.checkout(attendanceIdKey),
+    mutationFn: async (attendanceIdKey: string) => {
+      await checkinApi.checkout(attendanceIdKey);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['checkin', 'opportunities'] });
     },

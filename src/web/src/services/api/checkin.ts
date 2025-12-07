@@ -12,8 +12,6 @@ import type {
   CheckinOpportunitiesResponse,
   RecordAttendanceRequest,
   RecordAttendanceResponse,
-  CheckoutRequest,
-  CheckoutResponse,
   LabelDto,
   LabelParams,
   SupervisorLoginRequest,
@@ -82,10 +80,9 @@ export async function recordAttendance(
 /**
  * Record check-out for an attendance record
  */
-export async function checkout(attendanceIdKey: string): Promise<CheckoutResponse> {
-  const request: CheckoutRequest = { attendanceIdKey };
-  const response = await post<{ data: CheckoutResponse }>('/checkin/checkout', request);
-  return response.data;
+export async function checkout(attendanceIdKey: string): Promise<void> {
+  // Backend returns 204 No Content
+  await post(`/checkin/checkout/${attendanceIdKey}`, undefined);
 }
 
 /**
