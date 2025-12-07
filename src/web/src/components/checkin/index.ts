@@ -15,3 +15,6 @@ export type { CheckinConfirmationProps } from './CheckinConfirmation';
 
 export { IdleWarningModal } from './IdleWarningModal';
 export type { IdleWarningModalProps } from './IdleWarningModal';
+
+export { PrintStatus } from './PrintStatus';
+export type { PrintStatusProps } from './PrintStatus';

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   KioskLayout,
@@ -7,6 +7,7 @@ import {
   FamilyMemberList,
   CheckinConfirmation,
   IdleWarningModal,
+  PrintStatus,
 } from '@/components/checkin';
 import type { OpportunitySelection } from '@/components/checkin';
 import { Button, Card } from '@/components/ui';
@@ -16,8 +17,9 @@ import {
   useRecordAttendance,
 } from '@/hooks/useCheckin';
 import { useIdleTimeout } from '@/hooks/useIdleTimeout';
-import type { CheckinFamilyDto, CheckinRequestItem } from '@/services/api/types';
+import type { CheckinFamilyDto, CheckinRequestItem, LabelDto } from '@/services/api/types';
 import { createSelectionKey, getTotalActivitiesCount } from '@/utils/checkinHelpers';
+import { printBridgeClient, type PrinterInfo } from '@/services/printing/PrintBridgeClient';
 
 type CheckinStep = 'search' | 'select-family' | 'select-members' | 'confirmation';
 type SearchMode = 'phone' | 'name';
@@ -41,6 +43,9 @@ export function CheckinPage() {
     Map<string, OpportunitySelection[]>
   >(new Map());
   const [checkinError, setCheckinError] = useState<string | null>(null);
+  const [printerAvailable, setPrinterAvailable] = useState<PrinterInfo | null>(null);
+  const [printStatus, setPrintStatus] = useState<'idle' | 'printing' | 'success' | 'error'>('idle');
+  const [printError, setPrintError] = useState<string | null>(null);
 
   // Queries
   const searchQuery = useCheckinSearch(
@@ -58,6 +63,17 @@ export function CheckinPage() {
     // When query succeeds, move to family selection if multiple results
     // or directly to member selection if single result
   };
+
+  // Effect: Check printer availability on mount
+  useEffect(() => {
+    const checkPrinter = async () => {
+      const result = await printBridgeClient.getDefaultZebraPrinter();
+      if (result.success && result.data) {
+        setPrinterAvailable(result.data);
+      }
+    };
+    checkPrinter();
+  }, []);
 
   // Effect: Auto-advance when search returns single family
   React.useEffect(() => {
@@ -121,6 +137,8 @@ export function CheckinPage() {
   const handleCheckIn = async () => {
     // Clear any previous errors
     setCheckinError(null);
+    setPrintError(null);
+    setPrintStatus('idle');
 
     // Flatten all selections into a single array of check-in items
     const checkins: CheckinRequestItem[] = [];
@@ -151,6 +169,44 @@ export function CheckinPage() {
     }
   };
 
+  const handlePrintLabels = async (labels?: LabelDto[]) => {
+    if (!printerAvailable) {
+      setPrintError('No printer available');
+      setPrintStatus('error');
+      return;
+    }
+
+    const labelsToPrint = labels || recordAttendanceMutation.data?.labels;
+
+    if (!labelsToPrint || labelsToPrint.length === 0) {
+      setPrintError('No labels to print');
+      setPrintStatus('error');
+      return;
+    }
+
+    setPrintStatus('printing');
+    setPrintError(null);
+
+    try {
+      // Extract ZPL content from labels
+      const zplContents = labelsToPrint.map(label => label.printData);
+
+      // Send to print bridge
+      const result = await printBridgeClient.printBatch(printerAvailable.name, zplContents);
+
+      if (result.success) {
+        setPrintStatus('success');
+      } else {
+        setPrintStatus('error');
+        setPrintError(result.error);
+      }
+    } catch (error) {
+      console.error('Print failed:', error);
+      setPrintStatus('error');
+      setPrintError(error instanceof Error ? error.message : 'Print failed');
+    }
+  };
+
   const handleReset = () => {
     // Clear TanStack Query cache to prevent privacy leak
     queryClient.removeQueries({ queryKey: ['checkin-search'] });
@@ -162,6 +218,8 @@ export function CheckinPage() {
     setSelectedFamily(null);
     setSelectedCheckins(new Map());
     setCheckinError(null);
+    setPrintStatus('idle');
+    setPrintError(null);
   };
 
   const handleDone = () => {
@@ -189,6 +247,14 @@ export function CheckinPage() {
       {/* Step 1: Search */}
       {step === 'search' && (
         <div className="space-y-6">
+          {/* Printer Status */}
+          <div className="max-w-2xl mx-auto">
+            <PrintStatus
+              onPrinterAvailable={(printer) => setPrinterAvailable(printer)}
+              onPrinterUnavailable={() => setPrinterAvailable(null)}
+            />
+          </div>
+
           {/* Search Mode Toggle */}
           <div className="flex justify-center gap-4 mb-8">
             <button
@@ -349,12 +415,13 @@ export function CheckinPage() {
           attendances={recordAttendanceMutation.data.attendances}
           onDone={handleDone}
           onPrintLabels={
-            recordAttendanceMutation.data.labels.length > 0
-              ? () => {
-                  // TODO: Issue #5 - Implement label printing
-                }
+            recordAttendanceMutation.data.labels.length > 0 && printerAvailable
+              ? () => handlePrintLabels()
               : undefined
           }
+          printStatus={printStatus}
+          printError={printError}
+          printerAvailable={!!printerAvailable}
         />
       )}
       </KioskLayout>
