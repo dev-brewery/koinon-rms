@@ -107,6 +107,11 @@ public class PersonConfiguration : IEntityTypeConfiguration<Person>
             .HasColumnName("password_hash")
             .HasMaxLength(512); // Base64 encoded hash with salt
 
+        // Supervisor PIN hash
+        builder.Property(p => p.SupervisorPinHash)
+            .HasColumnName("supervisor_pin_hash")
+            .HasMaxLength(512); // Base64 encoded hash with salt
+
         // Birth date components
         builder.Property(p => p.BirthDay)
             .HasColumnName("birth_day");
