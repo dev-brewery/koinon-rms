@@ -3,6 +3,15 @@ import { LoginForm, ProtectedRoute } from './components/auth';
 import { useAuth } from './hooks/useAuth';
 import { CheckinPage } from './pages/CheckinPage';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { AdminLayout } from './layouts/AdminLayout';
+import {
+  DashboardPage,
+  PeoplePage as AdminPeoplePage,
+  FamiliesPage,
+  GroupsPage,
+  SchedulesPage,
+  SettingsPage,
+} from './pages/admin';
 
 function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -20,10 +29,10 @@ function HomePage() {
           {isAuthenticated ? (
             <>
               <a
-                href="/people"
+                href="/admin"
                 className="inline-block px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors touch-target"
               >
-                People
+                Admin Dashboard
               </a>
               <a
                 href="/checkin"
@@ -66,32 +75,6 @@ function LoginPage() {
   );
 }
 
-function PeoplePage() {
-  const { user, logout } = useAuth();
-
-  return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-3xl font-bold">People</h1>
-        <div className="flex items-center gap-4">
-          {user && (
-            <span className="text-gray-600">
-              {user.firstName} {user.lastName}
-            </span>
-          )}
-          <button
-            onClick={logout}
-            className="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 border border-gray-300 rounded-md hover:bg-gray-50"
-          >
-            Sign Out
-          </button>
-        </div>
-      </div>
-      <p className="text-gray-600">People management coming soon...</p>
-    </div>
-  );
-}
-
 function NotFoundPage() {
   return (
     <div className="min-h-screen flex items-center justify-center">
@@ -115,14 +98,35 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
+
+        {/* Legacy people route - redirect to admin */}
         <Route
           path="/people"
           element={
             <ProtectedRoute>
-              <PeoplePage />
+              <Navigate to="/admin/people" replace />
             </ProtectedRoute>
           }
         />
+
+        {/* Admin routes */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<DashboardPage />} />
+          <Route path="people" element={<AdminPeoplePage />} />
+          <Route path="families" element={<FamiliesPage />} />
+          <Route path="groups" element={<GroupsPage />} />
+          <Route path="schedules" element={<SchedulesPage />} />
+          <Route path="settings" element={<SettingsPage />} />
+        </Route>
+
+        {/* Check-in route */}
         <Route
           path="/checkin"
           element={
@@ -131,6 +135,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </ErrorBoundary>
