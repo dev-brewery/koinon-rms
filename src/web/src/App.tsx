@@ -10,6 +10,7 @@ import {
   DashboardPage,
   GroupsPage,
   SettingsPage,
+  AnalyticsPage,
 } from './pages/admin';
 import {
   GroupsTreePage,
@@ -195,6 +196,7 @@ function App() {
           <Route path="schedules/new" element={<ScheduleFormPage />} />
           <Route path="schedules/:idKey" element={<ScheduleDetailPage />} />
           <Route path="schedules/:idKey/edit" element={<ScheduleFormPage />} />
+          <Route path="analytics" element={<AnalyticsPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
 
