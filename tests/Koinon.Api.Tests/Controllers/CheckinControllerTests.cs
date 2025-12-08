@@ -20,6 +20,7 @@ public class CheckinControllerTests
     private readonly Mock<ILabelGenerationService> _labelServiceMock;
     private readonly Mock<ISupervisorModeService> _supervisorServiceMock;
     private readonly Mock<IRoomRosterService> _rosterServiceMock;
+    private readonly Mock<ICapacityService> _capacityServiceMock;
     private readonly Mock<ILogger<CheckinController>> _loggerMock;
     private readonly CheckinController _controller;
 
@@ -39,6 +40,7 @@ public class CheckinControllerTests
         _labelServiceMock = new Mock<ILabelGenerationService>();
         _supervisorServiceMock = new Mock<ISupervisorModeService>();
         _rosterServiceMock = new Mock<IRoomRosterService>();
+        _capacityServiceMock = new Mock<ICapacityService>();
         _loggerMock = new Mock<ILogger<CheckinController>>();
 
         _controller = new CheckinController(
@@ -48,6 +50,7 @@ public class CheckinControllerTests
             _labelServiceMock.Object,
             _supervisorServiceMock.Object,
             _rosterServiceMock.Object,
+            _capacityServiceMock.Object,
             _loggerMock.Object);
 
         // Setup HttpContext for controller

@@ -24,6 +24,7 @@ public class CheckinController(
     ILabelGenerationService labelService,
     ISupervisorModeService supervisorService,
     IRoomRosterService rosterService,
+    ICapacityService capacityService,
     ILogger<CheckinController> logger) : ControllerBase
 {
     /// <summary>
@@ -601,5 +602,132 @@ public class CheckinController(
                 Instance = HttpContext.Request.Path
             });
         }
+
+    }
+    /// <summary>
+    /// Gets detailed capacity information for a location.
+    /// </summary>
+    /// <param name="locationIdKey">Location IdKey</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Detailed capacity information</returns>
+    /// <response code="200">Returns capacity information</response>
+    /// <response code="400">Invalid IdKey format</response>
+    /// <response code="401">Missing or invalid kiosk authentication</response>
+    /// <response code="404">Location not found</response>
+    [HttpGet("locations/{locationIdKey}/capacity")]
+    [KioskAuthorize]
+    [ProducesResponseType(typeof(RoomCapacityDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetLocationCapacity(
+        string locationIdKey,
+        CancellationToken ct = default)
+    {
+        var capacity = await capacityService.GetLocationCapacityAsync(locationIdKey, null, ct);
+
+        if (capacity == null)
+        {
+            logger.LogWarning("Location capacity not found: LocationIdKey={LocationIdKey}", locationIdKey);
+
+            return NotFound(new ProblemDetails
+            {
+                Title = "Location not found",
+                Detail = $"No location found with IdKey '{locationIdKey}'",
+                Status = StatusCodes.Status404NotFound,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        logger.LogInformation(
+            "Location capacity retrieved: LocationIdKey={LocationIdKey}, Status={Status}, Count={Count}/{Capacity}",
+            locationIdKey, capacity.CapacityStatus, capacity.CurrentCount, capacity.SoftCapacity);
+
+        return Ok(capacity);
+    }
+
+    /// <summary>
+    /// Updates capacity settings for a location (admin only).
+    /// </summary>
+    /// <param name="locationIdKey">Location IdKey</param>
+    /// <param name="settings">Capacity settings to update</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>No content on success</returns>
+    /// <response code="204">Update successful</response>
+    /// <response code="400">Invalid IdKey format or settings</response>
+    /// <response code="401">Missing or invalid authentication</response>
+    /// <response code="404">Location not found</response>
+    [HttpPut("locations/{locationIdKey}/capacity")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateLocationCapacity(
+        string locationIdKey,
+        [FromBody] UpdateCapacitySettingsDto settings,
+        CancellationToken ct = default)
+    {
+        var success = await capacityService.UpdateCapacitySettingsAsync(locationIdKey, settings, ct);
+
+        if (!success)
+        {
+            logger.LogWarning("Failed to update location capacity - location not found: LocationIdKey={LocationIdKey}", locationIdKey);
+
+            return NotFound(new ProblemDetails
+            {
+                Title = "Location not found",
+                Detail = $"No location found with IdKey '{locationIdKey}'",
+                Status = StatusCodes.Status404NotFound,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        logger.LogInformation(
+            "Location capacity updated: LocationIdKey={LocationIdKey}",
+            locationIdKey);
+
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Gets the overflow location for a full room.
+    /// </summary>
+    /// <param name="locationIdKey">Location IdKey</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Overflow location capacity information</returns>
+    /// <response code="200">Returns overflow location</response>
+    /// <response code="400">Invalid IdKey format</response>
+    /// <response code="401">Missing or invalid kiosk authentication</response>
+    /// <response code="404">Location not found or no overflow configured</response>
+    [HttpGet("locations/{locationIdKey}/overflow")]
+    [KioskAuthorize]
+    [ProducesResponseType(typeof(RoomCapacityDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetOverflowLocation(
+        string locationIdKey,
+        CancellationToken ct = default)
+    {
+        var overflow = await capacityService.GetOverflowLocationAsync(locationIdKey, null, ct);
+
+        if (overflow == null)
+        {
+            logger.LogWarning("Overflow location not found: LocationIdKey={LocationIdKey}", locationIdKey);
+
+            return NotFound(new ProblemDetails
+            {
+                Title = "Overflow location not found",
+                Detail = $"No overflow location configured or available for '{locationIdKey}'",
+                Status = StatusCodes.Status404NotFound,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        logger.LogInformation(
+            "Overflow location retrieved: PrimaryLocationIdKey={PrimaryIdKey}, OverflowIdKey={OverflowIdKey}",
+            locationIdKey, overflow.IdKey);
+
+        return Ok(overflow);
     }
 }
