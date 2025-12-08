@@ -57,6 +57,9 @@ public static class ServiceCollectionExtensions
         // Supervisor mode service
         services.AddScoped<ISupervisorModeService, SupervisorModeService>();
 
+        // Analytics services
+        services.AddScoped<IAttendanceAnalyticsService, AttendanceAnalyticsService>();
+
         // AutoMapper - register all mapping profiles
         services.AddAutoMapper(typeof(ServiceCollectionExtensions).Assembly);
 
