@@ -16,6 +16,7 @@ import type {
   LabelParams,
   SupervisorLoginRequest,
   SupervisorLoginResponse,
+  RoomRosterDto,
 } from './types';
 
 /**
@@ -149,4 +150,40 @@ export async function supervisorReprint(
     }
   );
   return response.labels;
+}
+
+/**
+ * Room Roster API
+ */
+
+/**
+ * Get room roster for a single location
+ */
+export async function getRoomRoster(locationIdKey: string): Promise<RoomRosterDto> {
+  const response = await get<{ data: RoomRosterDto }>(`/checkin/roster/${locationIdKey}`);
+  return response.data;
+}
+
+/**
+ * Get rosters for multiple locations at once
+ */
+export async function getMultipleRoomRosters(
+  locationIdKeys: string[]
+): Promise<RoomRosterDto[]> {
+  const queryParams = new URLSearchParams();
+  queryParams.set('locationIdKeys', locationIdKeys.join(','));
+
+  const response = await get<{ data: RoomRosterDto[] }>(
+    `/checkin/roster?${queryParams.toString()}`
+  );
+  return response.data;
+}
+
+/**
+ * Check out a child from the roster
+ * Uses the existing attendance checkout endpoint
+ */
+export async function checkoutFromRoster(attendanceIdKey: string): Promise<void> {
+  // Backend returns 204 No Content
+  await post(`/checkin/checkout/${attendanceIdKey}`, undefined);
 }

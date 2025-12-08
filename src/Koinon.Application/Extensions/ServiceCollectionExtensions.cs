@@ -70,6 +70,9 @@ public static class ServiceCollectionExtensions
         // Authorized pickup service
         services.AddScoped<IAuthorizedPickupService, AuthorizedPickupService>();
 
+        // Room roster service
+        services.AddScoped<IRoomRosterService, RoomRosterService>();
+
         // AutoMapper - register all mapping profiles
         services.AddAutoMapper(typeof(ServiceCollectionExtensions).Assembly);
 
