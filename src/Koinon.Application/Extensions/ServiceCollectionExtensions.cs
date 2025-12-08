@@ -31,13 +31,11 @@ public static class ServiceCollectionExtensions
         // Authentication service
         services.AddScoped<IAuthService, AuthService>();
 
-        // Validators
-        services.AddScoped<IValidator<LoginRequest>, LoginRequestValidator>();
-
         // Core entity services
         services.AddScoped<IPersonService, PersonService>();
         services.AddScoped<IGroupService, GroupService>();
         services.AddScoped<IFamilyService, FamilyService>();
+        services.AddScoped<IScheduleService, ScheduleService>();
 
         // Check-in common services (foundation classes for consistent patterns)
         services.AddScoped<CheckinDataLoader>();
@@ -58,10 +56,14 @@ public static class ServiceCollectionExtensions
         // Supervisor mode service
         services.AddScoped<ISupervisorModeService, SupervisorModeService>();
 
-        // Future: Add MediatR, AutoMapper, FluentValidation when needed
+        // AutoMapper - register all mapping profiles
+        services.AddAutoMapper(typeof(ServiceCollectionExtensions).Assembly);
+
+        // FluentValidation - register all validators
+        services.AddValidatorsFromAssembly(typeof(ServiceCollectionExtensions).Assembly);
+
+        // Future: Add MediatR when needed
         // services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(ServiceCollectionExtensions).Assembly));
-        // services.AddAutoMapper(typeof(ServiceCollectionExtensions).Assembly);
-        // services.AddValidatorsFromAssembly(typeof(ServiceCollectionExtensions).Assembly);
 
         return services;
     }

@@ -213,6 +213,46 @@ public record ScheduleDto
     /// Date and time when check-in closes.
     /// </summary>
     public DateTime? CheckinEndTime { get; init; }
+
+    /// <summary>
+    /// Indicates whether this schedule is visible in public calendars.
+    /// </summary>
+    public bool IsPublic { get; init; }
+
+    /// <summary>
+    /// Display order for sorting schedules.
+    /// </summary>
+    public int Order { get; init; }
+
+    /// <summary>
+    /// The date when this schedule becomes effective.
+    /// </summary>
+    public DateOnly? EffectiveStartDate { get; init; }
+
+    /// <summary>
+    /// The date when this schedule is no longer effective.
+    /// </summary>
+    public DateOnly? EffectiveEndDate { get; init; }
+
+    /// <summary>
+    /// iCalendar content string (RRULE) for complex recurrence patterns.
+    /// </summary>
+    public string? ICalendarContent { get; init; }
+
+    /// <summary>
+    /// Indicates whether this schedule should be automatically deactivated when complete.
+    /// </summary>
+    public bool AutoInactivateWhenComplete { get; init; }
+
+    /// <summary>
+    /// Date and time when this schedule was created.
+    /// </summary>
+    public DateTime CreatedDateTime { get; init; }
+
+    /// <summary>
+    /// Date and time when this schedule was last modified.
+    /// </summary>
+    public DateTime? ModifiedDateTime { get; init; }
 }
 
 /// <summary>
