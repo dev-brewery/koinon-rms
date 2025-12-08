@@ -37,6 +37,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IFamilyService, FamilyService>();
         services.AddScoped<IScheduleService, ScheduleService>();
         services.AddScoped<IDashboardService, DashboardService>();
+        services.AddScoped<IPublicGroupService, PublicGroupService>();
 
         // Check-in common services (foundation classes for consistent patterns)
         services.AddScoped<CheckinDataLoader>();

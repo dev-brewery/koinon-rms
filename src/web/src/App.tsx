@@ -33,6 +33,7 @@ import {
   ScheduleFormPage,
 } from './pages/admin/schedules';
 import { PWAUpdatePrompt, InstallPrompt } from './components/pwa';
+import { GroupFinderPage } from './pages/public/GroupFinderPage';
 
 function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -158,6 +159,9 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
+
+        {/* Public routes (no auth required) */}
+        <Route path="/groups" element={<GroupFinderPage />} />
 
         {/* Legacy people route - redirect to admin */}
         <Route

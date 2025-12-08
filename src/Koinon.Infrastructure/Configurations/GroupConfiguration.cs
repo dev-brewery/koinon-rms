@@ -102,6 +102,10 @@ public class GroupConfiguration : IEntityTypeConfiguration<Group>
             .IsRequired()
             .HasDefaultValue(false);
 
+        builder.Property(e => e.PublicDescription)
+            .HasColumnName("public_description")
+            .HasMaxLength(2000);
+
         builder.Property(e => e.GroupCapacity)
             .HasColumnName("group_capacity");
 
@@ -152,6 +156,9 @@ public class GroupConfiguration : IEntityTypeConfiguration<Group>
         builder.HasIndex(e => e.IsArchived)
             .HasDatabaseName("ix_group_is_archived")
             .HasFilter("is_archived = false");
+
+        builder.HasIndex(e => e.IsPublic)
+            .HasDatabaseName("ix_group_is_public");
 
         builder.HasIndex(e => e.ScheduleId)
             .HasDatabaseName("ix_group_schedule_id");

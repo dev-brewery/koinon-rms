@@ -78,6 +78,12 @@ public class Group : Entity
     public bool IsPublic { get; set; }
 
     /// <summary>
+    /// Optional public-facing description for group finder/search.
+    /// This is displayed when the group is shown in public listings.
+    /// </summary>
+    public string? PublicDescription { get; set; }
+
+    /// <summary>
     /// Optional maximum number of members this group can have.
     /// </summary>
     public int? GroupCapacity { get; set; }
