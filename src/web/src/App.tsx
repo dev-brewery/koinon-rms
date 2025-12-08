@@ -1,4 +1,6 @@
+import { useEffect, useRef } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { useRegisterSW } from 'virtual:pwa-register/react';
 import { LoginForm, ProtectedRoute } from './components/auth';
 import { useAuth } from './hooks/useAuth';
 import { CheckinPage } from './pages/CheckinPage';
@@ -29,6 +31,7 @@ import {
   ScheduleDetailPage,
   ScheduleFormPage,
 } from './pages/admin/schedules';
+import { PWAUpdatePrompt, InstallPrompt } from './components/pwa';
 
 function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -110,8 +113,47 @@ function NotFoundPage() {
 }
 
 function App() {
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const registrationRef = useRef<ServiceWorkerRegistration | null>(null);
+
+  const {
+    needRefresh: [needRefresh],
+    updateServiceWorker,
+  } = useRegisterSW({
+    onRegistered(r: ServiceWorkerRegistration | undefined) {
+      if (r) {
+        registrationRef.current = r;
+      }
+    },
+    onRegisterError() {
+      // Service worker registration failed - app will still work without offline support
+    },
+  });
+
+  // Set up periodic update check with proper cleanup
+  useEffect(() => {
+    if (registrationRef.current && !intervalRef.current) {
+      intervalRef.current = setInterval(() => {
+        registrationRef.current?.update();
+      }, 60 * 60 * 1000); // Check for updates every hour
+    }
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, []); // Only set up once on mount
+
+  const handleUpdate = () => {
+    updateServiceWorker(true);
+  };
+
   return (
     <ErrorBoundary>
+      <PWAUpdatePrompt onUpdate={handleUpdate} offlineReady={needRefresh} />
+      <InstallPrompt />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />

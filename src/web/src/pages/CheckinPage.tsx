@@ -21,6 +21,7 @@ import { useIdleTimeout } from '@/hooks/useIdleTimeout';
 import type { CheckinFamilyDto, CheckinRequestItem, LabelDto } from '@/services/api/types';
 import { createSelectionKey, getTotalActivitiesCount } from '@/utils/checkinHelpers';
 import { printBridgeClient, type PrinterInfo } from '@/services/printing/PrintBridgeClient';
+import { OfflineIndicator } from '@/components/pwa';
 
 type CheckinStep = 'search' | 'select-family' | 'select-members' | 'confirmation';
 type SearchMode = 'phone' | 'name' | 'qr';
@@ -180,10 +181,7 @@ export function CheckinPage() {
       await recordAttendanceMutation.mutateAsync({ checkins });
       setCheckinError(null);
       setStep('confirmation');
-    } catch (error) {
-      // Log error details for debugging
-      console.error('Check-in failed:', error);
-
+    } catch {
       // Show user-friendly error message
       setCheckinError(
         'Check-in failed. Please try again or contact the welcome desk for assistance.'
@@ -223,7 +221,6 @@ export function CheckinPage() {
         setPrintError(result.error);
       }
     } catch (error) {
-      console.error('Print failed:', error);
       setPrintStatus('error');
       setPrintError(error instanceof Error ? error.message : 'Print failed');
     }
@@ -259,6 +256,7 @@ export function CheckinPage() {
   // Render
   return (
     <>
+      <OfflineIndicator />
       <KioskLayout
         title={
           step === 'select-members' && selectedFamily
