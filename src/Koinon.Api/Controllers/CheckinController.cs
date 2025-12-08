@@ -23,6 +23,7 @@ public class CheckinController(
     ICheckinAttendanceService attendanceService,
     ILabelGenerationService labelService,
     ISupervisorModeService supervisorService,
+    IRoomRosterService rosterService,
     ILogger<CheckinController> logger) : ControllerBase
 {
     /// <summary>
@@ -443,6 +444,72 @@ public class CheckinController(
 
         logger.LogInformation("Supervisor logout successful");
         return NoContent();
+    }
+
+    /// <summary>
+    /// Gets the current roster for a room/location.
+    /// Shows all children currently checked in with details for teachers and volunteers.
+    /// </summary>
+    /// <param name="locationIdKey">Location IdKey</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Room roster with all currently checked-in children</returns>
+    /// <response code="200">Returns the room roster</response>
+    /// <response code="400">Invalid IdKey format</response>
+    /// <response code="401">Missing or invalid authentication</response>
+    /// <response code="403">Not authorized to view this room</response>
+    [HttpGet("roster/{locationIdKey}")]
+    [ProducesResponseType(typeof(RoomRosterDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> GetRoomRoster(string locationIdKey, CancellationToken ct = default)
+    {
+        var roster = await rosterService.GetRoomRosterAsync(locationIdKey, ct);
+
+        logger.LogInformation(
+            "Room roster retrieved: LocationIdKey={LocationIdKey}, ChildCount={ChildCount}",
+            locationIdKey, roster.TotalCount);
+
+        return Ok(roster);
+    }
+
+    /// <summary>
+    /// Gets rosters for multiple rooms at once.
+    /// Used by supervisors to view all room rosters.
+    /// </summary>
+    /// <param name="locationIdKeys">Comma-separated location IdKeys</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>List of room rosters</returns>
+    /// <response code="200">Returns the room rosters</response>
+    /// <response code="400">Invalid request</response>
+    /// <response code="401">Missing or invalid authentication</response>
+    [HttpGet("roster")]
+    [ProducesResponseType(typeof(List<RoomRosterDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetMultipleRoomRosters(
+        [FromQuery] string locationIdKeys,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(locationIdKeys))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid request",
+                Detail = "At least one location IdKey is required",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        var idKeys = locationIdKeys.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var rosters = await rosterService.GetMultipleRoomRostersAsync(idKeys, ct);
+
+        logger.LogInformation(
+            "Multiple room rosters retrieved: LocationCount={LocationCount}",
+            rosters.Count);
+
+        return Ok(rosters);
     }
 
     /// <summary>

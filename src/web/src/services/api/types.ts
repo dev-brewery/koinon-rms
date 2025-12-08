@@ -813,3 +813,38 @@ export interface AddGroupScheduleRequest {
   scheduleIdKey: IdKey;
   order?: number;
 }
+
+// ============================================================================
+// Room Roster Types
+// ============================================================================
+
+export interface RosterChildDto {
+  attendanceIdKey: IdKey;
+  personIdKey: IdKey;
+  fullName: string;
+  firstName: string;
+  lastName: string;
+  nickName?: string;
+  photoUrl?: string;
+  age?: number;
+  grade?: string;
+  allergies?: string;
+  hasCriticalAllergies: boolean;
+  specialNeeds?: string;
+  securityCode?: string;
+  checkInTime: DateTime;
+  parentName?: string;
+  parentMobilePhone?: string;
+  isFirstTime: boolean;
+}
+
+export interface RoomRosterDto {
+  locationIdKey: IdKey;
+  locationName: string;
+  children: RosterChildDto[];
+  totalCount: number;
+  capacity?: number;
+  generatedAt: DateTime;
+  isAtCapacity: boolean;
+  isNearCapacity: boolean;
+}
