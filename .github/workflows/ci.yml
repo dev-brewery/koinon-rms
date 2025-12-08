@@ -211,7 +211,7 @@ jobs:
     - name: Create migration database
       if: steps.check-migrations.outputs.migrations_found == 'true'
       run: |
-        PGPASSWORD=koinon_test psql -h localhost -U koinon -d koinon_test -c "CREATE DATABASE koinon;"
+        PGPASSWORD=koinon_test psql -h localhost -U koinon -d postgres -c "CREATE DATABASE koinon;"
         PGPASSWORD=koinon_test psql -h localhost -U koinon -d koinon_test -c "ALTER USER koinon WITH PASSWORD 'koinon';"
 
     - name: Validate migrations can apply
