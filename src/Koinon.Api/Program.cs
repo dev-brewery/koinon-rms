@@ -19,11 +19,15 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IUserContext, HttpContextUserContext>();
 
+// Get connection strings (with validation)
+var postgresConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("PostgreSQL connection string not configured. Set ConnectionStrings:DefaultConnection.");
+var redisConnectionString = builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379";
+
 // Configure PostgreSQL DbContext
 builder.Services.AddDbContext<KoinonDbContext>(options =>
 {
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-    options.UseNpgsql(connectionString, npgsqlOptions =>
+    options.UseNpgsql(postgresConnectionString, npgsqlOptions =>
     {
         npgsqlOptions.UseNetTopologySuite(); // Enable PostGIS support
         npgsqlOptions.MigrationsHistoryTable("__ef_migrations_history");
@@ -37,11 +41,23 @@ builder.Services.AddDbContext<KoinonDbContext>(options =>
     }
 });
 
-// Configure JWT Authentication
-var jwtSecret = builder.Configuration["Jwt:Secret"]?.Trim();
-if (string.IsNullOrEmpty(jwtSecret))
+// Register DbContext as IApplicationDbContext for Application layer
+builder.Services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<KoinonDbContext>());
+
+// Configure Redis distributed cache
+builder.Services.AddStackExchangeRedisCache(options =>
 {
-    throw new InvalidOperationException("JWT Secret not configured. Set Jwt:Secret in appsettings.Development.json or environment variable.");
+    options.Configuration = redisConnectionString;
+    options.InstanceName = "Koinon:";
+});
+
+// Configure JWT Authentication
+// Accept either Jwt:Secret or Jwt:Key for flexibility in CI environments
+var jwtSigningKey = builder.Configuration["Jwt:Secret"]?.Trim()
+    ?? builder.Configuration["Jwt:Key"]?.Trim();
+if (string.IsNullOrEmpty(jwtSigningKey))
+{
+    throw new InvalidOperationException("JWT signing key not configured. Set Jwt:Secret or Jwt:Key in configuration.");
 }
 
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "Koinon.Api";
@@ -62,13 +78,27 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = jwtIssuer,
         ValidAudience = jwtAudience,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSigningKey)),
         ClockSkew = TimeSpan.FromSeconds(30) // 30 second tolerance for clock drift
     };
 });
 
 // Add application services
 builder.Services.AddKoinonApplicationServices();
+
+// Add health checks
+builder.Services.AddHealthChecks()
+    .AddNpgSql(
+        postgresConnectionString,
+        name: "postgres",
+        tags: new[] { "db", "sql", "postgres" })
+    .AddRedis(
+        redisConnectionString,
+        name: "redis",
+        tags: new[] { "cache", "redis" })
+    .AddDbContextCheck<KoinonDbContext>(
+        name: "dbcontext",
+        tags: new[] { "db", "efcore" });
 
 var app = builder.Build();
 
@@ -94,5 +124,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Map health check endpoint (no authentication required)
+app.MapHealthChecks("/health");
 
 await app.RunAsync();
