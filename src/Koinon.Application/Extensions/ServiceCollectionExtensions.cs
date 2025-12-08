@@ -67,6 +67,9 @@ public static class ServiceCollectionExtensions
         // Parent paging service
         services.AddScoped<IParentPagingService, ParentPagingService>();
 
+        // Authorized pickup service
+        services.AddScoped<IAuthorizedPickupService, AuthorizedPickupService>();
+
         // AutoMapper - register all mapping profiles
         services.AddAutoMapper(typeof(ServiceCollectionExtensions).Assembly);
 

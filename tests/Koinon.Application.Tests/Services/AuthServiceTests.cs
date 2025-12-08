@@ -439,5 +439,7 @@ public class AuthServiceTests
         public DbSet<FollowUp> FollowUps { get; set; } = null!;
         public DbSet<PagerAssignment> PagerAssignments { get; set; } = null!;
         public DbSet<PagerMessage> PagerMessages { get; set; } = null!;
+        public DbSet<AuthorizedPickup> AuthorizedPickups { get; set; } = null!;
+        public DbSet<PickupLog> PickupLogs { get; set; } = null!;
     }
 }
