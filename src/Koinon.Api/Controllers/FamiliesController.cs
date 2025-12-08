@@ -1,4 +1,4 @@
-using Koinon.Api.Helpers;
+using Koinon.Api.Filters;
 using Koinon.Application.Common;
 using Koinon.Application.DTOs;
 using Koinon.Application.DTOs.Requests;
@@ -29,29 +29,19 @@ public class FamiliesController(
     /// <response code="403">Not authorized to access this family</response>
     /// <response code="404">Family not found</response>
     [HttpGet("{idKey}")]
+    [ValidateIdKey]
     [ProducesResponseType(typeof(FamilyDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetByIdKey(string idKey, CancellationToken ct = default)
     {
-        if (!IdKeyValidator.IsValid(idKey))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid IdKey format",
-                Detail = IdKeyValidator.GetErrorMessage("idKey"),
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
         try
         {
             var family = await familyService.GetByIdKeyAsync(idKey, ct);
 
             if (family == null)
             {
-                logger.LogWarning("Family not found: IdKey={IdKey}", idKey);
+                logger.LogDebug("Family not found: IdKey={IdKey}", idKey);
                 return NotFound(new ProblemDetails
                 {
                     Title = "Family not found",
@@ -61,12 +51,12 @@ public class FamiliesController(
                 });
             }
 
-            logger.LogInformation("Family retrieved: IdKey={IdKey}, Name={Name}", idKey, family.Name);
+            logger.LogDebug("Family retrieved: IdKey={IdKey}, Name={Name}", idKey, family.Name);
             return Ok(family);
         }
         catch (UnauthorizedAccessException ex)
         {
-            logger.LogWarning(ex, "Unauthorized access attempt to family: IdKey={IdKey}", idKey);
+            logger.LogDebug(ex, "Unauthorized access attempt to family: IdKey={IdKey}", idKey);
             return StatusCode(StatusCodes.Status403Forbidden, new ProblemDetails
             {
                 Title = "Access denied",
@@ -87,29 +77,19 @@ public class FamiliesController(
     /// <response code="403">Not authorized to access this family</response>
     /// <response code="404">Family not found</response>
     [HttpGet("{idKey}/members")]
+    [ValidateIdKey]
     [ProducesResponseType(typeof(List<FamilyMemberDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetMembers(string idKey, CancellationToken ct = default)
     {
-        if (!IdKeyValidator.IsValid(idKey))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid IdKey format",
-                Detail = IdKeyValidator.GetErrorMessage("idKey"),
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
         try
         {
             var family = await familyService.GetByIdKeyAsync(idKey, ct);
 
             if (family == null)
             {
-                logger.LogWarning("Family not found: IdKey={IdKey}", idKey);
+                logger.LogDebug("Family not found: IdKey={IdKey}", idKey);
                 return NotFound(new ProblemDetails
                 {
                     Title = "Family not found",
@@ -119,7 +99,7 @@ public class FamiliesController(
                 });
             }
 
-            logger.LogInformation(
+            logger.LogDebug(
                 "Family members retrieved: IdKey={IdKey}, MemberCount={MemberCount}",
                 idKey, family.Members.Count);
 
@@ -127,7 +107,7 @@ public class FamiliesController(
         }
         catch (UnauthorizedAccessException ex)
         {
-            logger.LogWarning(ex, "Unauthorized access attempt to family members: IdKey={IdKey}", idKey);
+            logger.LogDebug(ex, "Unauthorized access attempt to family members: IdKey={IdKey}", idKey);
             return StatusCode(StatusCodes.Status403Forbidden, new ProblemDetails
             {
                 Title = "Access denied",
@@ -207,6 +187,7 @@ public class FamiliesController(
     /// <response code="404">Family or person not found</response>
     /// <response code="422">Business rule violation</response>
     [HttpPost("{idKey}/members")]
+    [ValidateIdKey]
     [ProducesResponseType(typeof(FamilyMemberDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
@@ -216,22 +197,11 @@ public class FamiliesController(
         [FromBody] AddFamilyMemberRequest request,
         CancellationToken ct = default)
     {
-        if (!IdKeyValidator.IsValid(idKey))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid IdKey format",
-                Detail = IdKeyValidator.GetErrorMessage("idKey"),
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
         var result = await familyService.AddFamilyMemberAsync(idKey, request, ct);
 
         if (result.IsFailure)
         {
-            logger.LogWarning(
+            logger.LogDebug(
                 "Failed to add family member: FamilyIdKey={FamilyIdKey}, Code={Code}, Message={Message}",
                 idKey, result.Error!.Code, result.Error.Message);
 
@@ -294,6 +264,7 @@ public class FamiliesController(
     /// <response code="404">Family or person not found</response>
     /// <response code="422">Business rule violation</response>
     [HttpDelete("{idKey}/members/{personIdKey}")]
+    [ValidateIdKey]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
@@ -302,33 +273,11 @@ public class FamiliesController(
         string personIdKey,
         CancellationToken ct = default)
     {
-        if (!IdKeyValidator.IsValid(idKey))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid IdKey format",
-                Detail = IdKeyValidator.GetErrorMessage("idKey"),
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
-        if (!IdKeyValidator.IsValid(personIdKey))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid IdKey format",
-                Detail = IdKeyValidator.GetErrorMessage("personIdKey"),
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
         var result = await familyService.RemoveFamilyMemberAsync(idKey, personIdKey, ct);
 
         if (result.IsFailure)
         {
-            logger.LogWarning(
+            logger.LogDebug(
                 "Failed to remove family member: FamilyIdKey={FamilyIdKey}, PersonIdKey={PersonIdKey}, Code={Code}, Message={Message}",
                 idKey, personIdKey, result.Error!.Code, result.Error.Message);
 

@@ -1,4 +1,4 @@
-using Koinon.Api.Helpers;
+using Koinon.Api.Filters;
 using Koinon.Application.Common;
 using Koinon.Application.DTOs;
 using Koinon.Application.DTOs.Requests;
@@ -33,6 +33,7 @@ public class PeopleController(
     /// <returns>Paginated list of people</returns>
     /// <response code="200">Returns paginated list of people</response>
     [HttpGet]
+    [ValidateIdKey]
     [ProducesResponseType(typeof(PagedResult<PersonSummaryDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> Search(
         [FromQuery] string? query,
@@ -44,40 +45,6 @@ public class PeopleController(
         [FromQuery] int pageSize = 25,
         CancellationToken ct = default)
     {
-        // Validate optional IdKey parameters
-        if (!string.IsNullOrWhiteSpace(campusId) && !IdKeyValidator.IsValid(campusId))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid IdKey format",
-                Detail = IdKeyValidator.GetErrorMessage("campusId"),
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
-        if (!string.IsNullOrWhiteSpace(recordStatusId) && !IdKeyValidator.IsValid(recordStatusId))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid IdKey format",
-                Detail = IdKeyValidator.GetErrorMessage("recordStatusId"),
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
-        if (!string.IsNullOrWhiteSpace(connectionStatusId) && !IdKeyValidator.IsValid(connectionStatusId))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid IdKey format",
-                Detail = IdKeyValidator.GetErrorMessage("connectionStatusId"),
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
         var parameters = new PersonSearchParameters
         {
             Query = query,
@@ -107,26 +74,16 @@ public class PeopleController(
     /// <response code="200">Returns person details</response>
     /// <response code="404">Person not found</response>
     [HttpGet("{idKey}")]
+    [ValidateIdKey]
     [ProducesResponseType(typeof(PersonDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetByIdKey(string idKey, CancellationToken ct = default)
     {
-        if (!IdKeyValidator.IsValid(idKey))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid IdKey format",
-                Detail = IdKeyValidator.GetErrorMessage("idKey"),
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
         var person = await personService.GetByIdKeyAsync(idKey, ct);
 
         if (person == null)
         {
-            logger.LogWarning("Person not found: IdKey={IdKey}", idKey);
+            logger.LogDebug("Person not found: IdKey={IdKey}", idKey);
 
             return NotFound(new ProblemDetails
             {
@@ -137,7 +94,7 @@ public class PeopleController(
             });
         }
 
-        logger.LogInformation("Person retrieved: IdKey={IdKey}, Name={Name}", idKey, person.FullName);
+        logger.LogDebug("Person retrieved: IdKey={IdKey}, Name={Name}", idKey, person.FullName);
 
         return Ok(person);
     }
@@ -211,6 +168,7 @@ public class PeopleController(
     /// <response code="404">Person not found</response>
     /// <response code="422">Business rule violation</response>
     [HttpPut("{idKey}")]
+    [ValidateIdKey]
     [ProducesResponseType(typeof(PersonDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
@@ -220,22 +178,11 @@ public class PeopleController(
         [FromBody] UpdatePersonRequest request,
         CancellationToken ct = default)
     {
-        if (!IdKeyValidator.IsValid(idKey))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid IdKey format",
-                Detail = IdKeyValidator.GetErrorMessage("idKey"),
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
         var result = await personService.UpdateAsync(idKey, request, ct);
 
         if (result.IsFailure)
         {
-            logger.LogWarning(
+            logger.LogDebug(
                 "Failed to update person: IdKey={IdKey}, Code={Code}, Message={Message}",
                 idKey, result.Error!.Code, result.Error.Message);
 
@@ -287,27 +234,17 @@ public class PeopleController(
     /// <response code="404">Person not found</response>
     /// <response code="422">Business rule violation</response>
     [HttpDelete("{idKey}")]
+    [ValidateIdKey]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> Delete(string idKey, CancellationToken ct = default)
     {
-        if (!IdKeyValidator.IsValid(idKey))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid IdKey format",
-                Detail = IdKeyValidator.GetErrorMessage("idKey"),
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
         var result = await personService.DeleteAsync(idKey, ct);
 
         if (result.IsFailure)
         {
-            logger.LogWarning(
+            logger.LogDebug(
                 "Failed to delete person: IdKey={IdKey}, Code={Code}, Message={Message}",
                 idKey, result.Error!.Code, result.Error.Message);
 
@@ -344,26 +281,16 @@ public class PeopleController(
     /// <response code="200">Returns family details</response>
     /// <response code="404">Person not found or has no family</response>
     [HttpGet("{idKey}/family")]
+    [ValidateIdKey]
     [ProducesResponseType(typeof(FamilySummaryDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetFamily(string idKey, CancellationToken ct = default)
     {
-        if (!IdKeyValidator.IsValid(idKey))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid IdKey format",
-                Detail = IdKeyValidator.GetErrorMessage("idKey"),
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
         var family = await personService.GetFamilyAsync(idKey, ct);
 
         if (family == null)
         {
-            logger.LogWarning("Family not found for person: IdKey={IdKey}", idKey);
+            logger.LogDebug("Family not found for person: IdKey={IdKey}", idKey);
 
             return NotFound(new ProblemDetails
             {
@@ -374,7 +301,7 @@ public class PeopleController(
             });
         }
 
-        logger.LogInformation(
+        logger.LogDebug(
             "Family retrieved for person: IdKey={IdKey}, FamilyName={FamilyName}",
             idKey, family.Name);
 

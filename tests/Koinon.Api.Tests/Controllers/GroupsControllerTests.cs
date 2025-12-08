@@ -123,54 +123,6 @@ public class GroupsControllerTests
         capturedParameters.PageSize.Should().Be(50);
     }
 
-    [Fact]
-    public async Task Search_WithInvalidGroupTypeId_ReturnsBadRequest()
-    {
-        // Act
-        var result = await _controller.Search(
-            query: null,
-            groupTypeId: "invalid-idkey",
-            campusId: null,
-            parentGroupId: null);
-
-        // Assert
-        var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
-        var problemDetails = badRequestResult.Value.Should().BeOfType<ProblemDetails>().Subject;
-        problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
-    }
-
-    [Fact]
-    public async Task Search_WithInvalidCampusId_ReturnsBadRequest()
-    {
-        // Act
-        var result = await _controller.Search(
-            query: null,
-            groupTypeId: null,
-            campusId: "invalid-idkey",
-            parentGroupId: null);
-
-        // Assert
-        var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
-        var problemDetails = badRequestResult.Value.Should().BeOfType<ProblemDetails>().Subject;
-        problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
-    }
-
-    [Fact]
-    public async Task Search_WithInvalidParentGroupId_ReturnsBadRequest()
-    {
-        // Act
-        var result = await _controller.Search(
-            query: null,
-            groupTypeId: null,
-            campusId: null,
-            parentGroupId: "invalid-idkey");
-
-        // Assert
-        var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
-        var problemDetails = badRequestResult.Value.Should().BeOfType<ProblemDetails>().Subject;
-        problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
-    }
-
     #endregion
 
     #region GetByIdKey Tests
@@ -242,18 +194,6 @@ public class GroupsControllerTests
         var problemDetails = notFoundResult.Value.Should().BeOfType<ProblemDetails>().Subject;
         problemDetails.Status.Should().Be(StatusCodes.Status404NotFound);
         problemDetails.Detail.Should().Contain(nonExistentIdKey);
-    }
-
-    [Fact]
-    public async Task GetByIdKey_WithInvalidIdKey_ReturnsBadRequest()
-    {
-        // Act
-        var result = await _controller.GetByIdKey("invalid-idkey");
-
-        // Assert
-        var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
-        var problemDetails = badRequestResult.Value.Should().BeOfType<ProblemDetails>().Subject;
-        problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
     }
 
     #endregion
@@ -469,24 +409,6 @@ public class GroupsControllerTests
         problemDetails.Status.Should().Be(StatusCodes.Status404NotFound);
     }
 
-    [Fact]
-    public async Task Update_WithInvalidIdKey_ReturnsBadRequest()
-    {
-        // Arrange
-        var request = new UpdateGroupRequest
-        {
-            Name = "Test"
-        };
-
-        // Act
-        var result = await _controller.Update("invalid-idkey", request);
-
-        // Assert
-        var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
-        var problemDetails = badRequestResult.Value.Should().BeOfType<ProblemDetails>().Subject;
-        problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
-    }
-
     #endregion
 
     #region Delete Tests
@@ -543,18 +465,6 @@ public class GroupsControllerTests
         var unprocessableResult = result.Should().BeOfType<UnprocessableEntityObjectResult>().Subject;
         var problemDetails = unprocessableResult.Value.Should().BeOfType<ProblemDetails>().Subject;
         problemDetails.Status.Should().Be(StatusCodes.Status422UnprocessableEntity);
-    }
-
-    [Fact]
-    public async Task Delete_WithInvalidIdKey_ReturnsBadRequest()
-    {
-        // Act
-        var result = await _controller.Delete("invalid-idkey");
-
-        // Assert
-        var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
-        var problemDetails = badRequestResult.Value.Should().BeOfType<ProblemDetails>().Subject;
-        problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
     }
 
     #endregion
@@ -620,18 +530,6 @@ public class GroupsControllerTests
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var members = okResult.Value.Should().BeAssignableTo<IReadOnlyList<GroupMemberDto>>().Subject;
         members.Should().BeEmpty();
-    }
-
-    [Fact]
-    public async Task GetMembers_WithInvalidIdKey_ReturnsBadRequest()
-    {
-        // Act
-        var result = await _controller.GetMembers("invalid-idkey");
-
-        // Assert
-        var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
-        var problemDetails = badRequestResult.Value.Should().BeOfType<ProblemDetails>().Subject;
-        problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
     }
 
     #endregion
@@ -714,25 +612,6 @@ public class GroupsControllerTests
         problemDetails.Status.Should().Be(StatusCodes.Status404NotFound);
     }
 
-    [Fact]
-    public async Task AddMember_WithInvalidIdKey_ReturnsBadRequest()
-    {
-        // Arrange
-        var request = new AddGroupMemberRequest
-        {
-            PersonId = _personIdKey,
-            RoleId = _roleIdKey
-        };
-
-        // Act
-        var result = await _controller.AddMember("invalid-idkey", request);
-
-        // Assert
-        var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
-        var problemDetails = badRequestResult.Value.Should().BeOfType<ProblemDetails>().Subject;
-        problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
-    }
-
     #endregion
 
     #region RemoveMember Tests
@@ -769,30 +648,6 @@ public class GroupsControllerTests
         var notFoundResult = result.Should().BeOfType<NotFoundObjectResult>().Subject;
         var problemDetails = notFoundResult.Value.Should().BeOfType<ProblemDetails>().Subject;
         problemDetails.Status.Should().Be(StatusCodes.Status404NotFound);
-    }
-
-    [Fact]
-    public async Task RemoveMember_WithInvalidGroupIdKey_ReturnsBadRequest()
-    {
-        // Act
-        var result = await _controller.RemoveMember("invalid-idkey", _personIdKey);
-
-        // Assert
-        var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
-        var problemDetails = badRequestResult.Value.Should().BeOfType<ProblemDetails>().Subject;
-        problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
-    }
-
-    [Fact]
-    public async Task RemoveMember_WithInvalidPersonIdKey_ReturnsBadRequest()
-    {
-        // Act
-        var result = await _controller.RemoveMember(_groupIdKey, "invalid-idkey");
-
-        // Assert
-        var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
-        var problemDetails = badRequestResult.Value.Should().BeOfType<ProblemDetails>().Subject;
-        problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
     }
 
     #endregion
@@ -845,18 +700,6 @@ public class GroupsControllerTests
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var children = okResult.Value.Should().BeAssignableTo<IReadOnlyList<GroupSummaryDto>>().Subject;
         children.Should().BeEmpty();
-    }
-
-    [Fact]
-    public async Task GetChildren_WithInvalidIdKey_ReturnsBadRequest()
-    {
-        // Act
-        var result = await _controller.GetChildren("invalid-idkey");
-
-        // Assert
-        var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
-        var problemDetails = badRequestResult.Value.Should().BeOfType<ProblemDetails>().Subject;
-        problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
     }
 
     #endregion
