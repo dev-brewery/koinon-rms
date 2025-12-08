@@ -95,7 +95,6 @@ export function useOfflineCheckin(): UseOfflineCheckinResult {
       }, 3000);
     } catch (error) {
       if (import.meta.env.DEV) {
-        // eslint-disable-next-line no-console
         console.error('Failed to sync queue:', error);
       }
       setSyncStatus('error');

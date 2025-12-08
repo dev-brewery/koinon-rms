@@ -231,7 +231,6 @@ export function CheckinPage() {
     } catch (error) {
       // Log error for debugging (important for production issue diagnosis)
       if (import.meta.env.DEV) {
-        // eslint-disable-next-line no-console
         console.error('Check-in failed:', error);
       }
       // Show user-friendly error message
