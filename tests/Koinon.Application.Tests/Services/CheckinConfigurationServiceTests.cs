@@ -881,6 +881,163 @@ public class CheckinConfigurationServiceTests : IDisposable
     }
 
     #endregion
+
+    #region Validation Tests
+
+    [Fact]
+    public void FilterAreasByPersonEligibility_InvalidAgeRange_ThrowsArgumentException()
+    {
+        // Arrange
+        var area = CreateTestAreaDto("Test Area", minAgeMonths: 100, maxAgeMonths: 50);
+        var areas = new List<CheckinAreaDto> { area };
+
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentException>(() =>
+            _service.FilterAreasByPersonEligibility(areas, DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-5)), null));
+
+        exception.Message.Should().Contain("MinAgeMonths (100) cannot be greater than MaxAgeMonths (50)");
+    }
+
+    [Fact]
+    public void FilterAreasByPersonEligibility_NegativeMinAge_ThrowsArgumentException()
+    {
+        // Arrange
+        var area = CreateTestAreaDto("Test Area", minAgeMonths: -1);
+        var areas = new List<CheckinAreaDto> { area };
+
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentException>(() =>
+            _service.FilterAreasByPersonEligibility(areas, DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-5)), null));
+
+        exception.Message.Should().Contain("MinAgeMonths cannot be negative");
+    }
+
+    [Fact]
+    public void FilterAreasByPersonEligibility_NegativeMaxAge_ThrowsArgumentException()
+    {
+        // Arrange
+        var area = CreateTestAreaDto("Test Area", maxAgeMonths: -10);
+        var areas = new List<CheckinAreaDto> { area };
+
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentException>(() =>
+            _service.FilterAreasByPersonEligibility(areas, DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-5)), null));
+
+        exception.Message.Should().Contain("MaxAgeMonths cannot be negative");
+    }
+
+    [Fact]
+    public void FilterAreasByPersonEligibility_ExcessiveMaxAge_ThrowsArgumentException()
+    {
+        // Arrange
+        var area = CreateTestAreaDto("Test Area", maxAgeMonths: 1500); // Over 100 years
+        var areas = new List<CheckinAreaDto> { area };
+
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentException>(() =>
+            _service.FilterAreasByPersonEligibility(areas, DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-5)), null));
+
+        exception.Message.Should().Contain("exceeds reasonable limit (1200 months)");
+    }
+
+    [Fact]
+    public void FilterAreasByPersonEligibility_InvalidGradeRange_ThrowsArgumentException()
+    {
+        // Arrange
+        var area = CreateTestAreaDto("Test Area", minGrade: 8, maxGrade: 3);
+        var areas = new List<CheckinAreaDto> { area };
+
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentException>(() =>
+            _service.FilterAreasByPersonEligibility(areas, null, 2025));
+
+        exception.Message.Should().Contain("MinGrade (8) cannot be greater than MaxGrade (3)");
+    }
+
+    [Fact]
+    public void FilterAreasByPersonEligibility_GradeBelowReasonableLimit_ThrowsArgumentException()
+    {
+        // Arrange
+        var area = CreateTestAreaDto("Test Area", minGrade: -5); // Below kindergarten
+        var areas = new List<CheckinAreaDto> { area };
+
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentException>(() =>
+            _service.FilterAreasByPersonEligibility(areas, null, 2025));
+
+        exception.Message.Should().Contain("is below reasonable limit (-1)");
+    }
+
+    [Fact]
+    public void FilterAreasByPersonEligibility_GradeAboveReasonableLimit_ThrowsArgumentException()
+    {
+        // Arrange
+        var area = CreateTestAreaDto("Test Area", maxGrade: 15); // Above 12th grade
+        var areas = new List<CheckinAreaDto> { area };
+
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentException>(() =>
+            _service.FilterAreasByPersonEligibility(areas, null, 2025));
+
+        exception.Message.Should().Contain("exceeds reasonable limit (12)");
+    }
+
+    [Fact]
+    public void FilterAreasByPersonEligibility_ValidAgeRange_DoesNotThrow()
+    {
+        // Arrange
+        _mockGradeService.Setup(s => s.CalculateAgeInMonths(It.IsAny<DateOnly?>(), It.IsAny<DateOnly?>()))
+            .Returns(60); // 5 years old
+
+        var area = CreateTestAreaDto("Test Area", minAgeMonths: 36, maxAgeMonths: 72);
+        var areas = new List<CheckinAreaDto> { area };
+
+        // Act
+        var result = _service.FilterAreasByPersonEligibility(
+            areas,
+            DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-5)),
+            null);
+
+        // Assert
+        result.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public void FilterAreasByPersonEligibility_ValidGradeRange_DoesNotThrow()
+    {
+        // Arrange
+        _mockGradeService.Setup(s => s.CalculateGrade(It.IsAny<int?>(), It.IsAny<DateOnly?>()))
+            .Returns(5); // 5th grade
+
+        var area = CreateTestAreaDto("Test Area", minGrade: 3, maxGrade: 8);
+        var areas = new List<CheckinAreaDto> { area };
+
+        // Act
+        var result = _service.FilterAreasByPersonEligibility(
+            areas,
+            null,
+            2028);
+
+        // Assert
+        result.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public void FilterAreasByPersonEligibility_NoRangesSpecified_DoesNotThrow()
+    {
+        // Arrange
+        var area = CreateTestAreaDto("Test Area"); // No age or grade restrictions
+        var areas = new List<CheckinAreaDto> { area };
+
+        // Act
+        var result = _service.FilterAreasByPersonEligibility(areas, null, null);
+
+        // Assert
+        result.Should().HaveCount(1);
+    }
+
+    #endregion
+
     public void Dispose()
     {
         _context.Database.EnsureDeleted();
