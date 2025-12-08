@@ -60,6 +60,10 @@ public static class ServiceCollectionExtensions
         // Analytics services
         services.AddScoped<IAttendanceAnalyticsService, AttendanceAnalyticsService>();
 
+        // First-time visitor and follow-up services
+        services.AddScoped<IFirstTimeVisitorService, FirstTimeVisitorService>();
+        services.AddScoped<IFollowUpService, FollowUpService>();
+
         // AutoMapper - register all mapping profiles
         services.AddAutoMapper(typeof(ServiceCollectionExtensions).Assembly);
 

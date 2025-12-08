@@ -20,6 +20,7 @@ public class CheckinAttendanceServiceTests : IDisposable
     private readonly Mock<ILogger<CheckinAttendanceService>> _loggerMock;
     private readonly Mock<ILogger<ConcurrentOperationHelper>> _concurrencyLoggerMock;
     private readonly Mock<IUserContext> _userContextMock;
+    private readonly Mock<IFollowUpService> _followUpServiceMock;
 
     public CheckinAttendanceServiceTests()
     {
@@ -38,7 +39,8 @@ public class CheckinAttendanceServiceTests : IDisposable
         _userContextMock.Setup(x => x.CanAccessLocation(It.IsAny<int>())).Returns(true);
 
         var concurrencyHelper = new ConcurrentOperationHelper(_context, _concurrencyLoggerMock.Object);
-        _service = new CheckinAttendanceService(_context, _userContextMock.Object, _loggerMock.Object, concurrencyHelper);
+        _followUpServiceMock = new Mock<IFollowUpService>();
+        _service = new CheckinAttendanceService(_context, _userContextMock.Object, _loggerMock.Object, concurrencyHelper, _followUpServiceMock.Object);
     }
 
     public void Dispose()

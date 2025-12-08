@@ -48,6 +48,9 @@ public class KoinonDbContext : DbContext, IApplicationDbContext
     public DbSet<SupervisorSession> SupervisorSessions { get; set; } = null!;
     public DbSet<SupervisorAuditLog> SupervisorAuditLogs { get; set; } = null!;
 
+    // Follow-up entities
+    public DbSet<FollowUp> FollowUps { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

@@ -436,5 +436,6 @@ public class AuthServiceTests
         public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
         public DbSet<SupervisorSession> SupervisorSessions { get; set; } = null!;
         public DbSet<SupervisorAuditLog> SupervisorAuditLogs { get; set; } = null!;
+        public DbSet<FollowUp> FollowUps { get; set; } = null!;
     }
 }

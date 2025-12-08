@@ -18,10 +18,12 @@ public class CheckinAttendanceService(
     IApplicationDbContext context,
     IUserContext userContext,
     ILogger<CheckinAttendanceService> logger,
-    ConcurrentOperationHelper concurrencyHelper)
+    ConcurrentOperationHelper concurrencyHelper,
+    IFollowUpService followUpService)
     : AuthorizedCheckinService(context, userContext, logger), ICheckinAttendanceService
 {
     private readonly ConcurrentOperationHelper _concurrencyHelper = concurrencyHelper;
+    private readonly IFollowUpService _followUpService = followUpService;
 
     public async Task<CheckinResultDto> CheckInAsync(
         CheckinRequestDto request,
@@ -136,6 +138,27 @@ public class CheckinAttendanceService(
 
             Context.Attendances.Add(attendance);
             await Context.SaveChangesAsync(ct);
+
+            // Create follow-up for first-time visitors
+            if (isFirstTime)
+            {
+                try
+                {
+                    await _followUpService.CreateFollowUpAsync(personId, attendance.Id, ct);
+                    Logger.LogInformation(
+                        "Created follow-up for first-time visitor PersonId={PersonId} AttendanceId={AttendanceId}",
+                        personId, attendance.Id);
+                }
+                catch (Exception ex)
+                {
+                    // CRITICAL: Don't fail check-in (performance-critical path), but track failure for remediation
+                    // Structured logging for observability and metrics aggregation
+                    Logger.LogError(ex,
+                        "FOLLOW_UP_CREATION_FAILED: PersonId={PersonId} AttendanceId={AttendanceId} AttendanceIdKey={AttendanceIdKey}. " +
+                        "Check-in succeeded but follow-up tracking failed. Manual remediation may be required.",
+                        personId, attendance.Id, attendance.IdKey);
+                }
+            }
 
             // Get person and location details for response
             var person = await Context.People
