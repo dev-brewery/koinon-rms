@@ -353,6 +353,21 @@ jobs:
         dotnet restore
         dotnet build --no-restore --configuration Release
 
+    - name: Apply database migrations
+      run: |
+        echo "Applying EF Core migrations..."
+        dotnet tool restore
+        dotnet ef database update \
+          --project src/Koinon.Infrastructure \
+          --startup-project src/Koinon.Api \
+          --configuration Release
+      env:
+        ASPNETCORE_ENVIRONMENT: "Production"
+        ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=koinon;Username=koinon;Password=koinon"
+        Jwt__Secret: "ci-integration-test-jwt-key-minimum-32-chars-long-for-security"
+        Jwt__Issuer: "koinon-ci-integration"
+        Jwt__Audience: "koinon-ci-integration"
+
     - name: Start API in background
       run: |
         export ASPNETCORE_URLS="http://localhost:5000"
