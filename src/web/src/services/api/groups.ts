@@ -2,7 +2,7 @@
  * Groups API service
  */
 
-import { get, post, del } from './client';
+import { get, post, put, del } from './client';
 import type {
   PagedResult,
   GroupsSearchParams,
@@ -11,6 +11,8 @@ import type {
   GroupMembersParams,
   GroupMemberDetailDto,
   AddGroupMemberRequest,
+  CreateGroupRequest,
+  UpdateGroupRequest,
 } from './types';
 
 /**
@@ -85,4 +87,39 @@ export async function removeGroupMember(
   memberIdKey: string
 ): Promise<void> {
   await del<void>(`/groups/${groupIdKey}/members/${memberIdKey}`);
+}
+
+/**
+ * Create a new group
+ */
+export async function createGroup(
+  request: CreateGroupRequest
+): Promise<GroupDetailDto> {
+  const response = await post<{ data: GroupDetailDto }>('/groups', request);
+  return response.data;
+}
+
+/**
+ * Update a group
+ */
+export async function updateGroup(
+  idKey: string,
+  request: UpdateGroupRequest
+): Promise<GroupDetailDto> {
+  const response = await put<{ data: GroupDetailDto }>(`/groups/${idKey}`, request);
+  return response.data;
+}
+
+/**
+ * Delete (archive) a group
+ */
+export async function deleteGroup(idKey: string): Promise<void> {
+  await del<void>(`/groups/${idKey}`);
+}
+
+/**
+ * Get child groups of a group
+ */
+export async function getChildGroups(idKey: string): Promise<PagedResult<GroupSummaryDto>> {
+  return get<PagedResult<GroupSummaryDto>>(`/groups/${idKey}/children`);
 }
