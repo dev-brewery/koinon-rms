@@ -692,3 +692,26 @@ export interface GroupTypeRoleDto {
   isLeader: boolean;
   order: number;
 }
+
+// ============================================================================
+// Group Mutation Types
+// ============================================================================
+
+export interface CreateGroupRequest {
+  name: string;
+  description?: string;
+  groupTypeId: IdKey;
+  parentGroupId?: IdKey;
+  campusId?: IdKey;
+  capacity?: number;
+  isActive?: boolean;
+}
+
+export interface UpdateGroupRequest {
+  name?: string;
+  description?: string;
+  campusId?: IdKey;
+  capacity?: number;
+  isActive?: boolean;
+  order?: number;
+}
