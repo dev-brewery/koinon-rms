@@ -59,6 +59,10 @@ public class KoinonDbContext : DbContext, IApplicationDbContext
     public DbSet<AuthorizedPickup> AuthorizedPickups { get; set; } = null!;
     public DbSet<PickupLog> PickupLogs { get; set; } = null!;
 
+    // Communication entities
+    public DbSet<Communication> Communications { get; set; } = null!;
+    public DbSet<CommunicationRecipient> CommunicationRecipients { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
