@@ -6,7 +6,6 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { AdminLayout } from './layouts/AdminLayout';
 import {
   DashboardPage,
-  PeoplePage as AdminPeoplePage,
   FamiliesPage,
   GroupsPage,
   SchedulesPage,
@@ -17,6 +16,11 @@ import {
   GroupDetailPage,
   GroupFormPage,
 } from './pages/admin/groups';
+import {
+  PeopleListPage,
+  PersonDetailPage,
+  PersonFormPage,
+} from './pages/admin/people';
 
 function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -124,7 +128,10 @@ function App() {
           }
         >
           <Route index element={<DashboardPage />} />
-          <Route path="people" element={<AdminPeoplePage />} />
+          <Route path="people" element={<PeopleListPage />} />
+          <Route path="people/new" element={<PersonFormPage />} />
+          <Route path="people/:idKey" element={<PersonDetailPage />} />
+          <Route path="people/:idKey/edit" element={<PersonFormPage />} />
           <Route path="families" element={<FamiliesPage />} />
           <Route path="groups" element={<GroupsPage />} />
           <Route path="groups/tree" element={<GroupsTreePage />} />
