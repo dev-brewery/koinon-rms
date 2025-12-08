@@ -1,28 +1,25 @@
 <Project>
   <!-- Central Package Management for NuGet dependencies -->
   <!-- See: https://learn.microsoft.com/en-us/nuget/consume-packages/central-package-management -->
-
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
-
   <!-- ===================================================================== -->
   <!-- Domain Layer - Minimal Dependencies -->
   <!-- ===================================================================== -->
   <ItemGroup>
+    <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
   </ItemGroup>
-
   <!-- ===================================================================== -->
   <!-- Application Layer -->
   <!-- ===================================================================== -->
   <ItemGroup>
     <PackageVersion Include="MediatR" Version="12.1.1" />
-    <PackageVersion Include="FluentValidation" Version="11.8.0" />
+    <PackageVersion Include="FluentValidation" Version="12.1.1" />
     <PackageVersion Include="AutoMapper" Version="12.0.1" />
     <PackageVersion Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.0" />
   </ItemGroup>
-
   <!-- ===================================================================== -->
   <!-- Infrastructure Layer -->
   <!-- ===================================================================== -->
@@ -35,7 +32,6 @@
     <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="8.0.0" />
   </ItemGroup>
-
   <!-- ===================================================================== -->
   <!-- API Layer -->
   <!-- ===================================================================== -->
@@ -45,14 +41,12 @@
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.0.1" />
     <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="8.0.1" />
   </ItemGroup>
-
   <!-- ===================================================================== -->
   <!-- Security -->
   <!-- ===================================================================== -->
   <ItemGroup>
     <PackageVersion Include="Konscious.Security.Cryptography.Argon2" Version="1.3.1" />
   </ItemGroup>
-
   <!-- ===================================================================== -->
   <!-- Testing -->
   <!-- ===================================================================== -->
@@ -69,7 +63,6 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.0" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.0" />
   </ItemGroup>
-
   <!-- ===================================================================== -->
   <!-- Logging & Configuration -->
   <!-- ===================================================================== -->
@@ -83,7 +76,6 @@
     <PackageVersion Include="Serilog.AspNetCore" Version="8.0.0" />
     <PackageVersion Include="Serilog.Sinks.Console" Version="5.0.0" />
   </ItemGroup>
-
   <!-- ===================================================================== -->
   <!-- Utilities -->
   <!-- ===================================================================== -->
@@ -92,5 +84,4 @@
     <PackageVersion Include="Bogus" Version="35.3.0" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
   </ItemGroup>
-
 </Project>
