@@ -12,6 +12,11 @@ import {
   SchedulesPage,
   SettingsPage,
 } from './pages/admin';
+import {
+  GroupsTreePage,
+  GroupDetailPage,
+  GroupFormPage,
+} from './pages/admin/groups';
 
 function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -122,6 +127,10 @@ function App() {
           <Route path="people" element={<AdminPeoplePage />} />
           <Route path="families" element={<FamiliesPage />} />
           <Route path="groups" element={<GroupsPage />} />
+          <Route path="groups/tree" element={<GroupsTreePage />} />
+          <Route path="groups/new" element={<GroupFormPage />} />
+          <Route path="groups/:idKey" element={<GroupDetailPage />} />
+          <Route path="groups/:idKey/edit" element={<GroupFormPage />} />
           <Route path="schedules" element={<SchedulesPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
