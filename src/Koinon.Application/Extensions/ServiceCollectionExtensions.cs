@@ -43,6 +43,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<CheckinDataLoader>();
         services.AddScoped<ConcurrentOperationHelper>();
 
+        // Grade calculation service
+        services.AddScoped<IGradeCalculationService, GradeCalculationService>();
+
         // Check-in services
         services.AddScoped<ICheckinConfigurationService, CheckinConfigurationService>();
         services.AddScoped<ICheckinSearchService, CheckinSearchService>();
