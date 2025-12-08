@@ -10,3 +10,4 @@ export { GroupsPage } from './GroupsPage';
 export { SchedulesPage } from './SchedulesPage';
 export { SettingsPage } from './SettingsPage';
 export { AnalyticsPage } from './AnalyticsPage';
+export { RosterPage } from './RosterPage';
