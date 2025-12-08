@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button, Card } from '@/components/ui';
 import { CheckoutFlow } from './CheckoutFlow';
+import { PagerSearch, SendPageDialog, type PagerAssignment } from '@/features/pager';
 import type { SupervisorInfoDto, AttendanceResultDto, LabelDto } from '@/services/api/types';
 
 export interface SupervisorModeProps {
@@ -12,7 +13,7 @@ export interface SupervisorModeProps {
   printLabel?: (labels: LabelDto[]) => Promise<void>;
 }
 
-type TabType = 'reprint' | 'checkout';
+type TabType = 'reprint' | 'checkout' | 'pager';
 
 /**
  * Supervisor mode panel with administrative functions
@@ -28,6 +29,8 @@ export function SupervisorMode({
   const [activeTab, setActiveTab] = useState<TabType>('reprint');
   const [reprintingId, setReprintingId] = useState<string | null>(null);
   const [reprintError, setReprintError] = useState<string | null>(null);
+  const [selectedPager, setSelectedPager] = useState<PagerAssignment | null>(null);
+  const [showPageSuccess, setShowPageSuccess] = useState(false);
 
   const handleReprint = async (attendanceIdKey: string) => {
     setReprintingId(attendanceIdKey);
@@ -45,6 +48,19 @@ export function SupervisorMode({
     } finally {
       setReprintingId(null);
     }
+  };
+
+  const handleSelectPager = (pager: PagerAssignment) => {
+    setSelectedPager(pager);
+  };
+
+  const handleClosePageDialog = () => {
+    setSelectedPager(null);
+  };
+
+  const handlePageSuccess = () => {
+    setShowPageSuccess(true);
+    setTimeout(() => setShowPageSuccess(false), 3000);
   };
 
   return (
@@ -81,6 +97,16 @@ export function SupervisorMode({
           }`}
         >
           Checkout
+        </button>
+        <button
+          onClick={() => setActiveTab('pager')}
+          className={`px-6 py-3 text-lg font-semibold border-b-2 transition-colors ${
+            activeTab === 'pager'
+              ? 'border-blue-600 text-blue-600'
+              : 'border-transparent text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          Page Parent
         </button>
       </div>
 
@@ -154,6 +180,51 @@ export function SupervisorMode({
           currentAttendance={currentAttendance}
           onCheckout={onCheckout}
         />
+      )}
+
+      {activeTab === 'pager' && (
+        <>
+          {/* Page Success Message */}
+          {showPageSuccess && (
+            <Card className="bg-green-50 border border-green-200 mb-4">
+              <div className="flex items-center gap-3 p-4">
+                <svg
+                  className="w-6 h-6 text-green-600 flex-shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+                <p className="text-green-800 font-semibold text-lg">
+                  Page sent successfully!
+                </p>
+              </div>
+            </Card>
+          )}
+
+          <Card className="p-6">
+            <h3 className="text-xl font-semibold mb-4 text-gray-900">Page Parent</h3>
+            <p className="text-gray-600 mb-6">
+              Search for a pager by number or child name to send an SMS notification to
+              the parent.
+            </p>
+            <PagerSearch onSelectPager={handleSelectPager} />
+          </Card>
+
+          {/* Send Page Dialog */}
+          <SendPageDialog
+            pager={selectedPager}
+            onClose={handleClosePageDialog}
+            onSuccess={handlePageSuccess}
+          />
+        </>
       )}
 
       {/* Additional Info */}
