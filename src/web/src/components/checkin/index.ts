@@ -36,3 +36,6 @@ export type { CheckoutFlowProps } from './CheckoutFlow';
 
 export { SecurityCodeVerify } from './SecurityCodeVerify';
 export type { SecurityCodeVerifyProps } from './SecurityCodeVerify';
+
+export { OfflineQueueIndicator } from './OfflineQueueIndicator';
+export type { OfflineQueueIndicatorProps } from './OfflineQueueIndicator';
