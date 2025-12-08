@@ -6,10 +6,12 @@ namespace Koinon.Application.DTOs;
 public record ScheduleSummaryDto
 {
     public required string IdKey { get; init; }
+    public required Guid Guid { get; init; }
     public required string Name { get; init; }
-    public required bool IsActive { get; init; }
+    public string? Description { get; init; }
     public DayOfWeek? WeeklyDayOfWeek { get; init; }
     public TimeSpan? WeeklyTimeOfDay { get; init; }
+    public required bool IsActive { get; init; }
 }
 
 /// <summary>

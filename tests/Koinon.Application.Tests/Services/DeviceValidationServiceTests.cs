@@ -253,6 +253,7 @@ public class DeviceValidationServiceTests : IDisposable
         public DbSet<GroupType> GroupTypes { get; set; } = null!;
         public DbSet<GroupTypeRole> GroupTypeRoles { get; set; } = null!;
         public DbSet<GroupMember> GroupMembers { get; set; } = null!;
+        public DbSet<GroupSchedule> GroupSchedules { get; set; } = null!;
         public DbSet<Campus> Campuses { get; set; } = null!;
         public DbSet<Location> Locations { get; set; } = null!;
         public DbSet<DefinedType> DefinedTypes { get; set; } = null!;

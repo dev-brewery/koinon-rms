@@ -164,4 +164,9 @@ public class Group : Entity
     /// Collection of members in this group.
     /// </summary>
     public virtual ICollection<GroupMember> Members { get; set; } = new List<GroupMember>();
+
+    /// <summary>
+    /// Collection of schedule associations for this group.
+    /// </summary>
+    public virtual ICollection<GroupSchedule> GroupSchedules { get; set; } = new List<GroupSchedule>();
 }

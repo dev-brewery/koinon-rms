@@ -88,4 +88,9 @@ public class Schedule : Entity
     /// Groups that use this schedule.
     /// </summary>
     public virtual ICollection<Group> Groups { get; set; } = new List<Group>();
+
+    /// <summary>
+    /// Collection of group associations for this schedule.
+    /// </summary>
+    public virtual ICollection<GroupSchedule> GroupSchedules { get; set; } = new List<GroupSchedule>();
 }
