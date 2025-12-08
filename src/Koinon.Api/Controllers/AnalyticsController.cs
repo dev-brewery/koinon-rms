@@ -16,6 +16,7 @@ namespace Koinon.Api.Controllers;
 [ValidateIdKey]
 public class AnalyticsController(
     IAttendanceAnalyticsService analyticsService,
+    IFirstTimeVisitorService firstTimeVisitorService,
     ILogger<AnalyticsController> logger) : ControllerBase
 {
     /// <summary>
@@ -136,5 +137,83 @@ public class AnalyticsController(
             startDate, endDate, byGroup.Count);
 
         return Ok(byGroup);
+    }
+
+    /// <summary>
+    /// Gets all first-time visitors who checked in today.
+    /// </summary>
+    /// <param name="campusIdKey">Optional campus IdKey to filter results</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>List of first-time visitors from today</returns>
+    /// <response code="200">Returns today's first-time visitors</response>
+    /// <response code="400">Invalid IdKey format</response>
+    [HttpGet("first-time-visitors/today")]
+    [ProducesResponseType(typeof(IReadOnlyList<FirstTimeVisitorDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetTodaysFirstTimeVisitors(
+        [FromQuery] string? campusIdKey,
+        CancellationToken ct = default)
+    {
+        var visitors = await firstTimeVisitorService.GetTodaysFirstTimersAsync(campusIdKey, ct);
+
+        logger.LogInformation(
+            "Today's first-time visitors retrieved: CampusIdKey={CampusIdKey}, Count={Count}",
+            campusIdKey ?? "All", visitors.Count);
+
+        return Ok(visitors);
+    }
+
+    /// <summary>
+    /// Gets first-time visitors who checked in within a date range.
+    /// </summary>
+    /// <param name="startDate">Start date for the analysis period (ISO 8601 format)</param>
+    /// <param name="endDate">End date for the analysis period (ISO 8601 format)</param>
+    /// <param name="campusIdKey">Optional campus IdKey to filter results</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>List of first-time visitors in the date range</returns>
+    /// <response code="200">Returns first-time visitors in the date range</response>
+    /// <response code="400">Invalid IdKey format or missing/invalid dates</response>
+    [HttpGet("first-time-visitors")]
+    [ProducesResponseType(typeof(IReadOnlyList<FirstTimeVisitorDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetFirstTimeVisitorsByDateRange(
+        [FromQuery] DateOnly? startDate,
+        [FromQuery] DateOnly? endDate,
+        [FromQuery] string? campusIdKey,
+        CancellationToken ct = default)
+    {
+        if (!startDate.HasValue || !endDate.HasValue)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid date range",
+                Detail = "Both startDate and endDate are required.",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        if (startDate.Value > endDate.Value)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid date range",
+                Detail = "startDate must be less than or equal to endDate.",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        var visitors = await firstTimeVisitorService.GetFirstTimersByDateRangeAsync(
+            startDate.Value,
+            endDate.Value,
+            campusIdKey,
+            ct);
+
+        logger.LogInformation(
+            "First-time visitors by date range retrieved: StartDate={StartDate}, EndDate={EndDate}, CampusIdKey={CampusIdKey}, Count={Count}",
+            startDate, endDate, campusIdKey ?? "All", visitors.Count);
+
+        return Ok(visitors);
     }
 }

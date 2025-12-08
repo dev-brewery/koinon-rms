@@ -29,3 +29,24 @@ export function useAttendanceByGroup(params: AttendanceAnalyticsParams) {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
+
+export function useTodaysFirstTimeVisitors(campusIdKey?: string) {
+  return useQuery({
+    queryKey: ['analytics', 'first-time-visitors', 'today', campusIdKey],
+    queryFn: () => analyticsApi.getTodaysFirstTimeVisitors(campusIdKey),
+    staleTime: 2 * 60 * 1000, // 2 minutes (more frequent updates for "today" data)
+  });
+}
+
+export function useFirstTimeVisitorsByDateRange(
+  startDate: string,
+  endDate: string,
+  campusIdKey?: string
+) {
+  return useQuery({
+    queryKey: ['analytics', 'first-time-visitors', startDate, endDate, campusIdKey],
+    queryFn: () =>
+      analyticsApi.getFirstTimeVisitorsByDateRange(startDate, endDate, campusIdKey),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
