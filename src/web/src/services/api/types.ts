@@ -715,3 +715,85 @@ export interface UpdateGroupRequest {
   isActive?: boolean;
   order?: number;
 }
+
+// ============================================================================
+// Schedule Types
+// ============================================================================
+
+export interface ScheduleSearchParams extends PaginationParams {
+  query?: string;
+  dayOfWeek?: number;  // 0=Sunday, 6=Saturday
+  includeInactive?: boolean;
+}
+
+export interface ScheduleSummaryDto {
+  idKey: IdKey;
+  name: string;
+  description?: string;
+  weeklyDayOfWeek?: number;
+  weeklyTimeOfDay?: string;
+  isActive: boolean;
+  order: number;
+}
+
+export interface ScheduleDetailDto {
+  idKey: IdKey;
+  guid: Guid;
+  name: string;
+  description?: string;
+  weeklyDayOfWeek?: number;
+  weeklyTimeOfDay?: string;
+  checkInStartOffsetMinutes?: number;
+  checkInEndOffsetMinutes?: number;
+  isActive: boolean;
+  isCheckinActive: boolean;
+  checkinStartTime?: DateTime;
+  checkinEndTime?: DateTime;
+  isPublic: boolean;
+  order: number;
+  effectiveStartDate?: DateOnly;
+  effectiveEndDate?: DateOnly;
+  iCalendarContent?: string;
+  autoInactivateWhenComplete: boolean;
+  createdDateTime: DateTime;
+  modifiedDateTime?: DateTime;
+}
+
+export interface ScheduleOccurrenceDto {
+  occurrenceDateTime: DateTime;
+  dayOfWeekName: string;
+  formattedTime: string;
+  checkInWindowStart?: DateTime;
+  checkInWindowEnd?: DateTime;
+  isCheckInWindowOpen: boolean;
+}
+
+export interface CreateScheduleRequest {
+  name: string;
+  description?: string;
+  weeklyDayOfWeek?: number;
+  weeklyTimeOfDay?: string;
+  checkInStartOffsetMinutes?: number;
+  checkInEndOffsetMinutes?: number;
+  isActive?: boolean;
+  isPublic?: boolean;
+  order?: number;
+  effectiveStartDate?: DateOnly;
+  effectiveEndDate?: DateOnly;
+  autoInactivateWhenComplete?: boolean;
+}
+
+export interface UpdateScheduleRequest {
+  name?: string;
+  description?: string;
+  weeklyDayOfWeek?: number;
+  weeklyTimeOfDay?: string;
+  checkInStartOffsetMinutes?: number;
+  checkInEndOffsetMinutes?: number;
+  isActive?: boolean;
+  isPublic?: boolean;
+  order?: number;
+  effectiveStartDate?: DateOnly | null;
+  effectiveEndDate?: DateOnly | null;
+  autoInactivateWhenComplete?: boolean;
+}
