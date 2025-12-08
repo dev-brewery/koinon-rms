@@ -62,6 +62,17 @@ public class LocationConfiguration : IEntityTypeConfiguration<Location>
         builder.Property(l => l.FirmRoomThreshold)
             .HasColumnName("firm_room_threshold");
 
+        builder.Property(l => l.StaffToChildRatio)
+            .HasColumnName("staff_to_child_ratio");
+
+        builder.Property(l => l.OverflowLocationId)
+            .HasColumnName("overflow_location_id");
+
+        builder.Property(l => l.AutoAssignOverflow)
+            .HasColumnName("auto_assign_overflow")
+            .IsRequired()
+            .HasDefaultValue(false);
+
         builder.Property(l => l.IsGeoPointLocked)
             .HasColumnName("is_geo_point_locked")
             .IsRequired()
@@ -133,6 +144,9 @@ public class LocationConfiguration : IEntityTypeConfiguration<Location>
         builder.HasIndex(l => l.Name)
             .HasDatabaseName("ix_location_name");
 
+        builder.HasIndex(l => l.OverflowLocationId)
+            .HasDatabaseName("ix_location_overflow_location_id");
+
         // Foreign key relationships
         builder.HasOne(l => l.ParentLocation)
             .WithMany(l => l.ChildLocations)
@@ -142,6 +156,11 @@ public class LocationConfiguration : IEntityTypeConfiguration<Location>
         builder.HasOne(l => l.LocationTypeValue)
             .WithMany()
             .HasForeignKey(l => l.LocationTypeValueId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(l => l.OverflowLocation)
+            .WithMany()
+            .HasForeignKey(l => l.OverflowLocationId)
             .OnDelete(DeleteBehavior.Restrict);
 
         // Ignore computed properties

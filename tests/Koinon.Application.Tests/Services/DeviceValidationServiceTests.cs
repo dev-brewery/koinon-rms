@@ -271,5 +271,23 @@ public class DeviceValidationServiceTests : IDisposable
         public DbSet<PagerMessage> PagerMessages { get; set; } = null!;
         public DbSet<AuthorizedPickup> AuthorizedPickups { get; set; } = null!;
         public DbSet<PickupLog> PickupLogs { get; set; } = null!;
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // Configure Location self-referential relationships
+            modelBuilder.Entity<Location>()
+                .HasOne(l => l.ParentLocation)
+                .WithMany(l => l.ChildLocations)
+                .HasForeignKey(l => l.ParentLocationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Location>()
+                .HasOne(l => l.OverflowLocation)
+                .WithMany()
+                .HasForeignKey(l => l.OverflowLocationId)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
     }
 }

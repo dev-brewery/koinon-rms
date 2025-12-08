@@ -147,6 +147,26 @@ public record CheckinLocationDto
     /// IdKey of the printer device for this location.
     /// </summary>
     public string? PrinterDeviceIdKey { get; init; }
+
+    /// <summary>
+    /// Percentage of soft capacity used (0-100+).
+    /// </summary>
+    public int PercentageFull { get; init; }
+
+    /// <summary>
+    /// Overflow location IdKey when this room is full.
+    /// </summary>
+    public string? OverflowLocationIdKey { get; init; }
+
+    /// <summary>
+    /// Overflow location name.
+    /// </summary>
+    public string? OverflowLocationName { get; init; }
+
+    /// <summary>
+    /// Indicates whether overflow assignment should be automatic.
+    /// </summary>
+    public bool AutoAssignOverflow { get; init; }
 }
 
 /// <summary>

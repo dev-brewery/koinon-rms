@@ -848,3 +848,13 @@ export interface RoomRosterDto {
   isAtCapacity: boolean;
   isNearCapacity: boolean;
 }
+
+// ============================================================================
+// Room Capacity Types
+// ============================================================================
+
+export enum CapacityStatus {
+  Available = 0,
+  Warning = 1,
+  Full = 2,
+}
