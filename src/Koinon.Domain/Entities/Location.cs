@@ -119,4 +119,25 @@ public class Location : Entity
     /// Display order for sorting locations.
     /// </summary>
     public int Order { get; set; }
+
+    /// <summary>
+    /// Staff-to-child ratio requirement (e.g., 1 staff per 5 children = 5).
+    /// Null means no ratio requirement.
+    /// </summary>
+    public int? StaffToChildRatio { get; set; }
+
+    /// <summary>
+    /// Foreign key to the overflow location when this room reaches capacity.
+    /// </summary>
+    public int? OverflowLocationId { get; set; }
+
+    /// <summary>
+    /// Navigation property to the overflow location.
+    /// </summary>
+    public virtual Location? OverflowLocation { get; set; }
+
+    /// <summary>
+    /// Indicates whether overflow assignment should be automatic when capacity is reached.
+    /// </summary>
+    public bool AutoAssignOverflow { get; set; }
 }

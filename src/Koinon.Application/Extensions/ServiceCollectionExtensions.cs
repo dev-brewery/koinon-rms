@@ -50,6 +50,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICheckinSearchService, CheckinSearchService>();
         services.AddScoped<ICheckinAttendanceService, CheckinAttendanceService>();
         services.AddScoped<ILabelGenerationService, LabelGenerationService>();
+        services.AddScoped<ICapacityService, CapacityService>();
 
         // Device/Kiosk validation service
         services.AddScoped<IDeviceValidationService, DeviceValidationService>();

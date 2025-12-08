@@ -459,6 +459,8 @@ public class CheckinConfigurationService(
             locationGroup.GroupCapacity, // Using GroupCapacity as soft threshold
             null); // No separate hard capacity for MVP
 
+        var percentageFull = CalculatePercentageFull(currentCount, locationGroup.GroupCapacity);
+
         return new CheckinLocationDto
         {
             IdKey = locationGroup.IdKey,
@@ -469,7 +471,11 @@ public class CheckinConfigurationService(
             CurrentCount = currentCount,
             CapacityStatus = capacityStatus,
             IsActive = locationGroup.IsActive,
-            PrinterDeviceIdKey = null // For MVP, printer assignment not yet implemented
+            PrinterDeviceIdKey = null, // For MVP, printer assignment not yet implemented
+            PercentageFull = percentageFull,
+            OverflowLocationIdKey = null, // Tech debt: Integrate Location entity for overflow
+            OverflowLocationName = null,
+            AutoAssignOverflow = false
         };
     }
 
@@ -594,6 +600,16 @@ public class CheckinConfigurationService(
         }
 
         return CapacityStatus.Available;
+    }
+
+    private static int CalculatePercentageFull(int currentCount, int? capacity)
+    {
+        if (!capacity.HasValue || capacity.Value == 0)
+        {
+            return 0;
+        }
+
+        return (int)Math.Round((double)currentCount / capacity.Value * 100);
     }
 
     public IReadOnlyList<CheckinAreaDto> FilterAreasByPersonEligibility(
