@@ -55,6 +55,10 @@ public class KoinonDbContext : DbContext, IApplicationDbContext
     public DbSet<PagerAssignment> PagerAssignments { get; set; } = null!;
     public DbSet<PagerMessage> PagerMessages { get; set; } = null!;
 
+    // Authorized pickup entities
+    public DbSet<AuthorizedPickup> AuthorizedPickups { get; set; } = null!;
+    public DbSet<PickupLog> PickupLogs { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
