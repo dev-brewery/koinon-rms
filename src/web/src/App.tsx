@@ -7,7 +7,6 @@ import { AdminLayout } from './layouts/AdminLayout';
 import {
   DashboardPage,
   GroupsPage,
-  SchedulesPage,
   SettingsPage,
 } from './pages/admin';
 import {
@@ -25,6 +24,11 @@ import {
   FamilyDetailPage,
   FamilyFormPage,
 } from './pages/admin/families';
+import {
+  ScheduleListPage,
+  ScheduleDetailPage,
+  ScheduleFormPage,
+} from './pages/admin/schedules';
 
 function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -145,7 +149,10 @@ function App() {
           <Route path="groups/new" element={<GroupFormPage />} />
           <Route path="groups/:idKey" element={<GroupDetailPage />} />
           <Route path="groups/:idKey/edit" element={<GroupFormPage />} />
-          <Route path="schedules" element={<SchedulesPage />} />
+          <Route path="schedules" element={<ScheduleListPage />} />
+          <Route path="schedules/new" element={<ScheduleFormPage />} />
+          <Route path="schedules/:idKey" element={<ScheduleDetailPage />} />
+          <Route path="schedules/:idKey/edit" element={<ScheduleFormPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
 
