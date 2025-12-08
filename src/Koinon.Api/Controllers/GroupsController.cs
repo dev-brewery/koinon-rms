@@ -559,4 +559,190 @@ public class GroupsController(
 
         return Ok(childGroups);
     }
+
+    /// <summary>
+    /// Gets all schedules associated with a group.
+    /// </summary>
+    /// <param name="idKey">The group's IdKey</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>List of group schedules</returns>
+    /// <response code="200">Returns list of schedules</response>
+    /// <response code="400">Invalid IdKey format</response>
+    [HttpGet("{idKey}/schedules")]
+    [ProducesResponseType(typeof(IReadOnlyList<GroupScheduleDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetSchedules(string idKey, CancellationToken ct = default)
+    {
+        if (!IdKeyValidator.IsValid(idKey))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid IdKey format",
+                Detail = IdKeyValidator.GetErrorMessage("idKey"),
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        var schedules = await groupService.GetSchedulesAsync(idKey, ct);
+
+        logger.LogInformation(
+            "Group schedules retrieved: IdKey={IdKey}, ScheduleCount={ScheduleCount}",
+            idKey, schedules.Count);
+
+        return Ok(schedules);
+    }
+
+    /// <summary>
+    /// Adds a schedule to a group.
+    /// </summary>
+    /// <param name="idKey">The group's IdKey</param>
+    /// <param name="request">Schedule addition details</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Created group schedule</returns>
+    /// <response code="201">Schedule added successfully</response>
+    /// <response code="400">Validation failed</response>
+    /// <response code="404">Group or schedule not found</response>
+    /// <response code="422">Business rule violation (duplicate)</response>
+    [HttpPost("{idKey}/schedules")]
+    [ProducesResponseType(typeof(GroupScheduleDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
+    public async Task<IActionResult> AddSchedule(
+        string idKey,
+        [FromBody] AddGroupScheduleRequest request,
+        CancellationToken ct = default)
+    {
+        if (!IdKeyValidator.IsValid(idKey))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid IdKey format",
+                Detail = IdKeyValidator.GetErrorMessage("idKey"),
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        var result = await groupService.AddScheduleAsync(idKey, request, ct);
+
+        if (result.IsFailure)
+        {
+            logger.LogWarning(
+                "Failed to add schedule to group: GroupIdKey={GroupIdKey}, Code={Code}, Message={Message}",
+                idKey, result.Error!.Code, result.Error.Message);
+
+            return result.Error.Code switch
+            {
+                "NOT_FOUND" => NotFound(new ProblemDetails
+                {
+                    Title = "Resource not found",
+                    Detail = result.Error.Message,
+                    Status = StatusCodes.Status404NotFound,
+                    Instance = HttpContext.Request.Path
+                }),
+                "DUPLICATE" => UnprocessableEntity(new ProblemDetails
+                {
+                    Title = "Duplicate association",
+                    Detail = result.Error.Message,
+                    Status = StatusCodes.Status422UnprocessableEntity,
+                    Instance = HttpContext.Request.Path
+                }),
+                _ => UnprocessableEntity(new ProblemDetails
+                {
+                    Title = result.Error.Code,
+                    Detail = result.Error.Message,
+                    Status = StatusCodes.Status422UnprocessableEntity,
+                    Instance = HttpContext.Request.Path
+                })
+            };
+        }
+
+        var groupSchedule = result.Value!;
+
+        logger.LogInformation(
+            "Schedule added to group successfully: GroupIdKey={GroupIdKey}, ScheduleIdKey={ScheduleIdKey}",
+            idKey, groupSchedule.Schedule.IdKey);
+
+        return CreatedAtAction(
+            nameof(GetSchedules),
+            new { idKey },
+            groupSchedule);
+    }
+
+    /// <summary>
+    /// Removes a schedule from a group.
+    /// </summary>
+    /// <param name="idKey">The group's IdKey</param>
+    /// <param name="scheduleIdKey">The schedule's IdKey</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>No content</returns>
+    /// <response code="204">Schedule removed successfully</response>
+    /// <response code="400">Invalid IdKey format</response>
+    /// <response code="404">Group or schedule association not found</response>
+    [HttpDelete("{idKey}/schedules/{scheduleIdKey}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RemoveSchedule(
+        string idKey,
+        string scheduleIdKey,
+        CancellationToken ct = default)
+    {
+        if (!IdKeyValidator.IsValid(idKey))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid IdKey format",
+                Detail = IdKeyValidator.GetErrorMessage("idKey"),
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        if (!IdKeyValidator.IsValid(scheduleIdKey))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid IdKey format",
+                Detail = IdKeyValidator.GetErrorMessage("scheduleIdKey"),
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        var result = await groupService.RemoveScheduleAsync(idKey, scheduleIdKey, ct);
+
+        if (result.IsFailure)
+        {
+            logger.LogWarning(
+                "Failed to remove schedule from group: GroupIdKey={GroupIdKey}, ScheduleIdKey={ScheduleIdKey}, Code={Code}, Message={Message}",
+                idKey, scheduleIdKey, result.Error!.Code, result.Error.Message);
+
+            return result.Error.Code switch
+            {
+                "NOT_FOUND" => NotFound(new ProblemDetails
+                {
+                    Title = "Resource not found",
+                    Detail = result.Error.Message,
+                    Status = StatusCodes.Status404NotFound,
+                    Instance = HttpContext.Request.Path
+                }),
+                _ => UnprocessableEntity(new ProblemDetails
+                {
+                    Title = result.Error.Code,
+                    Detail = result.Error.Message,
+                    Status = StatusCodes.Status422UnprocessableEntity,
+                    Instance = HttpContext.Request.Path
+                })
+            };
+        }
+
+        logger.LogInformation(
+            "Schedule removed from group successfully: GroupIdKey={GroupIdKey}, ScheduleIdKey={ScheduleIdKey}",
+            idKey, scheduleIdKey);
+
+        return NoContent();
+    }
 }

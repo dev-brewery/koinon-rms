@@ -97,7 +97,9 @@ public class CheckinConfigurationService(
             .AsNoTracking()
             .Include(g => g.GroupType)
                 .ThenInclude(gt => gt!.Roles)
-            .Include(g => g.Schedule)
+            .Include(g => g.GroupSchedules)
+                .ThenInclude(gs => gs.Schedule)
+            .Include(g => g.Schedule)  // Keep for backwards compatibility
             .Include(g => g.Campus)
             .Include(g => g.ParentGroup)
                 .ThenInclude(pg => pg!.GroupType)
@@ -151,10 +153,26 @@ public class CheckinConfigurationService(
             // Calculate overall capacity status for the area
             var capacityStatus = CalculateAreaCapacityStatus(areaLocations);
 
-            // Check if area is currently open based on schedule
-            var scheduleDto = area.Schedule != null
-                ? MapToScheduleDto(area.Schedule, currentTime.Value)
-                : null;
+            // Check if area is currently open based on schedule (use GroupSchedules first, fall back to Schedule)
+            ScheduleDto? scheduleDto = null;
+            if (area.GroupSchedules?.Any() == true)
+            {
+                // Find first active schedule in the check-in window
+                var activeGroupSchedule = area.GroupSchedules
+                    .Where(gs => gs.Schedule != null && gs.Schedule.IsActive)
+                    .OrderBy(gs => gs.Order)
+                    .FirstOrDefault(gs => IsScheduleCheckinActive(gs.Schedule!, currentTime.Value));
+
+                if (activeGroupSchedule?.Schedule != null)
+                {
+                    scheduleDto = MapToScheduleDto(activeGroupSchedule.Schedule, currentTime.Value);
+                }
+            }
+            // Fall back to legacy single Schedule
+            else if (area.Schedule != null)
+            {
+                scheduleDto = MapToScheduleDto(area.Schedule, currentTime.Value);
+            }
 
             result.Add(new CheckinAreaDto
             {
@@ -212,7 +230,9 @@ public class CheckinConfigurationService(
             .AsNoTracking()
             .Include(g => g.GroupType)
                 .ThenInclude(gt => gt!.Roles)
-            .Include(g => g.Schedule)
+            .Include(g => g.GroupSchedules)
+                .ThenInclude(gs => gs.Schedule)
+            .Include(g => g.Schedule)  // Keep for backwards compatibility
             .Include(g => g.Campus)
             .FirstOrDefaultAsync(g => g.Id == areaId
                 && g.GroupType!.TakesAttendance
@@ -257,9 +277,26 @@ public class CheckinConfigurationService(
 
         var capacityStatus = CalculateAreaCapacityStatus(locationDtos);
 
-        var scheduleDto = area.Schedule != null
-            ? MapToScheduleDto(area.Schedule, currentTime)
-            : null;
+        // Check if area is currently open based on schedule (use GroupSchedules first, fall back to Schedule)
+        ScheduleDto? scheduleDto = null;
+        if (area.GroupSchedules?.Any() == true)
+        {
+            // Find first active schedule in the check-in window
+            var activeGroupSchedule = area.GroupSchedules
+                .Where(gs => gs.Schedule != null && gs.Schedule.IsActive)
+                .OrderBy(gs => gs.Order)
+                .FirstOrDefault(gs => IsScheduleCheckinActive(gs.Schedule!, currentTime));
+
+            if (activeGroupSchedule?.Schedule != null)
+            {
+                scheduleDto = MapToScheduleDto(activeGroupSchedule.Schedule, currentTime);
+            }
+        }
+        // Fall back to legacy single Schedule
+        else if (area.Schedule != null)
+        {
+            scheduleDto = MapToScheduleDto(area.Schedule, currentTime);
+        }
 
         return new CheckinAreaDto
         {
@@ -347,14 +384,23 @@ public class CheckinConfigurationService(
         currentTime ??= DateTime.UtcNow;
         var currentDate = DateOnly.FromDateTime(currentTime.Value);
 
-        // Get all schedules for check-in areas at this campus
+        // Get all schedules for check-in areas at this campus (via GroupSchedules or legacy Schedule FK)
         var schedules = await Context.Schedules
             .AsNoTracking()
             .Where(s => s.IsActive
-                && s.Groups.Any(g => g.CampusId == campusId
-                    && g.GroupType!.TakesAttendance
-                    && g.IsActive
-                    && !g.IsArchived)
+                && (
+                    // New: via GroupSchedules
+                    s.GroupSchedules.Any(gs => gs.Group!.CampusId == campusId
+                        && gs.Group.GroupType!.TakesAttendance
+                        && gs.Group.IsActive
+                        && !gs.Group.IsArchived)
+                    ||
+                    // Legacy: via direct ScheduleId FK
+                    s.Groups.Any(g => g.CampusId == campusId
+                        && g.GroupType!.TakesAttendance
+                        && g.IsActive
+                        && !g.IsArchived)
+                )
                 && (s.EffectiveStartDate == null || s.EffectiveStartDate <= currentDate)
                 && (s.EffectiveEndDate == null || s.EffectiveEndDate >= currentDate))
             .OrderBy(s => s.Order)

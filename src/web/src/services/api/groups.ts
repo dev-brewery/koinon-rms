@@ -13,6 +13,8 @@ import type {
   AddGroupMemberRequest,
   CreateGroupRequest,
   UpdateGroupRequest,
+  GroupScheduleDto,
+  AddGroupScheduleRequest,
 } from './types';
 
 /**
@@ -122,4 +124,31 @@ export async function deleteGroup(idKey: string): Promise<void> {
  */
 export async function getChildGroups(idKey: string): Promise<PagedResult<GroupSummaryDto>> {
   return get<PagedResult<GroupSummaryDto>>(`/groups/${idKey}/children`);
+}
+
+/**
+ * Get schedules for a group
+ */
+export async function getGroupSchedules(groupIdKey: string): Promise<GroupScheduleDto[]> {
+  return get<GroupScheduleDto[]>(`/groups/${groupIdKey}/schedules`);
+}
+
+/**
+ * Add a schedule to a group
+ */
+export async function addGroupSchedule(
+  groupIdKey: string,
+  request: AddGroupScheduleRequest
+): Promise<GroupScheduleDto> {
+  return post<GroupScheduleDto>(`/groups/${groupIdKey}/schedules`, request);
+}
+
+/**
+ * Remove a schedule from a group
+ */
+export async function removeGroupSchedule(
+  groupIdKey: string,
+  scheduleIdKey: string
+): Promise<void> {
+  await del<void>(`/groups/${groupIdKey}/schedules/${scheduleIdKey}`);
 }
