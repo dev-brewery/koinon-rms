@@ -355,12 +355,12 @@ jobs:
 
     - name: Start API in background
       run: |
-        ASPNETCORE_URLS="http://localhost:5000" \
-        ConnectionStrings__DefaultConnection="Host=localhost;Port=5432;Database=koinon;Username=koinon;Pwd=koinon" \
-        ConnectionStrings__Redis="localhost:6379" \
-        Jwt__Key="ci-integration-test-jwt-key-minimum-32-chars-long-for-security" \
-        Jwt__Issuer="koinon-ci-integration" \
-        Jwt__Audience="koinon-ci-integration" \
+        export ASPNETCORE_URLS="http://localhost:5000"
+        export ConnectionStrings__DefaultConnection="Host=localhost;Port=5432;Database=koinon;Username=koinon;Pwd=koinon"
+        export ConnectionStrings__Redis="localhost:6379"
+        export Jwt__Key="ci-integration-test-jwt-key-minimum-32-chars-long-for-security"
+        export Jwt__Issuer="koinon-ci-integration"
+        export Jwt__Audience="koinon-ci-integration"
         dotnet run --project src/Koinon.Api --no-build --configuration Release &
         echo $! > /tmp/api.pid
         echo "API started with PID $(cat /tmp/api.pid)"
