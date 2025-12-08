@@ -64,6 +64,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IFirstTimeVisitorService, FirstTimeVisitorService>();
         services.AddScoped<IFollowUpService, FollowUpService>();
 
+        // Parent paging service
+        services.AddScoped<IParentPagingService, ParentPagingService>();
+
         // AutoMapper - register all mapping profiles
         services.AddAutoMapper(typeof(ServiceCollectionExtensions).Assembly);
 

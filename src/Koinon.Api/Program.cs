@@ -4,6 +4,7 @@ using Koinon.Api.Services;
 using Koinon.Application.Extensions;
 using Koinon.Application.Interfaces;
 using Koinon.Infrastructure.Data;
+using Koinon.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -24,27 +25,11 @@ var postgresConnectionString = builder.Configuration.GetConnectionString("Defaul
     ?? throw new InvalidOperationException("PostgreSQL connection string not configured. Set ConnectionStrings:DefaultConnection.");
 var redisConnectionString = builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379";
 
-// Configure PostgreSQL DbContext
-builder.Services.AddDbContext<KoinonDbContext>(options =>
-{
-    options.UseNpgsql(postgresConnectionString, npgsqlOptions =>
-    {
-        npgsqlOptions.UseNetTopologySuite(); // Enable PostGIS support
-        npgsqlOptions.MigrationsHistoryTable("__ef_migrations_history");
-    });
-
-    // Enable detailed errors in development
-    if (builder.Environment.IsDevelopment())
-    {
-        options.EnableSensitiveDataLogging();
-        options.EnableDetailedErrors();
-    }
-});
-
 // Register DbContext as IApplicationDbContext for Application layer
 builder.Services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<KoinonDbContext>());
 
-// Configure Redis distributed cache
+// Redis is registered separately from AddKoinonInfrastructure to allow
+// for custom per-environment configuration (connection string, instance name)
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = redisConnectionString;
@@ -81,6 +66,23 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSigningKey)),
         ClockSkew = TimeSpan.FromSeconds(30) // 30 second tolerance for clock drift
     };
+});
+
+// Add infrastructure services (includes DbContext, SMS/Twilio configuration)
+builder.Services.AddKoinonInfrastructure(postgresConnectionString, builder.Configuration, options =>
+{
+    options.UseNpgsql(postgresConnectionString, npgsqlOptions =>
+    {
+        npgsqlOptions.UseNetTopologySuite(); // Enable PostGIS support
+        npgsqlOptions.MigrationsHistoryTable("__ef_migrations_history");
+    });
+
+    // Enable detailed errors in development
+    if (builder.Environment.IsDevelopment())
+    {
+        options.EnableSensitiveDataLogging();
+        options.EnableDetailedErrors();
+    }
 });
 
 // Add application services
