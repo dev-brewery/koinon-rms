@@ -1,0 +1,181 @@
+using Koinon.Api.Filters;
+using Koinon.Application.DTOs;
+using Koinon.Application.DTOs.Requests;
+using Koinon.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Koinon.Api.Controllers;
+
+/// <summary>
+/// Controller for pickup verification and checkout operations.
+/// Handles child safety by verifying authorized pickup persons during checkout.
+/// </summary>
+[ApiController]
+[Route("api/v1/checkin")]
+[Authorize]
+[ValidateIdKey]
+public class PickupController(
+    IAuthorizedPickupService authorizedPickupService,
+    ILogger<PickupController> logger) : ControllerBase
+{
+    /// <summary>
+    /// Verifies if a person is authorized to pick up a child.
+    /// Checks the authorized pickup list and authorization levels.
+    /// CRITICAL #5: Rate limiting tracked in issue #106
+    /// (max 5 attempts per attendance per 15 minutes to prevent brute-force attacks on security codes)
+    /// </summary>
+    /// <param name="request">Pickup verification request</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Verification result with authorization status</returns>
+    /// <response code="200">Returns verification result (authorized or not)</response>
+    /// <response code="400">Validation failed</response>
+    /// <response code="401">Not authenticated</response>
+    /// <response code="403">Requires CheckInVolunteer or Supervisor role</response>
+    [HttpPost("verify-pickup")]
+    [Authorize(Roles = "CheckInVolunteer,Supervisor")]
+    [ProducesResponseType(typeof(PickupVerificationResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> VerifyPickup(
+        [FromBody] VerifyPickupRequest request,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(request.AttendanceIdKey))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid request",
+                Detail = "AttendanceIdKey is required",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        if (string.IsNullOrWhiteSpace(request.SecurityCode))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid request",
+                Detail = "SecurityCode is required",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        var result = await authorizedPickupService.VerifyPickupAsync(request, ct);
+
+        logger.LogInformation(
+            "Pickup verification completed: AttendanceIdKey={AttendanceIdKey}, IsAuthorized={IsAuthorized}, RequiresOverride={RequiresOverride}",
+            request.AttendanceIdKey, result.IsAuthorized, result.RequiresSupervisorOverride);
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Records a pickup event in the audit log and checks out the child.
+    /// </summary>
+    /// <param name="request">Pickup recording request</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Created pickup log entry</returns>
+    /// <response code="201">Pickup recorded successfully</response>
+    /// <response code="400">Validation failed</response>
+    /// <response code="401">Not authenticated</response>
+    /// <response code="403">Requires CheckInVolunteer or Supervisor role</response>
+    [HttpPost("record-pickup")]
+    [Authorize(Roles = "CheckInVolunteer,Supervisor")]
+    [ProducesResponseType(typeof(PickupLogDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> RecordPickup(
+        [FromBody] RecordPickupRequest request,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(request.AttendanceIdKey))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid request",
+                Detail = "AttendanceIdKey is required",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        // CRITICAL #3: Verify supervisor role if supervisor override is requested
+        if (request.SupervisorOverride)
+        {
+            if (!User.IsInRole("Supervisor"))
+            {
+                return Problem(
+                    detail: "Supervisor override requires a user with Supervisor role",
+                    statusCode: StatusCodes.Status403Forbidden,
+                    title: "Forbidden");
+            }
+        }
+
+        var pickupLog = await authorizedPickupService.RecordPickupAsync(request, ct);
+
+        logger.LogInformation(
+            "Pickup recorded: AttendanceIdKey={AttendanceIdKey}, PickupPerson={PickupPerson}, WasAuthorized={WasAuthorized}, SupervisorOverride={SupervisorOverride}",
+            request.AttendanceIdKey,
+            request.PickupPersonName ?? "Unknown",
+            request.WasAuthorized,
+            request.SupervisorOverride);
+
+        return CreatedAtAction(
+            nameof(GetPickupHistory),
+            new { childIdKey = "placeholder" }, // Will be determined from attendance
+            pickupLog);
+    }
+
+    /// <summary>
+    /// Gets the pickup history for a child.
+    /// </summary>
+    /// <param name="childIdKey">The child's IdKey</param>
+    /// <param name="fromDate">Optional start date filter</param>
+    /// <param name="toDate">Optional end date filter</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>List of pickup log entries</returns>
+    /// <response code="200">Returns pickup history</response>
+    /// <response code="400">Invalid IdKey format or date range</response>
+    /// <response code="401">Not authenticated</response>
+    /// <response code="403">Requires Supervisor role</response>
+    [HttpGet("people/{childIdKey}/pickup-history")]
+    [Authorize(Roles = "Supervisor")]
+    [ProducesResponseType(typeof(List<PickupLogDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> GetPickupHistory(
+        string childIdKey,
+        [FromQuery] DateTime? fromDate,
+        [FromQuery] DateTime? toDate,
+        CancellationToken ct = default)
+    {
+        if (toDate.HasValue && fromDate.HasValue && toDate.Value < fromDate.Value)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid date range",
+                Detail = "The 'toDate' must be greater than or equal to 'fromDate'",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        var history = await authorizedPickupService.GetPickupHistoryAsync(
+            childIdKey,
+            fromDate,
+            toDate,
+            ct);
+
+        logger.LogInformation(
+            "Pickup history retrieved: ChildIdKey={ChildIdKey}, Count={Count}, FromDate={FromDate}, ToDate={ToDate}",
+            childIdKey, history.Count, fromDate, toDate);
+
+        return Ok(history);
+    }
+}
