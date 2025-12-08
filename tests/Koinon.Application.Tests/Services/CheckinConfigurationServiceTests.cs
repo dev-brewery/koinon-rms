@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Koinon.Application.DTOs;
+using Koinon.Application.Interfaces;
 using Koinon.Application.Services;
 using Koinon.Application.Tests.Fakes;
 using Koinon.Domain.Entities;
@@ -18,6 +19,7 @@ public class CheckinConfigurationServiceTests : IDisposable
 {
     private readonly KoinonDbContext _context;
     private readonly FakeUserContext _userContext;
+    private readonly Mock<IGradeCalculationService> _mockGradeService;
     private readonly Mock<ILogger<CheckinConfigurationService>> _mockLogger;
     private readonly CheckinConfigurationService _service;
     private readonly Campus _testCampus;
@@ -38,11 +40,20 @@ public class CheckinConfigurationServiceTests : IDisposable
         // Setup user context (authenticated by default)
         _userContext = new FakeUserContext();
 
+        // Setup grade calculation service mock
+        _mockGradeService = new Mock<IGradeCalculationService>();
+
+        // Setup default mock behaviors to avoid null returns
+        _mockGradeService.Setup(s => s.CalculateAgeInMonths(It.IsAny<DateOnly?>(), It.IsAny<DateOnly?>()))
+            .Returns((DateOnly? birthDate, DateOnly? currentDate) => birthDate.HasValue ? 60 : null);
+        _mockGradeService.Setup(s => s.CalculateGrade(It.IsAny<int?>(), It.IsAny<DateOnly?>()))
+            .Returns((int? gradYear, DateOnly? currentDate) => gradYear.HasValue ? 5 : null);
+
         // Setup logger mock
         _mockLogger = new Mock<ILogger<CheckinConfigurationService>>();
 
         // Create service
-        _service = new CheckinConfigurationService(_context, _userContext, _mockLogger.Object);
+        _service = new CheckinConfigurationService(_context, _userContext, _mockGradeService.Object, _mockLogger.Object);
 
         // Seed test data
         _testCampus = SeedCampus();
@@ -582,6 +593,294 @@ public class CheckinConfigurationServiceTests : IDisposable
         return from.Date.AddDays(daysUntilMonday);
     }
 
+
+    #region FilterAreasByPersonEligibility Tests
+
+    [Fact]
+    public void FilterAreasByPersonEligibility_WithNoAreas_ReturnsEmptyList()
+    {
+        // Arrange
+        var areas = new List<CheckinAreaDto>();
+        var birthDate = new DateOnly(2015, 1, 1);
+        var graduationYear = 2033;
+
+        // Act
+        var result = _service.FilterAreasByPersonEligibility(areas, birthDate, graduationYear);
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void FilterAreasByPersonEligibility_PersonMatchesAgeRange_IncludesArea()
+    {
+        // Arrange
+        var currentDate = new DateOnly(2025, 9, 1);
+        var birthDate = new DateOnly(2020, 1, 1); // ~5 years old = 68 months
+
+        _mockGradeService.Setup(s => s.CalculateAgeInMonths(birthDate, currentDate))
+            .Returns(68);
+        _mockGradeService.Setup(s => s.CalculateGrade(It.IsAny<int?>(), currentDate))
+            .Returns((int?)null);
+
+        var area = CreateTestAreaDto("Preschool", minAgeMonths: 36, maxAgeMonths: 72);
+        var areas = new List<CheckinAreaDto> { area };
+
+        // Act
+        var result = _service.FilterAreasByPersonEligibility(areas, birthDate, null, currentDate);
+
+        // Assert
+        result.Should().ContainSingle();
+        result.First().Name.Should().Be("Preschool");
+    }
+
+    [Fact]
+    public void FilterAreasByPersonEligibility_PersonBelowMinAge_ExcludesArea()
+    {
+        // Arrange
+        var currentDate = new DateOnly(2025, 9, 1);
+        var birthDate = new DateOnly(2023, 1, 1); // ~2 years old = 32 months
+
+        _mockGradeService.Setup(s => s.CalculateAgeInMonths(birthDate, currentDate))
+            .Returns(32);
+
+        var area = CreateTestAreaDto("Preschool", minAgeMonths: 36, maxAgeMonths: 72);
+        var areas = new List<CheckinAreaDto> { area };
+
+        // Act
+        var result = _service.FilterAreasByPersonEligibility(areas, birthDate, null, currentDate);
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void FilterAreasByPersonEligibility_PersonAboveMaxAge_ExcludesArea()
+    {
+        // Arrange
+        var currentDate = new DateOnly(2025, 9, 1);
+        var birthDate = new DateOnly(2018, 1, 1); // ~7 years old = 92 months
+
+        _mockGradeService.Setup(s => s.CalculateAgeInMonths(birthDate, currentDate))
+            .Returns(92);
+
+        var area = CreateTestAreaDto("Preschool", minAgeMonths: 36, maxAgeMonths: 72);
+        var areas = new List<CheckinAreaDto> { area };
+
+        // Act
+        var result = _service.FilterAreasByPersonEligibility(areas, birthDate, null, currentDate);
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void FilterAreasByPersonEligibility_PersonMatchesGradeRange_IncludesArea()
+    {
+        // Arrange
+        var currentDate = new DateOnly(2025, 9, 1);
+        var graduationYear = 2033; // 5th grade (grade = 5)
+
+        _mockGradeService.Setup(s => s.CalculateAgeInMonths(It.IsAny<DateOnly?>(), currentDate))
+            .Returns((int?)null);
+        _mockGradeService.Setup(s => s.CalculateGrade(graduationYear, currentDate))
+            .Returns(5);
+
+        var area = CreateTestAreaDto("Elementary", minGrade: 1, maxGrade: 6);
+        var areas = new List<CheckinAreaDto> { area };
+
+        // Act
+        var result = _service.FilterAreasByPersonEligibility(areas, null, graduationYear, currentDate);
+
+        // Assert
+        result.Should().ContainSingle();
+        result.First().Name.Should().Be("Elementary");
+    }
+
+    [Fact]
+    public void FilterAreasByPersonEligibility_PersonBelowMinGrade_ExcludesArea()
+    {
+        // Arrange
+        var currentDate = new DateOnly(2025, 9, 1);
+        var graduationYear = 2038; // Kindergarten (grade = 0)
+
+        _mockGradeService.Setup(s => s.CalculateGrade(graduationYear, currentDate))
+            .Returns(0);
+
+        var area = CreateTestAreaDto("Elementary", minGrade: 1, maxGrade: 6);
+        var areas = new List<CheckinAreaDto> { area };
+
+        // Act
+        var result = _service.FilterAreasByPersonEligibility(areas, null, graduationYear, currentDate);
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void FilterAreasByPersonEligibility_PersonAboveMaxGrade_ExcludesArea()
+    {
+        // Arrange
+        var currentDate = new DateOnly(2025, 9, 1);
+        var graduationYear = 2029; // 9th grade (grade = 9)
+
+        _mockGradeService.Setup(s => s.CalculateGrade(graduationYear, currentDate))
+            .Returns(9);
+
+        var area = CreateTestAreaDto("Elementary", minGrade: 1, maxGrade: 6);
+        var areas = new List<CheckinAreaDto> { area };
+
+        // Act
+        var result = _service.FilterAreasByPersonEligibility(areas, null, graduationYear, currentDate);
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void FilterAreasByPersonEligibility_AreaWithNoRestrictions_AlwaysIncludesArea()
+    {
+        // Arrange
+        var currentDate = new DateOnly(2025, 9, 1);
+        var birthDate = new DateOnly(2020, 1, 1);
+        var graduationYear = 2033;
+
+        _mockGradeService.Setup(s => s.CalculateAgeInMonths(birthDate, currentDate))
+            .Returns(68);
+        _mockGradeService.Setup(s => s.CalculateGrade(graduationYear, currentDate))
+            .Returns(5);
+
+        var area = CreateTestAreaDto("All Ages", minAgeMonths: null, maxAgeMonths: null, minGrade: null, maxGrade: null);
+        var areas = new List<CheckinAreaDto> { area };
+
+        // Act
+        var result = _service.FilterAreasByPersonEligibility(areas, birthDate, graduationYear, currentDate);
+
+        // Assert
+        result.Should().ContainSingle();
+    }
+
+    [Fact]
+    public void FilterAreasByPersonEligibility_PersonWithNoBirthDate_PassesAgeFilters()
+    {
+        // Arrange
+        var currentDate = new DateOnly(2025, 9, 1);
+
+        _mockGradeService.Setup(s => s.CalculateAgeInMonths(null, currentDate))
+            .Returns((int?)null);
+
+        var area = CreateTestAreaDto("Preschool", minAgeMonths: 36, maxAgeMonths: 72);
+        var areas = new List<CheckinAreaDto> { area };
+
+        // Act - Person with no birth date should pass age filters
+        var result = _service.FilterAreasByPersonEligibility(areas, null, null, currentDate);
+
+        // Assert
+        result.Should().ContainSingle();
+    }
+
+    [Fact]
+    public void FilterAreasByPersonEligibility_PersonWithNoGraduationYear_PassesGradeFilters()
+    {
+        // Arrange
+        var currentDate = new DateOnly(2025, 9, 1);
+
+        _mockGradeService.Setup(s => s.CalculateGrade(null, currentDate))
+            .Returns((int?)null);
+
+        var area = CreateTestAreaDto("Elementary", minGrade: 1, maxGrade: 6);
+        var areas = new List<CheckinAreaDto> { area };
+
+        // Act - Person with no graduation year should pass grade filters
+        var result = _service.FilterAreasByPersonEligibility(areas, null, null, currentDate);
+
+        // Assert
+        result.Should().ContainSingle();
+    }
+
+    [Fact]
+    public void FilterAreasByPersonEligibility_PreKGrade_HandlesNegativeGrade()
+    {
+        // Arrange
+        var currentDate = new DateOnly(2025, 9, 1);
+        var graduationYear = 2039; // Pre-K (grade = -1)
+
+        _mockGradeService.Setup(s => s.CalculateGrade(graduationYear, currentDate))
+            .Returns(-1);
+
+        var area = CreateTestAreaDto("Preschool", minGrade: -1, maxGrade: 0);
+        var areas = new List<CheckinAreaDto> { area };
+
+        // Act
+        var result = _service.FilterAreasByPersonEligibility(areas, null, graduationYear, currentDate);
+
+        // Assert
+        result.Should().ContainSingle();
+        result.First().Name.Should().Be("Preschool");
+    }
+
+    [Fact]
+    public void FilterAreasByPersonEligibility_MultipleAreas_FiltersCorrectly()
+    {
+        // Arrange
+        var currentDate = new DateOnly(2025, 9, 1);
+        var birthDate = new DateOnly(2020, 1, 1); // ~5 years old
+        var graduationYear = 2033; // 5th grade
+
+        _mockGradeService.Setup(s => s.CalculateAgeInMonths(birthDate, currentDate))
+            .Returns(68);
+        _mockGradeService.Setup(s => s.CalculateGrade(graduationYear, currentDate))
+            .Returns(5);
+
+        var areas = new List<CheckinAreaDto>
+        {
+            CreateTestAreaDto("Nursery", minAgeMonths: 0, maxAgeMonths: 24), // Too young
+            CreateTestAreaDto("Preschool", minAgeMonths: 36, maxAgeMonths: 72), // Age matches, no grade filter
+            CreateTestAreaDto("Elementary", minGrade: 1, maxGrade: 6), // Grade matches, no age filter
+            CreateTestAreaDto("Youth", minGrade: 7, maxGrade: 12), // Grade too high
+            CreateTestAreaDto("All Ages") // No restrictions
+        };
+
+        // Act
+        var result = _service.FilterAreasByPersonEligibility(areas, birthDate, graduationYear, currentDate);
+
+        // Assert
+        result.Should().HaveCount(3);
+        result.Select(a => a.Name).Should().Contain(new[] { "Preschool", "Elementary", "All Ages" });
+    }
+
+    private CheckinAreaDto CreateTestAreaDto(
+        string name,
+        int? minAgeMonths = null,
+        int? maxAgeMonths = null,
+        int? minGrade = null,
+        int? maxGrade = null)
+    {
+        return new CheckinAreaDto
+        {
+            IdKey = "test",
+            Guid = Guid.NewGuid(),
+            Name = name,
+            GroupType = new GroupTypeDto
+            {
+                IdKey = "test",
+                Guid = Guid.NewGuid(),
+                Name = "Test Type",
+                IsFamilyGroupType = false,
+                AllowMultipleLocations = true,
+                Roles = new List<GroupTypeRoleDto>()
+            },
+            Locations = new List<CheckinLocationDto>(),
+            IsActive = true,
+            CapacityStatus = CapacityStatus.Available,
+            MinAgeMonths = minAgeMonths,
+            MaxAgeMonths = maxAgeMonths,
+            MinGrade = minGrade,
+            MaxGrade = maxGrade
+        };
+    }
+
+    #endregion
     public void Dispose()
     {
         _context.Database.EnsureDeleted();

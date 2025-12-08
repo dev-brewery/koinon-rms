@@ -76,6 +76,26 @@ public record CheckinAreaDto
     /// Current capacity status.
     /// </summary>
     public required CapacityStatus CapacityStatus { get; init; }
+
+    /// <summary>
+    /// Minimum age in months for eligibility in this area (null = no restriction).
+    /// </summary>
+    public int? MinAgeMonths { get; init; }
+
+    /// <summary>
+    /// Maximum age in months for eligibility in this area (null = no restriction).
+    /// </summary>
+    public int? MaxAgeMonths { get; init; }
+
+    /// <summary>
+    /// Minimum grade for eligibility (-1 = Pre-K, 0 = K, 1+ = grades). Null = no restriction.
+    /// </summary>
+    public int? MinGrade { get; init; }
+
+    /// <summary>
+    /// Maximum grade for eligibility (-1 = Pre-K, 0 = K, 1+ = grades). Null = no restriction.
+    /// </summary>
+    public int? MaxGrade { get; init; }
 }
 
 /// <summary>
