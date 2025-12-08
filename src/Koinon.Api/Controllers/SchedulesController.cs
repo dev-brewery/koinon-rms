@@ -1,3 +1,4 @@
+using Koinon.Api.Filters;
 using Koinon.Api.Helpers;
 using Koinon.Application.Common;
 using Koinon.Application.DTOs;
@@ -15,6 +16,7 @@ namespace Koinon.Api.Controllers;
 [ApiController]
 [Route("api/v1/[controller]")]
 [Authorize]
+[ValidateIdKey]
 public class SchedulesController(
     IScheduleService scheduleService,
     ILogger<SchedulesController> logger) : ControllerBase
@@ -71,22 +73,11 @@ public class SchedulesController(
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetByIdKey(string idKey, CancellationToken ct = default)
     {
-        if (!IdKeyValidator.IsValid(idKey))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid IdKey format",
-                Detail = IdKeyValidator.GetErrorMessage("idKey"),
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
         var schedule = await scheduleService.GetByIdKeyAsync(idKey, ct);
 
         if (schedule == null)
         {
-            logger.LogWarning("Schedule not found: IdKey={IdKey}", idKey);
+            logger.LogDebug("Schedule not found: IdKey={IdKey}", idKey);
 
             return NotFound(new ProblemDetails
             {
@@ -97,7 +88,7 @@ public class SchedulesController(
             });
         }
 
-        logger.LogInformation("Schedule retrieved: IdKey={IdKey}, Name={Name}", idKey, schedule.Name);
+        logger.LogDebug("Schedule retrieved: IdKey={IdKey}, Name={Name}", idKey, schedule.Name);
 
         return Ok(schedule);
     }
@@ -180,17 +171,6 @@ public class SchedulesController(
         [FromBody] UpdateScheduleRequest request,
         CancellationToken ct = default)
     {
-        if (!IdKeyValidator.IsValid(idKey))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid IdKey format",
-                Detail = IdKeyValidator.GetErrorMessage("idKey"),
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
         var result = await scheduleService.UpdateAsync(idKey, request, ct);
 
         if (result.IsFailure)
@@ -252,17 +232,6 @@ public class SchedulesController(
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> Delete(string idKey, CancellationToken ct = default)
     {
-        if (!IdKeyValidator.IsValid(idKey))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid IdKey format",
-                Detail = IdKeyValidator.GetErrorMessage("idKey"),
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
         var result = await scheduleService.DeleteAsync(idKey, ct);
 
         if (result.IsFailure)
@@ -290,7 +259,7 @@ public class SchedulesController(
             };
         }
 
-        logger.LogInformation("Schedule deactivated successfully: IdKey={IdKey}", idKey);
+        logger.LogDebug("Schedule deactivated successfully: IdKey={IdKey}", idKey);
 
         return NoContent();
     }
@@ -314,17 +283,6 @@ public class SchedulesController(
         [FromQuery] int count = 10,
         CancellationToken ct = default)
     {
-        if (!IdKeyValidator.IsValid(idKey))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid IdKey format",
-                Detail = IdKeyValidator.GetErrorMessage("idKey"),
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
         if (count < 1 || count > 52)
         {
             return BadRequest(new ProblemDetails

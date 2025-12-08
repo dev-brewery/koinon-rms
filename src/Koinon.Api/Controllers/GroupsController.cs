@@ -1,3 +1,4 @@
+using Koinon.Api.Filters;
 using Koinon.Api.Helpers;
 using Koinon.Application.Common;
 using Koinon.Application.DTOs;
@@ -15,6 +16,7 @@ namespace Koinon.Api.Controllers;
 [ApiController]
 [Route("api/v1/[controller]")]
 [Authorize]
+[ValidateIdKey]
 public class GroupsController(
     IGroupService groupService,
     ILogger<GroupsController> logger) : ControllerBase
@@ -46,40 +48,6 @@ public class GroupsController(
         [FromQuery] int pageSize = 25,
         CancellationToken ct = default)
     {
-        // Validate optional IdKey parameters
-        if (!string.IsNullOrWhiteSpace(groupTypeId) && !IdKeyValidator.IsValid(groupTypeId))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid IdKey format",
-                Detail = IdKeyValidator.GetErrorMessage("groupTypeId"),
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
-        if (!string.IsNullOrWhiteSpace(campusId) && !IdKeyValidator.IsValid(campusId))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid IdKey format",
-                Detail = IdKeyValidator.GetErrorMessage("campusId"),
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
-        if (!string.IsNullOrWhiteSpace(parentGroupId) && !IdKeyValidator.IsValid(parentGroupId))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid IdKey format",
-                Detail = IdKeyValidator.GetErrorMessage("parentGroupId"),
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
         var parameters = new GroupSearchParameters
         {
             Query = query,
@@ -114,22 +82,11 @@ public class GroupsController(
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetByIdKey(string idKey, CancellationToken ct = default)
     {
-        if (!IdKeyValidator.IsValid(idKey))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid IdKey format",
-                Detail = IdKeyValidator.GetErrorMessage("idKey"),
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
         var group = await groupService.GetByIdKeyAsync(idKey, ct);
 
         if (group == null)
         {
-            logger.LogWarning("Group not found: IdKey={IdKey}", idKey);
+            logger.LogDebug("Group not found: IdKey={IdKey}", idKey);
 
             return NotFound(new ProblemDetails
             {
@@ -140,7 +97,7 @@ public class GroupsController(
             });
         }
 
-        logger.LogInformation("Group retrieved: IdKey={IdKey}, Name={Name}", idKey, group.Name);
+        logger.LogDebug("Group retrieved: IdKey={IdKey}, Name={Name}", idKey, group.Name);
 
         return Ok(group);
     }
@@ -223,17 +180,6 @@ public class GroupsController(
         [FromBody] UpdateGroupRequest request,
         CancellationToken ct = default)
     {
-        if (!IdKeyValidator.IsValid(idKey))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid IdKey format",
-                Detail = IdKeyValidator.GetErrorMessage("idKey"),
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
         var result = await groupService.UpdateAsync(idKey, request, ct);
 
         if (result.IsFailure)
@@ -295,17 +241,6 @@ public class GroupsController(
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> Delete(string idKey, CancellationToken ct = default)
     {
-        if (!IdKeyValidator.IsValid(idKey))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid IdKey format",
-                Detail = IdKeyValidator.GetErrorMessage("idKey"),
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
         var result = await groupService.DeleteAsync(idKey, ct);
 
         if (result.IsFailure)
@@ -333,7 +268,7 @@ public class GroupsController(
             };
         }
 
-        logger.LogInformation("Group archived successfully: IdKey={IdKey}", idKey);
+        logger.LogDebug("Group archived successfully: IdKey={IdKey}", idKey);
 
         return NoContent();
     }
@@ -351,17 +286,6 @@ public class GroupsController(
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetMembers(string idKey, CancellationToken ct = default)
     {
-        if (!IdKeyValidator.IsValid(idKey))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid IdKey format",
-                Detail = IdKeyValidator.GetErrorMessage("idKey"),
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
         var members = await groupService.GetMembersAsync(idKey, ct);
 
         logger.LogInformation(
@@ -392,17 +316,6 @@ public class GroupsController(
         [FromBody] AddGroupMemberRequest request,
         CancellationToken ct = default)
     {
-        if (!IdKeyValidator.IsValid(idKey))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid IdKey format",
-                Detail = IdKeyValidator.GetErrorMessage("idKey"),
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
         var result = await groupService.AddMemberAsync(idKey, request, ct);
 
         if (result.IsFailure)
@@ -471,28 +384,6 @@ public class GroupsController(
         string personIdKey,
         CancellationToken ct = default)
     {
-        if (!IdKeyValidator.IsValid(idKey))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid IdKey format",
-                Detail = IdKeyValidator.GetErrorMessage("idKey"),
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
-        if (!IdKeyValidator.IsValid(personIdKey))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid IdKey format",
-                Detail = IdKeyValidator.GetErrorMessage("personIdKey"),
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
         var result = await groupService.RemoveMemberAsync(idKey, personIdKey, ct);
 
         if (result.IsFailure)
@@ -540,17 +431,6 @@ public class GroupsController(
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetChildren(string idKey, CancellationToken ct = default)
     {
-        if (!IdKeyValidator.IsValid(idKey))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid IdKey format",
-                Detail = IdKeyValidator.GetErrorMessage("idKey"),
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
         var childGroups = await groupService.GetChildGroupsAsync(idKey, ct);
 
         logger.LogInformation(
@@ -573,17 +453,6 @@ public class GroupsController(
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetSchedules(string idKey, CancellationToken ct = default)
     {
-        if (!IdKeyValidator.IsValid(idKey))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid IdKey format",
-                Detail = IdKeyValidator.GetErrorMessage("idKey"),
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
         var schedules = await groupService.GetSchedulesAsync(idKey, ct);
 
         logger.LogInformation(
@@ -614,17 +483,6 @@ public class GroupsController(
         [FromBody] AddGroupScheduleRequest request,
         CancellationToken ct = default)
     {
-        if (!IdKeyValidator.IsValid(idKey))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid IdKey format",
-                Detail = IdKeyValidator.GetErrorMessage("idKey"),
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
         var result = await groupService.AddScheduleAsync(idKey, request, ct);
 
         if (result.IsFailure)
@@ -690,28 +548,6 @@ public class GroupsController(
         string scheduleIdKey,
         CancellationToken ct = default)
     {
-        if (!IdKeyValidator.IsValid(idKey))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid IdKey format",
-                Detail = IdKeyValidator.GetErrorMessage("idKey"),
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
-        if (!IdKeyValidator.IsValid(scheduleIdKey))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid IdKey format",
-                Detail = IdKeyValidator.GetErrorMessage("scheduleIdKey"),
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
         var result = await groupService.RemoveScheduleAsync(idKey, scheduleIdKey, ct);
 
         if (result.IsFailure)

@@ -1,4 +1,5 @@
 using Koinon.Api.Attributes;
+using Koinon.Api.Filters;
 using Koinon.Api.Helpers;
 using Koinon.Application.DTOs;
 using Koinon.Application.Interfaces;
@@ -15,6 +16,7 @@ namespace Koinon.Api.Controllers;
 [ApiController]
 [Route("api/v1/[controller]")]
 [Authorize]
+[ValidateIdKey]
 public class CheckinController(
     ICheckinConfigurationService configurationService,
     ICheckinSearchService searchService,
@@ -41,12 +43,12 @@ public class CheckinController(
         [FromQuery] string campusId,
         CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(campusId) || !IdKeyValidator.IsValid(campusId))
+        if (string.IsNullOrWhiteSpace(campusId))
         {
             return BadRequest(new ProblemDetails
             {
                 Title = "Invalid request",
-                Detail = "Campus IdKey is required and must be in valid format",
+                Detail = "Campus IdKey is required",
                 Status = StatusCodes.Status400BadRequest,
                 Instance = HttpContext.Request.Path
             });
@@ -89,29 +91,6 @@ public class CheckinController(
             {
                 Title = "Invalid request",
                 Detail = "Either campusId or kioskId must be provided",
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
-        // Validate IdKey formats
-        if (!string.IsNullOrWhiteSpace(campusId) && !IdKeyValidator.IsValid(campusId))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid request",
-                Detail = "Campus IdKey must be in valid format",
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
-        if (!string.IsNullOrWhiteSpace(kioskId) && !IdKeyValidator.IsValid(kioskId))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid request",
-                Detail = "Kiosk IdKey must be in valid format",
                 Status = StatusCodes.Status400BadRequest,
                 Instance = HttpContext.Request.Path
             });
@@ -270,17 +249,6 @@ public class CheckinController(
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> CheckOut(string attendanceIdKey, CancellationToken ct = default)
     {
-        if (!IdKeyValidator.IsValid(attendanceIdKey))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid request",
-                Detail = "Attendance IdKey must be in valid format",
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
         var success = await attendanceService.CheckOutAsync(attendanceIdKey, ct);
 
         if (!success)
@@ -319,17 +287,6 @@ public class CheckinController(
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetAttendanceLabels(string attendanceIdKey, CancellationToken ct = default)
     {
-        if (!IdKeyValidator.IsValid(attendanceIdKey))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid request",
-                Detail = "Attendance IdKey must be in valid format",
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
         var request = new LabelRequestDto
         {
             AttendanceIdKey = attendanceIdKey
@@ -378,17 +335,6 @@ public class CheckinController(
         string locationIdKey,
         CancellationToken ct = default)
     {
-        if (!IdKeyValidator.IsValid(locationIdKey))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid request",
-                Detail = "Location IdKey must be in valid format",
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
         var attendance = await attendanceService.GetCurrentAttendanceAsync(locationIdKey, ct);
 
         logger.LogInformation(
@@ -519,17 +465,6 @@ public class CheckinController(
         string attendanceIdKey,
         CancellationToken ct = default)
     {
-        if (!IdKeyValidator.IsValid(attendanceIdKey))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid request",
-                Detail = "Attendance IdKey must be in valid format",
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
         // Read session token from header
         if (!HttpContext.Request.Headers.TryGetValue("X-Supervisor-Session", out var sessionToken) ||
             string.IsNullOrWhiteSpace(sessionToken))
