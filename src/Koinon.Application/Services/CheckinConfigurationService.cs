@@ -90,123 +90,16 @@ public class CheckinConfigurationService(
         currentTime ??= DateTime.UtcNow;
         var currentDate = DateOnly.FromDateTime(currentTime.Value);
 
-        // Get all groups that are check-in areas for this campus
-        // Check-in areas are top-level groups where GroupType.TakesAttendance = true
-        // (groups without a parent or whose parent doesn't take attendance)
-        var areas = await Context.Groups
-            .AsNoTracking()
-            .Include(g => g.GroupType)
-                .ThenInclude(gt => gt!.Roles)
-            .Include(g => g.GroupSchedules)
-                .ThenInclude(gs => gs.Schedule)
-            .Include(g => g.Schedule)  // Keep for backwards compatibility
-            .Include(g => g.Campus)
-            .Include(g => g.ParentGroup)
-                .ThenInclude(pg => pg!.GroupType)
-            .Where(g => g.CampusId == campusId
-                && g.IsActive
-                && !g.IsArchived
-                && g.GroupType!.TakesAttendance
-                && (!g.ParentGroupId.HasValue || !g.ParentGroup!.GroupType!.TakesAttendance))
-            .OrderBy(g => g.Order)
-            .ThenBy(g => g.Name)
-            .ToListAsync(ct);
-
+        // Get all active check-in areas for this campus
+        var areas = await LoadAreasForCampusAsync(campusId, ct);
         var areaIds = areas.Select(a => a.Id).ToList();
 
-        // Get locations for each area (child groups that are rooms/classrooms)
-        var locations = await Context.Groups
-            .AsNoTracking()
-            .Include(g => g.GroupType)
-            .Where(g => g.ParentGroupId.HasValue
-                && areaIds.Contains(g.ParentGroupId.Value)
-                && g.IsActive
-                && !g.IsArchived)
-            .ToListAsync(ct);
+        // Load locations and attendance data
+        var locations = await LoadLocationsForAreasAsync(areaIds, ct);
+        var attendanceCounts = await LoadAttendanceCountsAsync(locations, currentDate, ct);
 
-        var locationGroupIds = locations.Select(l => l.Id).ToList();
-
-        // Get current attendance counts for capacity tracking
-        // Use SelectMany + GroupBy pattern to avoid N+1 queries
-        var attendanceCounts = await Context.AttendanceOccurrences
-            .AsNoTracking()
-            .Where(o => o.OccurrenceDate == currentDate
-                && o.GroupId.HasValue
-                && locationGroupIds.Contains(o.GroupId.Value))
-            .SelectMany(o => o.Attendances
-                .Where(a => a.EndDateTime == null) // Only count people who haven't checked out
-                .Select(a => o.GroupId!.Value))
-            .GroupBy(gid => gid)
-            .Select(g => new { GroupId = g.Key, Count = g.Count() })
-            .ToDictionaryAsync(x => x.GroupId, x => x.Count, ct);
-
-        var result = new List<CheckinAreaDto>();
-
-        foreach (var area in areas)
-        {
-            // Get locations for this area
-            var areaLocations = locations
-                .Where(l => l.ParentGroupId == area.Id)
-                .Select(l => MapToCheckinLocationDto(l, attendanceCounts, currentDate))
-                .ToList();
-
-            // Calculate overall capacity status for the area
-            var capacityStatus = CalculateAreaCapacityStatus(areaLocations);
-
-            // Check if area is currently open based on schedule (use GroupSchedules first, fall back to Schedule)
-            ScheduleDto? scheduleDto = null;
-            if (area.GroupSchedules?.Any() == true)
-            {
-                // Find first active schedule in the check-in window
-                var activeGroupSchedule = area.GroupSchedules
-                    .Where(gs => gs.Schedule != null && gs.Schedule.IsActive)
-                    .OrderBy(gs => gs.Order)
-                    .FirstOrDefault(gs => IsScheduleCheckinActive(gs.Schedule!, currentTime.Value));
-
-                if (activeGroupSchedule?.Schedule != null)
-                {
-                    scheduleDto = MapToScheduleDto(activeGroupSchedule.Schedule, currentTime.Value);
-                }
-            }
-            // Fall back to legacy single Schedule
-            else if (area.Schedule != null)
-            {
-                scheduleDto = MapToScheduleDto(area.Schedule, currentTime.Value);
-            }
-
-            result.Add(new CheckinAreaDto
-            {
-                IdKey = area.IdKey,
-                Guid = area.Guid,
-                Name = area.Name,
-                Description = area.Description,
-                GroupType = new GroupTypeDto
-                {
-                    IdKey = area.GroupType!.IdKey,
-                    Guid = area.GroupType.Guid,
-                    Name = area.GroupType.Name,
-                    Description = area.GroupType.Description,
-                    IsFamilyGroupType = area.GroupType.IsFamilyGroupType,
-                    AllowMultipleLocations = area.GroupType.AllowMultipleLocations,
-                    Roles = area.GroupType.Roles
-                        .Select(r => new GroupTypeRoleDto
-                        {
-                            IdKey = r.IdKey,
-                            Name = r.Name,
-                            IsLeader = r.IsLeader
-                        })
-                        .ToList()
-                },
-                Locations = areaLocations,
-                Schedule = scheduleDto,
-                IsActive = area.IsActive,
-                CapacityStatus = capacityStatus,
-                MinAgeMonths = area.MinAgeMonths,
-                MaxAgeMonths = area.MaxAgeMonths,
-                MinGrade = area.MinGrade,
-                MaxGrade = area.MaxGrade
-            });
-        }
+        // Build area DTOs with capacity and schedule info
+        var result = BuildAreaDtos(areas, locations, attendanceCounts, currentTime.Value, currentDate);
 
         Logger.LogInformation(
             "Retrieved {Count} active check-in areas for campus {CampusId}",
@@ -226,18 +119,7 @@ public class CheckinConfigurationService(
             return null;
         }
 
-        var area = await Context.Groups
-            .AsNoTracking()
-            .Include(g => g.GroupType)
-                .ThenInclude(gt => gt!.Roles)
-            .Include(g => g.GroupSchedules)
-                .ThenInclude(gs => gs.Schedule)
-            .Include(g => g.Schedule)  // Keep for backwards compatibility
-            .Include(g => g.Campus)
-            .FirstOrDefaultAsync(g => g.Id == areaId
-                && g.GroupType!.TakesAttendance
-                && !g.IsArchived, ct);
-
+        var area = await LoadAreaByIdAsync(areaId, ct);
         if (area is null)
         {
             return null;
@@ -246,90 +128,13 @@ public class CheckinConfigurationService(
         var currentTime = DateTime.UtcNow;
         var currentDate = DateOnly.FromDateTime(currentTime);
 
-        // Get locations for this area
-        var locations = await Context.Groups
-            .AsNoTracking()
-            .Include(g => g.GroupType)
-            .Where(g => g.ParentGroupId == areaId
-                && g.IsActive
-                && !g.IsArchived)
-            .ToListAsync(ct);
+        // Load locations and attendance data for this specific area
+        var locations = await LoadLocationsForAreasAsync(new[] { areaId }, ct);
+        var attendanceCounts = await LoadAttendanceCountsAsync(locations, currentDate, ct);
 
-        var locationGroupIds = locations.Select(l => l.Id).ToList();
-
-        // Get current attendance counts
-        // Use SelectMany + GroupBy pattern to avoid N+1 queries
-        var attendanceCounts = await Context.AttendanceOccurrences
-            .AsNoTracking()
-            .Where(o => o.OccurrenceDate == currentDate
-                && o.GroupId.HasValue
-                && locationGroupIds.Contains(o.GroupId.Value))
-            .SelectMany(o => o.Attendances
-                .Where(a => a.EndDateTime == null)
-                .Select(a => o.GroupId!.Value))
-            .GroupBy(gid => gid)
-            .Select(g => new { GroupId = g.Key, Count = g.Count() })
-            .ToDictionaryAsync(x => x.GroupId, x => x.Count, ct);
-
-        var locationDtos = locations
-            .Select(l => MapToCheckinLocationDto(l, attendanceCounts, currentDate))
-            .ToList();
-
-        var capacityStatus = CalculateAreaCapacityStatus(locationDtos);
-
-        // Check if area is currently open based on schedule (use GroupSchedules first, fall back to Schedule)
-        ScheduleDto? scheduleDto = null;
-        if (area.GroupSchedules?.Any() == true)
-        {
-            // Find first active schedule in the check-in window
-            var activeGroupSchedule = area.GroupSchedules
-                .Where(gs => gs.Schedule != null && gs.Schedule.IsActive)
-                .OrderBy(gs => gs.Order)
-                .FirstOrDefault(gs => IsScheduleCheckinActive(gs.Schedule!, currentTime));
-
-            if (activeGroupSchedule?.Schedule != null)
-            {
-                scheduleDto = MapToScheduleDto(activeGroupSchedule.Schedule, currentTime);
-            }
-        }
-        // Fall back to legacy single Schedule
-        else if (area.Schedule != null)
-        {
-            scheduleDto = MapToScheduleDto(area.Schedule, currentTime);
-        }
-
-        return new CheckinAreaDto
-        {
-            IdKey = area.IdKey,
-            Guid = area.Guid,
-            Name = area.Name,
-            Description = area.Description,
-            GroupType = new GroupTypeDto
-            {
-                IdKey = area.GroupType!.IdKey,
-                Guid = area.GroupType.Guid,
-                Name = area.GroupType.Name,
-                Description = area.GroupType.Description,
-                IsFamilyGroupType = area.GroupType.IsFamilyGroupType,
-                AllowMultipleLocations = area.GroupType.AllowMultipleLocations,
-                Roles = area.GroupType.Roles
-                    .Select(r => new GroupTypeRoleDto
-                    {
-                        IdKey = r.IdKey,
-                        Name = r.Name,
-                        IsLeader = r.IsLeader
-                    })
-                    .ToList()
-            },
-            Locations = locationDtos,
-            Schedule = scheduleDto,
-            IsActive = area.IsActive,
-            CapacityStatus = capacityStatus,
-            MinAgeMonths = area.MinAgeMonths,
-            MaxAgeMonths = area.MaxAgeMonths,
-            MinGrade = area.MinGrade,
-            MaxGrade = area.MaxGrade
-        };
+        // Build single area DTO
+        var areaDto = BuildAreaDto(area, locations, attendanceCounts, currentTime, currentDate);
+        return areaDto;
     }
 
     public async Task<CheckinLocationDto?> GetLocationCapacityAsync(
@@ -439,7 +244,206 @@ public class CheckinConfigurationService(
         return IsScheduleCheckinActive(schedule, currentTime.Value);
     }
 
-    // Private helper methods
+    // Private helper methods - Data Loading
+
+    /// <summary>
+    /// Loads check-in areas for a campus with all required relationships.
+    /// </summary>
+    private async Task<List<Domain.Entities.Group>> LoadAreasForCampusAsync(
+        int campusId,
+        CancellationToken ct)
+    {
+        return await Context.Groups
+            .AsNoTracking()
+            .Include(g => g.GroupType)
+                .ThenInclude(gt => gt!.Roles)
+            .Include(g => g.GroupSchedules)
+                .ThenInclude(gs => gs.Schedule)
+            .Include(g => g.Schedule)  // Keep for backwards compatibility
+            .Include(g => g.Campus)
+            .Include(g => g.ParentGroup)
+                .ThenInclude(pg => pg!.GroupType)
+            .Where(g => g.CampusId == campusId
+                && g.IsActive
+                && !g.IsArchived
+                && g.GroupType!.TakesAttendance
+                && (!g.ParentGroupId.HasValue || !g.ParentGroup!.GroupType!.TakesAttendance))
+            .OrderBy(g => g.Order)
+            .ThenBy(g => g.Name)
+            .ToListAsync(ct);
+    }
+
+    /// <summary>
+    /// Loads a single check-in area by ID with all required relationships.
+    /// </summary>
+    private async Task<Domain.Entities.Group?> LoadAreaByIdAsync(
+        int areaId,
+        CancellationToken ct)
+    {
+        return await Context.Groups
+            .AsNoTracking()
+            .Include(g => g.GroupType)
+                .ThenInclude(gt => gt!.Roles)
+            .Include(g => g.GroupSchedules)
+                .ThenInclude(gs => gs.Schedule)
+            .Include(g => g.Schedule)  // Keep for backwards compatibility
+            .Include(g => g.Campus)
+            .FirstOrDefaultAsync(g => g.Id == areaId
+                && g.GroupType!.TakesAttendance
+                && !g.IsArchived, ct);
+    }
+
+    /// <summary>
+    /// Loads child location groups for the given area IDs.
+    /// </summary>
+    private async Task<List<Domain.Entities.Group>> LoadLocationsForAreasAsync(
+        IEnumerable<int> areaIds,
+        CancellationToken ct)
+    {
+        return await Context.Groups
+            .AsNoTracking()
+            .Include(g => g.GroupType)
+            .Where(g => g.ParentGroupId.HasValue
+                && areaIds.Contains(g.ParentGroupId.Value)
+                && g.IsActive
+                && !g.IsArchived)
+            .ToListAsync(ct);
+    }
+
+    /// <summary>
+    /// Loads current attendance counts for the given location groups.
+    /// </summary>
+    private async Task<Dictionary<int, int>> LoadAttendanceCountsAsync(
+        List<Domain.Entities.Group> locations,
+        DateOnly currentDate,
+        CancellationToken ct)
+    {
+        var locationGroupIds = locations.Select(l => l.Id).ToList();
+
+        if (locationGroupIds.Count == 0)
+        {
+            return new Dictionary<int, int>();
+        }
+
+        return await Context.AttendanceOccurrences
+            .AsNoTracking()
+            .Where(o => o.OccurrenceDate == currentDate
+                && o.GroupId.HasValue
+                && locationGroupIds.Contains(o.GroupId.Value))
+            .SelectMany(o => o.Attendances
+                .Where(a => a.EndDateTime == null)
+                .Select(a => o.GroupId!.Value))
+            .GroupBy(gid => gid)
+            .Select(g => new { GroupId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.GroupId, x => x.Count, ct);
+    }
+
+    // Private helper methods - DTO Building
+
+    /// <summary>
+    /// Builds CheckinAreaDto objects for multiple areas.
+    /// </summary>
+    private List<CheckinAreaDto> BuildAreaDtos(
+        List<Domain.Entities.Group> areas,
+        List<Domain.Entities.Group> locations,
+        Dictionary<int, int> attendanceCounts,
+        DateTime currentTime,
+        DateOnly currentDate)
+    {
+        return areas
+            .Select(area => BuildAreaDto(area, locations, attendanceCounts, currentTime, currentDate))
+            .ToList();
+    }
+
+    /// <summary>
+    /// Builds a single CheckinAreaDto from loaded data.
+    /// </summary>
+    private CheckinAreaDto BuildAreaDto(
+        Domain.Entities.Group area,
+        List<Domain.Entities.Group> allLocations,
+        Dictionary<int, int> attendanceCounts,
+        DateTime currentTime,
+        DateOnly currentDate)
+    {
+        // Filter locations for this specific area
+        var areaLocations = allLocations
+            .Where(l => l.ParentGroupId == area.Id)
+            .Select(l => MapToCheckinLocationDto(l, attendanceCounts, currentDate))
+            .ToList();
+
+        var capacityStatus = CalculateAreaCapacityStatus(areaLocations);
+        var scheduleDto = GetAreaScheduleDto(area, currentTime);
+
+        return new CheckinAreaDto
+        {
+            IdKey = area.IdKey,
+            Guid = area.Guid,
+            Name = area.Name,
+            Description = area.Description,
+            GroupType = MapToGroupTypeDto(area.GroupType!),
+            Locations = areaLocations,
+            Schedule = scheduleDto,
+            IsActive = area.IsActive,
+            CapacityStatus = capacityStatus,
+            MinAgeMonths = area.MinAgeMonths,
+            MaxAgeMonths = area.MaxAgeMonths,
+            MinGrade = area.MinGrade,
+            MaxGrade = area.MaxGrade
+        };
+    }
+
+    /// <summary>
+    /// Gets the active schedule DTO for an area (checks GroupSchedules first, falls back to Schedule).
+    /// </summary>
+    private ScheduleDto? GetAreaScheduleDto(Domain.Entities.Group area, DateTime currentTime)
+    {
+        if (area.GroupSchedules?.Any() == true)
+        {
+            var activeGroupSchedule = area.GroupSchedules
+                .Where(gs => gs.Schedule != null && gs.Schedule.IsActive)
+                .OrderBy(gs => gs.Order)
+                .FirstOrDefault(gs => IsScheduleCheckinActive(gs.Schedule!, currentTime));
+
+            if (activeGroupSchedule?.Schedule != null)
+            {
+                return MapToScheduleDto(activeGroupSchedule.Schedule, currentTime);
+            }
+        }
+
+        // Fall back to legacy single Schedule
+        if (area.Schedule != null)
+        {
+            return MapToScheduleDto(area.Schedule, currentTime);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Maps a GroupType entity to a GroupTypeDto.
+    /// </summary>
+    private static GroupTypeDto MapToGroupTypeDto(Domain.Entities.GroupType groupType)
+    {
+        return new GroupTypeDto
+        {
+            IdKey = groupType.IdKey,
+            Guid = groupType.Guid,
+            Name = groupType.Name,
+            Description = groupType.Description,
+            IsFamilyGroupType = groupType.IsFamilyGroupType,
+            AllowMultipleLocations = groupType.AllowMultipleLocations,
+            Roles = groupType.Roles
+                .Select(r => new GroupTypeRoleDto
+                {
+                    IdKey = r.IdKey,
+                    Name = r.Name,
+                    IsLeader = r.IsLeader
+                })
+                .ToList()
+        };
+    }
+
+    // Private helper methods - Mapping
 
     private static CheckinLocationDto MapToCheckinLocationDto(
         Domain.Entities.Group locationGroup,
@@ -605,6 +609,13 @@ public class CheckinConfigurationService(
 
         currentDate ??= DateOnly.FromDateTime(DateTime.UtcNow);
 
+        // Validate age and grade ranges for all areas
+        foreach (var area in areas)
+        {
+            ValidateAgeRange(area.MinAgeMonths, area.MaxAgeMonths, area.Name);
+            ValidateGradeRange(area.MinGrade, area.MaxGrade, area.Name);
+        }
+
         // Calculate person's age in months and grade
         var personAgeInMonths = _gradeCalculationService.CalculateAgeInMonths(personBirthDate, currentDate);
         var personGrade = _gradeCalculationService.CalculateGrade(personGraduationYear, currentDate);
@@ -613,6 +624,111 @@ public class CheckinConfigurationService(
         return areas
             .Where(area => IsAreaEligibleForPerson(area, personAgeInMonths, personGrade))
             .ToList();
+    }
+
+    // Private helper methods - Validation
+
+    /// <summary>
+    /// Validates that age range is properly configured.
+    /// </summary>
+    /// <exception cref="ArgumentException">Thrown when age range is invalid.</exception>
+    private static void ValidateAgeRange(int? minAgeMonths, int? maxAgeMonths, string areaName)
+    {
+        if (!minAgeMonths.HasValue && !maxAgeMonths.HasValue)
+        {
+            return; // No age range specified is valid
+        }
+
+        // Both values must be non-negative
+        if (minAgeMonths < 0)
+        {
+            throw new ArgumentException(
+                $"MinAgeMonths cannot be negative for area '{areaName}'. Value: {minAgeMonths}",
+                nameof(minAgeMonths));
+        }
+
+        if (maxAgeMonths < 0)
+        {
+            throw new ArgumentException(
+                $"MaxAgeMonths cannot be negative for area '{areaName}'. Value: {maxAgeMonths}",
+                nameof(maxAgeMonths));
+        }
+
+        // Min must be less than or equal to max when both are specified
+        if (minAgeMonths.HasValue && maxAgeMonths.HasValue && minAgeMonths.Value > maxAgeMonths.Value)
+        {
+            throw new ArgumentException(
+                $"MinAgeMonths ({minAgeMonths}) cannot be greater than MaxAgeMonths ({maxAgeMonths}) for area '{areaName}'",
+                nameof(minAgeMonths));
+        }
+
+        // Reasonable upper bound: 1200 months = 100 years
+        const int MaxReasonableAgeMonths = 1200;
+        if (minAgeMonths > MaxReasonableAgeMonths)
+        {
+            throw new ArgumentException(
+                $"MinAgeMonths ({minAgeMonths}) exceeds reasonable limit ({MaxReasonableAgeMonths} months) for area '{areaName}'",
+                nameof(minAgeMonths));
+        }
+
+        if (maxAgeMonths > MaxReasonableAgeMonths)
+        {
+            throw new ArgumentException(
+                $"MaxAgeMonths ({maxAgeMonths}) exceeds reasonable limit ({MaxReasonableAgeMonths} months) for area '{areaName}'",
+                nameof(maxAgeMonths));
+        }
+    }
+
+    /// <summary>
+    /// Validates that grade range is properly configured.
+    /// </summary>
+    /// <exception cref="ArgumentException">Thrown when grade range is invalid.</exception>
+    private static void ValidateGradeRange(int? minGrade, int? maxGrade, string areaName)
+    {
+        if (!minGrade.HasValue && !maxGrade.HasValue)
+        {
+            return; // No grade range specified is valid
+        }
+
+        // Reasonable bounds: K-12 system uses -1 (Kindergarten) through 12
+        const int MinReasonableGrade = -1;  // Kindergarten
+        const int MaxReasonableGrade = 12;  // 12th grade
+
+        if (minGrade < MinReasonableGrade)
+        {
+            throw new ArgumentException(
+                $"MinGrade ({minGrade}) is below reasonable limit ({MinReasonableGrade}) for area '{areaName}'",
+                nameof(minGrade));
+        }
+
+        if (maxGrade < MinReasonableGrade)
+        {
+            throw new ArgumentException(
+                $"MaxGrade ({maxGrade}) is below reasonable limit ({MinReasonableGrade}) for area '{areaName}'",
+                nameof(maxGrade));
+        }
+
+        if (minGrade > MaxReasonableGrade)
+        {
+            throw new ArgumentException(
+                $"MinGrade ({minGrade}) exceeds reasonable limit ({MaxReasonableGrade}) for area '{areaName}'",
+                nameof(minGrade));
+        }
+
+        if (maxGrade > MaxReasonableGrade)
+        {
+            throw new ArgumentException(
+                $"MaxGrade ({maxGrade}) exceeds reasonable limit ({MaxReasonableGrade}) for area '{areaName}'",
+                nameof(maxGrade));
+        }
+
+        // Min must be less than or equal to max when both are specified
+        if (minGrade.HasValue && maxGrade.HasValue && minGrade.Value > maxGrade.Value)
+        {
+            throw new ArgumentException(
+                $"MinGrade ({minGrade}) cannot be greater than MaxGrade ({maxGrade}) for area '{areaName}'",
+                nameof(minGrade));
+        }
     }
 
     private static bool IsAreaEligibleForPerson(
