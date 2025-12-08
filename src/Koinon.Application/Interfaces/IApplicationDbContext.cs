@@ -30,6 +30,7 @@ public interface IApplicationDbContext
     DbSet<RefreshToken> RefreshTokens { get; }
     DbSet<SupervisorSession> SupervisorSessions { get; }
     DbSet<SupervisorAuditLog> SupervisorAuditLogs { get; }
+    DbSet<FollowUp> FollowUps { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     EntityEntry<TEntity> Entry<TEntity>(TEntity entity) where TEntity : class;

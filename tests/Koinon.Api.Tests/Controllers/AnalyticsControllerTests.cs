@@ -13,14 +13,19 @@ namespace Koinon.Api.Tests.Controllers;
 public class AnalyticsControllerTests
 {
     private readonly Mock<IAttendanceAnalyticsService> _analyticsServiceMock;
+    private readonly Mock<IFirstTimeVisitorService> _firstTimeVisitorServiceMock;
     private readonly Mock<ILogger<AnalyticsController>> _loggerMock;
     private readonly AnalyticsController _controller;
 
     public AnalyticsControllerTests()
     {
         _analyticsServiceMock = new Mock<IAttendanceAnalyticsService>();
+        _firstTimeVisitorServiceMock = new Mock<IFirstTimeVisitorService>();
         _loggerMock = new Mock<ILogger<AnalyticsController>>();
-        _controller = new AnalyticsController(_analyticsServiceMock.Object, _loggerMock.Object);
+        _controller = new AnalyticsController(
+            _analyticsServiceMock.Object,
+            _firstTimeVisitorServiceMock.Object,
+            _loggerMock.Object);
 
         // Setup HttpContext for controller
         _controller.ControllerContext = new ControllerContext
@@ -272,6 +277,268 @@ public class AnalyticsControllerTests
         // Act & Assert
         var act = async () => await _controller.GetAttendanceByGroup(
             null, null, null, null, CancellationToken.None);
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("Database connection failed");
+    }
+
+    [Fact]
+    public async Task GetTodaysFirstTimeVisitors_ReturnsOk_WithVisitorData()
+    {
+        // Arrange
+        var expectedVisitors = new List<FirstTimeVisitorDto>
+        {
+            new()
+            {
+                PersonIdKey = "person1",
+                PersonName = "John Doe",
+                Email = "john@example.com",
+                PhoneNumber = "555-1234",
+                CheckInDateTime = DateTime.Today,
+                GroupName = "Children's Check-In",
+                GroupTypeName = "Check-in Area",
+                CampusName = "Main Campus",
+                HasFollowUp = false
+            },
+            new()
+            {
+                PersonIdKey = "person2",
+                PersonName = "Jane Smith",
+                Email = "jane@example.com",
+                PhoneNumber = "555-5678",
+                CheckInDateTime = DateTime.Today,
+                GroupName = "Youth Group",
+                GroupTypeName = "Small Group",
+                CampusName = "North Campus",
+                HasFollowUp = true
+            }
+        };
+
+        _firstTimeVisitorServiceMock
+            .Setup(s => s.GetTodaysFirstTimersAsync(It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedVisitors);
+
+        // Act
+        var result = await _controller.GetTodaysFirstTimeVisitors(null, CancellationToken.None);
+
+        // Assert
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var visitors = okResult.Value.Should().BeAssignableTo<IReadOnlyList<FirstTimeVisitorDto>>().Subject;
+
+        visitors.Should().HaveCount(2);
+        visitors[0].PersonName.Should().Be("John Doe");
+        visitors[0].Email.Should().Be("john@example.com");
+        visitors[1].PersonName.Should().Be("Jane Smith");
+        visitors[1].HasFollowUp.Should().BeTrue();
+
+        _firstTimeVisitorServiceMock.Verify(
+            s => s.GetTodaysFirstTimersAsync(It.IsAny<string?>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task GetTodaysFirstTimeVisitors_WithCampusFilter_PassesCampusIdKey()
+    {
+        // Arrange
+        var campusIdKey = "campus123";
+        string? capturedCampusIdKey = null;
+
+        _firstTimeVisitorServiceMock
+            .Setup(s => s.GetTodaysFirstTimersAsync(It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .Callback<string?, CancellationToken>((campus, _) => capturedCampusIdKey = campus)
+            .ReturnsAsync(new List<FirstTimeVisitorDto>());
+
+        // Act
+        await _controller.GetTodaysFirstTimeVisitors(campusIdKey, CancellationToken.None);
+
+        // Assert
+        capturedCampusIdKey.Should().Be(campusIdKey);
+    }
+
+    [Fact]
+    public async Task GetFirstTimeVisitorsByDateRange_ReturnsOk_WithVisitorData()
+    {
+        // Arrange
+        var startDate = new DateOnly(2024, 1, 1);
+        var endDate = new DateOnly(2024, 1, 31);
+        var expectedVisitors = new List<FirstTimeVisitorDto>
+        {
+            new()
+            {
+                PersonIdKey = "person1",
+                PersonName = "John Doe",
+                Email = "john@example.com",
+                PhoneNumber = "555-1234",
+                CheckInDateTime = new DateTime(2024, 1, 5),
+                GroupName = "Children's Check-In",
+                GroupTypeName = "Check-in Area",
+                CampusName = "Main Campus",
+                HasFollowUp = false
+            },
+            new()
+            {
+                PersonIdKey = "person2",
+                PersonName = "Jane Smith",
+                Email = "jane@example.com",
+                PhoneNumber = "555-5678",
+                CheckInDateTime = new DateTime(2024, 1, 15),
+                GroupName = "Youth Group",
+                GroupTypeName = "Small Group",
+                CampusName = "North Campus",
+                HasFollowUp = true
+            }
+        };
+
+        _firstTimeVisitorServiceMock
+            .Setup(s => s.GetFirstTimersByDateRangeAsync(
+                It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedVisitors);
+
+        // Act
+        var result = await _controller.GetFirstTimeVisitorsByDateRange(
+            startDate, endDate, null, CancellationToken.None);
+
+        // Assert
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var visitors = okResult.Value.Should().BeAssignableTo<IReadOnlyList<FirstTimeVisitorDto>>().Subject;
+
+        visitors.Should().HaveCount(2);
+        visitors[0].CheckInDateTime.Should().Be(new DateTime(2024, 1, 5));
+        visitors[1].CheckInDateTime.Should().Be(new DateTime(2024, 1, 15));
+
+        _firstTimeVisitorServiceMock.Verify(
+            s => s.GetFirstTimersByDateRangeAsync(startDate, endDate, null, It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task GetFirstTimeVisitorsByDateRange_WithCampusFilter_PassesAllParameters()
+    {
+        // Arrange
+        var startDate = new DateOnly(2024, 1, 1);
+        var endDate = new DateOnly(2024, 1, 31);
+        var campusIdKey = "campus123";
+
+        DateOnly? capturedStartDate = null;
+        DateOnly? capturedEndDate = null;
+        string? capturedCampusIdKey = null;
+
+        _firstTimeVisitorServiceMock
+            .Setup(s => s.GetFirstTimersByDateRangeAsync(
+                It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .Callback<DateOnly, DateOnly, string?, CancellationToken>(
+                (start, end, campus, _) =>
+                {
+                    capturedStartDate = start;
+                    capturedEndDate = end;
+                    capturedCampusIdKey = campus;
+                })
+            .ReturnsAsync(new List<FirstTimeVisitorDto>());
+
+        // Act
+        await _controller.GetFirstTimeVisitorsByDateRange(
+            startDate, endDate, campusIdKey, CancellationToken.None);
+
+        // Assert
+        capturedStartDate.Should().Be(startDate);
+        capturedEndDate.Should().Be(endDate);
+        capturedCampusIdKey.Should().Be(campusIdKey);
+    }
+
+    [Fact]
+    public async Task GetFirstTimeVisitorsByDateRange_WithMissingStartDate_ReturnsBadRequest()
+    {
+        // Arrange
+        var endDate = new DateOnly(2024, 1, 31);
+
+        // Act
+        var result = await _controller.GetFirstTimeVisitorsByDateRange(
+            null, endDate, null, CancellationToken.None);
+
+        // Assert
+        var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
+        var problemDetails = badRequestResult.Value.Should().BeOfType<ProblemDetails>().Subject;
+        problemDetails.Detail.Should().Be("Both startDate and endDate are required.");
+
+        _firstTimeVisitorServiceMock.Verify(
+            s => s.GetFirstTimersByDateRangeAsync(
+                It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task GetFirstTimeVisitorsByDateRange_WithMissingEndDate_ReturnsBadRequest()
+    {
+        // Arrange
+        var startDate = new DateOnly(2024, 1, 1);
+
+        // Act
+        var result = await _controller.GetFirstTimeVisitorsByDateRange(
+            startDate, null, null, CancellationToken.None);
+
+        // Assert
+        var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
+        var problemDetails = badRequestResult.Value.Should().BeOfType<ProblemDetails>().Subject;
+        problemDetails.Detail.Should().Be("Both startDate and endDate are required.");
+
+        _firstTimeVisitorServiceMock.Verify(
+            s => s.GetFirstTimersByDateRangeAsync(
+                It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task GetFirstTimeVisitorsByDateRange_WithStartDateAfterEndDate_ReturnsBadRequest()
+    {
+        // Arrange
+        var startDate = new DateOnly(2024, 1, 31);
+        var endDate = new DateOnly(2024, 1, 1);
+
+        // Act
+        var result = await _controller.GetFirstTimeVisitorsByDateRange(
+            startDate, endDate, null, CancellationToken.None);
+
+        // Assert
+        var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
+        var problemDetails = badRequestResult.Value.Should().BeOfType<ProblemDetails>().Subject;
+        problemDetails.Detail.Should().Be("startDate must be less than or equal to endDate.");
+
+        _firstTimeVisitorServiceMock.Verify(
+            s => s.GetFirstTimersByDateRangeAsync(
+                It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task GetTodaysFirstTimeVisitors_WhenServiceThrows_PropagatesException()
+    {
+        // Arrange
+        _firstTimeVisitorServiceMock
+            .Setup(s => s.GetTodaysFirstTimersAsync(It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Database connection failed"));
+
+        // Act & Assert
+        var act = async () => await _controller.GetTodaysFirstTimeVisitors(null, CancellationToken.None);
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("Database connection failed");
+    }
+
+    [Fact]
+    public async Task GetFirstTimeVisitorsByDateRange_WhenServiceThrows_PropagatesException()
+    {
+        // Arrange
+        var startDate = new DateOnly(2024, 1, 1);
+        var endDate = new DateOnly(2024, 1, 31);
+
+        _firstTimeVisitorServiceMock
+            .Setup(s => s.GetFirstTimersByDateRangeAsync(
+                It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Database connection failed"));
+
+        // Act & Assert
+        var act = async () => await _controller.GetFirstTimeVisitorsByDateRange(
+            startDate, endDate, null, CancellationToken.None);
 
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("Database connection failed");
