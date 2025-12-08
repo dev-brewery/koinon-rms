@@ -211,9 +211,8 @@ jobs:
     - name: Create migration database
       if: steps.check-migrations.outputs.migrations_found == 'true'
       run: |
-        PGPASSWORD=koinon_test psql -h localhost -U koinon -d postgres -c "CREATE DATABASE koinon;"
-        PGPASSWORD=koinon_test psql -h localhost -U koinon -d koinon_test -c "ALTER USER koinon WITH PASSWORD 'koinon';"
-
+        # Database koinon_test already created by service, no need to create
+        echo "Using existing koinon_test database for migration validation"
     - name: Validate migrations can apply
       if: steps.check-migrations.outputs.migrations_found == 'true'
       run: |
@@ -231,7 +230,7 @@ jobs:
         echo "✅ All migrations validated successfully"
 
       env:
-        ConnectionStrings__KoinonDb: "Host=localhost;Port=5432;Database=koinon;Username=koinon;Password=koinon"
+        ConnectionStrings__KoinonDb: "Host=localhost;Port=5432;Database=koinon_test;Username=koinon;Password=koinon_test"
         Jwt__Secret: "ci-test-jwt-secret-key-minimum-32-characters-long"
         Jwt__Issuer: "koinon-ci-test"
         Jwt__Audience: "koinon-ci-test"
