@@ -12,11 +12,6 @@ public partial class AddFollowUpEntity : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.RenameIndex(
-            name: "IX_group_schedule_location_id",
-            table: "group_schedule",
-            newName: "ix_group_schedule_location_id");
-
         migrationBuilder.CreateTable(
             name: "follow_up",
             columns: table => new
@@ -99,10 +94,5 @@ public partial class AddFollowUpEntity : Migration
     {
         migrationBuilder.DropTable(
             name: "follow_up");
-
-        migrationBuilder.RenameIndex(
-            name: "ix_group_schedule_location_id",
-            table: "group_schedule",
-            newName: "IX_group_schedule_location_id");
     }
 }
