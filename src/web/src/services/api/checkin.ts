@@ -17,7 +17,6 @@ import type {
   SupervisorLoginRequest,
   SupervisorLoginResponse,
   RoomRosterDto,
-  IdKey,
 } from './types';
 
 /**
