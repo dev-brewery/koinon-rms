@@ -12,7 +12,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "generate-icons": "node generate-icons.cjs"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.8.0",
@@ -43,9 +44,12 @@
     "eslint-plugin-react-refresh": "^0.4.5",
     "happy-dom": "^20.0.11",
     "postcss": "^8.4.32",
+    "sharp": "^0.34.5",
     "tailwindcss": "^3.3.6",
     "typescript": "^5.3.3",
     "vite": "^5.0.8",
-    "vitest": "^4.0.15"
+    "vite-plugin-pwa": "^1.2.0",
+    "vitest": "^4.0.15",
+    "workbox-window": "^7.4.0"
   }
 }
