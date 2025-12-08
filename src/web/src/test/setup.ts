@@ -7,6 +7,8 @@ import { afterEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 // Official vitest integration - automatically extends expect with jest-dom matchers
 import '@testing-library/jest-dom/vitest';
+// IndexedDB polyfill for tests
+import 'fake-indexeddb/auto';
 
 // Cleanup after each test
 afterEach(() => {

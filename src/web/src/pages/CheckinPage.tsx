@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   KioskLayout,
@@ -9,16 +9,22 @@ import {
   IdleWarningModal,
   PrintStatus,
   QrScanner,
+  OfflineQueueIndicator,
 } from '@/components/checkin';
 import type { OpportunitySelection } from '@/components/checkin';
 import { Button, Card } from '@/components/ui';
 import {
   useCheckinSearch,
   useCheckinOpportunities,
-  useRecordAttendance,
 } from '@/hooks/useCheckin';
+import { useOfflineCheckin } from '@/hooks/useOfflineCheckin';
 import { useIdleTimeout } from '@/hooks/useIdleTimeout';
-import type { CheckinFamilyDto, CheckinRequestItem, LabelDto } from '@/services/api/types';
+import type {
+  CheckinFamilyDto,
+  CheckinRequestItem,
+  LabelDto,
+  RecordAttendanceResponse,
+} from '@/services/api/types';
 import { createSelectionKey, getTotalActivitiesCount } from '@/utils/checkinHelpers';
 import { printBridgeClient, type PrinterInfo } from '@/services/printing/PrintBridgeClient';
 import { OfflineIndicator } from '@/components/pwa';
@@ -50,6 +56,12 @@ export function CheckinPage() {
   const [printStatus, setPrintStatus] = useState<'idle' | 'printing' | 'success' | 'error'>('idle');
   const [printError, setPrintError] = useState<string | null>(null);
 
+  // Store attendance response for confirmation page
+  const recordAttendanceData = useRef<RecordAttendanceResponse | null>(null);
+
+  // Track reset timeout for cleanup
+  const resetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Determine search type based on mode
   const getSearchType = (): 'Phone' | 'Name' | 'Auto' => {
     if (searchMode === 'phone') return 'Phone';
@@ -63,7 +75,12 @@ export function CheckinPage() {
 
   const opportunitiesQuery = useCheckinOpportunities(selectedFamily?.idKey);
 
-  const recordAttendanceMutation = useRecordAttendance();
+  const {
+    recordCheckin,
+    state: offlineState,
+    syncQueue,
+    isPending: isRecordingCheckin,
+  } = useOfflineCheckin();
 
   // Handlers
   const handleSearch = (value: string) => {
@@ -88,6 +105,15 @@ export function CheckinPage() {
       }
     };
     checkPrinter();
+  }, []);
+
+  // Effect: Cleanup reset timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (resetTimeoutRef.current) {
+        clearTimeout(resetTimeoutRef.current);
+      }
+    };
   }, []);
 
   // Effect: Handle QR scan state sequencing to prevent race condition
@@ -178,10 +204,36 @@ export function CheckinPage() {
     });
 
     try {
-      await recordAttendanceMutation.mutateAsync({ checkins });
+      const response = await recordCheckin({ checkins });
       setCheckinError(null);
-      setStep('confirmation');
-    } catch {
+
+      // If we got a response (online mode), show confirmation with labels
+      if (response) {
+        // Store response for confirmation page (create synthetic mutation data)
+        recordAttendanceData.current = response;
+        setStep('confirmation');
+      } else {
+        // Offline mode - check-in was queued
+        // Show a different confirmation message
+        setCheckinError(
+          offlineState.mode === 'offline'
+            ? 'You are offline. Check-ins have been queued and will sync when connection is restored.'
+            : 'Check-in queued. Will sync shortly.'
+        );
+        // Reset after showing message (tracked for cleanup)
+        if (resetTimeoutRef.current) {
+          clearTimeout(resetTimeoutRef.current);
+        }
+        resetTimeoutRef.current = setTimeout(() => {
+          handleReset();
+        }, 3000);
+      }
+    } catch (error) {
+      // Log error for debugging (important for production issue diagnosis)
+      if (import.meta.env.DEV) {
+        // eslint-disable-next-line no-console
+        console.error('Check-in failed:', error);
+      }
       // Show user-friendly error message
       setCheckinError(
         'Check-in failed. Please try again or contact the welcome desk for assistance.'
@@ -196,7 +248,7 @@ export function CheckinPage() {
       return;
     }
 
-    const labelsToPrint = labels || recordAttendanceMutation.data?.labels;
+    const labelsToPrint = labels || recordAttendanceData.current?.labels;
 
     if (!labelsToPrint || labelsToPrint.length === 0) {
       setPrintError('No labels to print');
@@ -240,6 +292,7 @@ export function CheckinPage() {
     setCheckinError(null);
     setPrintStatus('idle');
     setPrintError(null);
+    recordAttendanceData.current = null;
   };
 
   const handleDone = () => {
@@ -257,6 +310,7 @@ export function CheckinPage() {
   return (
     <>
       <OfflineIndicator />
+      <OfflineQueueIndicator state={offlineState} onSync={syncQueue} />
       <KioskLayout
         title={
           step === 'select-members' && selectedFamily
@@ -424,7 +478,7 @@ export function CheckinPage() {
                   <Button
                     onClick={handleCheckIn}
                     disabled={selectedCheckins.size === 0}
-                    loading={recordAttendanceMutation.isPending}
+                    loading={isRecordingCheckin}
                     size="lg"
                     className="w-full text-xl"
                   >
@@ -446,12 +500,12 @@ export function CheckinPage() {
       })()}
 
       {/* Step 4: Confirmation */}
-      {step === 'confirmation' && recordAttendanceMutation.data && (
+      {step === 'confirmation' && recordAttendanceData.current && (
         <CheckinConfirmation
-          attendances={recordAttendanceMutation.data.attendances}
+          attendances={recordAttendanceData.current.attendances}
           onDone={handleDone}
           onPrintLabels={
-            recordAttendanceMutation.data.labels.length > 0 && printerAvailable
+            recordAttendanceData.current.labels.length > 0 && printerAvailable
               ? () => handlePrintLabels()
               : undefined
           }
