@@ -8,9 +8,12 @@ namespace Koinon.Api.Middleware;
 /// Global exception handler that converts exceptions to RFC 7807 ProblemDetails responses.
 /// Ensures consistent error responses and prevents stack trace leakage in production.
 /// </summary>
-public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger, IWebHostEnvironment environment)
+public class GlobalExceptionHandler(
+    RequestDelegate next,
+    ILogger<GlobalExceptionHandler> logger,
+    IWebHostEnvironment environment)
 {
-    public async Task InvokeAsync(HttpContext context, RequestDelegate next)
+    public async Task InvokeAsync(HttpContext context)
     {
         try
         {
