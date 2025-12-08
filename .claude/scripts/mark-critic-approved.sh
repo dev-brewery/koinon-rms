@@ -118,6 +118,14 @@ BRANCH_FILES=$(git diff --name-only main...HEAD 2>/dev/null | wc -l || echo "0")
 mkdir -p "$(dirname "$APPROVAL_FILE")"
 TIMESTAMP=$(date -Iseconds)
 
+# Generate staged files hash for tamper detection
+STAGED_HASH=$(git diff --cached --name-only 2>/dev/null | sort | sha256sum | cut -d' ' -f1)
+
+# Generate cryptographic signature to prevent manual file creation
+# This signature is verified by critic-tracker.sh during pre-commit
+SIGNATURE_INPUT="${TIMESTAMP}:${STAGED_HASH}:${FILES_REVIEWED}:${ISSUES_FOUND}:koinon-critic-salt-2024"
+SIGNATURE=$(echo -n "$SIGNATURE_INPUT" | sha256sum | cut -d' ' -f1)
+
 cat > "$APPROVAL_FILE" << EOF
 {
   "timestamp": "$TIMESTAMP",
@@ -125,7 +133,9 @@ cat > "$APPROVAL_FILE" << EOF
   "files_reviewed": $FILES_REVIEWED,
   "issues_found": $ISSUES_FOUND,
   "staged_files_at_approval": $STAGED_FILES,
-  "branch_files_at_approval": $BRANCH_FILES
+  "branch_files_at_approval": $BRANCH_FILES,
+  "staged_hash": "$STAGED_HASH",
+  "signature": "$SIGNATURE"
 }
 EOF
 

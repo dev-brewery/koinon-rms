@@ -15,9 +15,11 @@ namespace Koinon.Application.Services;
 public class CheckinConfigurationService(
     IApplicationDbContext context,
     IUserContext userContext,
+    IGradeCalculationService gradeCalculationService,
     ILogger<CheckinConfigurationService> logger)
     : AuthorizedCheckinService(context, userContext, logger), ICheckinConfigurationService
 {
+    private readonly IGradeCalculationService _gradeCalculationService = gradeCalculationService;
     public async Task<CheckinConfigurationDto?> GetConfigurationByCampusAsync(
         string campusIdKey,
         CancellationToken ct = default)
@@ -180,7 +182,11 @@ public class CheckinConfigurationService(
                 Locations = areaLocations,
                 Schedule = scheduleDto,
                 IsActive = area.IsActive,
-                CapacityStatus = capacityStatus
+                CapacityStatus = capacityStatus,
+                MinAgeMonths = area.MinAgeMonths,
+                MaxAgeMonths = area.MaxAgeMonths,
+                MinGrade = area.MinGrade,
+                MaxGrade = area.MaxGrade
             });
         }
 
@@ -281,7 +287,11 @@ public class CheckinConfigurationService(
             Locations = locationDtos,
             Schedule = scheduleDto,
             IsActive = area.IsActive,
-            CapacityStatus = capacityStatus
+            CapacityStatus = capacityStatus,
+            MinAgeMonths = area.MinAgeMonths,
+            MaxAgeMonths = area.MaxAgeMonths,
+            MinGrade = area.MinGrade,
+            MaxGrade = area.MaxGrade
         };
     }
 
@@ -534,5 +544,71 @@ public class CheckinConfigurationService(
         }
 
         return CapacityStatus.Available;
+    }
+
+    public IReadOnlyList<CheckinAreaDto> FilterAreasByPersonEligibility(
+        IReadOnlyList<CheckinAreaDto> areas,
+        DateOnly? personBirthDate,
+        int? personGraduationYear,
+        DateOnly? currentDate = null)
+    {
+        if (areas.Count == 0)
+        {
+            return areas;
+        }
+
+        currentDate ??= DateOnly.FromDateTime(DateTime.UtcNow);
+
+        // Calculate person's age in months and grade
+        var personAgeInMonths = _gradeCalculationService.CalculateAgeInMonths(personBirthDate, currentDate);
+        var personGrade = _gradeCalculationService.CalculateGrade(personGraduationYear, currentDate);
+
+        // Filter areas based on eligibility
+        return areas
+            .Where(area => IsAreaEligibleForPerson(area, personAgeInMonths, personGrade))
+            .ToList();
+    }
+
+    private static bool IsAreaEligibleForPerson(
+        CheckinAreaDto area,
+        int? personAgeInMonths,
+        int? personGrade)
+    {
+        // Age filtering
+        // If person has no birth date, age filters pass (parent can choose)
+        if (personAgeInMonths.HasValue)
+        {
+            // Check minimum age
+            if (area.MinAgeMonths.HasValue && personAgeInMonths.Value < area.MinAgeMonths.Value)
+            {
+                return false;
+            }
+
+            // Check maximum age
+            if (area.MaxAgeMonths.HasValue && personAgeInMonths.Value > area.MaxAgeMonths.Value)
+            {
+                return false;
+            }
+        }
+
+        // Grade filtering
+        // If person has no graduation year, grade filters pass (parent can choose)
+        if (personGrade.HasValue)
+        {
+            // Check minimum grade
+            if (area.MinGrade.HasValue && personGrade.Value < area.MinGrade.Value)
+            {
+                return false;
+            }
+
+            // Check maximum grade
+            if (area.MaxGrade.HasValue && personGrade.Value > area.MaxGrade.Value)
+            {
+                return false;
+            }
+        }
+
+        // If we've passed all filters, the area is eligible
+        return true;
     }
 }

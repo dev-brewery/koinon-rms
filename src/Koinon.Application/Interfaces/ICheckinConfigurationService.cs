@@ -88,4 +88,18 @@ public interface ICheckinConfigurationService
         string scheduleIdKey,
         DateTime? currentTime = null,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// Filters check-in areas (groups) based on a person's age and grade eligibility.
+    /// </summary>
+    /// <param name="areas">List of check-in areas to filter</param>
+    /// <param name="personBirthDate">Person's birth date (null if unknown)</param>
+    /// <param name="personGraduationYear">Person's graduation year (null if unknown)</param>
+    /// <param name="currentDate">Current date for calculations (defaults to today)</param>
+    /// <returns>Filtered list of eligible check-in areas</returns>
+    IReadOnlyList<CheckinAreaDto> FilterAreasByPersonEligibility(
+        IReadOnlyList<CheckinAreaDto> areas,
+        DateOnly? personBirthDate,
+        int? personGraduationYear,
+        DateOnly? currentDate = null);
 }

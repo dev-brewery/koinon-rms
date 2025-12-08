@@ -120,6 +120,18 @@ public class GroupConfiguration : IEntityTypeConfiguration<Group>
         builder.Property(e => e.StatusValueId)
             .HasColumnName("status_value_id");
 
+        builder.Property(e => e.MinAgeMonths)
+            .HasColumnName("min_age_months");
+
+        builder.Property(e => e.MaxAgeMonths)
+            .HasColumnName("max_age_months");
+
+        builder.Property(e => e.MinGrade)
+            .HasColumnName("min_grade");
+
+        builder.Property(e => e.MaxGrade)
+            .HasColumnName("max_grade");
+
         // Indexes
         builder.HasIndex(e => e.GroupTypeId)
             .HasDatabaseName("ix_group_group_type_id");

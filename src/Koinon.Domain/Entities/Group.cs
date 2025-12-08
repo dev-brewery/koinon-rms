@@ -107,6 +107,32 @@ public class Group : Entity
     /// </summary>
     public int? StatusValueId { get; set; }
 
+    /// <summary>
+    /// Minimum age in months for eligibility in this group (for age-based filtering).
+    /// Null means no minimum age restriction.
+    /// </summary>
+    public int? MinAgeMonths { get; set; }
+
+    /// <summary>
+    /// Maximum age in months for eligibility in this group (for age-based filtering).
+    /// Null means no maximum age restriction.
+    /// </summary>
+    public int? MaxAgeMonths { get; set; }
+
+    /// <summary>
+    /// Minimum grade for eligibility in this group (for grade-based filtering).
+    /// Grade scale: -1 = Pre-K, 0 = Kindergarten, 1 = 1st grade, etc.
+    /// Null means no minimum grade restriction.
+    /// </summary>
+    public int? MinGrade { get; set; }
+
+    /// <summary>
+    /// Maximum grade for eligibility in this group (for grade-based filtering).
+    /// Grade scale: -1 = Pre-K, 0 = Kindergarten, 1 = 1st grade, etc.
+    /// Null means no maximum grade restriction.
+    /// </summary>
+    public int? MaxGrade { get; set; }
+
     // Navigation Properties
 
     /// <summary>
