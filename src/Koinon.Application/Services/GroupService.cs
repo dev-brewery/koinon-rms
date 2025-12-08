@@ -649,6 +649,155 @@ public class GroupService(
         }).ToList();
     }
 
+    public async Task<IReadOnlyList<GroupScheduleDto>> GetSchedulesAsync(
+        string groupIdKey,
+        CancellationToken ct = default)
+    {
+        if (!IdKeyHelper.TryDecode(groupIdKey, out int groupId))
+        {
+            return Array.Empty<GroupScheduleDto>();
+        }
+
+        var groupSchedules = await context.GroupSchedules
+            .AsNoTracking()
+            .Include(gs => gs.Schedule)
+            .Where(gs => gs.GroupId == groupId)
+            .OrderBy(gs => gs.Order)
+            .ToListAsync(ct);
+
+        return groupSchedules.Select(gs => new GroupScheduleDto
+        {
+            IdKey = gs.IdKey,
+            Guid = gs.Guid,
+            Schedule = new ScheduleSummaryDto
+            {
+                IdKey = gs.Schedule!.IdKey,
+                Guid = gs.Schedule.Guid,
+                Name = gs.Schedule.Name,
+                Description = gs.Schedule.Description,
+                WeeklyDayOfWeek = gs.Schedule.WeeklyDayOfWeek,
+                WeeklyTimeOfDay = gs.Schedule.WeeklyTimeOfDay,
+                IsActive = gs.Schedule.IsActive
+            },
+            Order = gs.Order
+        }).ToList();
+    }
+
+    public async Task<Result<GroupScheduleDto>> AddScheduleAsync(
+        string groupIdKey,
+        AddGroupScheduleRequest request,
+        CancellationToken ct = default)
+    {
+        if (!IdKeyHelper.TryDecode(groupIdKey, out int groupId))
+        {
+            return Result<GroupScheduleDto>.Failure(
+                new Error("NOT_FOUND", $"Group with IdKey '{groupIdKey}' not found"));
+        }
+
+        if (!IdKeyHelper.TryDecode(request.ScheduleIdKey, out int scheduleId))
+        {
+            return Result<GroupScheduleDto>.Failure(
+                new Error("NOT_FOUND", $"Schedule with IdKey '{request.ScheduleIdKey}' not found"));
+        }
+
+        // Verify group exists
+        var group = await context.Groups
+            .FirstOrDefaultAsync(g => g.Id == groupId && !g.IsArchived, ct);
+
+        if (group == null)
+        {
+            return Result<GroupScheduleDto>.Failure(
+                new Error("NOT_FOUND", $"Group with IdKey '{groupIdKey}' not found"));
+        }
+
+        // Verify schedule exists
+        var schedule = await context.Schedules
+            .FirstOrDefaultAsync(s => s.Id == scheduleId && s.IsActive, ct);
+
+        if (schedule == null)
+        {
+            return Result<GroupScheduleDto>.Failure(
+                new Error("NOT_FOUND", $"Schedule with IdKey '{request.ScheduleIdKey}' not found"));
+        }
+
+        // Check if association already exists
+        var existing = await context.GroupSchedules
+            .FirstOrDefaultAsync(gs => gs.GroupId == groupId && gs.ScheduleId == scheduleId, ct);
+
+        if (existing != null)
+        {
+            return Result<GroupScheduleDto>.Failure(
+                new Error("DUPLICATE", "This schedule is already associated with the group"));
+        }
+
+        var groupSchedule = new GroupSchedule
+        {
+            GroupId = groupId,
+            ScheduleId = scheduleId,
+            Order = request.Order
+        };
+
+        context.GroupSchedules.Add(groupSchedule);
+        await context.SaveChangesAsync(ct);
+
+        logger.LogInformation(
+            "Schedule added to group: GroupId={GroupId}, ScheduleId={ScheduleId}",
+            groupId, scheduleId);
+
+        return Result<GroupScheduleDto>.Success(new GroupScheduleDto
+        {
+            IdKey = groupSchedule.IdKey,
+            Guid = groupSchedule.Guid,
+            Schedule = new ScheduleSummaryDto
+            {
+                IdKey = schedule.IdKey,
+                Guid = schedule.Guid,
+                Name = schedule.Name,
+                Description = schedule.Description,
+                WeeklyDayOfWeek = schedule.WeeklyDayOfWeek,
+                WeeklyTimeOfDay = schedule.WeeklyTimeOfDay,
+                IsActive = schedule.IsActive
+            },
+            Order = groupSchedule.Order
+        });
+    }
+
+    public async Task<Result> RemoveScheduleAsync(
+        string groupIdKey,
+        string scheduleIdKey,
+        CancellationToken ct = default)
+    {
+        if (!IdKeyHelper.TryDecode(groupIdKey, out int groupId))
+        {
+            return Result.Failure(
+                new Error("NOT_FOUND", $"Group with IdKey '{groupIdKey}' not found"));
+        }
+
+        if (!IdKeyHelper.TryDecode(scheduleIdKey, out int scheduleId))
+        {
+            return Result.Failure(
+                new Error("NOT_FOUND", $"Schedule with IdKey '{scheduleIdKey}' not found"));
+        }
+
+        var groupSchedule = await context.GroupSchedules
+            .FirstOrDefaultAsync(gs => gs.GroupId == groupId && gs.ScheduleId == scheduleId, ct);
+
+        if (groupSchedule == null)
+        {
+            return Result.Failure(
+                new Error("NOT_FOUND", "Schedule association not found for this group"));
+        }
+
+        context.GroupSchedules.Remove(groupSchedule);
+        await context.SaveChangesAsync(ct);
+
+        logger.LogInformation(
+            "Schedule removed from group: GroupId={GroupId}, ScheduleId={ScheduleId}",
+            groupId, scheduleId);
+
+        return Result.Success();
+    }
+
     private GroupDto MapToGroupDto(Group group, Dictionary<int, int> childGroupMemberCounts, int parentMemberCount)
     {
         var groupDto = mapper.Map<GroupDto>(group);

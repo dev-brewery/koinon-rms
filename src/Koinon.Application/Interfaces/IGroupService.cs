@@ -82,4 +82,27 @@ public interface IGroupService
     Task<IReadOnlyList<GroupSummaryDto>> GetChildGroupsAsync(
         string groupIdKey,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// Gets all schedules associated with a group.
+    /// </summary>
+    Task<IReadOnlyList<GroupScheduleDto>> GetSchedulesAsync(
+        string groupIdKey,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Adds a schedule to a group.
+    /// </summary>
+    Task<Result<GroupScheduleDto>> AddScheduleAsync(
+        string groupIdKey,
+        AddGroupScheduleRequest request,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Removes a schedule from a group.
+    /// </summary>
+    Task<Result> RemoveScheduleAsync(
+        string groupIdKey,
+        string scheduleIdKey,
+        CancellationToken ct = default);
 }

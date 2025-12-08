@@ -17,6 +17,7 @@ public interface IApplicationDbContext
     DbSet<GroupType> GroupTypes { get; }
     DbSet<GroupTypeRole> GroupTypeRoles { get; }
     DbSet<GroupMember> GroupMembers { get; }
+    DbSet<GroupSchedule> GroupSchedules { get; }
     DbSet<Campus> Campuses { get; }
     DbSet<Location> Locations { get; }
     DbSet<DefinedType> DefinedTypes { get; }

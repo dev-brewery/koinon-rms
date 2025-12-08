@@ -797,3 +797,19 @@ export interface UpdateScheduleRequest {
   effectiveEndDate?: DateOnly | null;
   autoInactivateWhenComplete?: boolean;
 }
+
+// ============================================================================
+// Group Schedule Types
+// ============================================================================
+
+export interface GroupScheduleDto {
+  idKey: IdKey;
+  guid: Guid;
+  schedule: ScheduleSummaryDto;
+  order: number;
+}
+
+export interface AddGroupScheduleRequest {
+  scheduleIdKey: IdKey;
+  order?: number;
+}

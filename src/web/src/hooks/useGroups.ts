@@ -8,6 +8,7 @@ import type {
   GroupsSearchParams,
   CreateGroupRequest,
   UpdateGroupRequest,
+  AddGroupScheduleRequest,
 } from '@/services/api/types';
 
 /**
@@ -88,6 +89,48 @@ export function useDeleteGroup() {
     onSuccess: () => {
       // Invalidate groups list to refetch
       queryClient.invalidateQueries({ queryKey: ['groups'] });
+    },
+  });
+}
+
+/**
+ * Get schedules for a group
+ */
+export function useGroupSchedules(groupIdKey?: string) {
+  return useQuery({
+    queryKey: ['groups', groupIdKey, 'schedules'],
+    queryFn: () => groupsApi.getGroupSchedules(groupIdKey!),
+    enabled: !!groupIdKey,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+/**
+ * Add a schedule to a group
+ */
+export function useAddGroupSchedule() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ groupIdKey, request }: { groupIdKey: string; request: AddGroupScheduleRequest }) =>
+      groupsApi.addGroupSchedule(groupIdKey, request),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['groups', variables.groupIdKey, 'schedules'] });
+    },
+  });
+}
+
+/**
+ * Remove a schedule from a group
+ */
+export function useRemoveGroupSchedule() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ groupIdKey, scheduleIdKey }: { groupIdKey: string; scheduleIdKey: string }) =>
+      groupsApi.removeGroupSchedule(groupIdKey, scheduleIdKey),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['groups', variables.groupIdKey, 'schedules'] });
     },
   });
 }
