@@ -6,9 +6,11 @@ namespace Koinon.Api.Middleware;
 /// Middleware that logs all HTTP requests with timing information.
 /// Adds correlation IDs for request tracing across services.
 /// </summary>
-public class RequestLoggingMiddleware(ILogger<RequestLoggingMiddleware> logger)
+public class RequestLoggingMiddleware(
+    RequestDelegate next,
+    ILogger<RequestLoggingMiddleware> logger)
 {
-    public async Task InvokeAsync(HttpContext context, RequestDelegate next)
+    public async Task InvokeAsync(HttpContext context)
     {
         // Get or create correlation ID
         var correlationId = context.TraceIdentifier;
