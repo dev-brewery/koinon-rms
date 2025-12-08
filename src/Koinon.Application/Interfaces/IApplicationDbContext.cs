@@ -31,6 +31,8 @@ public interface IApplicationDbContext
     DbSet<SupervisorSession> SupervisorSessions { get; }
     DbSet<SupervisorAuditLog> SupervisorAuditLogs { get; }
     DbSet<FollowUp> FollowUps { get; }
+    DbSet<PagerAssignment> PagerAssignments { get; }
+    DbSet<PagerMessage> PagerMessages { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     EntityEntry<TEntity> Entry<TEntity>(TEntity entity) where TEntity : class;

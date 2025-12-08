@@ -891,6 +891,163 @@ interface LabelResponse {
 
 ---
 
+## Parent Paging
+
+The parent paging system allows staff to send SMS notifications to parents when their child needs attention during Sunday morning check-in. Pager numbers are assigned automatically during check-in and displayed on printed labels.
+
+### POST /api/v1/pager/send
+
+Send a page to a parent via SMS. Enforces rate limiting (max 3 pages per hour per pager).
+
+**Authorization:** Requires `Supervisor` role
+
+**Request:**
+```typescript
+interface SendPageRequest {
+  pagerNumber: string;              // Can be "P-127" or "127"
+  messageType: PagerMessageType;    // 'PickupNeeded' | 'NeedsAttention' | 'ServiceEnding' | 'Custom'
+  customMessage?: string;           // Required if messageType is 'Custom'
+}
+```
+
+**Response (200):**
+```typescript
+interface SendPageResponse {
+  idKey: IdKey;
+  messageType: PagerMessageType;
+  messageText: string;              // Expanded message text sent via SMS
+  status: PagerMessageStatus;       // 'Pending' | 'Sent' | 'Delivered' | 'Failed'
+  sentDateTime: DateTime;
+  deliveredDateTime?: DateTime;
+  sentByPersonName: string;
+}
+```
+
+**Response (400) - Rate Limit Exceeded:**
+```typescript
+{
+  "title": "Rate limit exceeded",
+  "detail": "Maximum 3 pages per hour exceeded for this pager",
+  "status": 400
+}
+```
+
+**Response (404) - Pager Not Found:**
+```typescript
+{
+  "title": "Pager not found",
+  "detail": "No active pager assignment found for pager number 127",
+  "status": 404
+}
+```
+
+---
+
+### GET /api/v1/pager/search
+
+Search for pager assignments by pager number or child name.
+
+**Authorization:** Requires `Supervisor` role
+
+**Query Parameters:**
+```typescript
+interface PagerSearchParams {
+  searchTerm?: string;    // Pager number or child name
+  date?: DateOnly;        // Default: today
+}
+```
+
+**Response (200):**
+```typescript
+interface PagerSearchResponse {
+  data: PagerAssignment[];
+}
+
+interface PagerAssignment {
+  idKey: IdKey;
+  pagerNumber: number;
+  attendanceIdKey: IdKey;
+  childName: string;
+  groupName: string;
+  locationName: string;
+  parentPhoneNumber?: string;
+  checkedInAt: DateTime;
+  messagesSentCount: number;
+}
+```
+
+---
+
+### GET /api/v1/pager/{pagerNumber}/history
+
+Get page history for a specific pager number, showing all messages sent.
+
+**Authorization:** Requires `Supervisor` role
+
+**Path Parameters:**
+- `pagerNumber` (number): The numeric pager number (e.g., 127)
+
+**Query Parameters:**
+```typescript
+interface PageHistoryParams {
+  date?: DateOnly;        // Default: today
+}
+```
+
+**Response (200):**
+```typescript
+interface PageHistoryResponse {
+  idKey: IdKey;
+  pagerNumber: number;
+  childName: string;
+  parentPhoneNumber: string;
+  messages: PagerMessage[];
+}
+
+interface PagerMessage {
+  idKey: IdKey;
+  messageType: PagerMessageType;
+  messageText: string;
+  status: PagerMessageStatus;
+  sentDateTime: DateTime;
+  deliveredDateTime?: DateTime;
+  sentByPersonName: string;
+}
+```
+
+**Response (404) - No History:**
+```typescript
+{
+  "title": "Page history not found",
+  "detail": "No page history found for pager 127 on 2024-01-15",
+  "status": 404
+}
+```
+
+---
+
+### GET /api/v1/pager/next-number
+
+Get the next available pager number for assigning during check-in. Pager numbers start at 100 and increment sequentially for each day/campus.
+
+**Authorization:** Requires authentication (any authenticated user)
+
+**Query Parameters:**
+```typescript
+interface NextPagerNumberParams {
+  campusId?: IdKey;       // Optional campus filter
+}
+```
+
+**Response (200):**
+```typescript
+interface NextPagerNumberResponse {
+  data: number;           // Next available pager number (e.g., 130)
+}
+```
+
+---
+
 ## Groups
 
 ### GET /api/v1/groups

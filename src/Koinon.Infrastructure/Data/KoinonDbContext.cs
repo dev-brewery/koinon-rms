@@ -51,6 +51,10 @@ public class KoinonDbContext : DbContext, IApplicationDbContext
     // Follow-up entities
     public DbSet<FollowUp> FollowUps { get; set; } = null!;
 
+    // Pager system entities
+    public DbSet<PagerAssignment> PagerAssignments { get; set; } = null!;
+    public DbSet<PagerMessage> PagerMessages { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

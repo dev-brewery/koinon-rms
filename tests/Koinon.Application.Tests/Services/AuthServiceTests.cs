@@ -437,5 +437,7 @@ public class AuthServiceTests
         public DbSet<SupervisorSession> SupervisorSessions { get; set; } = null!;
         public DbSet<SupervisorAuditLog> SupervisorAuditLogs { get; set; } = null!;
         public DbSet<FollowUp> FollowUps { get; set; } = null!;
+        public DbSet<PagerAssignment> PagerAssignments { get; set; } = null!;
+        public DbSet<PagerMessage> PagerMessages { get; set; } = null!;
     }
 }
