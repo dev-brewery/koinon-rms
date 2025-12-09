@@ -39,6 +39,7 @@ public interface IApplicationDbContext
     DbSet<PickupLog> PickupLogs { get; }
     DbSet<Communication> Communications { get; }
     DbSet<CommunicationRecipient> CommunicationRecipients { get; }
+    DbSet<VolunteerScheduleAssignment> VolunteerScheduleAssignments { get; }
 
     DatabaseFacade Database { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);

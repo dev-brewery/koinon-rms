@@ -38,6 +38,7 @@ import { GroupFinderPage } from './pages/public/GroupFinderPage';
 import { MyGroupsPage } from './pages/MyGroupsPage';
 import { CommunicationsPage } from './pages/communications/CommunicationsPage';
 import { MyProfilePage } from './pages/profile';
+import { MySchedulePage } from './pages/volunteer/MySchedulePage';
 
 function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -183,6 +184,16 @@ function App() {
           element={
             <ProtectedRoute>
               <MyProfilePage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* My Schedule - Protected route for volunteers */}
+        <Route
+          path="/my-schedule"
+          element={
+            <ProtectedRoute>
+              <MySchedulePage />
             </ProtectedRoute>
           }
         />
