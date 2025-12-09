@@ -44,6 +44,21 @@ public class CommunicationRecipient : Entity
     public DateTime? OpenedDateTime { get; set; }
 
     /// <summary>
+    /// Number of times the recipient opened the communication (email only).
+    /// </summary>
+    public int OpenCount { get; set; }
+
+    /// <summary>
+    /// Date and time when the recipient first clicked a link in the communication (email only).
+    /// </summary>
+    public DateTime? ClickedDateTime { get; set; }
+
+    /// <summary>
+    /// Number of times the recipient clicked links in the communication (email only).
+    /// </summary>
+    public int ClickCount { get; set; }
+
+    /// <summary>
     /// Error message if delivery failed for this recipient.
     /// </summary>
     public string? ErrorMessage { get; set; }

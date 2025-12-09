@@ -1,5 +1,6 @@
 using Koinon.Api.Filters;
 using Koinon.Application.DTOs;
+using Koinon.Application.DTOs.Communication;
 using Koinon.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +17,7 @@ namespace Koinon.Api.Controllers;
 [ValidateIdKey]
 public class CommunicationsController(
     ICommunicationService communicationService,
+    ICommunicationAnalyticsService analyticsService,
     ILogger<CommunicationsController> logger) : ControllerBase
 {
     /// <summary>
@@ -306,5 +308,81 @@ public class CommunicationsController(
             result.Value!.RecipientCount);
 
         return Ok(result.Value);
+    }
+
+    /// <summary>
+    /// Gets detailed analytics for a single communication.
+    /// </summary>
+    /// <param name="idKey">The communication's IdKey</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Communication analytics</returns>
+    /// <response code="200">Returns communication analytics</response>
+    /// <response code="404">Communication not found</response>
+    [HttpGet("{idKey}/analytics")]
+    [ProducesResponseType(typeof(CommunicationAnalyticsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetAnalytics(string idKey, CancellationToken ct = default)
+    {
+        var analytics = await analyticsService.GetCommunicationAnalyticsAsync(idKey, ct);
+
+        if (analytics == null)
+        {
+            logger.LogDebug("Communication analytics not found: IdKey={IdKey}", idKey);
+
+            return NotFound(new ProblemDetails
+            {
+                Title = "Communication not found",
+                Detail = $"No communication found with IdKey '{idKey}'",
+                Status = StatusCodes.Status404NotFound,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        logger.LogDebug("Communication analytics retrieved: IdKey={IdKey}", idKey);
+
+        return Ok(analytics);
+    }
+
+    /// <summary>
+    /// Gets aggregate analytics summary for a time period.
+    /// </summary>
+    /// <param name="startDate">Start date of the period (ISO 8601 format)</param>
+    /// <param name="endDate">End date of the period (ISO 8601 format)</param>
+    /// <param name="type">Optional communication type filter (Email or Sms)</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Analytics summary</returns>
+    /// <response code="200">Returns analytics summary</response>
+    /// <response code="400">Invalid date parameters</response>
+    [HttpGet("analytics/summary")]
+    [ProducesResponseType(typeof(AnalyticsSummaryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetAnalyticsSummary(
+        [FromQuery] DateTime? startDate,
+        [FromQuery] DateTime? endDate,
+        [FromQuery] string? type = null,
+        CancellationToken ct = default)
+    {
+        // Default to last 30 days if not specified
+        var start = startDate ?? DateTime.UtcNow.AddDays(-30);
+        var end = endDate ?? DateTime.UtcNow;
+
+        if (start > end)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid date range",
+                Detail = "Start date must be before or equal to end date",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        var summary = await analyticsService.GetAnalyticsSummaryAsync(start, end, type, ct);
+
+        logger.LogInformation(
+            "Analytics summary retrieved: StartDate={StartDate:yyyy-MM-dd}, EndDate={EndDate:yyyy-MM-dd}, Type={Type}",
+            start, end, type ?? "all");
+
+        return Ok(summary);
     }
 }

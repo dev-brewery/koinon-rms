@@ -81,6 +81,7 @@ public static class ServiceCollectionExtensions
         // Communication services
         services.AddScoped<ICommunicationService, CommunicationService>();
         services.AddScoped<ICommunicationSender, CommunicationSender>();
+        services.AddScoped<ICommunicationAnalyticsService, CommunicationAnalyticsService>();
 
         // Self-service profile service
         services.AddScoped<IMyProfileService, MyProfileService>();

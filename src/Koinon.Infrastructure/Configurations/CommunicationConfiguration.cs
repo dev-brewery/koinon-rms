@@ -98,6 +98,11 @@ public class CommunicationConfiguration : IEntityTypeConfiguration<Communication
             .IsRequired()
             .HasDefaultValue(0);
 
+        builder.Property(e => e.ClickedCount)
+            .HasColumnName("clicked_count")
+            .IsRequired()
+            .HasDefaultValue(0);
+
         builder.Property(e => e.Note)
             .HasColumnName("note")
             .HasMaxLength(1000);

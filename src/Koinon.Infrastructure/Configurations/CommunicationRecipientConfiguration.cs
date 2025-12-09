@@ -73,6 +73,19 @@ public class CommunicationRecipientConfiguration : IEntityTypeConfiguration<Comm
         builder.Property(e => e.OpenedDateTime)
             .HasColumnName("opened_date_time");
 
+        builder.Property(e => e.OpenCount)
+            .HasColumnName("open_count")
+            .IsRequired()
+            .HasDefaultValue(0);
+
+        builder.Property(e => e.ClickedDateTime)
+            .HasColumnName("clicked_date_time");
+
+        builder.Property(e => e.ClickCount)
+            .HasColumnName("click_count")
+            .IsRequired()
+            .HasDefaultValue(0);
+
         builder.Property(e => e.ErrorMessage)
             .HasColumnName("error_message")
             .HasMaxLength(1000);
