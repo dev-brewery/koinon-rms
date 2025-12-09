@@ -42,6 +42,31 @@ public class GroupType : Entity
     public string? IconCssClass { get; set; }
 
     /// <summary>
+    /// Hex color code for visual distinction (e.g., "#3B82F6").
+    /// </summary>
+    public string? Color { get; set; }
+
+    /// <summary>
+    /// Whether groups of this type default to public visibility.
+    /// </summary>
+    public bool DefaultIsPublic { get; set; }
+
+    /// <summary>
+    /// Whether members can request to join groups of this type.
+    /// </summary>
+    public bool AllowSelfRegistration { get; set; }
+
+    /// <summary>
+    /// Whether membership requests require leader approval.
+    /// </summary>
+    public bool RequiresMemberApproval { get; set; } = true;
+
+    /// <summary>
+    /// Default capacity for groups of this type (null = unlimited).
+    /// </summary>
+    public int? DefaultGroupCapacity { get; set; }
+
+    /// <summary>
     /// Indicates whether groups of this type can have multiple locations.
     /// </summary>
     public bool AllowMultipleLocations { get; set; }

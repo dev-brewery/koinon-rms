@@ -694,6 +694,87 @@ export interface GroupTypeRoleDto {
 }
 
 // ============================================================================
+// Group Type Admin Types
+// ============================================================================
+
+export interface GroupTypeAdminDto {
+  idKey: IdKey;
+  guid: Guid;
+  name: string;
+  description?: string;
+  iconCssClass?: string;
+  color?: string;
+  groupTerm: string;
+  groupMemberTerm: string;
+  takesAttendance: boolean;
+  allowSelfRegistration: boolean;
+  requiresMemberApproval: boolean;
+  defaultIsPublic: boolean;
+  defaultGroupCapacity?: number;
+  isSystem: boolean;
+  isArchived: boolean;
+  order: number;
+  groupCount: number;
+}
+
+export interface GroupTypeDetailAdminDto extends GroupTypeAdminDto {
+  showInGroupList: boolean;
+  showInNavigation: boolean;
+  attendanceCountsAsWeekendService: boolean;
+  sendAttendanceReminder: boolean;
+  allowMultipleLocations: boolean;
+  enableSpecificGroupRequirements: boolean;
+  allowGroupSync: boolean;
+  allowSpecificGroupMemberAttributes: boolean;
+  showConnectionStatus: boolean;
+  ignorePersonInactivated: boolean;
+  createdDateTime: DateTime;
+  modifiedDateTime?: DateTime;
+}
+
+export interface CreateGroupTypeRequest {
+  name: string;
+  description?: string;
+  iconCssClass?: string;
+  color?: string;
+  groupTerm?: string;
+  groupMemberTerm?: string;
+  takesAttendance?: boolean;
+  allowSelfRegistration?: boolean;
+  requiresMemberApproval?: boolean;
+  defaultIsPublic?: boolean;
+  defaultGroupCapacity?: number;
+  showInGroupList?: boolean;
+  showInNavigation?: boolean;
+  order?: number;
+}
+
+export interface UpdateGroupTypeRequest {
+  name?: string;
+  description?: string;
+  iconCssClass?: string;
+  color?: string;
+  groupTerm?: string;
+  groupMemberTerm?: string;
+  takesAttendance?: boolean;
+  allowSelfRegistration?: boolean;
+  requiresMemberApproval?: boolean;
+  defaultIsPublic?: boolean;
+  defaultGroupCapacity?: number;
+  showInGroupList?: boolean;
+  showInNavigation?: boolean;
+  order?: number;
+}
+
+export interface GroupTypeGroupDto {
+  idKey: IdKey;
+  name: string;
+  isActive: boolean;
+  isArchived: boolean;
+  memberCount: number;
+}
+
+// ============================================================================
 // Group Mutation Types
 // ============================================================================
 

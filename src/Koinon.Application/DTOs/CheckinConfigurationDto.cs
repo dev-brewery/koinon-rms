@@ -55,7 +55,7 @@ public record CheckinAreaDto
     /// <summary>
     /// Group type information.
     /// </summary>
-    public required GroupTypeDto GroupType { get; init; }
+    public required GroupTypeSummaryDto GroupType { get; init; }
 
     /// <summary>
     /// Available locations within this check-in area.

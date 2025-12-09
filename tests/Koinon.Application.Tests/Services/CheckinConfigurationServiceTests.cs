@@ -861,7 +861,7 @@ public class CheckinConfigurationServiceTests : IDisposable
             IdKey = "test",
             Guid = Guid.NewGuid(),
             Name = name,
-            GroupType = new GroupTypeDto
+            GroupType = new GroupTypeSummaryDto
             {
                 IdKey = "test",
                 Guid = Guid.NewGuid(),

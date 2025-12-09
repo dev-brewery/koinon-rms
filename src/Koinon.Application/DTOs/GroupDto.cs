@@ -16,7 +16,7 @@ public record GroupDto
     public required bool AllowGuests { get; init; }
     public int? GroupCapacity { get; init; }
     public required int Order { get; init; }
-    public required GroupTypeDto GroupType { get; init; }
+    public required GroupTypeSummaryDto GroupType { get; init; }
     public CampusSummaryDto? Campus { get; init; }
     public GroupSummaryDto? ParentGroup { get; init; }
     public required IReadOnlyList<GroupMemberDto> Members { get; init; }
@@ -35,6 +35,7 @@ public record GroupSummaryDto
     public required string Name { get; init; }
     public string? Description { get; init; }
     public required bool IsActive { get; init; }
+    public bool IsArchived { get; init; }
     public required int MemberCount { get; init; }
     public required string GroupTypeName { get; init; }
 }
@@ -53,16 +54,3 @@ public record GroupMemberDto
     public string? Note { get; init; }
 }
 
-/// <summary>
-/// Group type DTO.
-/// </summary>
-public record GroupTypeDto
-{
-    public required string IdKey { get; init; }
-    public required Guid Guid { get; init; }
-    public required string Name { get; init; }
-    public string? Description { get; init; }
-    public required bool IsFamilyGroupType { get; init; }
-    public required bool AllowMultipleLocations { get; init; }
-    public required IReadOnlyList<GroupTypeRoleDto> Roles { get; init; }
-}

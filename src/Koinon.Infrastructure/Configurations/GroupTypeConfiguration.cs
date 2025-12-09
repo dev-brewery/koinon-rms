@@ -75,6 +75,28 @@ public class GroupTypeConfiguration : IEntityTypeConfiguration<GroupType>
             .HasColumnName("icon_css_class")
             .HasMaxLength(100);
 
+        builder.Property(e => e.Color)
+            .HasColumnName("color")
+            .HasMaxLength(7);
+
+        builder.Property(e => e.DefaultIsPublic)
+            .HasColumnName("default_is_public")
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.Property(e => e.AllowSelfRegistration)
+            .HasColumnName("allow_self_registration")
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.Property(e => e.RequiresMemberApproval)
+            .HasColumnName("requires_member_approval")
+            .IsRequired()
+            .HasDefaultValue(true);
+
+        builder.Property(e => e.DefaultGroupCapacity)
+            .HasColumnName("default_group_capacity");
+
         builder.Property(e => e.AllowMultipleLocations)
             .HasColumnName("allow_multiple_locations")
             .IsRequired()
