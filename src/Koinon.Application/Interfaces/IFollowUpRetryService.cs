@@ -23,5 +23,6 @@ public interface IFollowUpRetryService
     /// <param name="personId">The person's ID who needs follow-up.</param>
     /// <param name="attendanceId">The attendance record that triggered the follow-up.</param>
     /// <param name="attemptNumber">Current attempt number (0-based).</param>
-    Task ProcessFollowUpCreationAsync(int personId, int attendanceId, int attemptNumber);
+    /// <param name="cancellationToken">Cancellation token for the operation.</param>
+    Task ProcessFollowUpCreationAsync(int personId, int attendanceId, int attemptNumber, CancellationToken cancellationToken);
 }

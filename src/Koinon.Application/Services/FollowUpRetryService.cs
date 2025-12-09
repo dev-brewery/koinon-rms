@@ -18,6 +18,22 @@ public class FollowUpRetryService(
 
     public string QueueFollowUpCreation(int personId, int attendanceId, int attemptNumber = 0)
     {
+        // Input validation
+        if (personId <= 0)
+        {
+            throw new ArgumentException("PersonId must be greater than zero.", nameof(personId));
+        }
+
+        if (attendanceId <= 0)
+        {
+            throw new ArgumentException("AttendanceId must be greater than zero.", nameof(attendanceId));
+        }
+
+        if (attemptNumber < 0)
+        {
+            throw new ArgumentException("AttemptNumber cannot be negative.", nameof(attemptNumber));
+        }
+
         if (attemptNumber >= MaxAttempts)
         {
             logger.LogCritical(
@@ -38,8 +54,9 @@ public class FollowUpRetryService(
         if (attemptNumber == 0)
         {
             // First attempt - execute immediately
+            // Note: Hangfire will inject the CancellationToken at execution time
             jobId = backgroundJobService.Enqueue<IFollowUpRetryService>(
-                service => service.ProcessFollowUpCreationAsync(personId, attendanceId, attemptNumber));
+                service => service.ProcessFollowUpCreationAsync(personId, attendanceId, attemptNumber, CancellationToken.None));
 
             logger.LogInformation(
                 "Queued immediate follow-up creation attempt for PersonId={PersonId} AttendanceId={AttendanceId}",
@@ -48,8 +65,9 @@ public class FollowUpRetryService(
         else
         {
             // Subsequent attempts - schedule with exponential backoff
+            // Note: Hangfire will inject the CancellationToken at execution time
             jobId = backgroundJobService.Schedule<IFollowUpRetryService>(
-                service => service.ProcessFollowUpCreationAsync(personId, attendanceId, attemptNumber),
+                service => service.ProcessFollowUpCreationAsync(personId, attendanceId, attemptNumber, CancellationToken.None),
                 delay);
 
             logger.LogWarning(
@@ -61,16 +79,32 @@ public class FollowUpRetryService(
         return jobId;
     }
 
-    public async Task ProcessFollowUpCreationAsync(int personId, int attendanceId, int attemptNumber)
+    public async Task ProcessFollowUpCreationAsync(int personId, int attendanceId, int attemptNumber, CancellationToken cancellationToken = default)
     {
+        // CRITICAL: Input validation - prevent invalid data from being processed
+        if (personId <= 0)
+        {
+            throw new ArgumentException("PersonId must be greater than zero.", nameof(personId));
+        }
+
+        if (attendanceId <= 0)
+        {
+            throw new ArgumentException("AttendanceId must be greater than zero.", nameof(attendanceId));
+        }
+
+        if (attemptNumber < 0)
+        {
+            throw new ArgumentException("AttemptNumber cannot be negative.", nameof(attemptNumber));
+        }
+
         try
         {
             logger.LogInformation(
                 "Processing follow-up creation attempt {AttemptNumber}/{MaxAttempts} for PersonId={PersonId} AttendanceId={AttendanceId}",
                 attemptNumber + 1, MaxAttempts, personId, attendanceId);
 
-            // Attempt to create the follow-up
-            var followUp = await followUpService.CreateFollowUpAsync(personId, attendanceId, CancellationToken.None);
+            // Attempt to create the follow-up with cancellation support
+            var followUp = await followUpService.CreateFollowUpAsync(personId, attendanceId, cancellationToken);
 
             logger.LogInformation(
                 "FOLLOW_UP_RETRY_SUCCESS: Successfully created follow-up {FollowUpId} on attempt {AttemptNumber}/{MaxAttempts}. " +

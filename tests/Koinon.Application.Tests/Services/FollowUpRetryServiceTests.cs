@@ -1,10 +1,10 @@
+using System.Linq.Expressions;
 using FluentAssertions;
 using Koinon.Application.Interfaces;
 using Koinon.Application.Services;
 using Koinon.Domain.Entities;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System.Linq.Expressions;
 using Xunit;
 
 namespace Koinon.Application.Tests.Services;
@@ -140,7 +140,7 @@ public class FollowUpRetryServiceTests
             .ReturnsAsync(expectedFollowUp);
 
         // Act
-        await _service.ProcessFollowUpCreationAsync(personId, attendanceId, attemptNumber);
+        await _service.ProcessFollowUpCreationAsync(personId, attendanceId, attemptNumber, CancellationToken.None);
 
         // Assert
         _mockFollowUpService.Verify(
@@ -167,7 +167,7 @@ public class FollowUpRetryServiceTests
             .Returns("retry-job-id");
 
         // Act
-        await _service.ProcessFollowUpCreationAsync(personId, attendanceId, attemptNumber);
+        await _service.ProcessFollowUpCreationAsync(personId, attendanceId, attemptNumber, CancellationToken.None);
 
         // Assert - should schedule next attempt
         _mockBackgroundJobService.Verify(
@@ -190,7 +190,7 @@ public class FollowUpRetryServiceTests
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
         // Act
-        var act = async () => await _service.ProcessFollowUpCreationAsync(personId, attendanceId, finalAttempt);
+        var act = async () => await _service.ProcessFollowUpCreationAsync(personId, attendanceId, finalAttempt, CancellationToken.None);
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>()
@@ -250,4 +250,144 @@ public class FollowUpRetryServiceTests
                 Times.Once);
         }
     }
+
+    #region Input Validation Tests
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    [InlineData(-100)]
+    public void QueueFollowUpCreation_InvalidPersonId_ShouldThrowArgumentException(int invalidPersonId)
+    {
+        // Arrange
+        const int attendanceId = 100;
+
+        // Act
+        var act = () => _service.QueueFollowUpCreation(invalidPersonId, attendanceId, 0);
+
+        // Assert
+        act.Should().Throw<ArgumentException>()
+            .WithParameterName("personId")
+            .WithMessage("PersonId must be greater than zero.*");
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    [InlineData(-100)]
+    public void QueueFollowUpCreation_InvalidAttendanceId_ShouldThrowArgumentException(int invalidAttendanceId)
+    {
+        // Arrange
+        const int personId = 1;
+
+        // Act
+        var act = () => _service.QueueFollowUpCreation(personId, invalidAttendanceId, 0);
+
+        // Assert
+        act.Should().Throw<ArgumentException>()
+            .WithParameterName("attendanceId")
+            .WithMessage("AttendanceId must be greater than zero.*");
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(-100)]
+    public void QueueFollowUpCreation_NegativeAttemptNumber_ShouldThrowArgumentException(int invalidAttemptNumber)
+    {
+        // Arrange
+        const int personId = 1;
+        const int attendanceId = 100;
+
+        // Act
+        var act = () => _service.QueueFollowUpCreation(personId, attendanceId, invalidAttemptNumber);
+
+        // Assert
+        act.Should().Throw<ArgumentException>()
+            .WithParameterName("attemptNumber")
+            .WithMessage("AttemptNumber cannot be negative.*");
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    [InlineData(-100)]
+    public async Task ProcessFollowUpCreationAsync_InvalidPersonId_ShouldThrowArgumentException(int invalidPersonId)
+    {
+        // Arrange
+        const int attendanceId = 100;
+        const int attemptNumber = 0;
+
+        // Act
+        var act = async () => await _service.ProcessFollowUpCreationAsync(invalidPersonId, attendanceId, attemptNumber, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>()
+            .WithParameterName("personId")
+            .WithMessage("PersonId must be greater than zero.*");
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    [InlineData(-100)]
+    public async Task ProcessFollowUpCreationAsync_InvalidAttendanceId_ShouldThrowArgumentException(int invalidAttendanceId)
+    {
+        // Arrange
+        const int personId = 1;
+        const int attemptNumber = 0;
+
+        // Act
+        var act = async () => await _service.ProcessFollowUpCreationAsync(personId, invalidAttendanceId, attemptNumber, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>()
+            .WithParameterName("attendanceId")
+            .WithMessage("AttendanceId must be greater than zero.*");
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(-100)]
+    public async Task ProcessFollowUpCreationAsync_NegativeAttemptNumber_ShouldThrowArgumentException(int invalidAttemptNumber)
+    {
+        // Arrange
+        const int personId = 1;
+        const int attendanceId = 100;
+
+        // Act
+        var act = async () => await _service.ProcessFollowUpCreationAsync(personId, attendanceId, invalidAttemptNumber, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>()
+            .WithParameterName("attemptNumber")
+            .WithMessage("AttemptNumber cannot be negative.*");
+    }
+
+    [Fact]
+    public async Task ProcessFollowUpCreationAsync_CancellationRequested_ShouldPassCancellationToken()
+    {
+        // Arrange
+        const int personId = 1;
+        const int attendanceId = 100;
+        const int attemptNumber = 0;
+
+        var cts = new CancellationTokenSource();
+        cts.Cancel(); // Cancel immediately
+
+        _mockFollowUpService
+            .Setup(s => s.CreateFollowUpAsync(personId, attendanceId, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new OperationCanceledException());
+
+        // Act & Assert
+        // The OperationCanceledException will be caught by the retry logic, which is expected behavior
+        // The important thing is that the cancellation token is passed through
+        await _service.ProcessFollowUpCreationAsync(personId, attendanceId, attemptNumber, cts.Token);
+
+        // Verify that cancellation token was passed through to the service
+        _mockFollowUpService.Verify(
+            s => s.CreateFollowUpAsync(personId, attendanceId, It.Is<CancellationToken>(ct => ct.IsCancellationRequested)),
+            Times.Once);
+    }
+
+    #endregion
 }
