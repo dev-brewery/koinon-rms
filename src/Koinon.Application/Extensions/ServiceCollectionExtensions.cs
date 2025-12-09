@@ -85,6 +85,9 @@ public static class ServiceCollectionExtensions
         // Self-service profile service
         services.AddScoped<IMyProfileService, MyProfileService>();
 
+        // File management service
+        services.AddScoped<IFileService, FileService>();
+
         // AutoMapper - register all mapping profiles
         services.AddAutoMapper(typeof(ServiceCollectionExtensions).Assembly);
 

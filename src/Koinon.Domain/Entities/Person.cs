@@ -261,6 +261,11 @@ public class Person : Entity
     public virtual Campus? PrimaryCampus { get; set; }
 
     /// <summary>
+    /// Navigation property to the person's photo file.
+    /// </summary>
+    public virtual BinaryFile? Photo { get; set; }
+
+    /// <summary>
     /// Collection of all group memberships for this person.
     /// </summary>
     public virtual ICollection<GroupMember> GroupMemberships { get; set; } = new List<GroupMember>();

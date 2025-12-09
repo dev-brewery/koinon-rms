@@ -64,6 +64,9 @@ public class KoinonDbContext : DbContext, IApplicationDbContext
     public DbSet<Communication> Communications { get; set; } = null!;
     public DbSet<CommunicationRecipient> CommunicationRecipients { get; set; } = null!;
 
+    // File storage entities
+    public DbSet<BinaryFile> BinaryFiles { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
