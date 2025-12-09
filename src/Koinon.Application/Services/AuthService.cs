@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Koinon.Application.Constants;
 using Koinon.Application.DTOs;
 using Koinon.Application.DTOs.Auth;
 using Koinon.Application.Interfaces;
@@ -40,6 +41,7 @@ public class AuthService(
         var person = await context.People
             .Include(p => p.ConnectionStatusValue)
             .Include(p => p.RecordStatusValue)
+            .Include(p => p.Photo)
             .FirstOrDefaultAsync(p => p.Email == request.Email, ct);
 
         if (person == null)
@@ -92,6 +94,8 @@ public class AuthService(
                 .ThenInclude(p => p!.ConnectionStatusValue)
             .Include(rt => rt.Person)
                 .ThenInclude(p => p!.RecordStatusValue)
+            .Include(rt => rt.Person)
+                .ThenInclude(p => p!.Photo)
             .FirstOrDefaultAsync(rt => rt.Token == refreshToken, ct);
 
         if (token == null || !token.IsActive)
@@ -247,7 +251,7 @@ public class AuthService(
             LastName = person.LastName,
             FullName = person.FullName,
             Email = person.Email,
-            PhotoUrl = null, // TODO: Implement photo URL generation
+            PhotoUrl = person.Photo != null ? ApiPaths.GetFileUrl(person.Photo.IdKey) : null,
             Age = CalculateAge(person.BirthDate),
             Gender = person.Gender.ToString(),
             ConnectionStatus = person.ConnectionStatusValue != null

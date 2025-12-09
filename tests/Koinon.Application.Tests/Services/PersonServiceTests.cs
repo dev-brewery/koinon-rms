@@ -1,8 +1,10 @@
 using AutoMapper;
 using FluentAssertions;
 using FluentValidation;
+using Koinon.Application.Common;
 using Koinon.Application.DTOs;
 using Koinon.Application.DTOs.Requests;
+using Koinon.Application.Interfaces;
 using Koinon.Application.Mapping;
 using Koinon.Application.Services;
 using Koinon.Application.Validators;
@@ -61,6 +63,7 @@ public class PersonServiceTests : IDisposable
             _mapper,
             _createValidator,
             _updateValidator,
+            Mock.Of<IUserContext>(),
             _mockLogger.Object
         );
 
