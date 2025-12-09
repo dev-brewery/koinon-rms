@@ -144,7 +144,7 @@ public class GroupsControllerTests
             AllowGuests = true,
             GroupCapacity = 20,
             Order = 0,
-            GroupType = new GroupTypeDto
+            GroupType = new GroupTypeSummaryDto
             {
                 IdKey = _groupTypeIdKey,
                 Guid = Guid.NewGuid(),
@@ -228,7 +228,7 @@ public class GroupsControllerTests
             AllowGuests = false,
             GroupCapacity = null,
             Order = 0,
-            GroupType = new GroupTypeDto
+            GroupType = new GroupTypeSummaryDto
             {
                 IdKey = _groupTypeIdKey,
                 Guid = Guid.NewGuid(),
@@ -350,7 +350,7 @@ public class GroupsControllerTests
             AllowGuests = true,
             GroupCapacity = 20,
             Order = 0,
-            GroupType = new GroupTypeDto
+            GroupType = new GroupTypeSummaryDto
             {
                 IdKey = _groupTypeIdKey,
                 Guid = Guid.NewGuid(),

@@ -25,7 +25,7 @@ public class GroupMappingProfile : Profile
             .ForMember(d => d.Role, o => o.MapFrom(s => s.GroupRole))
             .ForMember(d => d.Status, o => o.MapFrom(s => s.GroupMemberStatus.ToString()));
 
-        CreateMap<GroupType, GroupTypeDto>()
+        CreateMap<GroupType, GroupTypeSummaryDto>()
             .ForMember(d => d.IdKey, o => o.MapFrom(s => s.IdKey))
             .ForMember(d => d.Roles, o => o.MapFrom(s => s.Roles));
 

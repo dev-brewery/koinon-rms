@@ -32,6 +32,7 @@ import {
   ScheduleDetailPage,
   ScheduleFormPage,
 } from './pages/admin/schedules';
+import { GroupTypesPage } from './pages/admin/settings/GroupTypesPage';
 import { PWAUpdatePrompt, InstallPrompt } from './components/pwa';
 import { GroupFinderPage } from './pages/public/GroupFinderPage';
 import { MyGroupsPage } from './pages/MyGroupsPage';
@@ -213,6 +214,7 @@ function App() {
           <Route path="schedules/:idKey/edit" element={<ScheduleFormPage />} />
           <Route path="analytics" element={<AnalyticsPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="settings/group-types" element={<GroupTypesPage />} />
         </Route>
 
         {/* Check-in route */}
