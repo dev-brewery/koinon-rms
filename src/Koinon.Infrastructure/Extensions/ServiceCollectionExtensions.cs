@@ -85,6 +85,9 @@ public static class ServiceCollectionExtensions
         // Register email sender service
         services.AddScoped<IEmailSender, SmtpEmailSender>();
 
+        // Register background service for sending communications
+        services.AddHostedService<CommunicationSenderBackgroundService>();
+
         // Future: Register repositories and unit of work (WU-1.3.4)
         // services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         // services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -160,6 +163,9 @@ public static class ServiceCollectionExtensions
 
         // Register email sender service
         services.AddScoped<IEmailSender, SmtpEmailSender>();
+
+        // Register background service for sending communications
+        services.AddHostedService<CommunicationSenderBackgroundService>();
 
         // Future: Register repositories and unit of work
         // services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
