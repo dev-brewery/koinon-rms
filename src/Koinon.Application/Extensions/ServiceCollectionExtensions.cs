@@ -68,6 +68,7 @@ public static class ServiceCollectionExtensions
         // First-time visitor and follow-up services
         services.AddScoped<IFirstTimeVisitorService, FirstTimeVisitorService>();
         services.AddScoped<IFollowUpService, FollowUpService>();
+        services.AddScoped<IFollowUpRetryService, FollowUpRetryService>();
 
         // Parent paging service
         services.AddScoped<IParentPagingService, ParentPagingService>();
