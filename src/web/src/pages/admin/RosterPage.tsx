@@ -3,14 +3,50 @@
  * Real-time view of who is currently checked into each room
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useRoomRoster } from '@/hooks/useRoomRoster';
 import { RosterList } from '@/components/admin/roster/RosterList';
 import { Button, Card } from '@/components/ui';
+import { LocationPicker } from '@/components/LocationPicker';
+import * as referenceApi from '@/services/api/reference';
+
+// localStorage key for persisting selected location
+const LOCATION_STORAGE_KEY = 'selectedLocationIdKey';
 
 export function RosterPage() {
   const [selectedLocationIdKey, setSelectedLocationIdKey] = useState<string>('');
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [campusIdKey, setCampusIdKey] = useState<string>('');
+
+  // Fetch active campuses
+  const { data: campuses } = useQuery({
+    queryKey: ['campuses'],
+    queryFn: () => referenceApi.getCampuses({ includeInactive: false }),
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  // Auto-select first active campus
+  useEffect(() => {
+    if (campuses && campuses.length > 0 && !campusIdKey) {
+      setCampusIdKey(campuses[0].idKey);
+    }
+  }, [campuses, campusIdKey]);
+
+  // Load saved location from localStorage on mount (CRITICAL-1 FIX: Single source of truth)
+  useEffect(() => {
+    const savedLocationIdKey = localStorage.getItem(LOCATION_STORAGE_KEY);
+    if (savedLocationIdKey) {
+      setSelectedLocationIdKey(savedLocationIdKey);
+    }
+  }, []);
+
+  // Persist location selection to localStorage whenever it changes
+  useEffect(() => {
+    if (selectedLocationIdKey) {
+      localStorage.setItem(LOCATION_STORAGE_KEY, selectedLocationIdKey);
+    }
+  }, [selectedLocationIdKey]);
 
   const { data: roster, isLoading, error, refetch } = useRoomRoster(
     selectedLocationIdKey || undefined,
@@ -65,21 +101,21 @@ export function RosterPage() {
         </div>
       </div>
 
-      {/* Location selector placeholder - TODO(#120): Implement location picker */}
+      {/* Location selector */}
       <Card className="p-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Select Room
-        </label>
-        <input
-          type="text"
+        <LocationPicker
           value={selectedLocationIdKey}
-          onChange={(e) => setSelectedLocationIdKey(e.target.value)}
-          placeholder="Enter location IdKey (temporary - will be a picker)"
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+          onChange={setSelectedLocationIdKey}
+          campusIdKey={campusIdKey}
         />
-        <p className="mt-1 text-xs text-gray-500">
-          TODO(#120): Replace with a proper location picker component
-        </p>
+        {!campusIdKey && (
+          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+            <p className="text-sm text-yellow-800">
+              <strong>Note:</strong> Campus configuration is required to load rooms.
+              This should be automatically loaded from your user context or organization settings.
+            </p>
+          </div>
+        )}
       </Card>
 
       {/* Error state */}
