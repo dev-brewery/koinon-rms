@@ -43,7 +43,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       errorInfo,
     });
 
-    // TODO: Log to error tracking service (e.g., Sentry) in production
+    // TODO(#152): Log to error tracking service (e.g., Sentry) in production
   }
 
   handleReset = (): void => {
