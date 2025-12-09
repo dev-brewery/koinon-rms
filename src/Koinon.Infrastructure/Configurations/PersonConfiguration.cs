@@ -218,6 +218,11 @@ public class PersonConfiguration : IEntityTypeConfiguration<Person>
             .HasForeignKey(pn => pn.PersonId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasOne(p => p.Photo)
+            .WithMany()
+            .HasForeignKey(p => p.PhotoId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         // Note: Full-text search vector configuration requires PostgreSQL-specific features
         // Implementation deferred until PostgreSQL provider setup is complete
     }

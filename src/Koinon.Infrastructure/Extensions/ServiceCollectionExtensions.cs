@@ -90,6 +90,9 @@ public static class ServiceCollectionExtensions
         // Register background service for sending communications
         services.AddHostedService<CommunicationSenderBackgroundService>();
 
+        // Register file storage service
+        services.AddScoped<IFileStorageService, LocalFileStorageService>();
+
         // Future: Register repositories and unit of work (WU-1.3.4)
         // services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         // services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -124,6 +127,9 @@ public static class ServiceCollectionExtensions
             // Apply any additional configuration
             configureOptions?.Invoke(options);
         });
+
+        // Register file storage service
+        services.AddScoped<IFileStorageService, LocalFileStorageService>();
 
         // Future: Register repositories and unit of work (WU-1.3.4)
         // services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
@@ -169,6 +175,9 @@ public static class ServiceCollectionExtensions
         // Register background service for sending communications
         services.AddHostedService<CommunicationSenderBackgroundService>();
 
+        // Register file storage service
+        services.AddScoped<IFileStorageService, LocalFileStorageService>();
+
         // Future: Register repositories and unit of work
         // services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         // services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -199,6 +208,9 @@ public static class ServiceCollectionExtensions
             var dbProvider = serviceProvider.GetRequiredService<IDatabaseProvider>();
             dbProvider.ConfigureDbContext(options, connectionString);
         });
+
+        // Register file storage service
+        services.AddScoped<IFileStorageService, LocalFileStorageService>();
 
         // Future: Register repositories and unit of work
         // services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
