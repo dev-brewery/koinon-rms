@@ -34,6 +34,7 @@ public static class ServiceCollectionExtensions
         // Core entity services
         services.AddScoped<IPersonService, PersonService>();
         services.AddScoped<IGroupService, GroupService>();
+        services.AddScoped<IGroupMemberRequestService, GroupMemberRequestService>();
         services.AddScoped<IMyGroupsService, MyGroupsService>();
         services.AddScoped<IFamilyService, FamilyService>();
         services.AddScoped<IScheduleService, ScheduleService>();

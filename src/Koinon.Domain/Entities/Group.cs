@@ -175,4 +175,9 @@ public class Group : Entity
     /// Collection of schedule associations for this group.
     /// </summary>
     public virtual ICollection<GroupSchedule> GroupSchedules { get; set; } = new List<GroupSchedule>();
+
+    /// <summary>
+    /// Collection of membership requests for this group.
+    /// </summary>
+    public virtual ICollection<GroupMemberRequest> MemberRequests { get; set; } = new List<GroupMemberRequest>();
 }
