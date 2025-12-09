@@ -37,6 +37,7 @@ import { PWAUpdatePrompt, InstallPrompt } from './components/pwa';
 import { GroupFinderPage } from './pages/public/GroupFinderPage';
 import { MyGroupsPage } from './pages/MyGroupsPage';
 import { CommunicationsPage } from './pages/communications/CommunicationsPage';
+import { MyProfilePage } from './pages/profile';
 
 function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -172,6 +173,16 @@ function App() {
           element={
             <ProtectedRoute>
               <MyGroupsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* My Profile - Protected route for authenticated users */}
+        <Route
+          path="/my-profile"
+          element={
+            <ProtectedRoute>
+              <MyProfilePage />
             </ProtectedRoute>
           }
         />

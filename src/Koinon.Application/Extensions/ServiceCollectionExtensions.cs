@@ -82,6 +82,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICommunicationService, CommunicationService>();
         services.AddScoped<ICommunicationSender, CommunicationSender>();
 
+        // Self-service profile service
+        services.AddScoped<IMyProfileService, MyProfileService>();
+
         // AutoMapper - register all mapping profiles
         services.AddAutoMapper(typeof(ServiceCollectionExtensions).Assembly);
 
