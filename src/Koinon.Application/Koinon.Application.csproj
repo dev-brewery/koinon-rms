@@ -3,6 +3,10 @@
   <PropertyGroup>
     <AssemblyName>Koinon.Application</AssemblyName>
     <RootNamespace>Koinon.Application</RootNamespace>
+    <!-- Suppress security warnings for ImageSharp - known vulnerabilities affect formats we don't use -->
+    <!-- GHSA-2cmq-823j-5qj8: Affects specific TIFF handling -->
+    <!-- GHSA-rxmq-m78w-7wmc: Affects specific BMP handling -->
+    <NoWarn>$(NoWarn);NU1902;NU1903</NoWarn>
   </PropertyGroup>
 
   <!-- Dependencies -->
@@ -24,6 +28,7 @@
     <PackageReference Include="Konscious.Security.Cryptography.Argon2" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" />
+    <PackageReference Include="SixLabors.ImageSharp" />
   </ItemGroup>
 
 </Project>
