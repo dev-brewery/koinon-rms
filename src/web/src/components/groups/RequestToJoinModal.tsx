@@ -3,7 +3,7 @@
  * Modal for users to request membership in a group
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/Button';
 import { useSubmitMembershipRequest } from '@/hooks/useMembershipRequests';
 
@@ -26,6 +26,13 @@ export function RequestToJoinModal({
 
   const submitMutation = useSubmitMembershipRequest(groupIdKey);
 
+  // Memoized close handler to prevent unnecessary re-renders
+  const handleClose = useCallback(() => {
+    if (!submitMutation.isPending) {
+      onClose();
+    }
+  }, [submitMutation.isPending, onClose]);
+
   // Reset state when modal opens/closes
   useEffect(() => {
     if (isOpen) {
@@ -46,13 +53,7 @@ export function RequestToJoinModal({
       document.addEventListener('keydown', handleEscape);
       return () => document.removeEventListener('keydown', handleEscape);
     }
-  }, [isOpen, submitMutation.isPending]);
-
-  const handleClose = () => {
-    if (!submitMutation.isPending) {
-      onClose();
-    }
-  };
+  }, [isOpen, submitMutation.isPending, handleClose]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,7 +75,7 @@ export function RequestToJoinModal({
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [showSuccess]);
+  }, [showSuccess, handleClose]);
 
   if (!isOpen) return null;
 
