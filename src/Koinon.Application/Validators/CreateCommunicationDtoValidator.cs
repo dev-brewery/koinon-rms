@@ -27,10 +27,20 @@ public class CreateCommunicationDtoValidator : AbstractValidator<CreateCommunica
             .NotEmpty().WithMessage("Body is required")
             .MaximumLength(100000).WithMessage("Body cannot exceed 100,000 characters");
 
+        // SMS-specific body validation (10 segments max @ 160 chars per segment)
+        RuleFor(x => x.Body)
+            .MaximumLength(1600).WithMessage("SMS body cannot exceed 1600 characters (10 segments)")
+            .When(x => x.CommunicationType == "Sms");
+
         RuleFor(x => x.CommunicationType)
             .NotEmpty().WithMessage("Communication type is required")
             .Must(x => x == "Email" || x == "Sms")
             .WithMessage("Communication type must be Email or Sms");
+
+        // SMS should not have subject
+        RuleFor(x => x.Subject)
+            .Empty().WithMessage("Subject should not be set for SMS communications")
+            .When(x => x.CommunicationType == "Sms");
 
         RuleFor(x => x.FromEmail)
             .NotEmpty().WithMessage("FromEmail is required for email communications")
