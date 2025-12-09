@@ -68,6 +68,7 @@ build/
 # Gemini Context Tools
 tools/gemini-context/.env
 tools/gemini-context/venv_gemini/
+venv_gemini/
 
 # Vite
 *.local
