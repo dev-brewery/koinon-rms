@@ -34,6 +34,7 @@ import {
 } from './pages/admin/schedules';
 import { PWAUpdatePrompt, InstallPrompt } from './components/pwa';
 import { GroupFinderPage } from './pages/public/GroupFinderPage';
+import { MyGroupsPage } from './pages/MyGroupsPage';
 
 function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -162,6 +163,16 @@ function App() {
 
         {/* Public routes (no auth required) */}
         <Route path="/groups" element={<GroupFinderPage />} />
+
+        {/* My Groups - Protected route for group leaders */}
+        <Route
+          path="/my-groups"
+          element={
+            <ProtectedRoute>
+              <MyGroupsPage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Legacy people route - redirect to admin */}
         <Route
