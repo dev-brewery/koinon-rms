@@ -858,3 +858,52 @@ export enum CapacityStatus {
   Warning = 1,
   Full = 2,
 }
+
+// ============================================================================
+// My Groups Types (Group Leader Dashboard)
+// ============================================================================
+
+export interface MyGroupDto {
+  idKey: IdKey;
+  guid: string;
+  name: string;
+  description?: string;
+  groupTypeName: string;
+  isActive: boolean;
+  memberCount: number;
+  groupCapacity?: number;
+  lastMeetingDate?: DateTime;
+  campus?: CampusSummaryDto;
+  createdDateTime: DateTime;
+  modifiedDateTime?: DateTime;
+}
+
+export interface MyGroupMemberDetailDto {
+  idKey: IdKey;
+  personIdKey: IdKey;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  email?: string;
+  phone?: string;
+  photoUrl?: string;
+  age?: number;
+  gender: string;
+  role: GroupTypeRoleDto;
+  status: string;
+  dateTimeAdded?: DateTime;
+  inactiveDateTime?: DateTime;
+  note?: string;
+}
+
+export interface UpdateGroupMemberRequest {
+  roleId?: IdKey;
+  status?: string;
+  note?: string;
+}
+
+export interface RecordGroupAttendanceRequest {
+  occurrenceDate: DateOnly;
+  attendedPersonIds: IdKey[];
+  notes?: string;
+}
