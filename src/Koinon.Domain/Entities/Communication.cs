@@ -68,6 +68,11 @@ public class Communication : Entity
     public int OpenedCount { get; set; }
 
     /// <summary>
+    /// Number of recipients who clicked links in the communication (email only).
+    /// </summary>
+    public int ClickedCount { get; set; }
+
+    /// <summary>
     /// Optional notes about this communication.
     /// </summary>
     public string? Note { get; set; }
