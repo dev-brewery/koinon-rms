@@ -907,3 +907,31 @@ export interface RecordGroupAttendanceRequest {
   attendedPersonIds: IdKey[];
   notes?: string;
 }
+
+// ============================================================================
+// Group Membership Request Types
+// ============================================================================
+
+export type MembershipRequestStatus = 'Pending' | 'Approved' | 'Denied';
+
+export interface GroupMemberRequestDto {
+  idKey: IdKey;
+  requester: PersonSummaryDto;
+  group: GroupSummaryDto;
+  status: MembershipRequestStatus;
+  requestNote?: string;
+  responseNote?: string;
+  processedByPerson?: PersonSummaryDto;
+  processedDateTime?: DateTime;
+  createdDateTime: DateTime;
+  modifiedDateTime?: DateTime;
+}
+
+export interface SubmitMembershipRequestRequest {
+  note?: string;
+}
+
+export interface ProcessMembershipRequestRequest {
+  status: 'Approved' | 'Denied';
+  note?: string;
+}

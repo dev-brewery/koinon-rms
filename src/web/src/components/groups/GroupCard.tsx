@@ -3,27 +3,45 @@
  * Displays a single public group in card format
  */
 
+import { useState } from 'react';
 import type { PublicGroupDto } from '@/services/api/publicGroups';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/Button';
+import { RequestToJoinModal } from './RequestToJoinModal';
 
 export interface GroupCardProps {
   group: PublicGroupDto;
   onClick?: (group: PublicGroupDto) => void;
   className?: string;
+  showRequestButton?: boolean;
 }
 
-export function GroupCard({ group, onClick, className }: GroupCardProps) {
+export function GroupCard({ group, onClick, className, showRequestButton = true }: GroupCardProps) {
+  const [showRequestModal, setShowRequestModal] = useState(false);
+
+  const handleCardClick = () => {
+    if (onClick) {
+      onClick(group);
+    }
+  };
+
+  const handleRequestClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowRequestModal(true);
+  };
+
   const Component = onClick ? 'button' : 'div';
 
   return (
-    <Component
-      onClick={onClick ? () => onClick(group) : undefined}
-      className={cn(
-        'bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow text-left',
-        onClick && 'cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500',
-        className
-      )}
-    >
+    <>
+      <Component
+        onClick={handleCardClick}
+        className={cn(
+          'bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow text-left',
+          onClick && 'cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500',
+          className
+        )}
+      >
       {/* Header */}
       <div className="mb-4">
         <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -121,6 +139,28 @@ export function GroupCard({ group, onClick, className }: GroupCardProps) {
           {' members'}
         </span>
       </div>
+
+      {/* Request to Join Button */}
+      {showRequestButton && group.hasOpenings && (
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <Button
+            onClick={handleRequestClick}
+            size="sm"
+            className="w-full"
+          >
+            Request to Join
+          </Button>
+        </div>
+      )}
     </Component>
+
+    {/* Request to Join Modal */}
+    <RequestToJoinModal
+      isOpen={showRequestModal}
+      onClose={() => setShowRequestModal(false)}
+      groupIdKey={group.idKey}
+      groupName={group.name}
+    />
+  </>
   );
 }
