@@ -78,8 +78,9 @@ public static class ServiceCollectionExtensions
         // Room roster service
         services.AddScoped<IRoomRosterService, RoomRosterService>();
 
-        // Communication service
+        // Communication services
         services.AddScoped<ICommunicationService, CommunicationService>();
+        services.AddScoped<ICommunicationSender, CommunicationSender>();
 
         // AutoMapper - register all mapping profiles
         services.AddAutoMapper(typeof(ServiceCollectionExtensions).Assembly);

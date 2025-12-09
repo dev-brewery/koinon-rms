@@ -36,6 +36,7 @@ import { GroupTypesPage } from './pages/admin/settings/GroupTypesPage';
 import { PWAUpdatePrompt, InstallPrompt } from './components/pwa';
 import { GroupFinderPage } from './pages/public/GroupFinderPage';
 import { MyGroupsPage } from './pages/MyGroupsPage';
+import { CommunicationsPage } from './pages/communications/CommunicationsPage';
 
 function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -213,6 +214,7 @@ function App() {
           <Route path="schedules/:idKey" element={<ScheduleDetailPage />} />
           <Route path="schedules/:idKey/edit" element={<ScheduleFormPage />} />
           <Route path="analytics" element={<AnalyticsPage />} />
+          <Route path="communications" element={<CommunicationsPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="settings/group-types" element={<GroupTypesPage />} />
         </Route>
