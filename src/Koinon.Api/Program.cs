@@ -6,6 +6,7 @@ using Koinon.Application.Interfaces;
 using Koinon.Infrastructure.Data;
 using Koinon.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -85,8 +86,8 @@ builder.Services.AddKoinonInfrastructure(postgresConnectionString, builder.Confi
     }
 });
 
-// Add application services
-builder.Services.AddKoinonApplicationServices();
+// Add application services (pass configuration for options binding)
+builder.Services.AddKoinonApplicationServices(builder.Configuration);
 
 // Add health checks
 builder.Services.AddHealthChecks()
@@ -118,6 +119,53 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// Configure forwarded headers for proper client IP detection behind reverse proxies
+// IMPORTANT: This must run BEFORE UseHttpsRedirection for correct scheme detection
+// In production, configure KnownProxies/KnownNetworks via environment variables
+var forwardedHeadersOptions = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+    ForwardLimit = 1 // Only trust the first proxy in the chain
+};
+
+// In production, only trust headers from known proxies to prevent IP spoofing
+// Development mode allows all proxies for ease of testing
+if (!app.Environment.IsDevelopment())
+{
+    // Clear default proxy/network lists - only trust explicitly configured proxies
+    forwardedHeadersOptions.KnownProxies.Clear();
+    forwardedHeadersOptions.KnownNetworks.Clear();
+
+    // Read trusted proxy IPs from configuration
+    var trustedProxies = app.Configuration.GetSection("ForwardedHeaders:TrustedProxies").Get<string[]>();
+    if (trustedProxies != null)
+    {
+        foreach (var proxy in trustedProxies)
+        {
+            if (System.Net.IPAddress.TryParse(proxy, out var ip))
+            {
+                forwardedHeadersOptions.KnownProxies.Add(ip);
+            }
+        }
+    }
+
+    // Read trusted networks (CIDR notation) from configuration
+    var trustedNetworks = app.Configuration.GetSection("ForwardedHeaders:TrustedNetworks").Get<string[]>();
+    if (trustedNetworks != null)
+    {
+        foreach (var network in trustedNetworks)
+        {
+            var parts = network.Split('/');
+            if (parts.Length == 2 && System.Net.IPAddress.TryParse(parts[0], out var prefix) && int.TryParse(parts[1], out var prefixLength))
+            {
+                forwardedHeadersOptions.KnownNetworks.Add(new Microsoft.AspNetCore.HttpOverrides.IPNetwork(prefix, prefixLength));
+            }
+        }
+    }
+}
+
+app.UseForwardedHeaders(forwardedHeadersOptions);
 
 app.UseHttpsRedirection();
 

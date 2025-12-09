@@ -17,13 +17,14 @@ namespace Koinon.Api.Controllers;
 [ValidateIdKey]
 public class PickupController(
     IAuthorizedPickupService authorizedPickupService,
+    IPickupRateLimitService rateLimitService,
     ILogger<PickupController> logger) : ControllerBase
 {
     /// <summary>
     /// Verifies if a person is authorized to pick up a child.
     /// Checks the authorized pickup list and authorization levels.
-    /// CRITICAL #5: Rate limiting tracked in issue #106
-    /// (max 5 attempts per attendance per 15 minutes to prevent brute-force attacks on security codes)
+    /// Rate limited to 5 failed attempts per 15 minutes per attendance record and client IP
+    /// to prevent brute-force attacks on 6-digit security codes.
     /// </summary>
     /// <param name="request">Pickup verification request</param>
     /// <param name="ct">Cancellation token</param>
@@ -32,12 +33,14 @@ public class PickupController(
     /// <response code="400">Validation failed</response>
     /// <response code="401">Not authenticated</response>
     /// <response code="403">Requires CheckInVolunteer or Supervisor role</response>
+    /// <response code="429">Too many failed attempts, rate limit exceeded</response>
     [HttpPost("verify-pickup")]
     [Authorize(Roles = "CheckInVolunteer,Supervisor")]
     [ProducesResponseType(typeof(PickupVerificationResultDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> VerifyPickup(
         [FromBody] VerifyPickupRequest request,
         CancellationToken ct = default)
@@ -64,7 +67,45 @@ public class PickupController(
             });
         }
 
+        // Get client IP for rate limiting (uses ForwardedHeaders middleware)
+        var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+        // Check rate limit before processing request
+        if (rateLimitService.IsRateLimited(request.AttendanceIdKey, clientIp))
+        {
+            var retryAfter = rateLimitService.GetRetryAfter(request.AttendanceIdKey, clientIp);
+            var retryAfterSeconds = (int)(retryAfter?.TotalSeconds ?? 900); // Default to 15 minutes
+
+            Response.Headers.Append("Retry-After", retryAfterSeconds.ToString());
+
+            logger.LogWarning(
+                "Rate limit exceeded for pickup verification: AttendanceIdKey={AttendanceIdKey}, ClientIP={ClientIp}",
+                request.AttendanceIdKey, clientIp);
+
+            return StatusCode(StatusCodes.Status429TooManyRequests, new ProblemDetails
+            {
+                Title = "Too Many Requests",
+                Detail = "Too many failed pickup verification attempts. Please wait before trying again.",
+                Status = StatusCodes.Status429TooManyRequests,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
         var result = await authorizedPickupService.VerifyPickupAsync(request, ct);
+
+        // Track rate limiting based on verification result
+        if (!result.IsAuthorized && !result.RequiresSupervisorOverride)
+        {
+            // Record failed attempt for invalid security code or "Never" authorization
+            rateLimitService.RecordFailedAttempt(request.AttendanceIdKey, clientIp);
+        }
+        else if (result.IsAuthorized)
+        {
+            // Reset counter on successful verification
+            rateLimitService.ResetAttempts(request.AttendanceIdKey, clientIp);
+        }
+        // Note: Don't track "RequiresSupervisorOverride" cases (emergency-only, not on list)
+        // as these are legitimate scenarios, not brute-force attempts
 
         logger.LogInformation(
             "Pickup verification completed: AttendanceIdKey={AttendanceIdKey}, IsAuthorized={IsAuthorized}, RequiresOverride={RequiresOverride}",

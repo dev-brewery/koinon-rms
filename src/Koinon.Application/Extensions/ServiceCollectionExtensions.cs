@@ -1,9 +1,11 @@
 using FluentValidation;
+using Koinon.Application.Configuration;
 using Koinon.Application.DTOs.Auth;
 using Koinon.Application.Interfaces;
 using Koinon.Application.Services;
 using Koinon.Application.Services.Common;
 using Koinon.Application.Validators;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Koinon.Application.Extensions;
@@ -20,9 +22,11 @@ public static class ServiceCollectionExtensions
     /// NOTE: IUserContext must be registered by the API/Infrastructure layer before calling this method.
     /// </summary>
     /// <param name="services">The service collection to add services to.</param>
+    /// <param name="configuration">The configuration to bind options from.</param>
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddKoinonApplicationServices(
-        this IServiceCollection services)
+        this IServiceCollection services,
+        IConfiguration configuration)
     {
         // NOTE: IUserContext is required by services but must be registered by the calling layer
         // (API or Infrastructure) before this method is called. This is intentional to keep
@@ -74,6 +78,16 @@ public static class ServiceCollectionExtensions
 
         // Authorized pickup service
         services.AddScoped<IAuthorizedPickupService, AuthorizedPickupService>();
+
+        // Configure rate limiting options from appsettings
+        var rateLimitSection = configuration.GetSection(RateLimitOptions.SectionName);
+        services.Configure<RateLimitOptions>(rateLimitSection);
+
+        // Add memory cache for rate limiting (if not already added)
+        services.AddMemoryCache();
+
+        // Pickup rate limiting service (scoped - IMemoryCache handles shared state)
+        services.AddScoped<IPickupRateLimitService, PickupRateLimitService>();
 
         // Room roster service
         services.AddScoped<IRoomRosterService, RoomRosterService>();

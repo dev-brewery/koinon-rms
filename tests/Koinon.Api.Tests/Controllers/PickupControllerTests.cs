@@ -17,6 +17,7 @@ namespace Koinon.Api.Tests.Controllers;
 public class PickupControllerTests
 {
     private readonly Mock<IAuthorizedPickupService> _authorizedPickupServiceMock;
+    private readonly Mock<IPickupRateLimitService> _rateLimitServiceMock;
     private readonly Mock<ILogger<PickupController>> _loggerMock;
     private readonly PickupController _controller;
     private readonly PickupController _supervisorController;
@@ -31,11 +32,13 @@ public class PickupControllerTests
     public PickupControllerTests()
     {
         _authorizedPickupServiceMock = new Mock<IAuthorizedPickupService>();
+        _rateLimitServiceMock = new Mock<IPickupRateLimitService>();
         _loggerMock = new Mock<ILogger<PickupController>>();
 
         // Setup controller with regular user (CheckInVolunteer role)
         _controller = new PickupController(
             _authorizedPickupServiceMock.Object,
+            _rateLimitServiceMock.Object,
             _loggerMock.Object);
 
         var regularClaims = new List<Claim>
@@ -59,6 +62,7 @@ public class PickupControllerTests
         // Setup controller with supervisor user
         _supervisorController = new PickupController(
             _authorizedPickupServiceMock.Object,
+            _rateLimitServiceMock.Object,
             _loggerMock.Object);
 
         var supervisorClaims = new List<Claim>
@@ -184,6 +188,219 @@ public class PickupControllerTests
         var verificationResult = okResult.Value.Should().BeAssignableTo<PickupVerificationResultDto>().Subject;
         verificationResult.IsAuthorized.Should().BeFalse();
         verificationResult.RequiresSupervisorOverride.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task VerifyPickup_WhenRateLimited_Returns429()
+    {
+        // Arrange
+        var request = new VerifyPickupRequest(
+            AttendanceIdKey: _attendanceIdKey,
+            PickupPersonIdKey: IdKeyHelper.Encode(75),
+            PickupPersonName: "Sarah Smith",
+            SecurityCode: "1234");
+
+        _rateLimitServiceMock
+            .Setup(s => s.IsRateLimited(_attendanceIdKey, It.IsAny<string>()))
+            .Returns(true);
+
+        _rateLimitServiceMock
+            .Setup(s => s.GetRetryAfter(_attendanceIdKey, It.IsAny<string>()))
+            .Returns(TimeSpan.FromMinutes(10));
+
+        // Act
+        var result = await _controller.VerifyPickup(request);
+
+        // Assert
+        var statusCodeResult = result.Should().BeOfType<ObjectResult>().Subject;
+        statusCodeResult.StatusCode.Should().Be(StatusCodes.Status429TooManyRequests);
+        var problemDetails = statusCodeResult.Value.Should().BeOfType<ProblemDetails>().Subject;
+        problemDetails.Title.Should().Be("Too Many Requests");
+        problemDetails.Detail.Should().Contain("Too many failed pickup verification attempts");
+
+        // Verify Retry-After header was set
+        _controller.Response.Headers.Should().ContainKey("Retry-After");
+    }
+
+    [Fact]
+    public async Task VerifyPickup_OnFailedVerification_RecordsFailedAttempt()
+    {
+        // Arrange
+        var request = new VerifyPickupRequest(
+            AttendanceIdKey: _attendanceIdKey,
+            PickupPersonIdKey: IdKeyHelper.Encode(75),
+            PickupPersonName: "Sarah Smith",
+            SecurityCode: "1234");
+
+        var expectedResult = new PickupVerificationResultDto(
+            IsAuthorized: false,
+            AuthorizationLevel: AuthorizationLevel.Never,
+            AuthorizedPickupIdKey: _authorizedPickupIdKey,
+            Message: "Invalid security code",
+            RequiresSupervisorOverride: false);
+
+        _authorizedPickupServiceMock
+            .Setup(s => s.VerifyPickupAsync(request, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedResult);
+
+        _rateLimitServiceMock
+            .Setup(s => s.IsRateLimited(_attendanceIdKey, It.IsAny<string>()))
+            .Returns(false);
+
+        // Act
+        var result = await _controller.VerifyPickup(request);
+
+        // Assert
+        result.Should().BeOfType<OkObjectResult>();
+
+        // Verify failed attempt was recorded
+        _rateLimitServiceMock.Verify(
+            s => s.RecordFailedAttempt(_attendanceIdKey, It.IsAny<string>()),
+            Times.Once);
+
+        // Verify reset was NOT called
+        _rateLimitServiceMock.Verify(
+            s => s.ResetAttempts(It.IsAny<string>(), It.IsAny<string>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task VerifyPickup_OnSuccessfulVerification_ResetsAttempts()
+    {
+        // Arrange
+        var request = new VerifyPickupRequest(
+            AttendanceIdKey: _attendanceIdKey,
+            PickupPersonIdKey: IdKeyHelper.Encode(75),
+            PickupPersonName: "Sarah Smith",
+            SecurityCode: "1234");
+
+        var expectedResult = new PickupVerificationResultDto(
+            IsAuthorized: true,
+            AuthorizationLevel: AuthorizationLevel.Always,
+            AuthorizedPickupIdKey: _authorizedPickupIdKey,
+            Message: "Authorized to pick up child",
+            RequiresSupervisorOverride: false);
+
+        _authorizedPickupServiceMock
+            .Setup(s => s.VerifyPickupAsync(request, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedResult);
+
+        _rateLimitServiceMock
+            .Setup(s => s.IsRateLimited(_attendanceIdKey, It.IsAny<string>()))
+            .Returns(false);
+
+        // Act
+        var result = await _controller.VerifyPickup(request);
+
+        // Assert
+        result.Should().BeOfType<OkObjectResult>();
+
+        // Verify reset was called
+        _rateLimitServiceMock.Verify(
+            s => s.ResetAttempts(_attendanceIdKey, It.IsAny<string>()),
+            Times.Once);
+
+        // Verify failed attempt was NOT recorded
+        _rateLimitServiceMock.Verify(
+            s => s.RecordFailedAttempt(It.IsAny<string>(), It.IsAny<string>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task VerifyPickup_WithSupervisorOverrideRequired_DoesNotRecordFailedAttempt()
+    {
+        // Arrange
+        var request = new VerifyPickupRequest(
+            AttendanceIdKey: _attendanceIdKey,
+            PickupPersonIdKey: IdKeyHelper.Encode(75),
+            PickupPersonName: "Unknown Person",
+            SecurityCode: "1234");
+
+        var expectedResult = new PickupVerificationResultDto(
+            IsAuthorized: false,
+            AuthorizationLevel: AuthorizationLevel.EmergencyOnly,
+            AuthorizedPickupIdKey: _authorizedPickupIdKey,
+            Message: "Emergency-only authorization. Supervisor approval required.",
+            RequiresSupervisorOverride: true);
+
+        _authorizedPickupServiceMock
+            .Setup(s => s.VerifyPickupAsync(request, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedResult);
+
+        _rateLimitServiceMock
+            .Setup(s => s.IsRateLimited(_attendanceIdKey, It.IsAny<string>()))
+            .Returns(false);
+
+        // Act
+        var result = await _controller.VerifyPickup(request);
+
+        // Assert
+        result.Should().BeOfType<OkObjectResult>();
+
+        // Verify neither failed attempt nor reset was called
+        // (supervisor override scenarios are legitimate, not brute-force attempts)
+        _rateLimitServiceMock.Verify(
+            s => s.RecordFailedAttempt(It.IsAny<string>(), It.IsAny<string>()),
+            Times.Never);
+
+        _rateLimitServiceMock.Verify(
+            s => s.ResetAttempts(It.IsAny<string>(), It.IsAny<string>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task VerifyPickup_UsesRemoteIpAddress_NotXForwardedForHeader()
+    {
+        // Arrange
+        var request = new VerifyPickupRequest(
+            AttendanceIdKey: _attendanceIdKey,
+            PickupPersonIdKey: IdKeyHelper.Encode(75),
+            PickupPersonName: "Sarah Smith",
+            SecurityCode: "1234");
+
+        var expectedResult = new PickupVerificationResultDto(
+            IsAuthorized: false,
+            AuthorizationLevel: AuthorizationLevel.Never,
+            AuthorizedPickupIdKey: _authorizedPickupIdKey,
+            Message: "Invalid security code",
+            RequiresSupervisorOverride: false);
+
+        _authorizedPickupServiceMock
+            .Setup(s => s.VerifyPickupAsync(request, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedResult);
+
+        _rateLimitServiceMock
+            .Setup(s => s.IsRateLimited(_attendanceIdKey, It.IsAny<string>()))
+            .Returns(false);
+
+        // Setup HttpContext with a spoofed X-Forwarded-For header and a known RemoteIpAddress
+        var httpContext = new DefaultHttpContext();
+        httpContext.Connection.RemoteIpAddress = System.Net.IPAddress.Parse("192.168.1.100");
+        httpContext.Request.Headers["X-Forwarded-For"] = "10.0.0.1"; // Spoofed IP
+        httpContext.User = _controller.ControllerContext.HttpContext.User;
+
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = httpContext
+        };
+
+        // Act
+        var result = await _controller.VerifyPickup(request);
+
+        // Assert
+        result.Should().BeOfType<OkObjectResult>();
+
+        // Verify that the rate limiter was called with the RemoteIpAddress, NOT the X-Forwarded-For value
+        _rateLimitServiceMock.Verify(
+            s => s.RecordFailedAttempt(_attendanceIdKey, "192.168.1.100"),
+            Times.Once,
+            "Controller should use HttpContext.Connection.RemoteIpAddress (which is set by ForwardedHeaders middleware), not the raw X-Forwarded-For header");
+
+        // Verify it was NOT called with the spoofed IP
+        _rateLimitServiceMock.Verify(
+            s => s.RecordFailedAttempt(_attendanceIdKey, "10.0.0.1"),
+            Times.Never,
+            "Controller should never use the raw X-Forwarded-For header value");
     }
 
     #endregion
