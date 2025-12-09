@@ -85,6 +85,9 @@ public static class ServiceCollectionExtensions
         // Self-service profile service
         services.AddScoped<IMyProfileService, MyProfileService>();
 
+        // Volunteer scheduling service
+        services.AddScoped<IVolunteerScheduleService, VolunteerScheduleService>();
+
         // AutoMapper - register all mapping profiles
         services.AddAutoMapper(typeof(ServiceCollectionExtensions).Assembly);
 
