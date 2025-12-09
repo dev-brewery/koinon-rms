@@ -6,6 +6,7 @@ namespace Koinon.Application.DTOs;
 public record PickupLogDto(
     string IdKey,
     string AttendanceIdKey,
+    string ChildIdKey,
     string ChildName,
     string PickupPersonName,
     bool WasAuthorized,

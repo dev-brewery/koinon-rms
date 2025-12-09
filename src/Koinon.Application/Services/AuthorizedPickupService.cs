@@ -386,6 +386,7 @@ public class AuthorizedPickupService(
             .Select(pl => new PickupLogDto(
                 IdKey: pl.IdKey,
                 AttendanceIdKey: pl.Attendance!.IdKey,
+                ChildIdKey: pl.ChildPerson!.IdKey,
                 ChildName: pl.ChildPerson!.FullName,
                 PickupPersonName: pl.PickupPerson?.FullName ?? pl.PickupPersonName ?? "Unknown",
                 WasAuthorized: pl.WasAuthorized,
@@ -883,6 +884,7 @@ public class AuthorizedPickupService(
         return new PickupLogDto(
             IdKey: created.IdKey,
             AttendanceIdKey: attendanceIdKey,
+            ChildIdKey: created.ChildPerson!.IdKey,
             ChildName: created.ChildPerson!.FullName,
             PickupPersonName: pickupPersonName,
             WasAuthorized: created.WasAuthorized,

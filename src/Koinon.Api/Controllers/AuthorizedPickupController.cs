@@ -219,4 +219,52 @@ public class AuthorizedPickupController(
             pickups
         });
     }
+
+    /// <summary>
+    /// Gets the pickup history for a child.
+    /// </summary>
+    /// <param name="childIdKey">The child's IdKey</param>
+    /// <param name="fromDate">Optional start date filter</param>
+    /// <param name="toDate">Optional end date filter</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>List of pickup log entries</returns>
+    /// <response code="200">Returns pickup history</response>
+    /// <response code="400">Invalid IdKey format or date range</response>
+    /// <response code="401">Not authenticated</response>
+    /// <response code="403">Requires Supervisor role</response>
+    [HttpGet("people/{childIdKey}/pickup-history")]
+    [Authorize(Roles = "Supervisor")]
+    [ProducesResponseType(typeof(List<PickupLogDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> GetPickupHistory(
+        string childIdKey,
+        [FromQuery] DateTime? fromDate,
+        [FromQuery] DateTime? toDate,
+        CancellationToken ct = default)
+    {
+        if (toDate.HasValue && fromDate.HasValue && toDate.Value < fromDate.Value)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid date range",
+                Detail = "The 'toDate' must be greater than or equal to 'fromDate'",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        var history = await authorizedPickupService.GetPickupHistoryAsync(
+            childIdKey,
+            fromDate,
+            toDate,
+            ct);
+
+        logger.LogInformation(
+            "Pickup history retrieved: ChildIdKey={ChildIdKey}, Count={Count}, FromDate={FromDate}, ToDate={ToDate}",
+            childIdKey, history.Count, fromDate, toDate);
+
+        return Ok(history);
+    }
 }
