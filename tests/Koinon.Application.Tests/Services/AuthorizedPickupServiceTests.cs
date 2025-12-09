@@ -980,6 +980,8 @@ public class AuthorizedPickupServiceTests : IDisposable
         public DbSet<PagerMessage> PagerMessages { get; set; } = null!;
         public DbSet<AuthorizedPickup> AuthorizedPickups { get; set; } = null!;
         public DbSet<PickupLog> PickupLogs { get; set; } = null!;
+        public DbSet<Communication> Communications { get; set; } = null!;
+        public DbSet<CommunicationRecipient> CommunicationRecipients { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

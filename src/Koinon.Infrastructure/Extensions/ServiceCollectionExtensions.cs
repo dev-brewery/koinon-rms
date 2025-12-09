@@ -82,6 +82,9 @@ public static class ServiceCollectionExtensions
         // Register SMS service (Singleton - has shared rate-limiting state via SemaphoreSlim)
         services.AddSingleton<ISmsService, TwilioSmsService>();
 
+        // Register email sender service
+        services.AddScoped<IEmailSender, SmtpEmailSender>();
+
         // Future: Register repositories and unit of work (WU-1.3.4)
         // services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         // services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -154,6 +157,9 @@ public static class ServiceCollectionExtensions
 
         // Register SMS service (Singleton - has shared rate-limiting state via SemaphoreSlim)
         services.AddSingleton<ISmsService, TwilioSmsService>();
+
+        // Register email sender service
+        services.AddScoped<IEmailSender, SmtpEmailSender>();
 
         // Future: Register repositories and unit of work
         // services.AddScoped(typeof(IRepository<>), typeof(Repository<>));

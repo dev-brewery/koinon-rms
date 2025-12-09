@@ -124,6 +124,7 @@ coverage/
 TestResults/
 .ncrunchsolution
 .ncrunchproject
+src/web/test-debug/
 
 # =============================================================================
 # Logs
@@ -188,3 +189,6 @@ tmp/validate-output.log
 # MCP configuration (contains local secrets)
 .mcp.json
 .mcp.json
+
+# Change Orders
+docs/change-orders/
