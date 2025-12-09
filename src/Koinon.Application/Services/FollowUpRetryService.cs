@@ -13,7 +13,7 @@ public class FollowUpRetryService(
     ILogger<FollowUpRetryService> logger) : IFollowUpRetryService
 {
     // Exponential backoff schedule in minutes
-    private static readonly int[] RetryDelaysMinutes = { 1, 5, 15, 60, 240 };
+    private static readonly int[] _retryDelaysMinutes = { 1, 5, 15, 60, 240 };
     private const int MaxAttempts = 5;
 
     public string QueueFollowUpCreation(int personId, int attendanceId, int attemptNumber = 0)
@@ -47,7 +47,7 @@ public class FollowUpRetryService(
         }
 
         // Calculate delay for this attempt
-        var delayMinutes = attemptNumber > 0 ? RetryDelaysMinutes[attemptNumber - 1] : 0;
+        var delayMinutes = attemptNumber > 0 ? _retryDelaysMinutes[attemptNumber - 1] : 0;
         var delay = TimeSpan.FromMinutes(delayMinutes);
 
         string jobId;
