@@ -14,7 +14,7 @@ public class UploadFileRequestValidator : AbstractValidator<UploadFileRequest>
     private const long MaxFileSizeBytes = 10 * 1024 * 1024; // 10MB
 
     // MVP restriction: Only image types allowed initially
-    private static readonly string[] AllowedImageMimeTypes =
+    private static readonly string[] _allowedImageMimeTypes =
     [
         "image/jpeg",
         "image/jpg",
@@ -45,7 +45,7 @@ public class UploadFileRequestValidator : AbstractValidator<UploadFileRequest>
 
         RuleFor(x => x.ContentType)
             .Must(BeAllowedImageType)
-            .WithMessage($"File must be one of the following types: {string.Join(", ", AllowedImageMimeTypes)}");
+            .WithMessage($"File must be one of the following types: {string.Join(", ", _allowedImageMimeTypes)}");
 
         // Validate actual file content using magic bytes (not just Content-Type header)
         RuleFor(x => x.Stream)
@@ -64,7 +64,7 @@ public class UploadFileRequestValidator : AbstractValidator<UploadFileRequest>
             return false;
         }
 
-        return AllowedImageMimeTypes.Contains(contentType.ToLowerInvariant());
+        return _allowedImageMimeTypes.Contains(contentType.ToLowerInvariant());
     }
 
     private static bool BeValidImageFile(Stream? stream)
