@@ -40,6 +40,7 @@ public interface IApplicationDbContext
     DbSet<Communication> Communications { get; }
     DbSet<CommunicationRecipient> CommunicationRecipients { get; }
     DbSet<VolunteerScheduleAssignment> VolunteerScheduleAssignments { get; }
+    DbSet<GroupMeetingRsvp> GroupMeetingRsvps { get; }
 
     DatabaseFacade Database { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
