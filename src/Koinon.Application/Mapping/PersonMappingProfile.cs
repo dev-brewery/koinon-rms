@@ -32,14 +32,14 @@ public class PersonMappingProfile : Profile
                     MemberCount = 0 // Will be calculated separately if needed
                 } : null))
             .ForMember(d => d.PrimaryCampus, o => o.MapFrom(s => s.PrimaryCampus))
-            .ForMember(d => d.PhotoUrl, o => o.Ignore()); // Future: map from PhotoId
+            .ForMember(d => d.PhotoUrl, o => o.MapFrom(s => s.Photo != null ? ApiPaths.GetFileUrl(s.Photo.IdKey) : null));
 
         CreateMap<Person, PersonSummaryDto>()
             .ForMember(d => d.IdKey, o => o.MapFrom(s => s.IdKey))
             .ForMember(d => d.FullName, o => o.MapFrom(s => s.FullName))
             .ForMember(d => d.Age, o => o.MapFrom(s => CalculateAge(s.BirthDate)))
             .ForMember(d => d.Gender, o => o.MapFrom(s => s.Gender.ToString()))
-            .ForMember(d => d.PhotoUrl, o => o.Ignore())
+            .ForMember(d => d.PhotoUrl, o => o.MapFrom(s => s.Photo != null ? ApiPaths.GetFileUrl(s.Photo.IdKey) : null))
             .ForMember(d => d.ConnectionStatus, o => o.Ignore())
             .ForMember(d => d.RecordStatus, o => o.Ignore());
 

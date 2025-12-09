@@ -50,4 +50,13 @@ public interface IPersonService
     /// Gets the person's family with members.
     /// </summary>
     Task<FamilySummaryDto?> GetFamilyAsync(string idKey, CancellationToken ct = default);
+
+    /// <summary>
+    /// Updates a person's photo.
+    /// </summary>
+    /// <param name="idKey">Person's IdKey</param>
+    /// <param name="photoIdKey">Photo's IdKey (BinaryFile)</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Result with updated person DTO</returns>
+    Task<Result<PersonDto>> UpdatePhotoAsync(string idKey, string? photoIdKey, CancellationToken ct = default);
 }

@@ -22,6 +22,7 @@ public class PersonService(
     IMapper mapper,
     IValidator<CreatePersonRequest> createValidator,
     IValidator<UpdatePersonRequest> updateValidator,
+    IUserContext userContext,
     ILogger<PersonService> logger) : IPersonService
 {
     public async Task<PersonDto?> GetByIdAsync(int id, CancellationToken ct = default)
@@ -33,6 +34,7 @@ public class PersonService(
             .Include(p => p.RecordStatusValue)
             .Include(p => p.ConnectionStatusValue)
             .Include(p => p.PrimaryCampus)
+            .Include(p => p.Photo)
             .FirstOrDefaultAsync(p => p.Id == id, ct);
 
         if (person is null)
@@ -373,6 +375,74 @@ public class PersonService(
             Name = person.PrimaryFamily.Name,
             MemberCount = memberCount
         };
+    }
+
+    public async Task<Result<PersonDto>> UpdatePhotoAsync(string idKey, string? photoIdKey, CancellationToken ct = default)
+    {
+        if (!IdKeyHelper.TryDecode(idKey, out int id))
+        {
+            return Result<PersonDto>.Failure(Error.NotFound("Person", idKey));
+        }
+
+        var person = await context.People
+            .Include(p => p.Photo)
+            .FirstOrDefaultAsync(p => p.Id == id, ct);
+
+        if (person is null)
+        {
+            return Result<PersonDto>.Failure(Error.NotFound("Person", idKey));
+        }
+
+        // CRITICAL: Authorization check - user must be the person or have admin permissions
+        var currentPersonId = userContext.CurrentPersonId;
+        if (!currentPersonId.HasValue)
+        {
+            logger.LogWarning("Unauthorized photo update attempt - no authenticated user");
+            return Result<PersonDto>.Failure(Error.Forbidden("Authentication required to update photo"));
+        }
+
+        // Allow if user is updating their own photo
+        // TODO(#147): Add role-based permission check for admins/staff to update others' photos
+        if (currentPersonId.Value != person.Id)
+        {
+            logger.LogWarning(
+                "Unauthorized photo update attempt: User {UserId} attempted to update photo for Person {PersonId}",
+                currentPersonId.Value, person.Id);
+            return Result<PersonDto>.Failure(Error.Forbidden("You can only update your own photo"));
+        }
+
+        // Decode photo ID if provided
+        int? photoId = null;
+        if (!string.IsNullOrWhiteSpace(photoIdKey))
+        {
+            if (!IdKeyHelper.TryDecode(photoIdKey, out int decodedPhotoId))
+            {
+                return Result<PersonDto>.Failure(new Error("VALIDATION_ERROR", "Invalid photo IdKey"));
+            }
+
+            // Verify the photo exists
+            var photoExists = await context.BinaryFiles.AnyAsync(bf => bf.Id == decodedPhotoId, ct);
+            if (!photoExists)
+            {
+                return Result<PersonDto>.Failure(Error.NotFound("Photo", photoIdKey));
+            }
+
+            photoId = decodedPhotoId;
+        }
+
+        // Update photo
+        person.PhotoId = photoId;
+        person.ModifiedDateTime = DateTime.UtcNow;
+
+        await context.SaveChangesAsync(ct);
+
+        logger.LogInformation("Updated photo for person {PersonId}: PhotoId={PhotoId}", person.Id, photoId);
+
+        // Return updated person
+        var updatedPerson = await GetByIdAsync(person.Id, ct);
+        return updatedPerson != null
+            ? Result<PersonDto>.Success(updatedPerson)
+            : Result<PersonDto>.Failure(Error.UnprocessableEntity("Failed to retrieve updated person"));
     }
 
 }
