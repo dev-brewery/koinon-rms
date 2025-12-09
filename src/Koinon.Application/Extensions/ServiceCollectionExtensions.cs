@@ -89,6 +89,9 @@ public static class ServiceCollectionExtensions
         // Volunteer scheduling service
         services.AddScoped<IVolunteerScheduleService, VolunteerScheduleService>();
 
+        // Group meeting service
+        services.AddScoped<GroupMeetingService>();
+
         // AutoMapper - register all mapping profiles
         services.AddAutoMapper(typeof(ServiceCollectionExtensions).Assembly);
 

@@ -67,6 +67,9 @@ public class KoinonDbContext : DbContext, IApplicationDbContext
     // Volunteer scheduling entities
     public DbSet<VolunteerScheduleAssignment> VolunteerScheduleAssignments { get; set; } = null!;
 
+    // Group meeting entities
+    public DbSet<GroupMeetingRsvp> GroupMeetingRsvps { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
