@@ -1,4 +1,6 @@
 using System.Text;
+using Hangfire;
+using Koinon.Api.Filters;
 using Koinon.Api.Middleware;
 using Koinon.Api.Services;
 using Koinon.Application.Extensions;
@@ -88,6 +90,9 @@ builder.Services.AddKoinonInfrastructure(postgresConnectionString, builder.Confi
 // Add application services
 builder.Services.AddKoinonApplicationServices();
 
+// Add Hangfire background job processing
+builder.Services.AddKoinonHangfire(postgresConnectionString);
+
 // Add health checks
 builder.Services.AddHealthChecks()
     .AddNpgSql(
@@ -105,7 +110,7 @@ builder.Services.AddHealthChecks()
 var app = builder.Build();
 
 // Configure pipeline
-// Middleware order is critical for correct request processing
+// Middleware order is critical for request processing
 
 // 1. Request logging - log all requests
 app.UseMiddleware<RequestLoggingMiddleware>();
@@ -129,5 +134,14 @@ app.MapControllers();
 
 // Map health check endpoint (no authentication required)
 app.MapHealthChecks("/health");
+
+// Map Hangfire dashboard (requires Admin role)
+app.MapHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = new[] { new HangfireDashboardAuthorizationFilter() },
+    DashboardTitle = "Koinon RMS Background Jobs",
+    StatsPollingInterval = 10000,
+    DisplayStorageConnectionString = false
+});
 
 await app.RunAsync();

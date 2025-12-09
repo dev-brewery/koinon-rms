@@ -1,3 +1,5 @@
+using Hangfire;
+using Hangfire.PostgreSql;
 using Koinon.Application.Interfaces;
 using Koinon.Infrastructure.Data;
 using Koinon.Infrastructure.Options;
@@ -238,6 +240,58 @@ public static class ServiceCollectionExtensions
         {
             options.Configuration = connectionString;
             options.InstanceName = "Koinon:";
+        });
+
+        return services;
+    }
+
+    /// <summary>
+    /// Adds Hangfire background job processing with PostgreSQL storage.
+    /// Configures retry policies with exponential backoff.
+    /// </summary>
+    /// <param name="services">The service collection to add Hangfire to.</param>
+    /// <param name="connectionString">PostgreSQL connection string for Hangfire storage.</param>
+    /// <returns>The service collection for chaining.</returns>
+    public static IServiceCollection AddKoinonHangfire(
+        this IServiceCollection services,
+        string connectionString)
+    {
+        // Register the background job service
+        services.AddScoped<IBackgroundJobService, HangfireJobService>();
+
+        // Configure Hangfire with PostgreSQL storage
+        services.AddHangfire(configuration => configuration
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UsePostgreSqlStorage(options =>
+            {
+                options.UseNpgsqlConnection(connectionString);
+            }, new PostgreSqlStorageOptions
+            {
+                SchemaName = "hangfire",
+                QueuePollInterval = TimeSpan.FromSeconds(15),
+                JobExpirationCheckInterval = TimeSpan.FromHours(1),
+                CountersAggregateInterval = TimeSpan.FromMinutes(5),
+                PrepareSchemaIfNecessary = true,
+                InvisibilityTimeout = TimeSpan.FromMinutes(30)
+            }));
+
+        // Configure automatic retry with exponential backoff
+        GlobalJobFilters.Filters.Add(new AutomaticRetryAttribute
+        {
+            Attempts = 3,
+            DelaysInSeconds = new[] { 60, 300, 900 }, // 1 min, 5 min, 15 min
+            LogEvents = true,
+            OnAttemptsExceeded = AttemptsExceededAction.Fail
+        });
+
+        // Add Hangfire server for background job processing
+        services.AddHangfireServer(options =>
+        {
+            options.WorkerCount = Environment.ProcessorCount * 2;
+            options.Queues = new[] { "default", "critical", "low" };
+            options.ServerName = $"{Environment.MachineName}:{Guid.NewGuid():N}";
         });
 
         return services;

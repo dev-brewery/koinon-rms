@@ -22,6 +22,7 @@
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" />
     <PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
     <PackageReference Include="AspNetCore.HealthChecks.Redis" />
+    <PackageReference Include="Hangfire.AspNetCore" />
   </ItemGroup>
 
 </Project>
