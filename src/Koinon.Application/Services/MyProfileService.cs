@@ -2,6 +2,7 @@ using FluentValidation;
 using Koinon.Application.Common;
 using Koinon.Application.DTOs;
 using Koinon.Application.DTOs.Requests;
+using Koinon.Application.Helpers;
 using Koinon.Application.Interfaces;
 using Koinon.Domain.Data;
 using Koinon.Domain.Entities;
@@ -577,6 +578,9 @@ public class MyProfileService(
         // Update or add phone numbers
         foreach (var phoneRequest in phoneNumberRequests)
         {
+            // Normalize phone number to E.164 format
+            var normalizedNumber = PhoneNumberHelper.Normalize(phoneRequest.Number) ?? phoneRequest.Number;
+
             PhoneNumber? phoneNumber;
 
             if (!string.IsNullOrWhiteSpace(phoneRequest.IdKey)
@@ -594,7 +598,7 @@ public class MyProfileService(
                 // Create new
                 phoneNumber = new PhoneNumber
                 {
-                    Number = phoneRequest.Number,
+                    Number = normalizedNumber,
                     PersonId = person.Id,
                     Guid = Guid.NewGuid(),
                     CreatedDateTime = DateTime.UtcNow
@@ -602,7 +606,7 @@ public class MyProfileService(
                 person.PhoneNumbers.Add(phoneNumber);
             }
 
-            phoneNumber.Number = phoneRequest.Number;
+            phoneNumber.Number = normalizedNumber;
             phoneNumber.Extension = phoneRequest.Extension;
             phoneNumber.IsMessagingEnabled = phoneRequest.IsMessagingEnabled;
             phoneNumber.IsUnlisted = phoneRequest.IsUnlisted;

@@ -1,5 +1,6 @@
 using FluentValidation;
 using Koinon.Application.DTOs.Requests;
+using Koinon.Application.Helpers;
 using Koinon.Domain.Enums;
 
 namespace Koinon.Application.Validators;
@@ -22,9 +23,9 @@ public class CreateAuthorizedPickupRequestValidator : AbstractValidator<CreateAu
             .MaximumLength(200).WithMessage("Name cannot exceed 200 characters")
             .When(x => !string.IsNullOrWhiteSpace(x.Name));
 
-        // If PhoneNumber provided, validate E.164 format
+        // If PhoneNumber provided, normalize and validate E.164 format
         RuleFor(x => x.PhoneNumber)
-            .Matches(@"^\+?[1-9]\d{1,14}$")
+            .Must(phone => PhoneNumberHelper.NormalizeAndValidate(phone) != null)
             .WithMessage("Phone number must be in valid E.164 format (e.g., +12345678901)")
             .When(x => !string.IsNullOrWhiteSpace(x.PhoneNumber));
 

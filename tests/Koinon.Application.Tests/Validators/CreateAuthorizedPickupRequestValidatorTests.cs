@@ -131,6 +131,9 @@ public class CreateAuthorizedPickupRequestValidatorTests
     [InlineData("+12345678901")]
     [InlineData("+442071234567")]
     [InlineData("12345678901")]
+    [InlineData("(555) 123-4567")]
+    [InlineData("555-123-4567")]
+    [InlineData("555.123.4567")]
     public void Should_Not_Have_Error_For_Valid_PhoneNumber_Format(string phoneNumber)
     {
         // Arrange
@@ -157,6 +160,7 @@ public class CreateAuthorizedPickupRequestValidatorTests
     [InlineData("+0123456789")]
     [InlineData("+1234567890123456")]
     [InlineData("not-a-phone")]
+    [InlineData("123")]
     public void Should_Have_Error_For_Invalid_PhoneNumber_Format(string phoneNumber)
     {
         // Arrange

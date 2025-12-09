@@ -1,5 +1,6 @@
 using FluentValidation;
 using Koinon.Application.DTOs.Requests;
+using Koinon.Application.Helpers;
 
 namespace Koinon.Application.Validators;
 
@@ -54,8 +55,8 @@ public class UpdatePhoneNumberRequestValidator : AbstractValidator<UpdatePhoneNu
         RuleFor(x => x.Number)
             .NotEmpty()
             .WithMessage("Phone number is required")
-            .Matches(@"^\d{10,15}$")
-            .WithMessage("Phone number must be 10-15 digits");
+            .Must(phone => PhoneNumberHelper.NormalizeAndValidate(phone) != null)
+            .WithMessage("Phone number must be in valid E.164 format (e.g., +12345678901 or formats like (555) 123-4567)");
 
         When(x => !string.IsNullOrWhiteSpace(x.Extension), () =>
         {

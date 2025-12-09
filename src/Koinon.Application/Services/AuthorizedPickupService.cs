@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Koinon.Application.DTOs;
 using Koinon.Application.DTOs.Requests;
+using Koinon.Application.Helpers;
 using Koinon.Application.Interfaces;
 using Koinon.Domain.Data;
 using Koinon.Domain.Entities;
@@ -107,12 +108,17 @@ public class AuthorizedPickupService(
             throw new ArgumentException($"Child with IdKey {childIdKey} not found", nameof(childIdKey));
         }
 
+        // Normalize phone number to E.164 format if provided
+        var normalizedPhone = string.IsNullOrWhiteSpace(request.PhoneNumber)
+            ? null
+            : PhoneNumberHelper.Normalize(request.PhoneNumber);
+
         var pickup = new AuthorizedPickup
         {
             ChildPersonId = childId,
             AuthorizedPersonId = authorizedPersonId,
             Name = request.Name,
-            PhoneNumber = request.PhoneNumber,
+            PhoneNumber = normalizedPhone,
             Relationship = request.Relationship,
             AuthorizationLevel = request.AuthorizationLevel,
             PhotoUrl = request.PhotoUrl,
