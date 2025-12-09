@@ -28,3 +28,4 @@ export * as familiesApi from './families';
 export * as groupsApi from './groups';
 export * as checkinApi from './checkin';
 export * as referenceApi from './reference';
+export * as profileApi from './profile';
