@@ -1,3 +1,4 @@
+using Koinon.Application.Constants;
 using Koinon.Application.DTOs;
 using Koinon.Application.Interfaces;
 using Koinon.Application.Services.Common;
@@ -176,7 +177,7 @@ public class RoomRosterService(
                 FirstName: person.FirstName,
                 LastName: person.LastName,
                 NickName: person.NickName,
-                PhotoUrl: null, // TODO(#121): Add photo URL when BinaryFile is implemented
+                PhotoUrl: person.Photo != null ? ApiPaths.GetFileUrl(person.Photo.IdKey) : null,
                 Age: age,
                 Grade: gradeDisplay,
                 Allergies: person.Allergies,

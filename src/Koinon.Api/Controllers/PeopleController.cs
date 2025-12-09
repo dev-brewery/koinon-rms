@@ -1,10 +1,12 @@
 using Koinon.Api.Filters;
 using Koinon.Application.Common;
 using Koinon.Application.DTOs;
+using Koinon.Application.DTOs.Files;
 using Koinon.Application.DTOs.Requests;
 using Koinon.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SixLabors.ImageSharp;
 
 namespace Koinon.Api.Controllers;
 
@@ -17,6 +19,7 @@ namespace Koinon.Api.Controllers;
 [Authorize]
 public class PeopleController(
     IPersonService personService,
+    IFileService fileService,
     ILogger<PeopleController> logger) : ControllerBase
 {
     /// <summary>
@@ -306,5 +309,205 @@ public class PeopleController(
             idKey, family.Name);
 
         return Ok(family);
+    }
+
+    /// <summary>
+    /// Maximum photo file size in bytes (5MB).
+    /// </summary>
+    private const long MaxPhotoSizeBytes = 5 * 1024 * 1024;
+
+    /// <summary>
+    /// Uploads a photo for a person.
+    /// </summary>
+    /// <param name="idKey">The person's IdKey</param>
+    /// <param name="file">The photo file to upload</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Updated person details with photo URL</returns>
+    /// <response code="200">Photo uploaded successfully</response>
+    /// <response code="400">Validation failed</response>
+    /// <response code="404">Person not found</response>
+    [HttpPost("{idKey}/photo")]
+    [ValidateIdKey]
+    [RequestSizeLimit(5_242_880)] // 5MB limit for photos
+    [ProducesResponseType(typeof(PersonDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UploadPhoto(
+        string idKey,
+        IFormFile file,
+        CancellationToken ct = default)
+    {
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Validation failed",
+                Detail = "File is required",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        // CRITICAL: Validate file size before processing
+        if (file.Length > MaxPhotoSizeBytes)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Validation failed",
+                Detail = $"File size exceeds maximum allowed size of {MaxPhotoSizeBytes / 1024 / 1024}MB",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        // CRITICAL: Validate file extension whitelist
+        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+        var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (string.IsNullOrEmpty(fileExtension) || !allowedExtensions.Contains(fileExtension))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Validation failed",
+                Detail = "Only .jpg, .jpeg, .png, and .gif files are allowed",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        // Validate file type (images only) via MIME type
+        if (!file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Validation failed",
+                Detail = "Only image files are allowed for person photos",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        // BLOCKER: Validate file signature using ImageSharp (magic bytes check)
+        try
+        {
+            using var validationStream = file.OpenReadStream();
+            using var image = await Image.LoadAsync(validationStream, ct);
+            // If ImageSharp can load it, it's a valid image file
+            // Stream is disposed here after validation
+        }
+        catch (UnknownImageFormatException)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Validation failed",
+                Detail = "File is not a valid image. The file may be corrupted or have an incorrect extension.",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Image validation failed for file: {FileName}", file.FileName);
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Validation failed",
+                Detail = "Unable to process the image file",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        FileMetadataDto? uploadedFile = null;
+
+        try
+        {
+            // BLOCKER FIX: Open stream AFTER validation is complete
+            // This ensures the validation stream is fully disposed before we open a new one
+            await using var fileStream = file.OpenReadStream();
+
+            var uploadRequest = new UploadFileRequest
+            {
+                Stream = fileStream,
+                FileName = file.FileName,
+                ContentType = file.ContentType,
+                Length = file.Length,
+                Description = $"Photo for person {idKey}"
+            };
+
+            uploadedFile = await fileService.UploadFileAsync(uploadRequest, ct);
+
+            // Update person's PhotoId
+            var result = await personService.UpdatePhotoAsync(idKey, uploadedFile.IdKey, ct);
+
+            if (result.IsFailure)
+            {
+                // BLOCKER FIX: Wrap cleanup in try-catch to prevent transaction rollback failure
+                try
+                {
+                    await fileService.DeleteFileAsync(uploadedFile.IdKey, ct);
+                }
+                catch (Exception cleanupEx)
+                {
+                    logger.LogError(cleanupEx,
+                        "Failed to cleanup uploaded file after person update failure: PhotoIdKey={PhotoIdKey}",
+                        uploadedFile.IdKey);
+                    // Continue - the file will be orphaned but person update failure is more important
+                }
+
+                logger.LogWarning(
+                    "Failed to update person photo: IdKey={IdKey}, Code={Code}, Message={Message}",
+                    idKey, result.Error!.Code, result.Error.Message);
+
+                return result.Error.Code switch
+                {
+                    "NOT_FOUND" => NotFound(new ProblemDetails
+                    {
+                        Title = "Person not found",
+                        Detail = result.Error.Message,
+                        Status = StatusCodes.Status404NotFound,
+                        Instance = HttpContext.Request.Path
+                    }),
+                    _ => BadRequest(new ProblemDetails
+                    {
+                        Title = result.Error.Code,
+                        Detail = result.Error.Message,
+                        Status = StatusCodes.Status400BadRequest,
+                        Instance = HttpContext.Request.Path
+                    })
+                };
+            }
+
+            logger.LogInformation(
+                "Photo uploaded successfully for person: IdKey={IdKey}, PhotoIdKey={PhotoIdKey}",
+                idKey, uploadedFile.IdKey);
+
+            return Ok(result.Value);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to upload photo for person: IdKey={IdKey}", idKey);
+
+            // BLOCKER FIX: Attempt cleanup if upload succeeded but something else failed
+            if (uploadedFile != null)
+            {
+                try
+                {
+                    await fileService.DeleteFileAsync(uploadedFile.IdKey, ct);
+                }
+                catch (Exception cleanupEx)
+                {
+                    logger.LogError(cleanupEx,
+                        "Failed to cleanup uploaded file after exception: PhotoIdKey={PhotoIdKey}",
+                        uploadedFile.IdKey);
+                }
+            }
+
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Upload failed",
+                Detail = "An error occurred while uploading the photo",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
     }
 }
