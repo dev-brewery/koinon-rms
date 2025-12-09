@@ -420,11 +420,11 @@ public class CheckinConfigurationService(
     }
 
     /// <summary>
-    /// Maps a GroupType entity to a GroupTypeDto.
+    /// Maps a GroupType entity to a GroupTypeSummaryDto.
     /// </summary>
-    private static GroupTypeDto MapToGroupTypeDto(Domain.Entities.GroupType groupType)
+    private static GroupTypeSummaryDto MapToGroupTypeDto(Domain.Entities.GroupType groupType)
     {
-        return new GroupTypeDto
+        return new GroupTypeSummaryDto
         {
             IdKey = groupType.IdKey,
             Guid = groupType.Guid,

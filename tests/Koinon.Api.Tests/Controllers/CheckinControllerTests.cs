@@ -74,7 +74,7 @@ public class CheckinControllerTests
                 Guid = Guid.NewGuid(),
                 Name = "Children's Ministry",
                 Description = "Ages 0-12",
-                GroupType = new GroupTypeDto
+                GroupType = new GroupTypeSummaryDto
                 {
                     IdKey = IdKeyHelper.Encode(1),
                     Guid = Guid.NewGuid(),
