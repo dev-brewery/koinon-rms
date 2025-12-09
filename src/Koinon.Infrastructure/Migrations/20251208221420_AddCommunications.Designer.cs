@@ -3,6 +3,7 @@ using System;
 using Koinon.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using NpgsqlTypes;
@@ -12,9 +13,11 @@ using NpgsqlTypes;
 namespace Koinon.Infrastructure.Migrations
 {
     [DbContext(typeof(KoinonDbContext))]
-    partial class KoinonDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251208221420_AddCommunications")]
+    partial class AddCommunications
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -641,9 +644,6 @@ namespace Koinon.Infrastructure.Migrations
 
                     b.HasIndex("CommunicationType")
                         .HasDatabaseName("ix_communication_communication_type");
-
-                    b.HasIndex("CreatedByPersonAliasId")
-                        .HasDatabaseName("ix_communication_created_by_person_alias_id");
 
                     b.HasIndex("CreatedDateTime")
                         .HasDatabaseName("ix_communication_created_date_time");
