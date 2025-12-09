@@ -1,19 +1,20 @@
 {
-  "name": "mcp-servers",
+  "name": "koinon-mcp-servers",
   "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "description": "Local MCP server dependencies for koinon-rms project",
+  "private": true,
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.24.3",
-    "@modelcontextprotocol/server-filesystem": "^2025.11.25",
-    "@modelcontextprotocol/server-github": "^2025.4.8",
-    "@modelcontextprotocol/server-memory": "^2025.11.25",
-    "@modelcontextprotocol/server-postgres": "^0.6.2"
-  }
+    "@modelcontextprotocol/server-filesystem": "2025.11.25",
+    "@modelcontextprotocol/server-memory": "2025.11.25"
+  },
+  "comment": "Note: postgres and github MCPs are deprecated but still work via npx. Sequential-thinking removed due to schema bug preventing tool registration in Claude Code.",
+  "scripts": {
+    "postinstall": "echo 'MCP servers installed successfully. Update .mcp.json to use local paths.'"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol"
+  ],
+  "author": "Koinon RMS Team",
+  "license": "UNLICENSED"
 }

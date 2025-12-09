@@ -1,0 +1,38 @@
+{
+  "mcpServers": {
+    "postgres": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres", "postgresql://koinon:koinon@localhost:5432/koinon"]
+    },
+    "memory": {
+      "command": "node",
+      "args": ["<PROJECT_ROOT>/tools/mcp-servers/node_modules/@modelcontextprotocol/server-memory/dist/index.js"]
+    },
+    "filesystem": {
+      "command": "node",
+      "args": ["<PROJECT_ROOT>/tools/mcp-servers/node_modules/@modelcontextprotocol/server-filesystem/dist/index.js", "<PROJECT_ROOT>"]
+    },
+    "github": {
+      "comment": "Note: .claude/ directory is version-controlled (see .gitignore:183)",
+      "command": "<PROJECT_ROOT>/.claude/scripts/github-mcp.sh",
+      "args": []
+    },
+    "koinon-dev": {
+      "command": "node",
+      "args": ["<PROJECT_ROOT>/tools/mcp-koinon-dev/dist/index.js"],
+      "env": {
+        "KOINON_PROJECT_ROOT": "<PROJECT_ROOT>"
+      }
+    }
+  },
+  "_instructions": {
+    "setup": [
+      "1. Copy this file to .mcp.json",
+      "2. Replace all instances of <PROJECT_ROOT> with your actual project path",
+      "3. Example: /home/username/projects/koinon-rms",
+      "4. Run: cd tools/mcp-servers && npm install",
+      "5. Restart Claude Code to load the new configuration"
+    ],
+    "note": "The .mcp.json file is gitignored (contains local paths)"
+  }
+}
