@@ -19,11 +19,11 @@ public class CheckinAttendanceService(
     IUserContext userContext,
     ILogger<CheckinAttendanceService> logger,
     ConcurrentOperationHelper concurrencyHelper,
-    IFollowUpService followUpService)
+    IFollowUpRetryService followUpRetryService)
     : AuthorizedCheckinService(context, userContext, logger), ICheckinAttendanceService
 {
     private readonly ConcurrentOperationHelper _concurrencyHelper = concurrencyHelper;
-    private readonly IFollowUpService _followUpService = followUpService;
+    private readonly IFollowUpRetryService _followUpRetryService = followUpRetryService;
 
     public async Task<CheckinResultDto> CheckInAsync(
         CheckinRequestDto request,
@@ -144,18 +144,20 @@ public class CheckinAttendanceService(
             {
                 try
                 {
-                    await _followUpService.CreateFollowUpAsync(personId, attendance.Id, ct);
+                    // Queue follow-up creation with automatic retry on failure
+                    _followUpRetryService.QueueFollowUpCreation(personId, attendance.Id);
                     Logger.LogInformation(
-                        "Created follow-up for first-time visitor PersonId={PersonId} AttendanceId={AttendanceId}",
+                        "Queued follow-up creation for first-time visitor PersonId={PersonId} AttendanceId={AttendanceId}",
                         personId, attendance.Id);
                 }
                 catch (Exception ex)
                 {
-                    // CRITICAL: Don't fail check-in (performance-critical path), but track failure for remediation
-                    // Structured logging for observability and metrics aggregation
+                    // CRITICAL: Don't fail check-in (performance-critical path), but log queueing failure
+                    // This should be extremely rare (only if Hangfire is down or misconfigured)
                     Logger.LogError(ex,
-                        "FOLLOW_UP_CREATION_FAILED: PersonId={PersonId} AttendanceId={AttendanceId} AttendanceIdKey={AttendanceIdKey}. " +
-                        "Check-in succeeded but follow-up tracking failed. Manual remediation may be required.",
+                        "FOLLOW_UP_QUEUE_FAILED: Unable to queue follow-up creation. " +
+                        "PersonId={PersonId} AttendanceId={AttendanceId} AttendanceIdKey={AttendanceIdKey}. " +
+                        "Check-in succeeded but follow-up may not be created. Check Hangfire status.",
                         personId, attendance.Id, attendance.IdKey);
                 }
             }
