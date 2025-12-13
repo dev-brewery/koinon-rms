@@ -10,6 +10,7 @@ import {
   parseWithSchema,
   safeJsonParse,
 } from './validators';
+import { isNetworkError } from '../../lib/networkUtils';
 
 // ============================================================================
 // Configuration
@@ -82,11 +83,13 @@ async function parseErrorResponse(response: Response): Promise<ApiError['error']
         return validated.error;
       }
     } catch (error) {
-      console.error('Failed to parse error response:', {
-        error,
-        status: response.status,
-        statusText: response.statusText,
-      });
+      if (import.meta.env.DEV) {
+        console.error('Failed to parse error response:', {
+          error,
+          status: response.status,
+          statusText: response.statusText,
+        });
+      }
       // Fall through to default error
     }
   }
@@ -96,7 +99,9 @@ async function parseErrorResponse(response: Response): Promise<ApiError['error']
   try {
     text = await response.text();
   } catch (error) {
-    console.error('Failed to read error response text:', error);
+    if (import.meta.env.DEV) {
+      console.error('Failed to read error response text:', error);
+    }
   }
 
   return {
@@ -120,7 +125,9 @@ async function tryRefreshToken(): Promise<boolean> {
   }
 
   if (!refreshToken) {
-    console.warn('Cannot refresh token: no refresh token available');
+    if (import.meta.env.DEV) {
+      console.warn('Cannot refresh token: no refresh token available');
+    }
     return false;
   }
 
@@ -142,10 +149,12 @@ async function tryRefreshToken(): Promise<boolean> {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        console.error('Token refresh failed:', {
-          status: response.status,
-          statusText: response.statusText,
-        });
+        if (import.meta.env.DEV) {
+          console.error('Token refresh failed:', {
+            status: response.status,
+            statusText: response.statusText,
+          });
+        }
         clearTokens();
         return false;
       }
@@ -154,7 +163,9 @@ async function tryRefreshToken(): Promise<boolean> {
       const json = safeJsonParse(text);
 
       if (!json) {
-        console.error('Token refresh response is not valid JSON');
+        if (import.meta.env.DEV) {
+          console.error('Token refresh response is not valid JSON');
+        }
         clearTokens();
         return false;
       }
@@ -162,7 +173,9 @@ async function tryRefreshToken(): Promise<boolean> {
       // Validate the response structure
       const data = json as { data?: unknown };
       if (!data.data) {
-        console.error('Token refresh response missing data envelope');
+        if (import.meta.env.DEV) {
+          console.error('Token refresh response missing data envelope');
+        }
         clearTokens();
         return false;
       }
@@ -176,20 +189,24 @@ async function tryRefreshToken(): Promise<boolean> {
       accessToken = validated.accessToken;
       refreshToken = validated.refreshToken;
 
-      console.info('Token refresh successful');
+      if (import.meta.env.DEV) {
+        console.info('Token refresh successful');
+      }
       return true;
     } catch (error) {
-      if (error instanceof Error) {
-        if (error.name === 'AbortError') {
-          console.error('Token refresh timeout');
+      if (import.meta.env.DEV) {
+        if (error instanceof Error) {
+          if (error.name === 'AbortError') {
+            console.error('Token refresh timeout');
+          } else {
+            console.error('Token refresh error:', {
+              message: error.message,
+              name: error.name,
+            });
+          }
         } else {
-          console.error('Token refresh error:', {
-            message: error.message,
-            name: error.name,
-          });
+          console.error('Token refresh unknown error:', error);
         }
-      } else {
-        console.error('Token refresh unknown error:', error);
       }
       clearTokens();
       return false;
@@ -211,6 +228,22 @@ export interface ApiClientOptions extends RequestInit {
 }
 
 /**
+ * Determine appropriate timeout based on request type
+ */
+function getRequestTimeout(method?: string, customTimeout?: number): number {
+  if (customTimeout !== undefined) {
+    return customTimeout;
+  }
+
+  // Use longer timeout for mutation operations
+  if (method === 'POST' || method === 'PUT' || method === 'PATCH') {
+    return UPLOAD_TIMEOUT_MS;
+  }
+
+  return DEFAULT_TIMEOUT_MS;
+}
+
+/**
  * Make an authenticated API request
  * Automatically adds auth header and handles token refresh on 401
  */
@@ -222,9 +255,7 @@ export async function apiClient<T>(
   const url = `${API_BASE_URL}${endpoint}`;
 
   // Determine timeout based on request type
-  const timeoutMs = timeout ?? (requestInit.method === 'POST' || requestInit.method === 'PUT' || requestInit.method === 'PATCH'
-    ? UPLOAD_TIMEOUT_MS
-    : DEFAULT_TIMEOUT_MS);
+  const timeoutMs = getRequestTimeout(requestInit.method, timeout);
 
   // Create AbortController for timeout
   const controller = new AbortController();
@@ -254,12 +285,16 @@ export async function apiClient<T>(
 
     // Handle 401 - try to refresh token and retry
     if (response.status === 401 && !skipAuth && refreshToken) {
-      console.info('Received 401, attempting token refresh');
+      if (import.meta.env.DEV) {
+        console.info('Received 401, attempting token refresh');
+      }
       const refreshed = await tryRefreshToken();
 
       if (refreshed && accessToken) {
         // Retry the request with new token
-        console.info('Retrying request with new token');
+        if (import.meta.env.DEV) {
+          console.info('Retrying request with new token');
+        }
         headers.set('Authorization', `Bearer ${accessToken}`);
 
         // Create new timeout for retry
@@ -274,18 +309,22 @@ export async function apiClient<T>(
 
         clearTimeout(retryTimeoutId);
       } else {
-        console.warn('Token refresh failed, request will fail with 401');
+        if (import.meta.env.DEV) {
+          console.warn('Token refresh failed, request will fail with 401');
+        }
       }
     }
 
     // Handle error responses
     if (!response.ok) {
       const error = await parseErrorResponse(response);
-      console.error('API request failed:', {
-        endpoint,
-        status: response.status,
-        error,
-      });
+      if (import.meta.env.DEV) {
+        console.error('API request failed:', {
+          endpoint,
+          status: response.status,
+          error,
+        });
+      }
       throw new ApiClientError(response.status, error);
     }
 
@@ -301,11 +340,13 @@ export async function apiClient<T>(
       const json = safeJsonParse(text);
 
       if (json === null) {
-        console.error('Response is not valid JSON:', {
-          endpoint,
-          contentType,
-          preview: text.substring(0, 200),
-        });
+        if (import.meta.env.DEV) {
+          console.error('Response is not valid JSON:', {
+            endpoint,
+            contentType,
+            preview: text.substring(0, 200),
+          });
+        }
         throw new Error('Invalid JSON response from server');
       }
 
@@ -327,10 +368,12 @@ export async function apiClient<T>(
 
     if (error instanceof Error) {
       if (error.name === 'AbortError') {
-        console.error('API request timeout:', {
-          endpoint,
-          timeout: timeoutMs,
-        });
+        if (import.meta.env.DEV) {
+          console.error('API request timeout:', {
+            endpoint,
+            timeout: timeoutMs,
+          });
+        }
         throw new ApiClientError(
           408,
           {
@@ -341,20 +384,42 @@ export async function apiClient<T>(
         );
       }
 
-      console.error('API request error:', {
-        endpoint,
-        message: error.message,
-        name: error.name,
-      });
+      // Check for network errors using centralized function
+      if (isNetworkError(error)) {
+        if (import.meta.env.DEV) {
+          console.error('Network error:', {
+            endpoint,
+            message: error.message,
+          });
+        }
+        throw new ApiClientError(
+          0,
+          {
+            code: 'NETWORK_ERROR',
+            message: 'Network connection failed',
+          },
+          'Network error'
+        );
+      }
+
+      if (import.meta.env.DEV) {
+        console.error('API request error:', {
+          endpoint,
+          message: error.message,
+          name: error.name,
+        });
+      }
 
       // Re-throw the error as-is to preserve the message
       throw error;
     }
 
-    console.error('API request unknown error:', {
-      endpoint,
-      error,
-    });
+    if (import.meta.env.DEV) {
+      console.error('API request unknown error:', {
+        endpoint,
+        error,
+      });
+    }
 
     throw new ApiClientError(
       0,

@@ -7,6 +7,8 @@ import { CheckinPage } from './pages/CheckinPage';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { RouteErrorBoundary } from './components/RouteErrorBoundary';
 import { AdminLayout } from './layouts/AdminLayout';
+import { ToastProvider } from './contexts/ToastContext';
+import { ToastContainer } from './components/ui';
 import {
   DashboardPage,
   GroupsPage,
@@ -160,9 +162,11 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <PWAUpdatePrompt onUpdate={handleUpdate} offlineReady={needRefresh} />
-      <InstallPrompt />
-      <Routes>
+      <ToastProvider>
+        <PWAUpdatePrompt onUpdate={handleUpdate} offlineReady={needRefresh} />
+        <InstallPrompt />
+        <ToastContainer />
+        <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
 
@@ -246,6 +250,7 @@ function App() {
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+      </ToastProvider>
     </ErrorBoundary>
   );
 }
