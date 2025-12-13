@@ -332,9 +332,13 @@ jobs:
     needs: [backend, frontend]
 
     # Run the job inside a container - this puts job + services on same Docker network
-    # Using devcontainer image which has both .NET SDK and Node.js (required for GitHub Actions)
     container:
-      image: mcr.microsoft.com/devcontainers/dotnet:8.0
+      image: mcr.microsoft.com/dotnet/sdk:8.0
+
+    # Allow Node 16 actions since self-hosted runner's Node 20 binary isn't accessible in container
+    # See: https://github.com/actions/runner/issues/3373
+    env:
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
     # Service containers - accessible by service name as hostname
     services:
@@ -360,7 +364,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v3  # v3 uses Node 16, compatible with container jobs on self-hosted runners
 
     - name: Restore and build API
       run: |
