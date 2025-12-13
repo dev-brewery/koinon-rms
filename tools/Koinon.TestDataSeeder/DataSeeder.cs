@@ -16,26 +16,26 @@ public class DataSeeder
     private readonly ILogger _logger;
 
     // Fixed GUIDs for deterministic data
-    private static readonly Guid SmithFamilyGuid = new("11111111-1111-1111-1111-111111111111");
-    private static readonly Guid JohnsonFamilyGuid = new("22222222-2222-2222-2222-222222222222");
-    private static readonly Guid JohnSmithGuid = new("33333333-3333-3333-3333-333333333333");
-    private static readonly Guid JaneSmithGuid = new("44444444-4444-4444-4444-444444444444");
-    private static readonly Guid JohnnySmithGuid = new("55555555-5555-5555-5555-555555555555");
-    private static readonly Guid JennySmithGuid = new("66666666-6666-6666-6666-666666666666");
-    private static readonly Guid BobJohnsonGuid = new("77777777-7777-7777-7777-777777777777");
-    private static readonly Guid BarbaraJohnsonGuid = new("88888888-8888-8888-8888-888888888888");
-    private static readonly Guid BillyJohnsonGuid = new("99999999-9999-9999-9999-999999999999");
-    private static readonly Guid NurseryGroupGuid = new("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
-    private static readonly Guid PreschoolGroupGuid = new("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
-    private static readonly Guid ElementaryGroupGuid = new("cccccccc-cccc-cccc-cccc-cccccccccccc");
-    private static readonly Guid Sunday9amScheduleGuid = new("dddddddd-dddd-dddd-dddd-dddddddddddd");
-    private static readonly Guid Sunday11amScheduleGuid = new("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee");
-    private static readonly Guid Wednesday7pmScheduleGuid = new("ffffffff-ffff-ffff-ffff-ffffffffffff");
-    private static readonly Guid FamilyGroupTypeGuid = new("10101010-1010-1010-1010-101010101010");
-    private static readonly Guid CheckinGroupTypeGuid = new("20202020-2020-2020-2020-202020202020");
-    private static readonly Guid AdultRoleGuid = new("30303030-3030-3030-3030-303030303030");
-    private static readonly Guid ChildRoleGuid = new("40404040-4040-4040-4040-404040404040");
-    private static readonly Guid MemberRoleGuid = new("50505050-5050-5050-5050-505050505050");
+    private static readonly Guid _smithFamilyGuid = new("11111111-1111-1111-1111-111111111111");
+    private static readonly Guid _johnsonFamilyGuid = new("22222222-2222-2222-2222-222222222222");
+    private static readonly Guid _johnSmithGuid = new("33333333-3333-3333-3333-333333333333");
+    private static readonly Guid _janeSmithGuid = new("44444444-4444-4444-4444-444444444444");
+    private static readonly Guid _johnnySmithGuid = new("55555555-5555-5555-5555-555555555555");
+    private static readonly Guid _jennySmithGuid = new("66666666-6666-6666-6666-666666666666");
+    private static readonly Guid _bobJohnsonGuid = new("77777777-7777-7777-7777-777777777777");
+    private static readonly Guid _barbaraJohnsonGuid = new("88888888-8888-8888-8888-888888888888");
+    private static readonly Guid _billyJohnsonGuid = new("99999999-9999-9999-9999-999999999999");
+    private static readonly Guid _nurseryGroupGuid = new("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+    private static readonly Guid _preschoolGroupGuid = new("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
+    private static readonly Guid _elementaryGroupGuid = new("cccccccc-cccc-cccc-cccc-cccccccccccc");
+    private static readonly Guid _sunday9amScheduleGuid = new("dddddddd-dddd-dddd-dddd-dddddddddddd");
+    private static readonly Guid _sunday11amScheduleGuid = new("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee");
+    private static readonly Guid _wednesday7pmScheduleGuid = new("ffffffff-ffff-ffff-ffff-ffffffffffff");
+    private static readonly Guid _familyGroupTypeGuid = new("10101010-1010-1010-1010-101010101010");
+    private static readonly Guid _checkinGroupTypeGuid = new("20202020-2020-2020-2020-202020202020");
+    private static readonly Guid _adultRoleGuid = new("30303030-3030-3030-3030-303030303030");
+    private static readonly Guid _childRoleGuid = new("40404040-4040-4040-4040-404040404040");
+    private static readonly Guid _memberRoleGuid = new("50505050-5050-5050-5050-505050505050");
 
     public DataSeeder(KoinonDbContext context, ILogger logger)
     {
@@ -111,7 +111,7 @@ public class DataSeeder
         // Family group type
         var familyGroupType = new GroupType
         {
-            Guid = FamilyGroupTypeGuid,
+            Guid = _familyGroupTypeGuid,
             Name = "Family",
             Description = "Family group type for organizing people into family units",
             GroupTerm = "Family",
@@ -127,7 +127,7 @@ public class DataSeeder
         // Check-in group type
         var checkinGroupType = new GroupType
         {
-            Guid = CheckinGroupTypeGuid,
+            Guid = _checkinGroupTypeGuid,
             Name = "Check-in Group",
             Description = "Groups used for check-in areas",
             GroupTerm = "Group",
@@ -147,7 +147,7 @@ public class DataSeeder
         // Roles for family group type
         var adultRole = new GroupTypeRole
         {
-            Guid = AdultRoleGuid,
+            Guid = _adultRoleGuid,
             GroupTypeId = familyGroupType.Id,
             Name = "Adult",
             Description = "Adult family member",
@@ -162,7 +162,7 @@ public class DataSeeder
 
         var childRole = new GroupTypeRole
         {
-            Guid = ChildRoleGuid,
+            Guid = _childRoleGuid,
             GroupTypeId = familyGroupType.Id,
             Name = "Child",
             Description = "Child family member",
@@ -178,7 +178,7 @@ public class DataSeeder
         // Role for check-in groups
         var memberRole = new GroupTypeRole
         {
-            Guid = MemberRoleGuid,
+            Guid = _memberRoleGuid,
             GroupTypeId = checkinGroupType.Id,
             Name = "Member",
             Description = "Group member",
@@ -204,7 +204,7 @@ public class DataSeeder
     {
         var sunday9am = new Schedule
         {
-            Guid = Sunday9amScheduleGuid,
+            Guid = _sunday9amScheduleGuid,
             Name = "Sunday 9:00 AM",
             Description = "Sunday morning service at 9:00 AM",
             WeeklyDayOfWeek = DayOfWeek.Sunday,
@@ -219,7 +219,7 @@ public class DataSeeder
 
         var sunday11am = new Schedule
         {
-            Guid = Sunday11amScheduleGuid,
+            Guid = _sunday11amScheduleGuid,
             Name = "Sunday 11:00 AM",
             Description = "Sunday morning service at 11:00 AM",
             WeeklyDayOfWeek = DayOfWeek.Sunday,
@@ -234,7 +234,7 @@ public class DataSeeder
 
         var wednesday7pm = new Schedule
         {
-            Guid = Wednesday7pmScheduleGuid,
+            Guid = _wednesday7pmScheduleGuid,
             Name = "Wednesday 7:00 PM",
             Description = "Wednesday evening service at 7:00 PM",
             WeeklyDayOfWeek = DayOfWeek.Wednesday,
@@ -264,7 +264,7 @@ public class DataSeeder
         // Smith family
         var smithFamily = new Group
         {
-            Guid = SmithFamilyGuid,
+            Guid = _smithFamilyGuid,
             GroupTypeId = familyGroupTypeId,
             Name = "Smith Family",
             IsSystem = false,
@@ -278,7 +278,7 @@ public class DataSeeder
         // John Smith (Adult)
         var johnSmith = new Person
         {
-            Guid = JohnSmithGuid,
+            Guid = _johnSmithGuid,
             FirstName = "John",
             LastName = "Smith",
             NickName = "John",
@@ -296,7 +296,7 @@ public class DataSeeder
         // Jane Smith (Adult)
         var janeSmith = new Person
         {
-            Guid = JaneSmithGuid,
+            Guid = _janeSmithGuid,
             FirstName = "Jane",
             LastName = "Smith",
             NickName = "Jane",
@@ -315,7 +315,7 @@ public class DataSeeder
         var currentYear = DateTime.UtcNow.Year;
         var johnnySmith = new Person
         {
-            Guid = JohnnySmithGuid,
+            Guid = _johnnySmithGuid,
             FirstName = "Johnny",
             LastName = "Smith",
             NickName = "Johnny",
@@ -331,7 +331,7 @@ public class DataSeeder
         // Jenny Smith (Child, age 4)
         var jennySmith = new Person
         {
-            Guid = JennySmithGuid,
+            Guid = _jennySmithGuid,
             FirstName = "Jenny",
             LastName = "Smith",
             NickName = "Jenny",
@@ -352,7 +352,7 @@ public class DataSeeder
         // Johnson family
         var johnsonFamily = new Group
         {
-            Guid = JohnsonFamilyGuid,
+            Guid = _johnsonFamilyGuid,
             GroupTypeId = familyGroupTypeId,
             Name = "Johnson Family",
             IsSystem = false,
@@ -366,7 +366,7 @@ public class DataSeeder
         // Bob Johnson (Adult)
         var bobJohnson = new Person
         {
-            Guid = BobJohnsonGuid,
+            Guid = _bobJohnsonGuid,
             FirstName = "Bob",
             LastName = "Johnson",
             NickName = "Bob",
@@ -384,7 +384,7 @@ public class DataSeeder
         // Barbara Johnson (Adult)
         var barbaraJohnson = new Person
         {
-            Guid = BarbaraJohnsonGuid,
+            Guid = _barbaraJohnsonGuid,
             FirstName = "Barbara",
             LastName = "Johnson",
             NickName = "Barbara",
@@ -402,7 +402,7 @@ public class DataSeeder
         // Billy Johnson (Child, age 5)
         var billyJohnson = new Person
         {
-            Guid = BillyJohnsonGuid,
+            Guid = _billyJohnsonGuid,
             FirstName = "Billy",
             LastName = "Johnson",
             NickName = "Billy",
@@ -443,7 +443,7 @@ public class DataSeeder
         // Nursery group (ages 0-2)
         var nursery = new Group
         {
-            Guid = NurseryGroupGuid,
+            Guid = _nurseryGroupGuid,
             GroupTypeId = checkinGroupTypeId,
             Name = "Nursery",
             Description = "Nursery for infants and toddlers",
@@ -459,7 +459,7 @@ public class DataSeeder
         // Preschool group (ages 3-5)
         var preschool = new Group
         {
-            Guid = PreschoolGroupGuid,
+            Guid = _preschoolGroupGuid,
             GroupTypeId = checkinGroupTypeId,
             Name = "Preschool",
             Description = "Preschool ministry for ages 3-5",
@@ -475,7 +475,7 @@ public class DataSeeder
         // Elementary group (grades K-5)
         var elementary = new Group
         {
-            Guid = ElementaryGroupGuid,
+            Guid = _elementaryGroupGuid,
             GroupTypeId = checkinGroupTypeId,
             Name = "Elementary",
             Description = "Elementary ministry for grades K-5",
