@@ -190,8 +190,6 @@ test.describe('Family Detail View', () => {
   });
 
   test('should handle family not found', async ({ page }) => {
-    const familiesPage = new FamiliesPage(page);
-
     // Try to navigate to non-existent family
     await page.goto('/admin/families/nonexistent123');
 
