@@ -340,12 +340,12 @@ jobs:
         global-json-file: global.json
 
     - name: Start services with docker-compose
-      run: docker compose up -d
+      run: docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d
 
     - name: Wait for services to be ready
       run: |
-        timeout 60 bash -c 'until docker compose exec -T postgres pg_isready; do sleep 2; done'
-        timeout 60 bash -c 'until docker compose exec -T redis redis-cli ping; do sleep 2; done'
+        timeout 60 bash -c 'until docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T postgres pg_isready; do sleep 2; done'
+        timeout 60 bash -c 'until docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T redis redis-cli ping; do sleep 2; done'
 
     - name: Restore and build API
       run: |
@@ -410,7 +410,7 @@ jobs:
 
     - name: Check database connectivity
       run: |
-        docker compose exec -T postgres psql -U koinon -d koinon -c "SELECT 1"
+        docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T postgres psql -U koinon -d koinon -c "SELECT 1"
 
     - name: Cleanup
       if: always()
@@ -419,7 +419,7 @@ jobs:
         if [ -f /tmp/api.pid ]; then
           kill $(cat /tmp/api.pid) 2>/dev/null || true
         fi
-        docker compose down -v
+        docker compose -f docker-compose.yml -f docker-compose.ci.yml down -v
 
   # Work unit validation
   work-unit-validation:

@@ -1,0 +1,12 @@
+# CI-specific overrides for docker-compose
+# Uses high ports to avoid conflicts on self-hosted runners
+# Usage: docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d
+
+services:
+  postgres:
+    ports:
+      - "25434:5432"
+
+  redis:
+    ports:
+      - "26380:6379"
