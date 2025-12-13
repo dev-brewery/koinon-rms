@@ -5,10 +5,12 @@
 
 import { useState, FormEvent } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { useErrorHandler } from '../../hooks/useErrorHandler';
 import { ApiClientError } from '../../services/api';
 
 export function LoginForm() {
   const { login } = useAuth();
+  const { handleError } = useErrorHandler();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -22,27 +24,13 @@ export function LoginForm() {
     try {
       await login({ username, password });
     } catch (err) {
-      // 1. Check for ApiClientError first (most specific)
-      if (err instanceof ApiClientError) {
-        if (err.statusCode === 401) {
-          setError('Invalid username or password');
-        } else if (err.statusCode === 408) {
-          setError('Request timed out. Please try again.');
-        } else {
-          setError('Something went wrong. Please try again.');
-        }
-      }
-      // 2. Check for network errors (TypeError from fetch)
-      else if (err instanceof TypeError) {
-        setError('Unable to connect to server. Please try again.');
-      }
-      // 3. Other Error instances
-      else if (err instanceof Error) {
-        setError('Something went wrong. Please try again.');
-      }
-      // 4. Unknown error types (fallback)
-      else {
-        setError('Something went wrong. Please try again.');
+      // For 401 (invalid credentials), show inline error without toast
+      if (err instanceof ApiClientError && err.statusCode === 401) {
+        setError('Invalid username or password');
+      } else {
+        // For all other errors, show toast notification
+        const userError = handleError(err, 'Login');
+        setError(userError.message);
       }
     } finally {
       setIsLoading(false);
