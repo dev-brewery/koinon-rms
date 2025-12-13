@@ -15,7 +15,7 @@ jobs:
   # Backend build and test
   backend:
     name: Backend Build & Test
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux]
 
     permissions:
       checks: write
@@ -89,7 +89,7 @@ jobs:
   # Frontend build and test
   frontend:
     name: Frontend Build & Test
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux]
 
     defaults:
       run:
@@ -137,7 +137,7 @@ jobs:
   # Migration safety check
   migration-check:
     name: Migration Safety Check
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux]
     if: github.event_name == 'pull_request'
 
     permissions:
@@ -326,7 +326,7 @@ jobs:
   # Integration smoke test
   integration:
     name: Integration Smoke Test
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux]
     needs: [backend, frontend]
 
     steps:
@@ -424,7 +424,7 @@ jobs:
   # Work unit validation
   work-unit-validation:
     name: Work Unit Validation
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux]
     if: github.event_name == 'pull_request'
 
     steps:
@@ -452,7 +452,7 @@ jobs:
   # Summary job
   ci-success:
     name: CI Success
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux]
     needs: [backend, frontend, migration-check, integration, work-unit-validation]
     if: always()
     steps:
