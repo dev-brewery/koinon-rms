@@ -1,0 +1,19 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2025-01-15T00:00:00Z",
+  "targets": {
+    "onlineSearch": 200,
+    "offlineSearch": 50,
+    "memberSelect": 100,
+    "confirmCheckIn": 200,
+    "fullFlow": 600
+  },
+  "baseline": {},
+  "notes": [
+    "Targets are non-negotiable MVP requirements",
+    "Online: <200ms for family search and check-in confirmation",
+    "Offline: <50ms for cached operations",
+    "Baseline populated on first test run",
+    "Regression detection triggers if >20% slower than baseline"
+  ]
+}

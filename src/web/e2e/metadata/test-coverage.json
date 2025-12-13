@@ -41,17 +41,114 @@
         { "selector": "[role='alertdialog']", "purpose": "Idle warning modal" }
       ],
       "tags": ["checkin", "kiosk", "smoke"]
+    },
+    "admin/checkin/checkin-offline.spec.ts": {
+      "covers": [
+        "Offline data caching",
+        "Check-in queue when offline",
+        "Sync on reconnect",
+        "Multiple queued check-ins",
+        "Offline indicator UI",
+        "Cache staleness warnings",
+        "Storage quota errors"
+      ],
+      "routes": ["/checkin"],
+      "components": ["CheckinPage", "OfflineIndicator"],
+      "selectors": [
+        { "selector": "[data-testid='offline-indicator']", "purpose": "Offline status" },
+        { "selector": "[data-testid='phone-input']", "purpose": "Phone search" },
+        { "selector": "[data-testid='family-member-card']", "purpose": "Member selection" }
+      ],
+      "tags": ["checkin", "offline", "pwa"]
+    },
+    "admin/checkin/checkin-performance.spec.ts": {
+      "covers": [
+        "Online search <200ms",
+        "Offline search <50ms",
+        "Member selection timing",
+        "Check-in confirmation timing",
+        "Full flow performance",
+        "API response timing",
+        "Rendering performance",
+        "Regression detection"
+      ],
+      "routes": ["/checkin"],
+      "components": ["CheckinPage"],
+      "selectors": [
+        { "selector": "[data-testid='phone-input']", "purpose": "Search trigger" },
+        { "selector": "[data-testid='family-member-card']", "purpose": "Selection timing" }
+      ],
+      "tags": ["checkin", "performance", "critical"]
+    },
+    "admin/checkin/checkin-qr-scanner.spec.ts": {
+      "covers": [
+        "QR scanner activation",
+        "Camera permission handling",
+        "QR code detection",
+        "Invalid QR format",
+        "Non-existent family QR",
+        "Manual entry fallback",
+        "Torch/flashlight toggle",
+        "Scanner timeout",
+        "Multiple camera support"
+      ],
+      "routes": ["/checkin"],
+      "components": ["CheckinPage", "QRScanner"],
+      "selectors": [
+        { "selector": "[data-testid='qr-scanner-button']", "purpose": "Open scanner" },
+        { "selector": "[data-testid='qr-scanner-modal']", "purpose": "Scanner UI" },
+        { "selector": "[data-testid='qr-scanner-video']", "purpose": "Camera feed" },
+        { "selector": "[data-testid='torch-toggle']", "purpose": "Flashlight control" }
+      ],
+      "tags": ["checkin", "qr", "camera"]
+    },
+    "admin/checkin/checkin-errors.spec.ts": {
+      "covers": [
+        "Non-existent phone error",
+        "Phone format validation",
+        "Duplicate check-in prevention",
+        "Network timeout handling",
+        "Server error (500) handling",
+        "Validation error (400) display",
+        "Empty family error",
+        "Check-in API failure",
+        "Malformed API response",
+        "Member ineligibility",
+        "Error recovery flow"
+      ],
+      "routes": ["/checkin"],
+      "components": ["CheckinPage", "ErrorDisplay"],
+      "selectors": [
+        { "selector": "[role='alert']", "purpose": "Error messages" },
+        { "selector": "[data-testid='phone-input']", "purpose": "Error context" },
+        { "selector": "button[name=/retry|try again/i]", "purpose": "Error recovery" }
+      ],
+      "tags": ["checkin", "errors", "validation"]
     }
   },
   "selectorRegistry": {
-    "[data-testid='phone-input']": ["checkin/checkin-flow.spec.ts"],
+    "[data-testid='phone-input']": [
+      "checkin/checkin-flow.spec.ts",
+      "admin/checkin/checkin-offline.spec.ts",
+      "admin/checkin/checkin-performance.spec.ts",
+      "admin/checkin/checkin-errors.spec.ts"
+    ],
     "[data-testid='family-member-list']": ["checkin/checkin-flow.spec.ts"],
-    "[data-testid='family-member-card']": ["checkin/checkin-flow.spec.ts"],
+    "[data-testid='family-member-card']": [
+      "checkin/checkin-flow.spec.ts",
+      "admin/checkin/checkin-offline.spec.ts",
+      "admin/checkin/checkin-performance.spec.ts"
+    ],
     "[data-testid='success-message']": ["checkin/checkin-flow.spec.ts"],
     "[role='alertdialog']": ["checkin/checkin-flow.spec.ts"],
+    "[data-testid='offline-indicator']": ["admin/checkin/checkin-offline.spec.ts"],
+    "[data-testid='qr-scanner-button']": ["admin/checkin/checkin-qr-scanner.spec.ts"],
+    "[data-testid='qr-scanner-modal']": ["admin/checkin/checkin-qr-scanner.spec.ts"],
+    "[data-testid='qr-scanner-video']": ["admin/checkin/checkin-qr-scanner.spec.ts"],
+    "[data-testid='torch-toggle']": ["admin/checkin/checkin-qr-scanner.spec.ts"],
+    "[role='alert']": ["auth/login.spec.ts", "admin/checkin/checkin-errors.spec.ts"],
     "[aria-label='Username']": ["auth/login.spec.ts"],
-    "[aria-label='Password']": ["auth/login.spec.ts"],
-    "[role='alert']": ["auth/login.spec.ts"]
+    "[aria-label='Password']": ["auth/login.spec.ts"]
   },
   "knownFlaky": [],
   "pendingUpdates": []
