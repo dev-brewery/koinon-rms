@@ -5,6 +5,7 @@ import { LoginForm, ProtectedRoute } from './components/auth';
 import { useAuth } from './hooks/useAuth';
 import { CheckinPage } from './pages/CheckinPage';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { RouteErrorBoundary } from './components/RouteErrorBoundary';
 import { AdminLayout } from './layouts/AdminLayout';
 import {
   DashboardPage,
@@ -38,6 +39,7 @@ import { GroupFinderPage } from './pages/public/GroupFinderPage';
 import { MyGroupsPage } from './pages/MyGroupsPage';
 import { CommunicationsPage } from './pages/communications/CommunicationsPage';
 import { MyProfilePage } from './pages/profile';
+import { RosterPage } from './pages/admin/RosterPage';
 
 function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -205,6 +207,7 @@ function App() {
               <AdminLayout />
             </ProtectedRoute>
           }
+          errorElement={<RouteErrorBoundary />}
         >
           <Route index element={<DashboardPage />} />
           <Route path="people" element={<PeopleListPage />} />
@@ -226,6 +229,7 @@ function App() {
           <Route path="schedules/:idKey/edit" element={<ScheduleFormPage />} />
           <Route path="analytics" element={<AnalyticsPage />} />
           <Route path="communications" element={<CommunicationsPage />} />
+          <Route path="roster" element={<RosterPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="settings/group-types" element={<GroupTypesPage />} />
         </Route>

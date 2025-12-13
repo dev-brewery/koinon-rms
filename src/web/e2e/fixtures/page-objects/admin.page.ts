@@ -8,9 +8,13 @@ export class AdminPage {
   readonly page: Page;
   readonly nav: {
     dashboard: Locator;
+    analytics: Locator;
     people: Locator;
     families: Locator;
     groups: Locator;
+    schedules: Locator;
+    communications: Locator;
+    roster: Locator;
     checkin: Locator;
     settings: Locator;
   };
@@ -23,10 +27,14 @@ export class AdminPage {
     this.page = page;
     this.nav = {
       dashboard: page.getByRole('link', { name: 'Dashboard' }),
+      analytics: page.getByRole('link', { name: 'Analytics' }),
       people: page.getByRole('link', { name: 'People' }),
       families: page.getByRole('link', { name: 'Families' }),
       groups: page.getByRole('link', { name: 'Groups' }),
-      checkin: page.getByRole('link', { name: 'Check-in' }),
+      schedules: page.getByRole('link', { name: 'Schedules' }),
+      communications: page.getByRole('link', { name: 'Communications' }),
+      roster: page.getByRole('link', { name: 'Room Roster' }),
+      checkin: page.getByRole('link', { name: 'Check-In Mode' }),
       settings: page.getByRole('link', { name: 'Settings' }),
     };
     this.searchInput = page.getByPlaceholder(/search/i);
