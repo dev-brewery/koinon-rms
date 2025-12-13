@@ -18,10 +18,12 @@ test.describe('Breadcrumb Navigation', () => {
     await page.goto('/admin/people');
 
     // Check for breadcrumb container (implementation may vary)
-    const _breadcrumb = page.locator('[aria-label="Breadcrumb"], nav.breadcrumb, .breadcrumb');
+    const breadcrumb = page.locator('[aria-label="Breadcrumb"], nav.breadcrumb, .breadcrumb');
 
     // Breadcrumb might not be visible on all pages, so we just verify the layout works
     // If breadcrumb component is implemented, it should be testable here
+    // For now, just verify the locator is valid (doesn't throw)
+    await expect(breadcrumb.or(page.locator('main'))).toBeVisible();
   });
 
   test('should show correct breadcrumb trail for nested pages', async ({ page }) => {

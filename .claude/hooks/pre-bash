@@ -1,0 +1,515 @@
+#!/bin/bash
+# Pre-bash hook - validates bash commands before execution
+# Prevents dangerous operations and enforces project conventions
+
+set -euo pipefail
+
+# DEBUG: Log all pre-bash hook invocations
+DEBUG_LOG="/tmp/pre-bash-debug.log"
+echo "=== pre-bash $(date -Iseconds) ===" >> "$DEBUG_LOG"
+
+# Load validation library
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/lib/validation.sh"
+# NOTE: critic-tracker.sh is sourced on-demand inside the git commit check
+
+# Read JSON from stdin (Claude Code hook input format)
+INPUT=$(cat)
+COMMAND=$(echo "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('tool_input',{}).get('command',''))" 2>/dev/null || echo "")
+
+if [[ -z "$COMMAND" ]]; then
+    log_error "No command provided to pre-bash hook"
+    exit 2  # Exit 2 = BLOCK operation
+fi
+
+log_info "Pre-bash validation: $COMMAND"
+
+# ============================================================================
+# BRANCH NAMING VALIDATION
+# ============================================================================
+
+if echo "$COMMAND" | grep -qE "git checkout -b|git switch -c"; then
+    "$SCRIPT_DIR/validate-branch" "$COMMAND" || true
+fi
+
+# ============================================================================
+# INFRASTRUCTURE PROTECTION - Block writes to .claude/
+# ============================================================================
+
+EXIT_CODE=0
+
+# Block any command that writes to .claude/ directory
+# This prevents bypass of pm-blocker via bash redirects/file operations
+if echo "$COMMAND" | grep -qE '(>|>>)\s*[^|]*\.claude/' || \
+   echo "$COMMAND" | grep -qE '(cp|mv|tee|touch|mkdir|rm|chmod)\s+.*\.claude/' || \
+   echo "$COMMAND" | grep -qE '(sed|awk|perl)\s+-i.*\.claude/' || \
+   echo "$COMMAND" | grep -qE 'cat\s+.*>\s*.*\.claude/'; then
+    echo ""
+    echo "═══════════════════════════════════════════════════════════"
+    echo "BLOCKED: Infrastructure files are read-only"
+    echo "═══════════════════════════════════════════════════════════"
+    echo ""
+    echo "Command: $COMMAND"
+    echo ""
+    echo "You cannot modify your own constraints via any method."
+    echo ""
+    echo "If a hook is blocking you, that's usually intentional."
+    echo "Do the work the hook is requiring instead of trying to"
+    echo "bypass it."
+    echo ""
+    echo "Only escalate for genuine infrastructure BUGS."
+    echo ""
+    echo "═══════════════════════════════════════════════════════════"
+    EXIT_CODE=2
+fi
+
+# ============================================================================
+# WORKFLOW FILE PROTECTION - Block direct writes to .github/workflows/
+# ============================================================================
+
+# Block any command that writes to .github/workflows/ directory
+# This ensures workflow changes go through Edit tool where pre-write hook can block
+if echo "$COMMAND" | grep -qE '(>|>>)\s*[^|]*\.github/workflows/' || \
+   echo "$COMMAND" | grep -qE '(cp|mv|tee|touch|mkdir|rm|chmod)\s+.*\.github/workflows/' || \
+   echo "$COMMAND" | grep -qE '(sed|awk|perl)\s+-i.*\.github/workflows/' || \
+   echo "$COMMAND" | grep -qE 'cat\s+.*>\s*.*\.github/workflows/'; then
+    echo ""
+    echo "═══════════════════════════════════════════════════════════"
+    echo "BLOCKED: Workflow files cannot be modified via Bash"
+    echo "═══════════════════════════════════════════════════════════"
+    echo ""
+    echo "Command: $COMMAND"
+    echo ""
+    echo "GitHub workflow files are protected infrastructure."
+    echo "They cannot be modified by any agent via any method."
+    echo ""
+    echo "If CI is failing, diagnose whether it's:"
+    echo "  - WORKFLOW issue: Report to PM for user escalation"
+    echo "  - APP_CODE issue: Fix the application code instead"
+    echo ""
+    echo "See: .claude/agents/devops.md for CI failure procedures"
+    echo ""
+    echo "═══════════════════════════════════════════════════════════"
+    EXIT_CODE=2
+fi
+
+# ============================================================================
+# DANGEROUS COMMAND PREVENTION
+# ============================================================================
+
+# 1. Prevent force push to main/master
+if echo "$COMMAND" | grep -qE "git push.*(-f|--force)" && \
+   echo "$COMMAND" | grep -qE "(main|master)"; then
+    log_error "BLOCKED: Force push to main/master branch is not allowed"
+    log_info "Command: $COMMAND"
+    log_info "Create a new branch or use regular push"
+    EXIT_CODE=2
+fi
+
+# 2. Prevent hard reset
+if echo "$COMMAND" | grep -qE "git reset --hard"; then
+    log_warning "WARNING: Hard reset detected"
+    log_info "This operation is destructive and cannot be undone"
+    log_info "Command: $COMMAND"
+    log_info "Consider using 'git reset --soft' or 'git stash' instead"
+    # Warning only - may be needed in some cases
+fi
+
+# 3. Prevent deletion of important branches
+if echo "$COMMAND" | grep -qE "git branch -D (main|master|develop)" || \
+   echo "$COMMAND" | grep -qE "git push.*--delete (main|master|develop)"; then
+    log_error "BLOCKED: Cannot delete protected branches (main, master, develop)"
+    log_info "Command: $COMMAND"
+    EXIT_CODE=2
+fi
+
+# 4. Prevent rm -rf on critical directories
+if echo "$COMMAND" | grep -qE "rm -rf /(src|docs|tests|\.git)" || \
+   echo "$COMMAND" | grep -qE "rm -rf \./?(src|docs|tests|\.git)"; then
+    log_error "BLOCKED: Cannot recursively delete critical project directories"
+    log_info "Command: $COMMAND"
+    log_info "If you need to clean build artifacts, use 'dotnet clean' or 'npm run clean'"
+    EXIT_CODE=2
+fi
+
+# 5. Prevent database drops in production-like environments
+if echo "$COMMAND" | grep -qE "DROP DATABASE|DROP TABLE" && \
+   ! echo "$COMMAND" | grep -qi "localhost"; then
+    log_error "BLOCKED: Database DROP commands detected"
+    log_info "Use EF Core migrations for schema changes"
+    log_info "Command: $COMMAND"
+    EXIT_CODE=2
+fi
+
+# 6. CRITICAL: Validate CI status before gh issue queries (same validation as MCP tools)
+# Prevents bypass of MCP hooks by using bash gh commands instead
+if echo "$COMMAND" | grep -qE "gh issue (list|view)"; then
+    echo "ISSUE QUERY DETECTED: $COMMAND" >> "$DEBUG_LOG"
+    log_info "Validating CI status before querying issues..."
+
+    # Run check-pr-ci validation (same as MCP list_issues/get_issue hooks)
+    set +e
+    "$SCRIPT_DIR/check-pr-ci"
+    CI_RESULT=$?
+    set -e
+
+    if [[ $CI_RESULT -eq 2 ]]; then
+        log_error "BLOCKED: Cannot query new issues - current PR CI not passing"
+        log_info "Fix failing CI checks before moving to next work"
+        EXIT_CODE=2
+    fi
+fi
+
+# 7. CRITICAL: Validate CI status before gh pr merge (same validation as MCP merge)
+# gh CLI is a valid fallback when GitHub MCP is unreliable - don't block it!
+# Instead, run the same CI validation that pre-merge hook does for MCP
+if echo "$COMMAND" | grep -qE "gh (pr )?merge"; then
+    echo "MERGE ATTEMPT DETECTED: $COMMAND" >> "$DEBUG_LOG"
+    log_info "Validating CI status before gh pr merge..."
+
+    # CRITICAL: Temporarily disable errexit for this section to prevent crashes
+    # If script crashes with exit 1, Claude Code doesn't treat it as a block!
+    set +e
+
+    # Extract PR number from command (e.g., "gh pr merge 123" or "gh pr merge")
+    PR_NUM=$(echo "$COMMAND" | grep -oE 'gh pr merge [0-9]+' | grep -oE '[0-9]+' 2>/dev/null)
+    if [[ -z "$PR_NUM" ]]; then
+        PR_NUM=""
+    fi
+    echo "Extracted PR_NUM: '$PR_NUM'" >> "$DEBUG_LOG"
+
+    if [[ -z "$PR_NUM" ]]; then
+        # No PR number specified - gh will use current branch's PR
+        CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+        echo "Current branch: '$CURRENT_BRANCH'" >> "$DEBUG_LOG"
+        if [[ -n "$CURRENT_BRANCH" && "$CURRENT_BRANCH" != "main" ]]; then
+            PR_NUM=$(gh pr list --head "$CURRENT_BRANCH" --json number --jq '.[0].number' 2>/dev/null)
+            echo "PR from branch: '$PR_NUM'" >> "$DEBUG_LOG"
+        fi
+    fi
+
+    if [[ -z "$PR_NUM" ]]; then
+        log_error "BLOCKED: Cannot determine PR number for CI validation"
+        log_info "Specify PR number: gh pr merge <number>"
+        EXIT_CODE=2
+    else
+        # Get CI checks status using gh pr view (gh pr checks doesn't support --json)
+        CI_STATUS=$(gh pr view "$PR_NUM" --json statusCheckRollup --jq '.statusCheckRollup' 2>/dev/null)
+        echo "CI_STATUS length: ${#CI_STATUS}" >> "$DEBUG_LOG"
+
+        if [[ -z "$CI_STATUS" || "$CI_STATUS" == "[]" || "$CI_STATUS" == "null" ]]; then
+            log_error "BLOCKED: No CI checks found for PR #$PR_NUM"
+            log_info "Wait for CI to run before merging"
+            EXIT_CODE=2
+        else
+            # Check for failures (conclusion field, empty means still running)
+            FAILED=$(echo "$CI_STATUS" | jq -r '[.[] | select(.conclusion == "FAILURE" or .conclusion == "failure")] | length' 2>/dev/null)
+            # Check for pending (empty conclusion means still running)
+            PENDING=$(echo "$CI_STATUS" | jq -r '[.[] | select(.conclusion == "" or .conclusion == null)] | length' 2>/dev/null)
+            echo "FAILED='$FAILED' PENDING='$PENDING'" >> "$DEBUG_LOG"
+
+            # Fail-closed: if parsing fails, block
+            if [[ -z "$FAILED" ]] || ! [[ "$FAILED" =~ ^[0-9]+$ ]]; then
+                log_error "BLOCKED: Failed to parse CI status - assuming failure"
+                EXIT_CODE=2
+            elif [[ "$FAILED" -gt 0 ]]; then
+                log_error "BLOCKED: PR #$PR_NUM has $FAILED FAILING CI checks"
+                log_info "Fix failures before merging: gh pr checks $PR_NUM"
+                EXIT_CODE=2
+            elif [[ -n "$PENDING" ]] && [[ "$PENDING" =~ ^[0-9]+$ ]] && [[ "$PENDING" -gt 0 ]]; then
+                log_error "BLOCKED: PR #$PR_NUM has $PENDING PENDING CI checks"
+                log_info "Wait for checks to complete: gh pr checks $PR_NUM --watch"
+                EXIT_CODE=2
+            else
+                log_success "CI checks passed for PR #$PR_NUM - merge allowed"
+            fi
+        fi
+    fi
+
+    # Re-enable errexit
+    set -e
+fi
+
+# ============================================================================
+# CODE-CRITIC ENFORCEMENT ON COMMITS
+# ============================================================================
+
+# Enforce code-critic approval before ANY commit
+if echo "$COMMAND" | grep -qE "^git commit"; then
+    log_info "Checking code-critic approval before commit..."
+
+    # Source critic-tracker only when needed (for git commit)
+    source "${SCRIPT_DIR}/lib/critic-tracker.sh"
+
+    # check_critic_required() returns 2 if code needs review
+    if ! check_critic_required; then
+        echo ""
+        echo "═══════════════════════════════════════════════════════════"
+        echo "ACTION REQUIRED: Run code-critic before commit"
+        echo "═══════════════════════════════════════════════════════════"
+        echo ""
+        echo "YOUR NEXT STEP (do this now):"
+        echo "  Task(subagent_type='code-critic', prompt='Review staged changes')"
+        echo ""
+        echo "If code-critic requests changes:"
+        echo "  1. Fix the issues it identifies"
+        echo "  2. Stage the fixes: git add ."
+        echo "  3. Run code-critic again"
+        echo "  4. Repeat until APPROVED"
+        echo "  5. Then commit"
+        echo ""
+        echo "┌─────────────────────────────────────────────────────────────┐"
+        echo "│ DO NOT complain about code review.                         │"
+        echo "│ DO NOT try to commit without approval.                     │"
+        echo "│ DO NOT ask to skip this step.                              │"
+        echo "│                                                            │"
+        echo "│ Code review is part of the job. Run the critic. Fix issues.│"
+        echo "└─────────────────────────────────────────────────────────────┘"
+        echo ""
+        echo "═══════════════════════════════════════════════════════════"
+        EXIT_CODE=2
+    fi
+fi
+
+# ============================================================================
+# CI/CD REVIEWER ENFORCEMENT ON WORKFLOW COMMITS
+# ============================================================================
+
+# Enforce cicd-reviewer approval for workflow file commits
+if echo "$COMMAND" | grep -qE "^git commit"; then
+    # Check if any workflow files are staged
+    if git diff --cached --name-only 2>/dev/null | grep -qE '^\.github/workflows/.*\.(yml|yaml)$'; then
+        log_info "Checking cicd-reviewer approval for workflow changes..."
+
+        # Source workflow-tracker only when needed
+        source "${SCRIPT_DIR}/lib/workflow-tracker.sh"
+
+        # check_workflow_approval_required() returns 2 if review needed
+        if ! check_workflow_approval_required; then
+            echo ""
+            echo "═══════════════════════════════════════════════════════════"
+            echo "ACTION REQUIRED: Run cicd-reviewer before workflow commit"
+            echo "═══════════════════════════════════════════════════════════"
+            echo ""
+            echo "YOUR NEXT STEP (do this now):"
+            echo "  Task(subagent_type='cicd-reviewer', prompt='Review workflow changes')"
+            echo ""
+            echo "If cicd-reviewer requests changes:"
+            echo "  1. Fix the issues (or reconsider if workflow change is needed)"
+            echo "  2. Re-run cicd-reviewer"
+            echo "  3. Repeat until APPROVED"
+            echo "  4. Then commit"
+            echo ""
+            echo "┌─────────────────────────────────────────────────────────────┐"
+            echo "│ Workflow files are protected infrastructure.               │"
+            echo "│ Only cicd-reviewer can approve workflow changes.           │"
+            echo "│ Consider: Is this truly a workflow problem, or is the      │"
+            echo "│ real fix in the application code?                          │"
+            echo "└─────────────────────────────────────────────────────────────┘"
+            echo ""
+            echo "═══════════════════════════════════════════════════════════"
+            EXIT_CODE=2
+        fi
+    fi
+fi
+
+# ============================================================================
+# SECRETS DETECTION (HOOK-7)
+# ============================================================================
+
+# Scan staged changes for secrets when committing
+if echo "$COMMAND" | grep -qE "^git commit"; then
+    log_info "Scanning staged changes for secrets..."
+
+    # Get staged diff
+    STAGED_DIFF=$(git diff --cached 2>/dev/null || echo "")
+
+    if [ -n "$STAGED_DIFF" ]; then
+        # Define secret patterns to scan for
+        SECRET_PATTERNS=(
+            "ghp_[a-zA-Z0-9]{36}"                    # GitHub PAT
+            "AIza[a-zA-Z0-9_-]{35}"                  # Google API key
+            "sk-[a-zA-Z0-9]{48}"                     # OpenAI API key
+            "xoxb-[a-zA-Z0-9-]+"                     # Slack bot token
+            "xoxp-[a-zA-Z0-9-]+"                     # Slack user token
+            "AKIA[A-Z0-9]{16}"                       # AWS Access Key
+            "[a-zA-Z0-9_-]*api[_-]?key['\"]?\s*[:=]\s*['\"]?[a-zA-Z0-9_-]{16,}"  # Generic API key
+            "[a-zA-Z0-9_-]*password['\"]?\s*[:=]\s*['\"]?[^'\"\s]+"              # Password assignment
+            "[a-zA-Z0-9_-]*secret['\"]?\s*[:=]\s*['\"]?[^'\"\s]+"                # Secret assignment
+            "GITHUB_TOKEN=['\"]?[a-zA-Z0-9_-]+"      # GitHub token env var
+            "GITHUB_PERSONAL_ACCESS_TOKEN=['\"]?[a-zA-Z0-9_-]+"  # GitHub PAT env var
+            "GOOGLE_API_KEY=['\"]?[a-zA-Z0-9_-]+"   # Google API key env var
+        )
+
+        SECRETS_FOUND=0
+        for pattern in "${SECRET_PATTERNS[@]}"; do
+            # For password pattern, exclude E2E test files to avoid false positives
+            # on TypeScript function signatures like: password: string
+            if [[ "$pattern" == *"password"* ]]; then
+                # Filter out E2E test file changes before checking password pattern
+                FILTERED_DIFF=$(echo "$STAGED_DIFF" | grep -v "^+++ b/.*e2e/.*\.ts$" | grep -v "^diff --git.*e2e/")
+                CHECK_DIFF="$FILTERED_DIFF"
+            else
+                CHECK_DIFF="$STAGED_DIFF"
+            fi
+
+            if echo "$CHECK_DIFF" | grep -qiE "^\+.*$pattern"; then
+                if [ $SECRETS_FOUND -eq 0 ]; then
+                    echo ""
+                    echo "═══════════════════════════════════════════════════════════"
+                    echo "🚫 BLOCKED: POTENTIAL SECRETS DETECTED IN STAGED CHANGES"
+                    echo "═══════════════════════════════════════════════════════════"
+                    echo ""
+                fi
+                echo "  ⚠️  Pattern matched: $pattern"
+                SECRETS_FOUND=1
+            fi
+        done
+
+        if [ $SECRETS_FOUND -eq 1 ]; then
+            echo ""
+            echo "MATCHES FOUND:"
+            echo "─────────────────────────────────────────────────────────────"
+            # Show matching lines (redacted)
+            for pattern in "${SECRET_PATTERNS[@]}"; do
+                # Use filtered diff for password pattern (same as detection above)
+                if [[ "$pattern" == *"password"* ]]; then
+                    SHOW_DIFF=$(echo "$STAGED_DIFF" | grep -v "^+++ b/.*e2e/.*\.ts$" | grep -v "^diff --git.*e2e/")
+                else
+                    SHOW_DIFF="$STAGED_DIFF"
+                fi
+                echo "$SHOW_DIFF" | grep -iE "^\+.*$pattern" | head -3 | sed 's/\(.\{60\}\).*/\1...REDACTED/' || true
+            done
+            echo "─────────────────────────────────────────────────────────────"
+            echo ""
+            echo "ACTION REQUIRED:"
+            echo "  1. Remove secrets from staged files"
+            echo "  2. Use environment variables or .env files (gitignored)"
+            echo "  3. If this is a false positive, review and ensure no real secrets"
+            echo ""
+            echo "To unstage and fix:"
+            echo "  git reset HEAD -- <file>"
+            echo ""
+            echo "═══════════════════════════════════════════════════════════"
+            EXIT_CODE=2
+        else
+            log_success "No secrets detected in staged changes"
+        fi
+    fi
+fi
+
+# ============================================================================
+# PROJECT CONVENTION ENFORCEMENT
+# ============================================================================
+
+# 1. Enforce correct migration command format
+if echo "$COMMAND" | grep -q "dotnet ef migrations add"; then
+    if ! echo "$COMMAND" | grep -q "\-p src/Koinon.Infrastructure"; then
+        log_warning "Migration command should specify Infrastructure project"
+        log_info "Correct format: dotnet ef migrations add <Name> -p src/Koinon.Infrastructure -s src/Koinon.Api"
+        log_info "Your command: $COMMAND"
+        # Warning only
+    fi
+fi
+
+# 2. Enforce correct build commands
+if echo "$COMMAND" | grep -qE "^dotnet build" && \
+   echo "$COMMAND" | grep -qv "dotnet build -"; then
+    log_info "Building solution..."
+    # OK - building is fine
+fi
+
+# 3. Check for proper test execution
+if echo "$COMMAND" | grep -q "dotnet test"; then
+    if ! echo "$COMMAND" | grep -qE "(-v|--verbosity)"; then
+        log_info "Tip: Add --verbosity for more detailed test output"
+    fi
+fi
+
+# 4. Validate npm commands are run from correct directory
+if echo "$COMMAND" | grep -qE "^npm (install|run|build)"; then
+    if [[ "$(pwd)" != *"src/web"* ]] && [[ ! -f "package.json" ]]; then
+        log_warning "npm command should be run from src/web/ directory"
+        log_info "Current directory: $(pwd)"
+        log_info "Command: $COMMAND"
+        # Warning only - might be intentional
+    fi
+fi
+
+# 5. Prevent accidental package installations without lock file updates
+if echo "$COMMAND" | grep -qE "npm install [^-]" && \
+   ! echo "$COMMAND" | grep -q "\-\-no\-save"; then
+    log_info "Installing npm packages - package-lock.json will be updated"
+    log_info "Remember to commit the updated lock file"
+fi
+
+# ============================================================================
+# WORK UNIT SCOPE VALIDATION
+# ============================================================================
+
+if WU=$(validate_work_unit_context); then
+    log_info "Working in context of: $WU"
+
+    # Extract phase and category
+    if [[ "$WU" =~ WU-([0-9]+)\.([0-9]+) ]]; then
+        PHASE="${BASH_REMATCH[1]}"
+        CATEGORY="${BASH_REMATCH[2]}"
+
+        # WU-1.1 = Scaffolding - allow more freedom
+        # WU-1.2 = Entities - should mostly work with Domain project
+        # WU-1.3 = Data Layer - should work with Infrastructure
+
+        # Warn if running database migrations outside data layer work
+        if [[ "$PHASE" != "1" ]] || [[ "$CATEGORY" != "3" ]]; then
+            if echo "$COMMAND" | grep -q "dotnet ef"; then
+                log_warning "Running EF migrations outside of data-layer work unit"
+                log_info "WU-1.3.x work units handle database migrations"
+                log_info "Current work unit: $WU"
+                # Warning only
+            fi
+        fi
+
+        # Warn if building frontend outside frontend work units
+        if [[ "$PHASE" != "4" ]]; then
+            if echo "$COMMAND" | grep -qE "npm run build|npm run dev"; then
+                log_warning "Frontend build commands outside frontend work units (WU-4.x)"
+                log_info "Current work unit: $WU"
+                # Warning only
+            fi
+        fi
+    fi
+fi
+
+# ============================================================================
+# HELPFUL SUGGESTIONS
+# ============================================================================
+
+# Suggest using specialized tools instead of bash for some operations
+if echo "$COMMAND" | grep -qE "^cat .*.cs$|^cat .*.ts$"; then
+    log_info "Tip: Use the Read tool instead of 'cat' for better handling of code files"
+fi
+
+if echo "$COMMAND" | grep -qE "^grep -r"; then
+    log_info "Tip: Use the Grep tool instead of bash grep for better performance"
+fi
+
+if echo "$COMMAND" | grep -qE "^find.*-name"; then
+    log_info "Tip: Use the Glob tool instead of 'find' for faster file searches"
+fi
+
+# ============================================================================
+# EXIT WITH APPROPRIATE CODE
+# ============================================================================
+
+if [[ $EXIT_CODE -ne 0 ]]; then
+    echo "BLOCKING with exit code $EXIT_CODE for command: $COMMAND" >> "$DEBUG_LOG"
+    echo ""
+    log_error "Pre-bash validation FAILED - command blocked"
+    log_info "Review the errors above and adjust your command"
+    echo ""
+    exit $EXIT_CODE
+fi
+
+echo "ALLOWING command: $COMMAND" >> "$DEBUG_LOG"
+log_success "Pre-bash validation passed"
+exit 0
