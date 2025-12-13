@@ -53,8 +53,7 @@ test.describe('Login Flow', () => {
     await loginPage.expectLoggedIn();
   });
 
-  // Bug: #125 - Login form does not submit on Enter key press
-  test.fixme('should submit form on Enter key press', async ({ page }) => {
+  test('should submit form on Enter key press', async ({ page }) => {
     const loginPage = new LoginPage(page);
 
     await loginPage.usernameInput.fill('admin');
