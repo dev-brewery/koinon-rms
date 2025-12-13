@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useFamily, useCreateFamily, useUpdateFamily } from '@/hooks/useFamilies';
 import type { CreateFamilyRequest, UpdateFamilyRequest } from '@/services/api/types';
+import { familyFormSchema } from '@/schemas/family.schema';
 
 export function FamilyFormPage() {
   const { idKey } = useParams<{ idKey: string }>();
@@ -25,6 +26,7 @@ export function FamilyFormPage() {
   const [state, setState] = useState('');
   const [postalCode, setPostalCode] = useState('');
   const [isDirty, setIsDirty] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (family) {
@@ -42,8 +44,63 @@ export function FamilyFormPage() {
     }
   }, [family]);
 
+  const validateField = (fieldName: string, value: unknown) => {
+    const formData = {
+      name,
+      campusId,
+      street1,
+      street2,
+      city,
+      state,
+      postalCode,
+      [fieldName]: value,
+    };
+
+    const result = familyFormSchema.safeParse(formData);
+    if (!result.success) {
+      const error = result.error.issues.find(issue => issue.path[0] === fieldName);
+      if (error) {
+        setValidationErrors(prev => ({ ...prev, [fieldName]: error.message }));
+      } else {
+        setValidationErrors(prev => {
+          const { [fieldName]: removed, ...rest } = prev;
+          return rest;
+        });
+      }
+    } else {
+      setValidationErrors(prev => {
+        const { [fieldName]: removed, ...rest } = prev;
+        return rest;
+      });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate all fields before submit
+    const formData = {
+      name,
+      campusId,
+      street1,
+      street2,
+      city,
+      state,
+      postalCode,
+    };
+
+    const result = familyFormSchema.safeParse(formData);
+    if (!result.success) {
+      const errors: Record<string, string> = {};
+      result.error.issues.forEach(issue => {
+        const fieldName = issue.path[0] as string;
+        errors[fieldName] = issue.message;
+      });
+      setValidationErrors(errors);
+      return;
+    }
+
+    setValidationErrors({});
 
     if (isEdit && idKey) {
       const request: UpdateFamilyRequest = {
@@ -161,10 +218,14 @@ export function FamilyFormPage() {
               type="text"
               value={name}
               onChange={handleFieldChange(setName)}
+              onBlur={() => validateField('name', name)}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               placeholder="e.g., Smith Family"
             />
+            {validationErrors.name && (
+              <p className="text-sm text-red-600 mt-1">{validationErrors.name}</p>
+            )}
           </div>
 
           <div>
@@ -196,9 +257,13 @@ export function FamilyFormPage() {
                 type="text"
                 value={street1}
                 onChange={handleFieldChange(setStreet1)}
+                onBlur={() => validateField('street1', street1)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 placeholder="123 Main St"
               />
+              {validationErrors.street1 && (
+                <p className="text-sm text-red-600 mt-1">{validationErrors.street1}</p>
+              )}
             </div>
 
             <div>
@@ -210,9 +275,13 @@ export function FamilyFormPage() {
                 type="text"
                 value={street2}
                 onChange={handleFieldChange(setStreet2)}
+                onBlur={() => validateField('street2', street2)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 placeholder="Apt 4B"
               />
+              {validationErrors.street2 && (
+                <p className="text-sm text-red-600 mt-1">{validationErrors.street2}</p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -225,8 +294,12 @@ export function FamilyFormPage() {
                   type="text"
                   value={city}
                   onChange={handleFieldChange(setCity)}
+                  onBlur={() => validateField('city', city)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
+                {validationErrors.city && (
+                  <p className="text-sm text-red-600 mt-1">{validationErrors.city}</p>
+                )}
               </div>
 
               <div>
@@ -238,10 +311,14 @@ export function FamilyFormPage() {
                   type="text"
                   value={state}
                   onChange={handleFieldChange(setState)}
+                  onBlur={() => validateField('state', state)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   maxLength={2}
                   placeholder="CA"
                 />
+                {validationErrors.state && (
+                  <p className="text-sm text-red-600 mt-1">{validationErrors.state}</p>
+                )}
               </div>
             </div>
 
@@ -254,9 +331,13 @@ export function FamilyFormPage() {
                 type="text"
                 value={postalCode}
                 onChange={handleFieldChange(setPostalCode)}
+                onBlur={() => validateField('postalCode', postalCode)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 placeholder="12345"
               />
+              {validationErrors.postalCode && (
+                <p className="text-sm text-red-600 mt-1">{validationErrors.postalCode}</p>
+              )}
             </div>
           </div>
         )}

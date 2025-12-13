@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { usePerson, useCreatePerson, useUpdatePerson } from '@/hooks/usePeople';
 import type { CreatePersonRequest, UpdatePersonRequest, Gender } from '@/services/api/types';
+import { personFormSchema } from '@/schemas/person.schema';
 
 interface PhoneNumberForm {
   number: string;
@@ -33,6 +34,7 @@ export function PersonFormPage() {
   const [campusId, setCampusId] = useState('');
   const [phoneNumbers, setPhoneNumbers] = useState<PhoneNumberForm[]>([]);
   const [isDirty, setIsDirty] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (person) {
@@ -71,8 +73,67 @@ export function PersonFormPage() {
     setIsDirty(true);
   };
 
+  const validateField = (fieldName: string, value: unknown) => {
+    const formData = {
+      firstName,
+      lastName,
+      nickName,
+      middleName,
+      email,
+      gender,
+      birthDate,
+      campusId,
+      phoneNumbers,
+      [fieldName]: value,
+    };
+
+    const result = personFormSchema.safeParse(formData);
+    if (!result.success) {
+      const error = result.error.issues.find(issue => issue.path[0] === fieldName);
+      if (error) {
+        setValidationErrors(prev => ({ ...prev, [fieldName]: error.message }));
+      } else {
+        setValidationErrors(prev => {
+          const { [fieldName]: removed, ...rest } = prev;
+          return rest;
+        });
+      }
+    } else {
+      setValidationErrors(prev => {
+        const { [fieldName]: removed, ...rest } = prev;
+        return rest;
+      });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate all fields before submit
+    const formData = {
+      firstName,
+      lastName,
+      nickName,
+      middleName,
+      email,
+      gender,
+      birthDate,
+      campusId,
+      phoneNumbers,
+    };
+
+    const result = personFormSchema.safeParse(formData);
+    if (!result.success) {
+      const errors: Record<string, string> = {};
+      result.error.issues.forEach(issue => {
+        const fieldName = issue.path[0] as string;
+        errors[fieldName] = issue.message;
+      });
+      setValidationErrors(errors);
+      return;
+    }
+
+    setValidationErrors({});
 
     const phoneNumbersData = phoneNumbers
       .filter((p) => p.number.trim())
@@ -114,8 +175,8 @@ export function PersonFormPage() {
         const result = await createMutation.mutateAsync(request);
         navigate(`/admin/people/${result.idKey}`);
       }
-    } catch (err) {
-      alert('Failed to save person. Please check all fields and try again.');
+    } catch {
+      // Error is handled by TanStack Query error state
     }
   };
 
@@ -183,8 +244,12 @@ export function PersonFormPage() {
                   setFirstName(e.target.value);
                   setIsDirty(true);
                 }}
+                onBlur={() => validateField('firstName', firstName)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
+              {validationErrors.firstName && (
+                <p className="text-sm text-red-600 mt-1">{validationErrors.firstName}</p>
+              )}
             </div>
 
             <div>
@@ -201,8 +266,12 @@ export function PersonFormPage() {
                   setLastName(e.target.value);
                   setIsDirty(true);
                 }}
+                onBlur={() => validateField('lastName', lastName)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
+              {validationErrors.lastName && (
+                <p className="text-sm text-red-600 mt-1">{validationErrors.lastName}</p>
+              )}
             </div>
 
             <div>
@@ -218,8 +287,12 @@ export function PersonFormPage() {
                   setNickName(e.target.value);
                   setIsDirty(true);
                 }}
+                onBlur={() => validateField('nickName', nickName)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
+              {validationErrors.nickName && (
+                <p className="text-sm text-red-600 mt-1">{validationErrors.nickName}</p>
+              )}
             </div>
 
             <div>
@@ -235,8 +308,12 @@ export function PersonFormPage() {
                   setMiddleName(e.target.value);
                   setIsDirty(true);
                 }}
+                onBlur={() => validateField('middleName', middleName)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
+              {validationErrors.middleName && (
+                <p className="text-sm text-red-600 mt-1">{validationErrors.middleName}</p>
+              )}
             </div>
           </div>
 
@@ -253,12 +330,16 @@ export function PersonFormPage() {
                   setGender(e.target.value as Gender);
                   setIsDirty(true);
                 }}
+                onBlur={() => validateField('gender', gender)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="Unknown">Unknown</option>
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
               </select>
+              {validationErrors.gender && (
+                <p className="text-sm text-red-600 mt-1">{validationErrors.gender}</p>
+              )}
             </div>
 
             <div>
@@ -273,8 +354,12 @@ export function PersonFormPage() {
                   setBirthDate(e.target.value);
                   setIsDirty(true);
                 }}
+                onBlur={() => validateField('birthDate', birthDate)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
+              {validationErrors.birthDate && (
+                <p className="text-sm text-red-600 mt-1">{validationErrors.birthDate}</p>
+              )}
             </div>
           </div>
 
@@ -292,8 +377,12 @@ export function PersonFormPage() {
                   setEmail(e.target.value);
                   setIsDirty(true);
                 }}
+                onBlur={() => validateField('email', email)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
+              {validationErrors.email && (
+                <p className="text-sm text-red-600 mt-1">{validationErrors.email}</p>
+              )}
             </div>
 
             <div>
