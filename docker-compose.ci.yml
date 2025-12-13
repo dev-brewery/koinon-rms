@@ -1,22 +1,15 @@
-# CI-specific overrides for docker-compose
-# Uses high ports to avoid conflicts on self-hosted runners
-# Creates isolated network for container-to-container communication
+# CI overrides for GitHub-hosted runners (future use)
+# Uses alternate ports to avoid conflicts with other services
 # Usage: docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d
-
-networks:
-  koinon-ci:
-    name: koinon-ci-network
-    driver: bridge
+#
+# NOTE: Self-hosted runners use GitHub Actions service containers instead
+# (see .github/workflows/ci.yml integration job)
 
 services:
   postgres:
-    networks:
-      - koinon-ci
     ports:
-      - "25434:5432"
+      - "5442:5432"
 
   redis:
-    networks:
-      - koinon-ci
     ports:
-      - "26380:6379"
+      - "6389:6379"

@@ -324,28 +324,42 @@ jobs:
         rm -f "$TEMP_FILE" "$UP_METHODS_FILE"
 
   # Integration smoke test
+  # Runs job in a container so it shares network with service containers
+  # See: https://docs.github.com/en/actions/using-containerized-services/about-service-containers
   integration:
     name: Integration Smoke Test
     runs-on: [self-hosted, linux]
     needs: [backend, frontend]
 
+    # Run the job inside a container - this puts job + services on same Docker network
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:8.0
+
+    # Service containers - accessible by service name as hostname
+    services:
+      postgres:
+        image: postgis/postgis:16-3.5-alpine
+        env:
+          POSTGRES_USER: koinon
+          POSTGRES_PASSWORD: koinon
+          POSTGRES_DB: koinon
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
-        global-json-file: global.json
-
-    - name: Start services with docker-compose
-      run: docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d
-
-    - name: Wait for services to be ready
-      run: |
-        timeout 60 bash -c 'until docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T postgres pg_isready; do sleep 2; done'
-        timeout 60 bash -c 'until docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T redis redis-cli ping; do sleep 2; done'
 
     - name: Restore and build API
       run: |
@@ -362,7 +376,7 @@ jobs:
           --configuration Release
       env:
         ASPNETCORE_ENVIRONMENT: "Production"
-        ConnectionStrings__DefaultConnection: "Host=192.168.1.115;Port=25434;Database=koinon;Username=koinon;Password=koinon"
+        ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=koinon;Username=koinon;Password=koinon"
         Jwt__Secret: "ci-integration-test-jwt-key-minimum-32-chars-long-for-security"
         Jwt__Issuer: "koinon-ci-integration"
         Jwt__Audience: "koinon-ci-integration"
@@ -372,12 +386,11 @@ jobs:
         dotnet run --project src/Koinon.Api --no-build --configuration Release &
         echo $! > /tmp/api.pid
         echo "API started with PID $(cat /tmp/api.pid)"
-        # Give it a moment to either start or fail fast
-        sleep 2
+        sleep 5
       env:
-        ASPNETCORE_URLS: "http://localhost:5000"
-        ConnectionStrings__DefaultConnection: "Host=192.168.1.115;Port=25434;Database=koinon;Username=koinon;Password=koinon"
-        ConnectionStrings__Redis: "192.168.1.115:26380"
+        ASPNETCORE_URLS: "http://0.0.0.0:5000"
+        ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=koinon;Username=koinon;Password=koinon"
+        ConnectionStrings__Redis: "redis:6379"
         Jwt__Secret: "ci-integration-test-jwt-key-minimum-32-chars-long-for-security"
         Jwt__Issuer: "koinon-ci-integration"
         Jwt__Audience: "koinon-ci-integration"
@@ -385,6 +398,7 @@ jobs:
     - name: Wait for API to be ready
       run: |
         echo "Waiting for API to respond on http://localhost:5000/health..."
+        apt-get update && apt-get install -y curl > /dev/null 2>&1 || true
         timeout 120 bash -c 'until curl -sf http://localhost:5000/health > /dev/null 2>&1; do
           echo "Waiting for API... (checking health endpoint)"
           sleep 3
@@ -397,7 +411,6 @@ jobs:
         HEALTH_RESPONSE=$(curl -s http://localhost:5000/health)
         echo "Health response: $HEALTH_RESPONSE"
 
-        # Verify health endpoint returns 200 OK
         HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5000/health)
         echo "HTTP Status: $HTTP_STATUS"
 
@@ -410,16 +423,15 @@ jobs:
 
     - name: Check database connectivity
       run: |
-        docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T postgres psql -U koinon -d koinon -c "SELECT 1"
+        apt-get install -y postgresql-client > /dev/null 2>&1 || true
+        PGPASSWORD=koinon psql -h postgres -U koinon -d koinon -c "SELECT 1"
 
     - name: Cleanup
       if: always()
       run: |
-        # Stop API if still running
         if [ -f /tmp/api.pid ]; then
           kill $(cat /tmp/api.pid) 2>/dev/null || true
         fi
-        docker compose -f docker-compose.yml -f docker-compose.ci.yml down -v
 
   # Work unit validation
   work-unit-validation:
