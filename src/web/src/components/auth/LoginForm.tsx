@@ -5,6 +5,7 @@
 
 import { useState, FormEvent } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { ApiClientError } from '../../services/api';
 
 export function LoginForm() {
   const { login } = useAuth();
@@ -21,10 +22,27 @@ export function LoginForm() {
     try {
       await login({ username, password });
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('Invalid username or password');
+      // 1. Check for ApiClientError first (most specific)
+      if (err instanceof ApiClientError) {
+        if (err.statusCode === 401) {
+          setError('Invalid username or password');
+        } else if (err.statusCode === 408) {
+          setError('Request timed out. Please try again.');
+        } else {
+          setError('Something went wrong. Please try again.');
+        }
+      }
+      // 2. Check for network errors (TypeError from fetch)
+      else if (err instanceof TypeError) {
+        setError('Unable to connect to server. Please try again.');
+      }
+      // 3. Other Error instances
+      else if (err instanceof Error) {
+        setError('Something went wrong. Please try again.');
+      }
+      // 4. Unknown error types (fallback)
+      else {
+        setError('Something went wrong. Please try again.');
       }
     } finally {
       setIsLoading(false);
