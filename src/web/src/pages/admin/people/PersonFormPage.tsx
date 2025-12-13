@@ -94,13 +94,15 @@ export function PersonFormPage() {
         setValidationErrors(prev => ({ ...prev, [fieldName]: error.message }));
       } else {
         setValidationErrors(prev => {
-          const { [fieldName]: removed, ...rest } = prev;
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { [fieldName]: _removed, ...rest } = prev;
           return rest;
         });
       }
     } else {
       setValidationErrors(prev => {
-        const { [fieldName]: removed, ...rest } = prev;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { [fieldName]: _removed, ...rest } = prev;
         return rest;
       });
     }
