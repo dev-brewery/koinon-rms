@@ -15,7 +15,7 @@ services:
       POSTGRES_PASSWORD: koinon
       POSTGRES_DB: koinon
     ports:
-      - "5435:5432"
+      - "25434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./tools/db-init:/docker-entrypoint-initdb.d:ro
@@ -33,7 +33,7 @@ services:
     container_name: koinon-redis
     restart: unless-stopped
     ports:
-      - "6382:6379"
+      - "26380:6379"
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes
@@ -101,8 +101,8 @@ volumes:
 #   docker-compose down -v
 #
 # Connection strings for development:
-#   PostgreSQL: Host=localhost;Port=5435;Database=koinon;Username=koinon;Password=koinon
-#   Redis: localhost:6382
+#   PostgreSQL: Host=localhost;Port=25434;Database=koinon;Username=koinon;Password=koinon
+#   Redis: localhost:26380
 #
 # Admin UIs (when using --profile tools):
 #   Adminer (Database): http://localhost:8080
