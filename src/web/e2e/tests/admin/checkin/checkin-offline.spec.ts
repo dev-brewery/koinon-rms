@@ -21,7 +21,7 @@ test.describe('Check-in Offline Mode', () => {
     await page.waitForLoadState('networkidle');
   });
 
-  test('should cache family data when online', async ({ page, context }) => {
+  test('should cache family data when online', async ({ page, context: _context }) => {
     const checkin = new CheckinPage(page);
 
     // Search while online to populate cache

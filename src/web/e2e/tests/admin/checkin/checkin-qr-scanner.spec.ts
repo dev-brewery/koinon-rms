@@ -78,7 +78,7 @@ test.describe('Check-in QR Code Scanner', () => {
     // NOTE: This event name must match app implementation in QR scanner component
     // TODO(#157): Verify custom event name matches actual implementation
     await page.evaluate(async () => {
-      const qrData = await (window as any).mockQRScan();
+      const qrData = await (window as { mockQRScan: () => Promise<string> }).mockQRScan();
       const event = new CustomEvent('qr-detected', { detail: qrData });
       document.dispatchEvent(event);
     });

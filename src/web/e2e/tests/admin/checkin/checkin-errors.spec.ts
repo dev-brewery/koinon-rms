@@ -84,7 +84,7 @@ test.describe('Check-in Error Scenarios', () => {
     const checkin = new CheckinPage(page);
 
     // Intercept and hang API response to trigger app timeout logic
-    await page.route('**/api/v1/families/search*', async (route) => {
+    await page.route('**/api/v1/families/search*', async (_route) => {
       // Never respond - forces app to handle timeout internally
       // App should have timeout logic (e.g., AbortController with 5s timeout)
     });
@@ -405,7 +405,7 @@ test.describe('Check-in Error Metrics', () => {
 
     // Check if analytics/monitoring is tracking errors
     const metricsTracked = await page.evaluate(() => {
-      return typeof (window as any).trackError === 'function';
+      return typeof (window as { trackError?: () => void }).trackError === 'function';
     });
 
     if (metricsTracked) {
@@ -419,7 +419,7 @@ test.describe('Check-in Error Metrics', () => {
 
       // Verify tracking called
       const tracked = await page.evaluate(() => {
-        return (window as any).errorTrackingCalled || false;
+        return (window as { errorTrackingCalled?: boolean }).errorTrackingCalled || false;
       });
 
       expect(tracked).toBeTruthy();

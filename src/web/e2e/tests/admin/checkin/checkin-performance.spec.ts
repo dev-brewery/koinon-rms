@@ -39,7 +39,7 @@ function loadBaseline() {
   }
 }
 
-function saveBaseline(data: any) {
+function saveBaseline(data: Record<string, unknown>) {
   // DO NOT write to filesystem during tests - this should be done in CI post-processing
   // Baseline updates should be committed intentionally, not auto-generated per test run
   console.log('Baseline data (not persisted):', JSON.stringify(data, null, 2));
@@ -164,7 +164,7 @@ test.describe('Check-in Performance - Online Mode', () => {
 
     // Setup observer BEFORE triggering the request
     const timingPromise = page.evaluate(() => {
-      return new Promise<any>((resolve) => {
+      return new Promise<{ dns: number; tcp: number; request: number; response: number; total: number }>((resolve) => {
         const observer = new PerformanceObserver((list) => {
           for (const entry of list.getEntries()) {
             if (entry.name.includes('/api/v1/families/search')) {
@@ -291,7 +291,7 @@ test.describe('Check-in Performance - Rendering', () => {
 
       return {
         fcp: fcp?.startTime || 0,
-        lcp: (lcp as any)?.startTime || 0,
+        lcp: (lcp as PerformanceEntry | undefined)?.startTime || 0,
       };
     });
 
