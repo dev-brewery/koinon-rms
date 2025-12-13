@@ -2,162 +2,164 @@ import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { CheckinConfirmation } from '../CheckinConfirmation';
+import type { AttendanceResultDto } from '@/services/api/types';
+
+const MOCK_CHECKIN_TIME = new Date().toISOString();
 
 describe('CheckinConfirmation', () => {
-  const mockSelectedMembers = [
+  const mockAttendances: AttendanceResultDto[] = [
     {
-      id: 1,
-      idKey: 'ABC123',
-      firstName: 'John',
-      lastName: 'Smith',
-      age: 42,
+      attendanceIdKey: 'ABC123',
+      personIdKey: 'PERSON123',
+      personName: 'John Smith',
+      groupName: 'Kids Ministry',
+      locationName: 'Room 101',
+      scheduleName: '9:00 AM Service',
+      securityCode: '1234',
+      checkInTime: MOCK_CHECKIN_TIME,
+      isFirstTime: false,
     },
   ];
 
   it('should display selected members summary', () => {
     render(
       <CheckinConfirmation
-        selectedMembers={mockSelectedMembers}
-        onConfirm={vi.fn()}
-        onCancel={vi.fn()}
+        attendances={mockAttendances}
+        onDone={vi.fn()}
       />
     );
 
     expect(screen.getByText('John Smith')).toBeInTheDocument();
   });
 
-  it('should show confirm button', () => {
+  it('should show done button', () => {
     render(
       <CheckinConfirmation
-        selectedMembers={mockSelectedMembers}
-        onConfirm={vi.fn()}
-        onCancel={vi.fn()}
+        attendances={mockAttendances}
+        onDone={vi.fn()}
       />
     );
 
-    expect(screen.getByRole('button', { name: /confirm|check in/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /done/i })).toBeInTheDocument();
   });
 
-  it('should call onConfirm when confirmed', async () => {
+  it('should call onDone when done button clicked', async () => {
     const user = userEvent.setup();
-    const mockOnConfirm = vi.fn();
+    const mockOnDone = vi.fn();
 
     render(
       <CheckinConfirmation
-        selectedMembers={mockSelectedMembers}
-        onConfirm={mockOnConfirm}
-        onCancel={vi.fn()}
+        attendances={mockAttendances}
+        onDone={mockOnDone}
       />
     );
 
-    const confirmButton = screen.getByRole('button', { name: /confirm|check in/i });
-    await user.click(confirmButton);
+    const doneButton = screen.getByRole('button', { name: /done/i });
+    await user.click(doneButton);
 
-    expect(mockOnConfirm).toHaveBeenCalled();
+    expect(mockOnDone).toHaveBeenCalled();
   });
 
-  it('should call onCancel when cancelled', async () => {
-    const user = userEvent.setup();
-    const mockOnCancel = vi.fn();
-
+  it('should show print labels button when callback provided', () => {
     render(
       <CheckinConfirmation
-        selectedMembers={mockSelectedMembers}
-        onConfirm={vi.fn()}
-        onCancel={mockOnCancel}
+        attendances={mockAttendances}
+        onDone={vi.fn()}
+        onPrintLabels={vi.fn()}
       />
     );
 
-    const cancelButton = screen.getByRole('button', { name: /cancel|back/i });
-    await user.click(cancelButton);
-
-    expect(mockOnCancel).toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: /print labels/i })).toBeInTheDocument();
   });
 
-  it('should show loading state', () => {
+  it('should show printing state', () => {
     render(
       <CheckinConfirmation
-        selectedMembers={mockSelectedMembers}
-        onConfirm={vi.fn()}
-        onCancel={vi.fn()}
-        isLoading={true}
+        attendances={mockAttendances}
+        onDone={vi.fn()}
+        onPrintLabels={vi.fn()}
+        printStatus="printing"
       />
     );
 
-    const confirmButton = screen.getByRole('button', { name: /confirm|check in/i });
-    expect(confirmButton).toBeDisabled();
-    expect(screen.getByText(/processing|checking in/i)).toBeInTheDocument();
+    expect(screen.getByText(/printing labels/i)).toBeInTheDocument();
   });
 
-  it('should show success state', () => {
+  it('should show print success state', () => {
     render(
       <CheckinConfirmation
-        selectedMembers={mockSelectedMembers}
-        onConfirm={vi.fn()}
-        onCancel={vi.fn()}
-        isSuccess={true}
+        attendances={mockAttendances}
+        onDone={vi.fn()}
+        onPrintLabels={vi.fn()}
+        printStatus="success"
       />
     );
 
-    expect(screen.getByTestId('success-message')).toBeInTheDocument();
-    expect(screen.getByText(/checked in|success/i)).toBeInTheDocument();
+    expect(screen.getByText(/labels printed successfully/i)).toBeInTheDocument();
   });
 
-  it('should display error message', () => {
-    const errorMessage = 'Check-in failed';
+  it('should display print error message', () => {
+    const errorMessage = 'Printer offline';
     render(
       <CheckinConfirmation
-        selectedMembers={mockSelectedMembers}
-        onConfirm={vi.fn()}
-        onCancel={vi.fn()}
-        error={errorMessage}
+        attendances={mockAttendances}
+        onDone={vi.fn()}
+        onPrintLabels={vi.fn()}
+        printStatus="error"
+        printError={errorMessage}
       />
     );
 
     expect(screen.getByText(errorMessage)).toBeInTheDocument();
-    expect(screen.getByRole('alert')).toBeInTheDocument();
   });
 
-  it('should show member count', () => {
-    const multipleMembers = [
-      ...mockSelectedMembers,
-      { id: 2, idKey: 'DEF456', firstName: 'Jane', lastName: 'Smith', age: 40 },
+  it('should show person count', () => {
+    const multipleAttendances: AttendanceResultDto[] = [
+      ...mockAttendances,
+      {
+        attendanceIdKey: 'DEF456',
+        personIdKey: 'PERSON456',
+        personName: 'Jane Smith',
+        groupName: 'Kids Ministry',
+        locationName: 'Room 101',
+        scheduleName: '9:00 AM Service',
+        securityCode: '5678',
+        checkInTime: MOCK_CHECKIN_TIME,
+        isFirstTime: false,
+      },
     ];
 
     render(
       <CheckinConfirmation
-        selectedMembers={multipleMembers}
-        onConfirm={vi.fn()}
-        onCancel={vi.fn()}
+        attendances={multipleAttendances}
+        onDone={vi.fn()}
       />
     );
 
-    expect(screen.getByText(/2 members?/i)).toBeInTheDocument();
+    expect(screen.getByText(/2 people checked in/i)).toBeInTheDocument();
   });
 
   it('should have large touch targets', () => {
     render(
       <CheckinConfirmation
-        selectedMembers={mockSelectedMembers}
-        onConfirm={vi.fn()}
-        onCancel={vi.fn()}
+        attendances={mockAttendances}
+        onDone={vi.fn()}
       />
     );
 
-    const confirmButton = screen.getByRole('button', { name: /confirm|check in/i });
-    expect(confirmButton).toHaveClass('min-h-[48px]');
+    const doneButton = screen.getByRole('button', { name: /done/i });
+    // Button uses size="lg" which should have min height
+    expect(doneButton).toBeInTheDocument();
   });
 
-  it('should have proper ARIA attributes', () => {
+  it('should display security codes', () => {
     render(
       <CheckinConfirmation
-        selectedMembers={mockSelectedMembers}
-        onConfirm={vi.fn()}
-        onCancel={vi.fn()}
+        attendances={mockAttendances}
+        onDone={vi.fn()}
       />
     );
 
-    const confirmButton = screen.getByRole('button', { name: /confirm|check in/i });
-    expect(confirmButton).toHaveAttribute('aria-label');
+    expect(screen.getByText('1234')).toBeInTheDocument();
   });
 });

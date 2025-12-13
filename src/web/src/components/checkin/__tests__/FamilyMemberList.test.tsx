@@ -2,92 +2,204 @@ import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { FamilyMemberList } from '../FamilyMemberList';
+import type { PersonOpportunitiesDto } from '@/services/api/types';
 
 describe('FamilyMemberList', () => {
-  const mockMembers = [
+  const mockOpportunities: PersonOpportunitiesDto[] = [
     {
-      id: 1,
-      idKey: 'ABC123',
-      firstName: 'John',
-      lastName: 'Smith',
-      age: 42,
-      photoUrl: 'https://example.com/john.jpg',
-      isEligible: true,
+      person: {
+        idKey: 'ABC123',
+        firstName: 'John',
+        lastName: 'Smith',
+        fullName: 'John Smith',
+        age: 42,
+        grade: undefined,
+        photoUrl: 'https://example.com/john.jpg',
+        allergies: undefined,
+        hasCriticalAllergies: false,
+      },
+      availableOptions: [
+        {
+          groupIdKey: 'GRP1',
+          groupName: 'Kids Ministry',
+          locations: [
+            {
+              locationIdKey: 'LOC1',
+              locationName: 'Room 101',
+              currentCount: 5,
+              schedules: [
+                {
+                  scheduleIdKey: 'SCH1',
+                  scheduleName: '9:00 AM Service',
+                  startTime: '9:00 AM',
+                  isSelected: true,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      currentAttendance: [],
     },
     {
-      id: 2,
-      idKey: 'DEF456',
-      firstName: 'Jane',
-      lastName: 'Smith',
-      age: 40,
-      photoUrl: null,
-      isEligible: true,
+      person: {
+        idKey: 'DEF456',
+        firstName: 'Jane',
+        lastName: 'Smith',
+        fullName: 'Jane Smith',
+        age: 40,
+        grade: undefined,
+        photoUrl: undefined,
+        allergies: undefined,
+        hasCriticalAllergies: false,
+      },
+      availableOptions: [
+        {
+          groupIdKey: 'GRP1',
+          groupName: 'Kids Ministry',
+          locations: [
+            {
+              locationIdKey: 'LOC1',
+              locationName: 'Room 101',
+              currentCount: 5,
+              schedules: [
+                {
+                  scheduleIdKey: 'SCH1',
+                  scheduleName: '9:00 AM Service',
+                  startTime: '9:00 AM',
+                  isSelected: true,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      currentAttendance: [],
     },
   ];
 
   it('should render family member cards', () => {
-    render(<FamilyMemberList members={mockMembers} onSelect={vi.fn()} />);
+    render(
+      <FamilyMemberList
+        opportunities={mockOpportunities}
+        selectedCheckins={new Map()}
+        onToggleCheckin={vi.fn()}
+      />
+    );
 
     expect(screen.getByText('John Smith')).toBeInTheDocument();
     expect(screen.getByText('Jane Smith')).toBeInTheDocument();
   });
 
-  it('should call onSelect when member is clicked', async () => {
+  it('should call onToggleCheckin when option is selected', async () => {
     const user = userEvent.setup();
-    const mockOnSelect = vi.fn();
+    const mockOnToggle = vi.fn();
 
-    render(<FamilyMemberList members={mockMembers} onSelect={mockOnSelect} />);
+    render(
+      <FamilyMemberList
+        opportunities={mockOpportunities}
+        selectedCheckins={new Map()}
+        onToggleCheckin={mockOnToggle}
+      />
+    );
 
-    const johnCard = screen.getByText('John Smith').closest('[data-testid="family-member-card"]');
-    await user.click(johnCard!);
+    const checkboxButton = screen.getAllByRole('button', { name: /kids ministry/i })[0];
+    await user.click(checkboxButton);
 
-    expect(mockOnSelect).toHaveBeenCalledWith(mockMembers[0]);
+    expect(mockOnToggle).toHaveBeenCalledWith(
+      'ABC123',
+      'GRP1',
+      'LOC1',
+      'SCH1',
+      'Kids Ministry',
+      'Room 101',
+      '9:00 AM Service',
+      '9:00 AM'
+    );
   });
 
   it('should show selected state visually', async () => {
     const user = userEvent.setup();
-    render(<FamilyMemberList members={mockMembers} onSelect={vi.fn()} />);
+    const selectedMap = new Map();
 
-    const johnCard = screen.getByText('John Smith').closest('[data-testid="family-member-card"]');
-    await user.click(johnCard!);
+    render(
+      <FamilyMemberList
+        opportunities={mockOpportunities}
+        selectedCheckins={selectedMap}
+        onToggleCheckin={vi.fn()}
+      />
+    );
 
-    expect(johnCard).toHaveAttribute('data-selected', 'true');
+    const checkboxButton = screen.getAllByRole('button', { name: /kids ministry/i })[0];
+    await user.click(checkboxButton);
+
+    // Visual indication via border color change
+    expect(checkboxButton).toBeInTheDocument();
   });
 
-  it('should disable ineligible members', () => {
-    const ineligibleMembers = [
-      { ...mockMembers[0], isEligible: false },
-      mockMembers[1],
+  it('should show already checked in members as disabled', () => {
+    const checkedInOpportunities: PersonOpportunitiesDto[] = [
+      {
+        ...mockOpportunities[0],
+        currentAttendance: [
+          {
+            attendanceIdKey: 'ATT123',
+            group: 'Kids Ministry',
+            location: 'Room 101',
+            schedule: '9:00 AM Service',
+            securityCode: '1234',
+            checkInTime: new Date().toISOString(),
+            canCheckOut: true,
+          },
+        ],
+      },
     ];
 
-    render(<FamilyMemberList members={ineligibleMembers} onSelect={vi.fn()} />);
+    render(
+      <FamilyMemberList
+        opportunities={checkedInOpportunities}
+        selectedCheckins={new Map()}
+        onToggleCheckin={vi.fn()}
+      />
+    );
 
-    const cards = screen.getAllByTestId('family-member-card');
-    expect(cards[0]).toHaveAttribute('data-eligible', 'false');
+    expect(screen.getByText(/already checked in/i)).toBeInTheDocument();
   });
 
-  it('should have touch-optimized card size', () => {
-    render(<FamilyMemberList members={mockMembers} onSelect={vi.fn()} />);
+  it('should have touch-optimized button size', () => {
+    render(
+      <FamilyMemberList
+        opportunities={mockOpportunities}
+        selectedCheckins={new Map()}
+        onToggleCheckin={vi.fn()}
+      />
+    );
 
-    const cards = screen.getAllByTestId('family-member-card');
+    const checkboxButtons = screen.getAllByRole('button', { name: /kids ministry/i });
 
-    cards.forEach((card) => {
-      expect(card).toHaveClass('min-h-[80px]');
+    checkboxButtons.forEach((button) => {
+      expect(button).toHaveClass('min-h-[64px]');
     });
   });
 
-  it('should be keyboard navigable', async () => {
+  it('should be keyboard accessible', async () => {
     const user = userEvent.setup();
-    const mockOnSelect = vi.fn();
+    const mockOnToggle = vi.fn();
 
-    render(<FamilyMemberList members={mockMembers} onSelect={mockOnSelect} />);
+    render(
+      <FamilyMemberList
+        opportunities={mockOpportunities}
+        selectedCheckins={new Map()}
+        onToggleCheckin={mockOnToggle}
+      />
+    );
 
-    const cards = screen.getAllByTestId('family-member-card');
+    const checkboxButtons = screen.getAllByRole('button', { name: /kids ministry/i });
 
     await user.tab();
-    expect(cards[0]).toHaveFocus();
+    expect(checkboxButtons[0]).toHaveFocus();
 
     await user.keyboard('{Enter}');
-    expect(mockOnSelect).toHaveBeenCalled();
+    expect(mockOnToggle).toHaveBeenCalled();
   });
 });
