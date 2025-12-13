@@ -1,0 +1,42 @@
+# docker-compose.ci.yml
+# CI services for self-hosted GitHub Actions runners
+#
+# Prerequisites (one-time setup on host):
+#   1. Create the CI network: docker network create koinon-ci
+#   2. Connect each runner container: docker network connect koinon-ci <runner-container>
+#
+# Usage in CI workflows:
+#   docker-compose -f docker-compose.ci.yml up -d
+#   # ... run tests with Host=ci-postgres, redis=ci-redis:6379 ...
+#   docker-compose -f docker-compose.ci.yml down
+
+services:
+  ci-postgres:
+    image: postgis/postgis:16-3.5-alpine
+    container_name: ci-postgres
+    environment:
+      POSTGRES_USER: koinon
+      POSTGRES_PASSWORD: koinon
+      POSTGRES_DB: koinon
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U koinon -d koinon"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - koinon-ci
+
+  ci-redis:
+    image: redis:7-alpine
+    container_name: ci-redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - koinon-ci
+
+networks:
+  koinon-ci:
+    external: true
