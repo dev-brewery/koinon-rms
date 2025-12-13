@@ -108,7 +108,7 @@ export class PeoplePage {
     this.phoneNumberInputs = page.locator('input[type="tel"]');
     this.removePhoneButtons = page.getByRole('button', { name: /remove phone number/i });
     this.phoneTypeSelects = page.getByLabel(/phone type/i);
-    this.smsCheckboxes = page.locator('input[type="checkbox"]').filter({ has: page.locator('..', { hasText: /sms/i }) });
+    this.smsCheckboxes = page.getByRole('checkbox', { name: /sms/i });
 
     // Common
     this.loadingSpinner = page.locator('.animate-spin');
@@ -140,6 +140,7 @@ export class PeoplePage {
 
   async waitForLoad() {
     try {
+      // Wait for spinner to disappear (10s timeout for slow CI environments)
       await expect(this.loadingSpinner).not.toBeVisible({ timeout: 10000 });
     } catch {
       // Spinner may not appear for fast loads
@@ -209,13 +210,14 @@ export class PeoplePage {
     }
 
     if (data.phoneNumbers && data.phoneNumbers.length > 0) {
-      for (const phone of data.phoneNumbers) {
+      for (let i = 0; i < data.phoneNumbers.length; i++) {
         await this.addPhoneButton.click();
+        await expect(this.phoneNumberInputs).toHaveCount(i + 1);
         const phoneInputs = await this.phoneNumberInputs.all();
         const lastInput = phoneInputs[phoneInputs.length - 1];
-        await lastInput.fill(phone.number);
+        await lastInput.fill(data.phoneNumbers[i].number);
 
-        if (phone.smsEnabled === false) {
+        if (data.phoneNumbers[i].smsEnabled === false) {
           const smsCheckboxes = await this.smsCheckboxes.all();
           const lastCheckbox = smsCheckboxes[smsCheckboxes.length - 1];
           await lastCheckbox.uncheck();

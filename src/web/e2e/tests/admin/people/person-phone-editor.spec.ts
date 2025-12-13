@@ -18,7 +18,6 @@
 import { test, expect } from '@playwright/test';
 import { PeoplePage } from '../../../fixtures/page-objects/people.page';
 import { LoginPage } from '../../../fixtures/page-objects/login.page';
-import { testData } from '../../../fixtures/test-data';
 
 test.describe('Person Phone Number Management - Create Mode', () => {
   test.beforeEach(async ({ page }) => {
@@ -116,6 +115,9 @@ test.describe('Person Phone Number Management - Create Mode', () => {
 
     // Re-check SMS
     await smsCheckboxes[0].check();
+    await expect(smsCheckboxes[0]).toBeChecked();
+
+    // Verify final state is checked
     await expect(smsCheckboxes[0]).toBeChecked();
   });
 
@@ -435,7 +437,7 @@ test.describe('Person Phone Number Management - Edit Mode', () => {
     await peoplePage.addPhoneButton.click();
     await peoplePage.addPhoneButton.click();
 
-    let phoneInputs = await peoplePage.phoneNumberInputs.all();
+    const phoneInputs = await peoplePage.phoneNumberInputs.all();
     expect(phoneInputs.length).toBe(3);
 
     // Fill new phones
@@ -626,6 +628,10 @@ test.describe('Person Phone Number - Form Interactions', () => {
     const phoneInputs = await peoplePage.phoneNumberInputs.all();
     await phoneInputs[0].fill('555-1234');
 
+    // Uncheck SMS to test state preservation
+    const smsCheckboxes = await peoplePage.smsCheckboxes.all();
+    await smsCheckboxes[0].uncheck();
+
     // Try to submit (will fail - missing first name)
     await peoplePage.submitButton.click();
 
@@ -635,6 +641,9 @@ test.describe('Person Phone Number - Form Interactions', () => {
     // Phone data should be preserved
     const preservedValue = await phoneInputs[0].inputValue();
     expect(preservedValue).toBe('555-1234');
+
+    // SMS checkbox state should be preserved
+    await expect(smsCheckboxes[0]).not.toBeChecked();
   });
 
   test('should show phone section while editing even if empty', async ({ page }) => {
@@ -682,8 +691,6 @@ test.describe('Person Phone Number - Form Interactions', () => {
     await peoplePage.addPhoneButton.click();
 
     // New input may receive focus automatically
-    const phoneInputs = await peoplePage.phoneNumberInputs.all();
-    // Check if focused (may or may not be implemented)
     // await expect(phoneInputs[0]).toBeFocused();
   });
 });

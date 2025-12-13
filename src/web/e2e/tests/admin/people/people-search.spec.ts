@@ -23,6 +23,10 @@ test.describe('People Search', () => {
     await loginPage.goto();
     await loginPage.login('admin', 'admin123');
     await loginPage.expectLoggedIn();
+
+    // Verify test data exists
+    await page.goto('/admin/people');
+    await expect(page.getByText(testData.people.johnSmith.fullName)).toBeVisible({ timeout: 10000 });
   });
 
   test('should search by first name', async ({ page }) => {
@@ -148,11 +152,8 @@ test.describe('People Search', () => {
 
     await peoplePage.gotoList();
 
-    // Type quickly without waiting
-    await peoplePage.searchInput.fill('J');
-    await peoplePage.searchInput.fill('Jo');
-    await peoplePage.searchInput.fill('Joh');
-    await peoplePage.searchInput.fill('John');
+    // Type quickly without waiting (using pressSequentially to simulate real typing)
+    await peoplePage.searchInput.pressSequentially('John', { delay: 50 });
 
     // Wait for debounce to complete
     await page.waitForLoadState('networkidle');
@@ -193,8 +194,13 @@ test.describe('People Filters', () => {
     await loginPage.goto();
     await loginPage.login('admin', 'admin123');
     await loginPage.expectLoggedIn();
+
+    // Verify test data exists
+    await page.goto('/admin/people');
+    await expect(page.getByText(testData.people.johnSmith.fullName)).toBeVisible({ timeout: 10000 });
   });
 
+  // SKIP: Filter UI not yet implemented - track in Issue #160
   test.skip('should filter by gender', async ({ page }) => {
     const peoplePage = new PeoplePage(page);
 
@@ -211,6 +217,7 @@ test.describe('People Filters', () => {
     await peoplePage.expectPersonNotVisible(testData.people.janeSmith.fullName);
   });
 
+  // SKIP: Filter UI not yet implemented - track in Issue #160
   test.skip('should filter by Female gender', async ({ page }) => {
     const peoplePage = new PeoplePage(page);
 
@@ -227,6 +234,7 @@ test.describe('People Filters', () => {
     await peoplePage.expectPersonNotVisible(testData.people.johnSmith.fullName);
   });
 
+  // SKIP: Filter UI not yet implemented - track in Issue #160
   test.skip('should filter by campus', async ({ page }) => {
     const peoplePage = new PeoplePage(page);
 
@@ -239,6 +247,7 @@ test.describe('People Filters', () => {
     // Exact expectations depend on test data setup
   });
 
+  // SKIP: Filter UI not yet implemented - track in Issue #160
   test.skip('should combine search and filter', async ({ page }) => {
     const peoplePage = new PeoplePage(page);
 
@@ -258,6 +267,7 @@ test.describe('People Filters', () => {
     await peoplePage.expectPersonNotVisible(testData.people.bobJohnson.fullName);
   });
 
+  // SKIP: Filter UI not yet implemented - track in Issue #160
   test.skip('should clear gender filter', async ({ page }) => {
     const peoplePage = new PeoplePage(page);
 
@@ -275,6 +285,7 @@ test.describe('People Filters', () => {
     await peoplePage.expectPersonVisible(testData.people.johnSmith.fullName);
   });
 
+  // SKIP: Filter UI not yet implemented - track in Issue #160
   test.skip('should show filter result count', async ({ page }) => {
     const peoplePage = new PeoplePage(page);
 
@@ -294,8 +305,13 @@ test.describe('People List Pagination', () => {
     await loginPage.goto();
     await loginPage.login('admin', 'admin123');
     await loginPage.expectLoggedIn();
+
+    // Verify test data exists
+    await page.goto('/admin/people');
+    await expect(page.getByText(testData.people.johnSmith.fullName)).toBeVisible({ timeout: 10000 });
   });
 
+  // SKIP: Pagination UI not yet implemented - track in Issue #160
   test.skip('should paginate results', async ({ page }) => {
     const peoplePage = new PeoplePage(page);
 
@@ -312,6 +328,7 @@ test.describe('People List Pagination', () => {
     await expect(page).toHaveURL(/page=2/);
   });
 
+  // SKIP: Pagination UI not yet implemented - track in Issue #160
   test.skip('should show pagination controls when needed', async ({ page }) => {
     const peoplePage = new PeoplePage(page);
 
@@ -326,6 +343,7 @@ test.describe('People List Pagination', () => {
     }
   });
 
+  // SKIP: Pagination UI not yet implemented - track in Issue #160
   test.skip('should change page size', async ({ page }) => {
     const peoplePage = new PeoplePage(page);
 
@@ -341,6 +359,7 @@ test.describe('People List Pagination', () => {
     await expect(page).toHaveURL(/pageSize=50/);
   });
 
+  // SKIP: Pagination UI not yet implemented - track in Issue #160
   test.skip('should disable previous button on first page', async ({ page }) => {
     const peoplePage = new PeoplePage(page);
 
@@ -350,6 +369,7 @@ test.describe('People List Pagination', () => {
     await expect(peoplePage.previousPageButton).toBeDisabled();
   });
 
+  // SKIP: Pagination UI not yet implemented - track in Issue #160
   test.skip('should navigate back from page 2', async ({ page }) => {
     const peoplePage = new PeoplePage(page);
 
@@ -371,6 +391,10 @@ test.describe('People List - Search Edge Cases', () => {
     await loginPage.goto();
     await loginPage.login('admin', 'admin123');
     await loginPage.expectLoggedIn();
+
+    // Verify test data exists
+    await page.goto('/admin/people');
+    await expect(page.getByText(testData.people.johnSmith.fullName)).toBeVisible({ timeout: 10000 });
   });
 
   test('should handle very long search queries', async ({ page }) => {

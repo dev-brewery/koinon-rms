@@ -43,6 +43,7 @@ test.describe('Person CRUD Operations', () => {
     });
 
     // Wait for navigation to detail page
+    await page.waitForLoadState('networkidle');
     await expect(page).toHaveURL(/\/admin\/people\/[^/]+$/);
 
     // Verify person created
@@ -66,6 +67,7 @@ test.describe('Person CRUD Operations', () => {
     });
 
     // Verify created
+    await page.waitForLoadState('networkidle');
     await peoplePage.expectOnDetailPage('John Doe');
     await expect(page.getByText('john.doe@example.com')).toBeVisible();
   });
@@ -81,6 +83,7 @@ test.describe('Person CRUD Operations', () => {
 
     // HTML5 validation will prevent submit, or custom validation shows errors
     await expect(page).toHaveURL('/admin/people/new');
+    await expect(peoplePage.validationError.first()).toBeVisible();
   });
 
   test('should validate first name is required', async ({ page }) => {
@@ -96,6 +99,7 @@ test.describe('Person CRUD Operations', () => {
 
     // Should still be on form page
     await expect(page).toHaveURL('/admin/people/new');
+    await expect(peoplePage.validationError.first()).toBeVisible();
   });
 
   test('should validate last name is required', async ({ page }) => {
@@ -111,6 +115,7 @@ test.describe('Person CRUD Operations', () => {
 
     // Should still be on form page
     await expect(page).toHaveURL('/admin/people/new');
+    await expect(peoplePage.validationError.first()).toBeVisible();
   });
 
   test('should validate email format', async ({ page }) => {
@@ -124,10 +129,11 @@ test.describe('Person CRUD Operations', () => {
 
     // Fill invalid email
     await peoplePage.emailInput.fill('invalid-email');
-    await peoplePage.emailInput.blur();
+    await peoplePage.submitButton.click();
 
     // Should show validation error
-    // HTML5 validation or custom Zod validation
+    await expect(page).toHaveURL('/admin/people/new');
+    await expect(peoplePage.validationError.first()).toBeVisible();
   });
 
   test('should view person details', async ({ page }) => {
@@ -189,6 +195,7 @@ test.describe('Person CRUD Operations', () => {
     });
 
     // Verify updates persisted
+    await page.waitForLoadState('networkidle');
     await expect(page).toHaveURL(/\/admin\/people\/[^/]+$/); // Back on detail page
     await peoplePage.expectOnDetailPage('Updated Person');
     await expect(page.getByText('updated.person@example.com')).toBeVisible();
@@ -213,6 +220,7 @@ test.describe('Person CRUD Operations', () => {
     });
 
     // Verify email changed but name stayed same
+    await page.waitForLoadState('networkidle');
     await peoplePage.expectOnDetailPage('Partial Update');
     await expect(page.getByText('new.email@example.com')).toBeVisible();
   });
@@ -257,14 +265,14 @@ test.describe('Person CRUD Operations', () => {
   test('should show unsaved changes warning on cancel', async ({ page }) => {
     const peoplePage = new PeoplePage(page);
 
-    await peoplePage.gotoCreatePerson();
-
-    // Set up dialog handler BEFORE making changes that trigger it
+    // Set up dialog handler BEFORE navigating to the page
     page.on('dialog', async (dialog) => {
       expect(dialog.type()).toBe('confirm');
       expect(dialog.message()).toContain('unsaved changes');
       await dialog.dismiss();
     });
+
+    await peoplePage.gotoCreatePerson();
 
     // Make changes
     await peoplePage.firstNameInput.fill('Unsaved');
@@ -277,6 +285,7 @@ test.describe('Person CRUD Operations', () => {
     await expect(page).toHaveURL('/admin/people/new');
   });
 
+  // SKIP: Delete API endpoint not yet implemented - track in Issue #160
   test.skip('should delete a person with confirmation', async ({ page }) => {
     const peoplePage = new PeoplePage(page);
 
@@ -302,6 +311,7 @@ test.describe('Person CRUD Operations', () => {
     await expect(page.getByText(/no people found/i)).toBeVisible();
   });
 
+  // SKIP: Delete API endpoint not yet implemented - track in Issue #160
   test.skip('should cancel delete confirmation', async ({ page }) => {
     const peoplePage = new PeoplePage(page);
 
