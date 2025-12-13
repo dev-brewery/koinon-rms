@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useSchedule, useCreateSchedule, useUpdateSchedule } from '@/hooks/useSchedules';
 import { WeeklySchedulePicker, CheckinWindowPreview } from '@/components/admin/schedules';
+import { scheduleFormSchema } from '@/schemas/schedule.schema';
 
 export function ScheduleFormPage() {
   const { idKey } = useParams<{ idKey: string }>();
@@ -30,6 +31,7 @@ export function ScheduleFormPage() {
   const [effectiveStartDate, setEffectiveStartDate] = useState('');
   const [effectiveEndDate, setEffectiveEndDate] = useState('');
   const [autoInactivate, setAutoInactivate] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   // Load existing schedule data
   useEffect(() => {
@@ -49,8 +51,75 @@ export function ScheduleFormPage() {
     }
   }, [schedule]);
 
+  const validateField = (fieldName: string, value: unknown) => {
+    const formData = {
+      name,
+      description,
+      dayOfWeek,
+      timeOfDay,
+      checkInStartOffset,
+      checkInEndOffset,
+      isActive,
+      isPublic,
+      order,
+      effectiveStartDate,
+      effectiveEndDate,
+      autoInactivate,
+      [fieldName]: value,
+    };
+
+    const result = scheduleFormSchema.safeParse(formData);
+    if (!result.success) {
+      const error = result.error.issues.find(issue => issue.path[0] === fieldName);
+      if (error) {
+        setValidationErrors(prev => ({ ...prev, [fieldName]: error.message }));
+      } else {
+        setValidationErrors(prev => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { [fieldName]: _removed, ...rest } = prev;
+          return rest;
+        });
+      }
+    } else {
+      setValidationErrors(prev => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { [fieldName]: _removed, ...rest } = prev;
+        return rest;
+      });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate all fields before submit
+    const formData = {
+      name,
+      description,
+      dayOfWeek,
+      timeOfDay,
+      checkInStartOffset,
+      checkInEndOffset,
+      isActive,
+      isPublic,
+      order,
+      effectiveStartDate,
+      effectiveEndDate,
+      autoInactivate,
+    };
+
+    const result = scheduleFormSchema.safeParse(formData);
+    if (!result.success) {
+      const errors: Record<string, string> = {};
+      result.error.issues.forEach(issue => {
+        const fieldName = issue.path[0] as string;
+        errors[fieldName] = issue.message;
+      });
+      setValidationErrors(errors);
+      return;
+    }
+
+    setValidationErrors({});
 
     const request = {
       name,
@@ -75,8 +144,8 @@ export function ScheduleFormPage() {
         const created = await createSchedule.mutateAsync(request);
         navigate(`/admin/schedules/${created.idKey}`);
       }
-    } catch (error) {
-      console.error('Failed to save schedule:', error);
+    } catch {
+      // Error is handled by TanStack Query error state
     }
   };
 
@@ -133,9 +202,13 @@ export function ScheduleFormPage() {
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    onBlur={() => validateField('name', name)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     placeholder="e.g., Sunday Morning Service"
                   />
+                  {validationErrors.name && (
+                    <p className="text-sm text-red-600 mt-1">{validationErrors.name}</p>
+                  )}
                 </div>
 
                 {/* Description */}
@@ -147,10 +220,14 @@ export function ScheduleFormPage() {
                     id="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
+                    onBlur={() => validateField('description', description)}
                     rows={3}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     placeholder="Optional description"
                   />
+                  {validationErrors.description && (
+                    <p className="text-sm text-red-600 mt-1">{validationErrors.description}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -182,8 +259,12 @@ export function ScheduleFormPage() {
                     min="0"
                     value={checkInStartOffset}
                     onChange={(e) => setCheckInStartOffset(Number(e.target.value))}
+                    onBlur={() => validateField('checkInStartOffset', checkInStartOffset)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
+                  {validationErrors.checkInStartOffset && (
+                    <p className="text-sm text-red-600 mt-1">{validationErrors.checkInStartOffset}</p>
+                  )}
                 </div>
 
                 {/* End Offset */}
@@ -197,8 +278,12 @@ export function ScheduleFormPage() {
                     min="0"
                     value={checkInEndOffset}
                     onChange={(e) => setCheckInEndOffset(Number(e.target.value))}
+                    onBlur={() => validateField('checkInEndOffset', checkInEndOffset)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
+                  {validationErrors.checkInEndOffset && (
+                    <p className="text-sm text-red-600 mt-1">{validationErrors.checkInEndOffset}</p>
+                  )}
                 </div>
               </div>
 
@@ -225,8 +310,12 @@ export function ScheduleFormPage() {
                     id="startDate"
                     value={effectiveStartDate}
                     onChange={(e) => setEffectiveStartDate(e.target.value)}
+                    onBlur={() => validateField('effectiveStartDate', effectiveStartDate)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
+                  {validationErrors.effectiveStartDate && (
+                    <p className="text-sm text-red-600 mt-1">{validationErrors.effectiveStartDate}</p>
+                  )}
                 </div>
 
                 {/* End Date */}
@@ -239,8 +328,12 @@ export function ScheduleFormPage() {
                     id="endDate"
                     value={effectiveEndDate}
                     onChange={(e) => setEffectiveEndDate(e.target.value)}
+                    onBlur={() => validateField('effectiveEndDate', effectiveEndDate)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
+                  {validationErrors.effectiveEndDate && (
+                    <p className="text-sm text-red-600 mt-1">{validationErrors.effectiveEndDate}</p>
+                  )}
                 </div>
               </div>
 
@@ -303,8 +396,12 @@ export function ScheduleFormPage() {
                   min="0"
                   value={order}
                   onChange={(e) => setOrder(Number(e.target.value))}
+                  onBlur={() => validateField('order', order)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
+                {validationErrors.order && (
+                  <p className="text-sm text-red-600 mt-1">{validationErrors.order}</p>
+                )}
                 <p className="mt-1 text-xs text-gray-500">
                   Lower numbers appear first
                 </p>

@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useGroup, useCreateGroup, useUpdateGroup } from '@/hooks/useGroups';
 import type { CreateGroupRequest, UpdateGroupRequest } from '@/services/api/types';
+import { groupFormSchema, groupFormSchemaForEdit } from '@/schemas/group.schema';
 
 export function GroupFormPage() {
   const { idKey } = useParams<{ idKey: string }>();
@@ -26,6 +27,7 @@ export function GroupFormPage() {
   const [campusId, setCampusId] = useState('');
   const [capacity, setCapacity] = useState('');
   const [isActive, setIsActive] = useState(true);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   // Pre-fill parent group from query param
   useEffect(() => {
@@ -48,8 +50,67 @@ export function GroupFormPage() {
     }
   }, [group]);
 
+  const validateField = (fieldName: string, value: unknown) => {
+    const formData = {
+      name,
+      description,
+      groupTypeId,
+      parentGroupId,
+      campusId,
+      capacity: capacity ? parseInt(capacity) : undefined,
+      isActive,
+      [fieldName]: fieldName === 'capacity' ? (value ? parseInt(value as string) : undefined) : value,
+    };
+
+    const schema = isEditMode ? groupFormSchemaForEdit : groupFormSchema;
+    const result = schema.safeParse(formData);
+    if (!result.success) {
+      const error = result.error.issues.find(issue => issue.path[0] === fieldName);
+      if (error) {
+        setValidationErrors(prev => ({ ...prev, [fieldName]: error.message }));
+      } else {
+        setValidationErrors(prev => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { [fieldName]: _removed, ...rest } = prev;
+          return rest;
+        });
+      }
+    } else {
+      setValidationErrors(prev => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { [fieldName]: _removed, ...rest } = prev;
+        return rest;
+      });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate all fields before submit
+    const formData = {
+      name,
+      description,
+      groupTypeId,
+      parentGroupId,
+      campusId,
+      capacity: capacity ? parseInt(capacity) : undefined,
+      isActive,
+    };
+
+    const schema = isEditMode ? groupFormSchemaForEdit : groupFormSchema;
+    const result = schema.safeParse(formData);
+    if (!result.success) {
+      const errors: Record<string, string> = {};
+      result.error.issues.forEach(issue => {
+        const fieldName = issue.path[0] as string;
+        errors[fieldName] = issue.message;
+      });
+      setValidationErrors(errors);
+      return;
+    }
+
+    setValidationErrors({});
 
     if (isEditMode && idKey) {
       // Update existing group
@@ -134,9 +195,13 @@ export function GroupFormPage() {
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
+              onBlur={() => validateField('name', name)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               placeholder="e.g., Elementary Check-in"
             />
+            {validationErrors.name && (
+              <p className="text-sm text-red-600 mt-1">{validationErrors.name}</p>
+            )}
           </div>
 
           {/* Description */}
@@ -149,9 +214,13 @@ export function GroupFormPage() {
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              onBlur={() => validateField('description', description)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               placeholder="Optional description of this group"
             />
+            {validationErrors.description && (
+              <p className="text-sm text-red-600 mt-1">{validationErrors.description}</p>
+            )}
           </div>
 
           {/* Group Type (only for create) */}
@@ -165,6 +234,7 @@ export function GroupFormPage() {
                 required
                 value={groupTypeId}
                 onChange={(e) => setGroupTypeId(e.target.value)}
+                onBlur={() => validateField('groupTypeId', groupTypeId)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="">Select a group type...</option>
@@ -172,6 +242,9 @@ export function GroupFormPage() {
                 <option value="age-group">Age Group</option>
                 <option value="general">General</option>
               </select>
+              {validationErrors.groupTypeId && (
+                <p className="text-sm text-red-600 mt-1">{validationErrors.groupTypeId}</p>
+              )}
               <p className="mt-1 text-xs text-gray-500">
                 Note: Group type cannot be changed after creation
               </p>
