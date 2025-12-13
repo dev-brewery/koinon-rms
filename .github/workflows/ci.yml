@@ -362,7 +362,7 @@ jobs:
           --configuration Release
       env:
         ASPNETCORE_ENVIRONMENT: "Production"
-        ConnectionStrings__DefaultConnection: "Host=localhost;Port=25434;Database=koinon;Username=koinon;Password=koinon"
+        ConnectionStrings__DefaultConnection: "Host=192.168.1.115;Port=25434;Database=koinon;Username=koinon;Password=koinon"
         Jwt__Secret: "ci-integration-test-jwt-key-minimum-32-chars-long-for-security"
         Jwt__Issuer: "koinon-ci-integration"
         Jwt__Audience: "koinon-ci-integration"
@@ -376,8 +376,8 @@ jobs:
         sleep 2
       env:
         ASPNETCORE_URLS: "http://localhost:5000"
-        ConnectionStrings__DefaultConnection: "Host=localhost;Port=25434;Database=koinon;Username=koinon;Password=koinon"
-        ConnectionStrings__Redis: "localhost:26380"
+        ConnectionStrings__DefaultConnection: "Host=192.168.1.115;Port=25434;Database=koinon;Username=koinon;Password=koinon"
+        ConnectionStrings__Redis: "192.168.1.115:26380"
         Jwt__Secret: "ci-integration-test-jwt-key-minimum-32-chars-long-for-security"
         Jwt__Issuer: "koinon-ci-integration"
         Jwt__Audience: "koinon-ci-integration"
