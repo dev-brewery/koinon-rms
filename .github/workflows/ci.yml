@@ -34,7 +34,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
         ports:
-          - 5432:5432
+          - 5433:5432
 
       redis:
         image: redis:7-alpine
@@ -44,7 +44,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
         ports:
-          - 6380:6379
+          - 6381:6379
 
     steps:
     - name: Checkout code
@@ -68,8 +68,8 @@ jobs:
     - name: Run unit tests
       run: dotnet test --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx"
       env:
-        ConnectionStrings__KoinonDb: "Host=localhost;Port=5432;Database=koinon_test;Username=koinon;Password=koinon_test"
-        ConnectionStrings__Redis: "localhost:6379"
+        ConnectionStrings__KoinonDb: "Host=localhost;Port=5433;Database=koinon_test;Username=koinon;Password=koinon_test"
+        ConnectionStrings__Redis: "localhost:6381"
 
     - name: Publish test results
       uses: dorny/test-reporter@v1
@@ -157,7 +157,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
         ports:
-          - 5432:5432
+          - 5434:5432
 
     steps:
     - name: Checkout code
@@ -230,7 +230,7 @@ jobs:
         echo "✅ All migrations validated successfully"
 
       env:
-        ConnectionStrings__KoinonDb: "Host=localhost;Port=5432;Database=koinon_test;Username=koinon;Password=koinon_test"
+        ConnectionStrings__KoinonDb: "Host=localhost;Port=5434;Database=koinon_test;Username=koinon;Password=koinon_test"
         Jwt__Secret: "ci-test-jwt-secret-key-minimum-32-characters-long"
         Jwt__Issuer: "koinon-ci-test"
         Jwt__Audience: "koinon-ci-test"
@@ -362,7 +362,7 @@ jobs:
           --configuration Release
       env:
         ASPNETCORE_ENVIRONMENT: "Production"
-        ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=koinon;Username=koinon;Password=koinon"
+        ConnectionStrings__DefaultConnection: "Host=localhost;Port=5435;Database=koinon;Username=koinon;Password=koinon"
         Jwt__Secret: "ci-integration-test-jwt-key-minimum-32-chars-long-for-security"
         Jwt__Issuer: "koinon-ci-integration"
         Jwt__Audience: "koinon-ci-integration"
@@ -376,8 +376,8 @@ jobs:
         sleep 2
       env:
         ASPNETCORE_URLS: "http://localhost:5000"
-        ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=koinon;Username=koinon;Password=koinon"
-        ConnectionStrings__Redis: "localhost:6379"
+        ConnectionStrings__DefaultConnection: "Host=localhost;Port=5435;Database=koinon;Username=koinon;Password=koinon"
+        ConnectionStrings__Redis: "localhost:6382"
         Jwt__Secret: "ci-integration-test-jwt-key-minimum-32-chars-long-for-security"
         Jwt__Issuer: "koinon-ci-integration"
         Jwt__Audience: "koinon-ci-integration"
