@@ -115,9 +115,8 @@ Desktop.ini
 # =============================================================================
 # Docker
 # =============================================================================
-# Don't ignore docker-compose files, but ignore local overrides
-docker-compose.override.yml
-docker-compose.local.yml
+# All docker-compose files (prevent agent CI modifications)
+docker-compose*.yml
 
 # =============================================================================
 # Testing
@@ -183,9 +182,8 @@ temp/
 .claude/
 .git-sync/
 
-# GitHub - ignore most but KEEP workflows for CI/CD
-.github/*
-!.github/workflows/
+# GitHub - all files (prevent agent CI modifications)
+.github/
 
 # Claude Code temporary files
 tmp/validate-output.log
