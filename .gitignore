@@ -191,5 +191,6 @@ tmp/validate-output.log
 # MCP configuration (contains local secrets)
 .mcp.json
 
-# Change Orders
+# Change Orders and Requests
 docs/change-orders/
+test-results/.last-run.json

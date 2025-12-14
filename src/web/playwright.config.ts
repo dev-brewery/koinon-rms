@@ -14,6 +14,7 @@ export default defineConfig({
   reporter: [
     ['html', { outputFolder: 'playwright-report' }],
     ['json', { outputFile: 'e2e-results.json' }],
+    ['./e2e/reporters/performance-metrics-reporter.ts'],
     ['list'],
   ],
 
