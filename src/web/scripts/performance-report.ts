@@ -22,24 +22,6 @@ interface PerformanceBaseline {
   notes?: string[];
 }
 
-interface TestResult {
-  suites: TestSuite[];
-  stats: {
-    startTime: string;
-    duration: number;
-    expected: number;
-    skipped: number;
-    unexpected: number;
-    flaky: number;
-  };
-}
-
-interface TestSuite {
-  title: string;
-  file: string;
-  suites?: TestSuite[];
-}
-
 interface PerformanceMetric {
   key: string;
   value: number;
@@ -61,16 +43,6 @@ interface PerformanceReport {
   baselineVersion: string;
 }
 
-// Console log patterns to extract performance metrics
-const METRIC_PATTERNS: Record<string, RegExp> = {
-  onlineSearch: /Family search took: ([\d.]+)ms/,
-  memberSelect: /Member selection took: ([\d.]+)ms/,
-  confirmCheckIn: /Check-in confirmation took: ([\d.]+)ms/,
-  fullFlow: /Full check-in flow took: ([\d.]+)ms/,
-  offlineSearch: /Offline family search took: ([\d.]+)ms/,
-  offlineCheckIn: /Offline check-in queue took: ([\d.]+)ms/,
-};
-
 /**
  * Load performance baseline from metadata file
  */
@@ -82,21 +54,6 @@ function loadBaseline(): PerformanceBaseline {
     return JSON.parse(content);
   } catch (error) {
     console.error(`Failed to load baseline from ${baselinePath}:`, error);
-    process.exit(1);
-  }
-}
-
-/**
- * Load Playwright test results
- */
-function loadTestResults(): TestResult {
-  const resultsPath = path.join(process.cwd(), 'e2e-results.json');
-
-  try {
-    const content = fs.readFileSync(resultsPath, 'utf-8');
-    return JSON.parse(content);
-  } catch (error) {
-    console.error(`Failed to load test results from ${resultsPath}:`, error);
     process.exit(1);
   }
 }

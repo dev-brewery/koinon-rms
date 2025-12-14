@@ -46,7 +46,7 @@ class PerformanceMetricsReporter implements Reporter {
     this.outputPath = options.outputFile || path.join('playwright-report', 'performance-metrics.json');
   }
 
-  onBegin(config: FullConfig, suite: Suite): void {
+  onBegin(_config: FullConfig, _suite: Suite): void {
     console.log(`\nPerformance Metrics Reporter initialized`);
     console.log(`Output: ${this.outputPath}\n`);
   }
@@ -80,7 +80,7 @@ class PerformanceMetricsReporter implements Reporter {
     }
   }
 
-  onEnd(result: FullResult): void {
+  onEnd(_result: FullResult): void {
     const metricCount = Object.keys(this.metrics).length;
 
     if (metricCount === 0) {
