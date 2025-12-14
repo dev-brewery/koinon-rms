@@ -31,13 +31,14 @@ jobs:
         # Clean up any stale containers
         docker rm -f ci-postgres-$RUN_ID ci-redis-$RUN_ID 2>/dev/null || true
 
-        # Start services with unique names
+        # Start services with unique project name to isolate from concurrent runs
         docker-compose -f docker-compose.ci.yml up -d --wait
 
         # Wait for postgres to accept connections
         timeout 60 bash -c 'until docker exec ci-postgres-'"$RUN_ID"' pg_isready -U koinon -d koinon; do sleep 2; done'
       env:
         RUN_ID: ${{ github.run_id }}
+        COMPOSE_PROJECT_NAME: ci-${{ github.run_id }}
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
@@ -195,6 +196,7 @@ jobs:
         timeout 60 bash -c 'until docker exec ci-postgres-'"$RUN_ID"' pg_isready -U koinon -d koinon; do sleep 2; done'
       env:
         RUN_ID: ${{ github.run_id }}
+        COMPOSE_PROJECT_NAME: ci-${{ github.run_id }}
 
     - name: Validate migrations can apply
       if: steps.check-migrations.outputs.migrations_found == 'true'
@@ -348,6 +350,7 @@ jobs:
         docker-compose -f docker-compose.ci.yml ps
       env:
         RUN_ID: ${{ github.run_id }}
+        COMPOSE_PROJECT_NAME: ci-${{ github.run_id }}
 
     - name: Restore and build API
       run: |
