@@ -17,12 +17,12 @@ jobs:
     - name: Check PR title format
       run: |
         PR_TITLE="${{ github.event.pull_request.title }}"
-        # Check if PR title starts with WU-X.X.X or conventional commit type
-        if [[ $PR_TITLE =~ ^(WU-[0-9]+\.[0-9]+\.[0-9]+|feat|fix|docs|refactor|test|chore): ]]; then
+        # Check if PR title starts with WU-X.X.X or conventional commit type (with optional scope)
+        if [[ $PR_TITLE =~ ^(WU-[0-9]+\.[0-9]+\.[0-9]+|(feat|fix|docs|refactor|test|chore)(\([^)]+\))?): ]]; then
           echo "✅ PR title format is valid"
         else
           echo "❌ PR title should start with WU-X.X.X or conventional commit type (feat|fix|docs|refactor|test|chore)"
-          echo "Example: 'WU-1.2.1: Create Person entity' or 'feat: add check-in search'"
+          echo "Example: 'WU-1.2.1: Create Person entity' or 'feat: add check-in search' or 'fix(auth): handle token expiry'"
           exit 1
         fi
 
