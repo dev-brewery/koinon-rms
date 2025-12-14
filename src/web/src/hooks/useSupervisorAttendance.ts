@@ -7,10 +7,12 @@ import type {
   CheckinAreaDto
 } from '@/services/api/types';
 
-// TODO: refactor this to use a shared mapper utility
 /**
  * Maps RosterChildDto to AttendanceResultDto for supervisor mode display.
  * The roster data contains the same information but with different field names.
+ *
+ * NOTE: This mapper is intentionally kept local to this hook. If similar mapping
+ * logic is needed elsewhere, extract to src/utils/mappers/attendanceMapper.ts
  */
 function mapRosterChildToAttendance(
   child: RosterChildDto,
@@ -77,11 +79,13 @@ export function useSupervisorAttendance(
         const rosters = await checkinApi.getMultipleRoomRosters(locationIdKeys);
         return aggregateRostersToAttendance(rosters);
       } catch (error) {
-        // Log error in development but return empty array to avoid breaking UI
+        // Log error for debugging but return empty array to avoid breaking UI
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         if (import.meta.env.DEV) {
-          console.error('Failed to fetch supervisor attendance:', error);
+          console.error('Failed to fetch supervisor attendance:', errorMessage, error);
         }
-        return [];
+        // Re-throw to let React Query handle error state if needed
+        throw new Error(`Failed to fetch supervisor attendance: ${errorMessage}`);
       }
     },
     enabled: isEnabled,
