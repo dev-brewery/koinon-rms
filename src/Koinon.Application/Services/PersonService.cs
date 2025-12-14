@@ -393,22 +393,20 @@ public class PersonService(
             return Result<PersonDto>.Failure(Error.NotFound("Person", idKey));
         }
 
-        // CRITICAL: Authorization check - user must be the person or have admin permissions
-        var currentPersonId = userContext.CurrentPersonId;
-        if (!currentPersonId.HasValue)
+        // CRITICAL: Authorization check - user must be the person or have admin/staff permissions
+        if (!userContext.IsAuthenticated)
         {
             logger.LogWarning("Unauthorized photo update attempt - no authenticated user");
             return Result<PersonDto>.Failure(Error.Forbidden("Authentication required to update photo"));
         }
 
-        // Allow if user is updating their own photo
-        // TODO(#147): Add role-based permission check for admins/staff to update others' photos
-        if (currentPersonId.Value != person.Id)
+        // Check if user can access this person (handles own photo + Admin/Staff roles)
+        if (!userContext.CanAccessPerson(person.Id))
         {
             logger.LogWarning(
                 "Unauthorized photo update attempt: User {UserId} attempted to update photo for Person {PersonId}",
-                currentPersonId.Value, person.Id);
-            return Result<PersonDto>.Failure(Error.Forbidden("You can only update your own photo"));
+                userContext.CurrentPersonId, person.Id);
+            return Result<PersonDto>.Failure(Error.Forbidden("You do not have permission to update this person's photo"));
         }
 
         // Decode photo ID if provided

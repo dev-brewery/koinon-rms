@@ -2,6 +2,7 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using FluentValidation;
 using Koinon.Application.Common;
+using Koinon.Application.Constants;
 using Koinon.Application.DTOs;
 using Koinon.Application.DTOs.Requests;
 using Koinon.Application.Interfaces;
@@ -305,7 +306,7 @@ public class GroupMemberRequestService(
         }
 
         // Staff and Admin roles have leader permissions
-        if (userContext.IsInRole("Staff") || userContext.IsInRole("Admin"))
+        if (userContext.IsInRole(Roles.Staff) || userContext.IsInRole(Roles.Admin))
         {
             return true;
         }
