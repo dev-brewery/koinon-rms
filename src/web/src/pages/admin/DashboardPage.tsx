@@ -5,9 +5,10 @@
 
 import { useDashboardStats } from '@/hooks/useDashboard';
 import { StatCard, QuickActions, UpcomingSchedules } from '@/components/admin/dashboard';
+import { ErrorState } from '@/components/ui';
 
 export function DashboardPage() {
-  const { data: stats, isLoading, error } = useDashboardStats();
+  const { data: stats, isLoading, error, refetch } = useDashboardStats();
 
   // Calculate trend for check-ins
   const calculateTrend = () => {
@@ -42,25 +43,12 @@ export function DashboardPage() {
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           <p className="mt-2 text-gray-600">Welcome to Koinon RMS admin dashboard</p>
         </div>
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-          <svg
-            className="w-12 h-12 text-red-400 mx-auto mb-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <p className="text-red-700 font-medium">Failed to load dashboard data</p>
-          <p className="text-red-600 text-sm mt-1">
-            {error instanceof Error ? error.message : 'An unknown error occurred'}
-          </p>
+        <div className="bg-white rounded-lg border border-gray-200">
+          <ErrorState
+            title="Failed to load dashboard data"
+            message={error instanceof Error ? error.message : 'An unknown error occurred'}
+            onRetry={() => refetch()}
+          />
         </div>
       </div>
     );

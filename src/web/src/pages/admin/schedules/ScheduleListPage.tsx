@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSchedules, useUpdateSchedule } from '@/hooks/useSchedules';
 import { DAYS_OF_WEEK, formatTime12Hour } from '@/utils/dateFormatters';
-import { Loading, EmptyState } from '@/components/ui';
+import { Loading, EmptyState, ErrorState } from '@/components/ui';
 import { useToast } from '@/contexts/ToastContext';
 
 export function ScheduleListPage() {
@@ -17,7 +17,7 @@ export function ScheduleListPage() {
   const [selectedDay, setSelectedDay] = useState<number | undefined>();
   const [includeInactive, setIncludeInactive] = useState(false);
 
-  const { data, isLoading, error } = useSchedules({
+  const { data, isLoading, error, refetch } = useSchedules({
     query: searchQuery || undefined,
     dayOfWeek: selectedDay,
     includeInactive,
@@ -117,24 +117,12 @@ export function ScheduleListPage() {
 
       {/* Error State */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex items-center gap-2">
-            <svg
-              className="w-5 h-5 text-red-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <p className="text-sm font-medium text-red-800">Failed to load schedules</p>
-          </div>
+        <div className="bg-white rounded-lg border border-gray-200">
+          <ErrorState
+            title="Failed to load schedules"
+            message={error instanceof Error ? error.message : 'Unknown error'}
+            onRetry={() => refetch()}
+          />
         </div>
       )}
 
