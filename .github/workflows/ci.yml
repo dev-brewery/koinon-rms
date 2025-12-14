@@ -13,6 +13,7 @@ env:
 
 jobs:
   # Backend build and test
+  # Uses docker-compose with unique container names to avoid port conflicts
   backend:
     name: Backend Build & Test
     runs-on: [self-hosted, linux]
@@ -21,34 +22,22 @@ jobs:
       checks: write
       contents: read
 
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: koinon
-          POSTGRES_PASSWORD: koinon_test
-          POSTGRES_DB: koinon_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 25432:5432
-
-      redis:
-        image: redis:7-alpine
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 26379:6379
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+
+    - name: Start test services
+      run: |
+        # Clean up any stale containers
+        docker rm -f ci-postgres-$RUN_ID ci-redis-$RUN_ID 2>/dev/null || true
+
+        # Start services with unique names
+        docker-compose -f docker-compose.ci.yml up -d --wait
+
+        # Wait for postgres to accept connections
+        timeout 60 bash -c 'until docker exec ci-postgres-'"$RUN_ID"' pg_isready -U koinon -d koinon; do sleep 2; done'
+      env:
+        RUN_ID: ${{ github.run_id }}
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
@@ -68,8 +57,8 @@ jobs:
     - name: Run unit tests
       run: dotnet test --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx"
       env:
-        ConnectionStrings__KoinonDb: "Host=localhost;Port=25432;Database=koinon_test;Username=koinon;Password=koinon_test"
-        ConnectionStrings__Redis: "localhost:26379"
+        ConnectionStrings__KoinonDb: "Host=ci-postgres-${{ github.run_id }};Port=5432;Database=koinon;Username=koinon;Password=koinon"
+        ConnectionStrings__Redis: "ci-redis-${{ github.run_id }}:6379"
 
     - name: Publish test results
       uses: dorny/test-reporter@v1
@@ -85,6 +74,10 @@ jobs:
       with:
         name: backend-coverage
         path: '**/coverage.cobertura.xml'
+
+    - name: Cleanup services
+      if: always()
+      run: docker rm -f ci-postgres-${{ github.run_id }} ci-redis-${{ github.run_id }} 2>/dev/null || true
 
   # Frontend build and test
   frontend:
@@ -135,6 +128,7 @@ jobs:
         path: src/web/coverage
 
   # Migration safety check
+  # Uses docker-compose with unique container names to avoid port conflicts
   migration-check:
     name: Migration Safety Check
     runs-on: [self-hosted, linux]
@@ -143,21 +137,6 @@ jobs:
     permissions:
       checks: write
       contents: read
-
-    services:
-      postgres:
-        image: postgis/postgis:16-3.5-alpine
-        env:
-          POSTGRES_USER: koinon
-          POSTGRES_PASSWORD: koinon_test
-          POSTGRES_DB: koinon_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 25433:5432
 
     steps:
     - name: Checkout code
@@ -208,11 +187,15 @@ jobs:
           echo "migrations_found=false" >> $GITHUB_OUTPUT
         fi
 
-    - name: Create migration database
+    - name: Start postgres for migration check
       if: steps.check-migrations.outputs.migrations_found == 'true'
       run: |
-        # Database koinon_test already created by service, no need to create
-        echo "Using existing koinon_test database for migration validation"
+        docker rm -f ci-postgres-$RUN_ID 2>/dev/null || true
+        docker-compose -f docker-compose.ci.yml up -d postgres
+        timeout 60 bash -c 'until docker exec ci-postgres-'"$RUN_ID"' pg_isready -U koinon -d koinon; do sleep 2; done'
+      env:
+        RUN_ID: ${{ github.run_id }}
+
     - name: Validate migrations can apply
       if: steps.check-migrations.outputs.migrations_found == 'true'
       run: |
@@ -230,10 +213,14 @@ jobs:
         echo "✅ All migrations validated successfully"
 
       env:
-        ConnectionStrings__KoinonDb: "Host=localhost;Port=25433;Database=koinon_test;Username=koinon;Password=koinon_test"
+        ConnectionStrings__KoinonDb: "Host=ci-postgres-${{ github.run_id }};Port=5432;Database=koinon;Username=koinon;Password=koinon"
         Jwt__Secret: "ci-test-jwt-secret-key-minimum-32-characters-long"
         Jwt__Issuer: "koinon-ci-test"
         Jwt__Audience: "koinon-ci-test"
+
+    - name: Cleanup postgres
+      if: always() && steps.check-migrations.outputs.migrations_found == 'true'
+      run: docker rm -f ci-postgres-${{ github.run_id }} 2>/dev/null || true
 
     - name: Check for destructive changes
       if: steps.check-migrations.outputs.migrations_found == 'true'
