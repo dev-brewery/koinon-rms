@@ -55,6 +55,7 @@ yarn-error.log*
 
 # MCP Servers (project-local dependencies)
 tools/mcp-servers/node_modules/
+tools/token-optimizer-mcp/
 
 # Build output
 dist/

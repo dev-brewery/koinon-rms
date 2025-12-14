@@ -160,6 +160,26 @@ Use MCPs for 70-99% token savings:
 - `memory` - Session context (must read at start)
 - `github` - Issues, PRs (owner: dev-brewery)
 - `koinon-dev` - Naming/route validation
+- `token-optimizer` - Smart caching for file operations (60-90% reduction)
+
+### Token Optimizer (Graceful Fallback)
+
+**Prefer smart tools** - they cache results and reduce tokens by 60-90%:
+
+| Standard Tool | Smart Alternative | Savings |
+|--------------|-------------------|---------|
+| `Read` | `mcp__token-optimizer__smart_read` | 80% |
+| `Grep` | `mcp__token-optimizer__smart_grep` | 80% |
+| `Glob` | `mcp__token-optimizer__smart_glob` | 75% |
+
+**Fallback pattern** (same as GitHub MCP → gh CLI):
+1. Try the smart tool first
+2. If it fails, use the standard tool
+3. After 3 failures, auto-degrades for 30 minutes
+
+Check availability: `.claude/scripts/check-token-optimizer.sh`
+
+**Session stats**: `mcp__token-optimizer__get_session_stats` shows savings breakdown
 
 ## Quick Reference
 
