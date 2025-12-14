@@ -357,6 +357,20 @@ jobs:
         dotnet restore
         dotnet build --no-restore --configuration Release
 
+    - name: Verify database connectivity
+      run: |
+        echo "Verifying postgres container is running..."
+        docker ps | grep ci-postgres-${{ github.run_id }} || (echo "Container not found!" && exit 1)
+
+        echo "Testing connection via docker exec..."
+        docker exec ci-postgres-${{ github.run_id }} pg_isready -U koinon -d koinon
+
+        echo "Testing connection from runner..."
+        timeout 30 bash -c 'until nc -z ci-postgres-${{ github.run_id }} 5432; do echo "Waiting..."; sleep 2; done' || echo "nc failed, trying psql..."
+
+        echo "Container IP:"
+        docker inspect ci-postgres-${{ github.run_id }} --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'
+
     - name: Apply database migrations
       run: |
         echo "Applying EF Core migrations..."
