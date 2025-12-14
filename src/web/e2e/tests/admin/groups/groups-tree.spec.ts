@@ -13,7 +13,7 @@ test.describe('Groups Tree Navigation', () => {
     // Login first
     const loginPage = new LoginPage(page);
     await loginPage.goto();
-    await loginPage.login('admin', 'admin123');
+    await loginPage.login('john.smith@example.com', 'admin123');
     await loginPage.expectLoggedIn();
 
     // Navigate to groups page
@@ -162,7 +162,7 @@ test.describe('Groups Tree - Navigation Performance', () => {
   test.beforeEach(async ({ page }) => {
     const loginPage = new LoginPage(page);
     await loginPage.goto();
-    await loginPage.login('admin', 'admin123');
+    await loginPage.login('john.smith@example.com', 'admin123');
     await loginPage.expectLoggedIn();
   });
 

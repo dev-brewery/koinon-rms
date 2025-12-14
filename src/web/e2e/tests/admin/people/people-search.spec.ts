@@ -21,7 +21,7 @@ test.describe('People Search', () => {
   test.beforeEach(async ({ page }) => {
     const loginPage = new LoginPage(page);
     await loginPage.goto();
-    await loginPage.login('admin', 'admin123');
+    await loginPage.login('john.smith@example.com', 'admin123');
     await loginPage.expectLoggedIn();
 
     // Verify test data exists
@@ -192,7 +192,7 @@ test.describe('People Filters', () => {
   test.beforeEach(async ({ page }) => {
     const loginPage = new LoginPage(page);
     await loginPage.goto();
-    await loginPage.login('admin', 'admin123');
+    await loginPage.login('john.smith@example.com', 'admin123');
     await loginPage.expectLoggedIn();
 
     // Verify test data exists
@@ -303,7 +303,7 @@ test.describe('People List Pagination', () => {
   test.beforeEach(async ({ page }) => {
     const loginPage = new LoginPage(page);
     await loginPage.goto();
-    await loginPage.login('admin', 'admin123');
+    await loginPage.login('john.smith@example.com', 'admin123');
     await loginPage.expectLoggedIn();
 
     // Verify test data exists
@@ -389,7 +389,7 @@ test.describe('People List - Search Edge Cases', () => {
   test.beforeEach(async ({ page }) => {
     const loginPage = new LoginPage(page);
     await loginPage.goto();
-    await loginPage.login('admin', 'admin123');
+    await loginPage.login('john.smith@example.com', 'admin123');
     await loginPage.expectLoggedIn();
 
     // Verify test data exists

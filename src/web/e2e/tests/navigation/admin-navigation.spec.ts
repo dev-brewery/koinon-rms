@@ -11,7 +11,7 @@ test.describe('Admin Navigation', () => {
     // Login before each test
     const loginPage = new LoginPage(page);
     await loginPage.goto();
-    await loginPage.login('admin', 'admin123');
+    await loginPage.login('john.smith@example.com', 'admin123');
     await loginPage.expectLoggedIn();
 
     // Navigate to admin area
@@ -143,7 +143,7 @@ test.describe('Admin Navigation - Mobile', () => {
   test.beforeEach(async ({ page }) => {
     const loginPage = new LoginPage(page);
     await loginPage.goto();
-    await loginPage.login('admin', 'admin123');
+    await loginPage.login('john.smith@example.com', 'admin123');
     await loginPage.expectLoggedIn();
     await page.goto('/admin');
   });

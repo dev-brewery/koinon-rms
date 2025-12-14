@@ -10,7 +10,7 @@ test.describe('Login Flow', () => {
   test('should display login form on load', async ({ page }) => {
     const loginPage = new LoginPage(page);
 
-    await expect(loginPage.usernameInput).toBeVisible();
+    await expect(loginPage.emailInput).toBeVisible();
     await expect(loginPage.passwordInput).toBeVisible();
     await expect(loginPage.signInButton).toBeVisible();
   });
@@ -19,20 +19,20 @@ test.describe('Login Flow', () => {
     const loginPage = new LoginPage(page);
 
     await loginPage.login('invalid', 'invalid');
-    await loginPage.expectErrorMessage('Invalid username or password');
+    await loginPage.expectErrorMessage('Invalid email or password');
   });
 
   test('should redirect to dashboard on successful login', async ({ page }) => {
     const loginPage = new LoginPage(page);
 
-    await loginPage.login('admin', 'admin123');
+    await loginPage.login('john.smith@example.com', 'admin123');
     await loginPage.expectLoggedIn();
   });
 
   test('should persist session after page reload', async ({ page }) => {
     const loginPage = new LoginPage(page);
 
-    await loginPage.login('admin', 'admin123');
+    await loginPage.login('john.smith@example.com', 'admin123');
     await loginPage.expectLoggedIn();
 
     // Reload and verify still logged in
@@ -49,14 +49,14 @@ test.describe('Login Flow', () => {
   test('@smoke should complete login flow', async ({ page }) => {
     const loginPage = new LoginPage(page);
 
-    await loginPage.login('admin', 'admin123');
+    await loginPage.login('john.smith@example.com', 'admin123');
     await loginPage.expectLoggedIn();
   });
 
   test('should submit form on Enter key press', async ({ page }) => {
     const loginPage = new LoginPage(page);
 
-    await loginPage.usernameInput.fill('admin');
+    await loginPage.emailInput.fill('john.smith@example.com');
     await loginPage.passwordInput.fill('admin123');
     await loginPage.passwordInput.press('Enter');
 

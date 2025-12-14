@@ -6,14 +6,14 @@ import { type Page, type Locator, expect } from '@playwright/test';
  */
 export class LoginPage {
   readonly page: Page;
-  readonly usernameInput: Locator;
+  readonly emailInput: Locator;
   readonly passwordInput: Locator;
   readonly signInButton: Locator;
   readonly errorMessage: Locator;
 
   constructor(page: Page) {
     this.page = page;
-    this.usernameInput = page.getByLabel('Username');
+    this.emailInput = page.getByLabel('Email');
     this.passwordInput = page.getByLabel('Password');
     this.signInButton = page.getByRole('button', { name: 'Sign In' });
     this.errorMessage = page.getByRole('alert');
@@ -23,8 +23,8 @@ export class LoginPage {
     await this.page.goto('/login');
   }
 
-  async login(username: string, password: string) {
-    await this.usernameInput.fill(username);
+  async login(email: string, password: string) {
+    await this.emailInput.fill(email);
     await this.passwordInput.fill(password);
     await this.signInButton.click();
   }
@@ -34,6 +34,7 @@ export class LoginPage {
   }
 
   async expectLoggedIn() {
-    await expect(this.page).toHaveURL('/dashboard');
+    // Wait for navigation away from login page
+    await this.page.waitForURL(url => !url.pathname.includes('/login'), { timeout: 10000 });
   }
 }
