@@ -4,6 +4,7 @@
  */
 
 import { Component, ReactNode, ErrorInfo } from 'react';
+import { captureError } from '../services/errorTracking';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -43,7 +44,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       errorInfo,
     });
 
-    // TODO(#152): Log to error tracking service (e.g., Sentry) in production
+    // Send to error tracking service in production
+    captureError(error, errorInfo, {
+      boundary: 'ErrorBoundary',
+      location: window.location.href,
+    });
   }
 
   handleReset = (): void => {
