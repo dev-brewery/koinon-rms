@@ -7,6 +7,7 @@ import type {
   CheckinAreaDto
 } from '@/services/api/types';
 
+// TODO: refactor this to use a shared mapper utility
 /**
  * Maps RosterChildDto to AttendanceResultDto for supervisor mode display.
  * The roster data contains the same information but with different field names.
