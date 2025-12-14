@@ -24,18 +24,12 @@ fi
 
 log_info "Pre-bash validation: $COMMAND"
 
-# ============================================================================
 # BRANCH NAMING VALIDATION
-# ============================================================================
-
 if echo "$COMMAND" | grep -qE "git checkout -b|git switch -c"; then
     "$SCRIPT_DIR/validate-branch" "$COMMAND" || true
 fi
 
-# ============================================================================
 # INFRASTRUCTURE PROTECTION - Block writes to .claude/
-# ============================================================================
-
 EXIT_CODE=0
 
 # Block any command that writes to .claude/ directory
@@ -44,58 +38,34 @@ if echo "$COMMAND" | grep -qE '(>|>>)\s*[^|]*\.claude/' || \
    echo "$COMMAND" | grep -qE '(cp|mv|tee|touch|mkdir|rm|chmod)\s+.*\.claude/' || \
    echo "$COMMAND" | grep -qE '(sed|awk|perl)\s+-i.*\.claude/' || \
    echo "$COMMAND" | grep -qE 'cat\s+.*>\s*.*\.claude/'; then
-    echo ""
-    echo "═══════════════════════════════════════════════════════════"
     echo "BLOCKED: Infrastructure files are read-only"
-    echo "═══════════════════════════════════════════════════════════"
-    echo ""
     echo "Command: $COMMAND"
-    echo ""
     echo "You cannot modify your own constraints via any method."
-    echo ""
     echo "If a hook is blocking you, that's usually intentional."
-    echo "Do the work the hook is requiring instead of trying to"
-    echo "bypass it."
-    echo ""
+    echo "Do the work the hook is requiring instead of trying to bypass it."
     echo "Only escalate for genuine infrastructure BUGS."
-    echo ""
-    echo "═══════════════════════════════════════════════════════════"
     EXIT_CODE=2
 fi
 
-# ============================================================================
 # WORKFLOW FILE PROTECTION - Block direct writes to .github/workflows/
-# ============================================================================
-
 # Block any command that writes to .github/workflows/ directory
 # This ensures workflow changes go through Edit tool where pre-write hook can block
 if echo "$COMMAND" | grep -qE '(>|>>)\s*[^|]*\.github/workflows/' || \
    echo "$COMMAND" | grep -qE '(cp|mv|tee|touch|mkdir|rm|chmod)\s+.*\.github/workflows/' || \
    echo "$COMMAND" | grep -qE '(sed|awk|perl)\s+-i.*\.github/workflows/' || \
    echo "$COMMAND" | grep -qE 'cat\s+.*>\s*.*\.github/workflows/'; then
-    echo ""
-    echo "═══════════════════════════════════════════════════════════"
     echo "BLOCKED: Workflow files cannot be modified via Bash"
-    echo "═══════════════════════════════════════════════════════════"
-    echo ""
     echo "Command: $COMMAND"
-    echo ""
     echo "GitHub workflow files are protected infrastructure."
     echo "They cannot be modified by any agent via any method."
-    echo ""
     echo "If CI is failing, diagnose whether it's:"
     echo "  - WORKFLOW issue: Report to PM for user escalation"
     echo "  - APP_CODE issue: Fix the application code instead"
-    echo ""
     echo "See: .claude/agents/devops.md for CI failure procedures"
-    echo ""
-    echo "═══════════════════════════════════════════════════════════"
     EXIT_CODE=2
 fi
 
-# ============================================================================
 # DANGEROUS COMMAND PREVENTION
-# ============================================================================
 
 # 1. Prevent force push to main/master
 if echo "$COMMAND" | grep -qE "git push.*(-f|--force)" && \
@@ -230,10 +200,7 @@ if echo "$COMMAND" | grep -qE "gh (pr )?merge"; then
     set -e
 fi
 
-# ============================================================================
 # CODE-CRITIC ENFORCEMENT ON COMMITS
-# ============================================================================
-
 # Enforce code-critic approval before ANY commit
 if echo "$COMMAND" | grep -qE "^git commit"; then
     log_info "Checking code-critic approval before commit..."
@@ -243,38 +210,21 @@ if echo "$COMMAND" | grep -qE "^git commit"; then
 
     # check_critic_required() returns 2 if code needs review
     if ! check_critic_required; then
-        echo ""
-        echo "═══════════════════════════════════════════════════════════"
         echo "ACTION REQUIRED: Run code-critic before commit"
-        echo "═══════════════════════════════════════════════════════════"
-        echo ""
-        echo "YOUR NEXT STEP (do this now):"
-        echo "  Task(subagent_type='code-critic', prompt='Review staged changes')"
-        echo ""
+        echo "NEXT STEP: Task(subagent_type='code-critic', prompt='Review staged changes')"
         echo "If code-critic requests changes:"
         echo "  1. Fix the issues it identifies"
         echo "  2. Stage the fixes: git add ."
         echo "  3. Run code-critic again"
         echo "  4. Repeat until APPROVED"
         echo "  5. Then commit"
-        echo ""
-        echo "┌─────────────────────────────────────────────────────────────┐"
-        echo "│ DO NOT complain about code review.                         │"
-        echo "│ DO NOT try to commit without approval.                     │"
-        echo "│ DO NOT ask to skip this step.                              │"
-        echo "│                                                            │"
-        echo "│ Code review is part of the job. Run the critic. Fix issues.│"
-        echo "└─────────────────────────────────────────────────────────────┘"
-        echo ""
-        echo "═══════════════════════════════════════════════════════════"
+        echo "DO NOT complain about code review. DO NOT try to commit without approval."
+        echo "Code review is part of the job. Run the critic. Fix issues."
         EXIT_CODE=2
     fi
 fi
 
-# ============================================================================
 # CI/CD REVIEWER ENFORCEMENT ON WORKFLOW COMMITS
-# ============================================================================
-
 # Enforce cicd-reviewer approval for workflow file commits
 if echo "$COMMAND" | grep -qE "^git commit"; then
     # Check if any workflow files are staged
@@ -286,37 +236,22 @@ if echo "$COMMAND" | grep -qE "^git commit"; then
 
         # check_workflow_approval_required() returns 2 if review needed
         if ! check_workflow_approval_required; then
-            echo ""
-            echo "═══════════════════════════════════════════════════════════"
             echo "ACTION REQUIRED: Run cicd-reviewer before workflow commit"
-            echo "═══════════════════════════════════════════════════════════"
-            echo ""
-            echo "YOUR NEXT STEP (do this now):"
-            echo "  Task(subagent_type='cicd-reviewer', prompt='Review workflow changes')"
-            echo ""
+            echo "NEXT STEP: Task(subagent_type='cicd-reviewer', prompt='Review workflow changes')"
             echo "If cicd-reviewer requests changes:"
             echo "  1. Fix the issues (or reconsider if workflow change is needed)"
             echo "  2. Re-run cicd-reviewer"
             echo "  3. Repeat until APPROVED"
             echo "  4. Then commit"
-            echo ""
-            echo "┌─────────────────────────────────────────────────────────────┐"
-            echo "│ Workflow files are protected infrastructure.               │"
-            echo "│ Only cicd-reviewer can approve workflow changes.           │"
-            echo "│ Consider: Is this truly a workflow problem, or is the      │"
-            echo "│ real fix in the application code?                          │"
-            echo "└─────────────────────────────────────────────────────────────┘"
-            echo ""
-            echo "═══════════════════════════════════════════════════════════"
+            echo "Workflow files are protected infrastructure."
+            echo "Only cicd-reviewer can approve workflow changes."
+            echo "Consider: Is this truly a workflow problem, or is the real fix in the application code?"
             EXIT_CODE=2
         fi
     fi
 fi
 
-# ============================================================================
 # SECRETS DETECTION (HOOK-7)
-# ============================================================================
-
 # Scan staged changes for secrets when committing
 if echo "$COMMAND" | grep -qE "^git commit"; then
     log_info "Scanning staged changes for secrets..."
@@ -355,21 +290,15 @@ if echo "$COMMAND" | grep -qE "^git commit"; then
 
             if echo "$CHECK_DIFF" | grep -qiE "^\+.*$pattern"; then
                 if [ $SECRETS_FOUND -eq 0 ]; then
-                    echo ""
-                    echo "═══════════════════════════════════════════════════════════"
-                    echo "🚫 BLOCKED: POTENTIAL SECRETS DETECTED IN STAGED CHANGES"
-                    echo "═══════════════════════════════════════════════════════════"
-                    echo ""
+                    echo "BLOCKED: POTENTIAL SECRETS DETECTED IN STAGED CHANGES"
                 fi
-                echo "  ⚠️  Pattern matched: $pattern"
+                echo "Pattern matched: $pattern"
                 SECRETS_FOUND=1
             fi
         done
 
         if [ $SECRETS_FOUND -eq 1 ]; then
-            echo ""
             echo "MATCHES FOUND:"
-            echo "─────────────────────────────────────────────────────────────"
             # Show matching lines (redacted)
             for pattern in "${SECRET_PATTERNS[@]}"; do
                 # Use filtered diff for password pattern (same as detection above)
@@ -380,17 +309,11 @@ if echo "$COMMAND" | grep -qE "^git commit"; then
                 fi
                 echo "$SHOW_DIFF" | grep -iE "^\+.*$pattern" | head -3 | sed 's/\(.\{60\}\).*/\1...REDACTED/' || true
             done
-            echo "─────────────────────────────────────────────────────────────"
-            echo ""
             echo "ACTION REQUIRED:"
             echo "  1. Remove secrets from staged files"
             echo "  2. Use environment variables or .env files (gitignored)"
             echo "  3. If this is a false positive, review and ensure no real secrets"
-            echo ""
-            echo "To unstage and fix:"
-            echo "  git reset HEAD -- <file>"
-            echo ""
-            echo "═══════════════════════════════════════════════════════════"
+            echo "To unstage and fix: git reset HEAD -- <file>"
             EXIT_CODE=2
         else
             log_success "No secrets detected in staged changes"
@@ -398,9 +321,7 @@ if echo "$COMMAND" | grep -qE "^git commit"; then
     fi
 fi
 
-# ============================================================================
 # PROJECT CONVENTION ENFORCEMENT
-# ============================================================================
 
 # 1. Enforce correct migration command format
 if echo "$COMMAND" | grep -q "dotnet ef migrations add"; then
@@ -443,10 +364,7 @@ if echo "$COMMAND" | grep -qE "npm install [^-]" && \
     log_info "Remember to commit the updated lock file"
 fi
 
-# ============================================================================
 # WORK UNIT SCOPE VALIDATION
-# ============================================================================
-
 if WU=$(validate_work_unit_context); then
     log_info "Working in context of: $WU"
 
@@ -480,10 +398,7 @@ if WU=$(validate_work_unit_context); then
     fi
 fi
 
-# ============================================================================
 # HELPFUL SUGGESTIONS
-# ============================================================================
-
 # Suggest using specialized tools instead of bash for some operations
 if echo "$COMMAND" | grep -qE "^cat .*.cs$|^cat .*.ts$"; then
     log_info "Tip: Use the Read tool instead of 'cat' for better handling of code files"
@@ -497,16 +412,11 @@ if echo "$COMMAND" | grep -qE "^find.*-name"; then
     log_info "Tip: Use the Glob tool instead of 'find' for faster file searches"
 fi
 
-# ============================================================================
 # EXIT WITH APPROPRIATE CODE
-# ============================================================================
-
 if [[ $EXIT_CODE -ne 0 ]]; then
     echo "BLOCKING with exit code $EXIT_CODE for command: $COMMAND" >> "$DEBUG_LOG"
-    echo ""
     log_error "Pre-bash validation FAILED - command blocked"
     log_info "Review the errors above and adjust your command"
-    echo ""
     exit $EXIT_CODE
 fi
 
