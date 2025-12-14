@@ -121,10 +121,14 @@ TIMESTAMP=$(date -Iseconds)
 # Generate staged files hash for tamper detection
 STAGED_HASH=$(git diff --cached --name-only 2>/dev/null | sort | sha256sum | cut -d' ' -f1)
 
-# Generate cryptographic signature to prevent manual file creation
+# Generate random nonce - makes signature unforgeable (cannot predict the HMAC key)
+NONCE=$(openssl rand -hex 32)
+
+# Generate HMAC signature using nonce as key - prevents manual file creation
 # This signature is verified by critic-tracker.sh during pre-commit
-SIGNATURE_INPUT="${TIMESTAMP}:${STAGED_HASH}:${FILES_REVIEWED}:${ISSUES_FOUND}:koinon-critic-salt-2024"
-SIGNATURE=$(echo -n "$SIGNATURE_INPUT" | sha256sum | cut -d' ' -f1)
+# Using HMAC instead of plain hash means knowing the algorithm isn't enough to forge
+SIGNATURE_INPUT="${TIMESTAMP}:${STAGED_HASH}:${FILES_REVIEWED}:${ISSUES_FOUND}"
+SIGNATURE=$(echo -n "$SIGNATURE_INPUT" | openssl dgst -sha256 -hmac "$NONCE" | cut -d' ' -f2)
 
 cat > "$APPROVAL_FILE" << EOF
 {
@@ -135,6 +139,7 @@ cat > "$APPROVAL_FILE" << EOF
   "staged_files_at_approval": $STAGED_FILES,
   "branch_files_at_approval": $BRANCH_FILES,
   "staged_hash": "$STAGED_HASH",
+  "nonce": "$NONCE",
   "signature": "$SIGNATURE"
 }
 EOF
