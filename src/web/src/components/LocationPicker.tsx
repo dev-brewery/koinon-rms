@@ -19,10 +19,8 @@ export interface LocationPickerProps {
  * (RosterPage) is responsible for localStorage persistence to avoid
  * race conditions and maintain single source of truth.
  *
- * TODO(#149): Extract hardcoded localStorage key 'selectedLocationIdKey'
- * to a shared constant or configuration file when implementing multi-location
- * selection or reusable location pickers. For now, this component is
- * single-purpose for the Room Roster page.
+ * The localStorage key is centralized in @/lib/storageKeys.ts to ensure
+ * consistency across components.
  */
 export function LocationPicker({
   value,
