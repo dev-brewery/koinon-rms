@@ -1,7 +1,12 @@
 using System.CommandLine;
+using Koinon.Application.Interfaces;
+using Koinon.Application.Services;
+using Koinon.Domain.Data;
 using Koinon.Infrastructure.Data;
 using Koinon.TestDataSeeder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 // Default connection string for local development (matches docker-compose.yml)
@@ -54,20 +59,51 @@ seedCommand.SetHandler(async (invocationContext) =>
         logger.LogInformation("Reset database: {Reset}", reset);
         logger.LogInformation("");
 
-        var options = new DbContextOptionsBuilder<KoinonDbContext>()
-            .UseNpgsql(connection)
-            .UseLoggerFactory(loggerFactory)
-            .Options;
+        // Set up dependency injection
+        var services = new ServiceCollection();
 
-        await using var context = new KoinonDbContext(options);
+        // Add logging
+        services.AddLogging(builder =>
+        {
+            builder.AddConsole();
+            builder.SetMinimumLevel(LogLevel.Information);
+        });
+
+        // Add configuration (needed for JWT settings in AuthService)
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Jwt:Secret"] = "test-secret-key-for-seeding-at-least-32-characters-long",
+                ["Jwt:Issuer"] = "Koinon.TestDataSeeder",
+                ["Jwt:Audience"] = "Koinon.Test",
+                ["Jwt:AccessTokenExpirationMinutes"] = "15",
+                ["Jwt:RefreshTokenExpirationDays"] = "7"
+            })
+            .Build();
+        services.AddSingleton<IConfiguration>(configuration);
+
+        // Add DbContext
+        services.AddDbContext<KoinonDbContext>(options =>
+            options.UseNpgsql(connection).UseLoggerFactory(loggerFactory));
+        services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<KoinonDbContext>());
+
+        // Add AuthService
+        services.AddScoped<IAuthService, AuthService>();
+
+        // Add DataSeeder
+        services.AddScoped<DataSeeder>();
+
+        // Build service provider
+        await using var serviceProvider = services.BuildServiceProvider();
 
         // Test connection
+        var context = serviceProvider.GetRequiredService<KoinonDbContext>();
         logger.LogInformation("📡 Testing database connection...");
         await context.Database.CanConnectAsync(cancellationToken);
         logger.LogInformation("✅ Database connection successful");
         logger.LogInformation("");
 
-        var seeder = new DataSeeder(context, logger);
+        var seeder = serviceProvider.GetRequiredService<DataSeeder>();
 
         if (reset)
         {
@@ -90,6 +126,10 @@ seedCommand.SetHandler(async (invocationContext) =>
         logger.LogInformation("   • Preschool group (capacity 20, ages 3-5)");
         logger.LogInformation("   • Elementary group (capacity 30, grades K-5)");
         logger.LogInformation("   • 3 schedules (Sunday 9AM, Sunday 11AM, Wednesday 7PM)");
+        logger.LogInformation("");
+        logger.LogInformation("🔑 Admin credentials for E2E tests:");
+        logger.LogInformation("   Email:    john.smith@example.com");
+        logger.LogInformation("   Password: admin123");
         logger.LogInformation("");
         logger.LogInformation("🎯 Use these GUIDs in tests:");
         logger.LogInformation("   Smith Family:     11111111-1111-1111-1111-111111111111");
