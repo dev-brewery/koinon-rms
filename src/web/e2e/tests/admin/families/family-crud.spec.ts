@@ -13,7 +13,7 @@ test.describe('Family CRUD Operations', () => {
     // Login first
     const loginPage = new LoginPage(page);
     await loginPage.goto();
-    await loginPage.login('admin', 'admin123');
+    await loginPage.login('john.smith@example.com', 'admin123');
     await loginPage.expectLoggedIn();
   });
 
@@ -309,7 +309,7 @@ test.describe('Family Form Validation', () => {
   test.beforeEach(async ({ page }) => {
     const loginPage = new LoginPage(page);
     await loginPage.goto();
-    await loginPage.login('admin', 'admin123');
+    await loginPage.login('john.smith@example.com', 'admin123');
     await loginPage.expectLoggedIn();
   });
 
@@ -395,7 +395,7 @@ test.describe('Family Form - Edit Mode Differences', () => {
   test.beforeEach(async ({ page }) => {
     const loginPage = new LoginPage(page);
     await loginPage.goto();
-    await loginPage.login('admin', 'admin123');
+    await loginPage.login('john.smith@example.com', 'admin123');
     await loginPage.expectLoggedIn();
   });
 

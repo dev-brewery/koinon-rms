@@ -61,7 +61,7 @@ export interface SortParams {
 // ============================================================================
 
 export interface LoginRequest {
-  username: string;
+  email: string;
   password: string;
 }
 

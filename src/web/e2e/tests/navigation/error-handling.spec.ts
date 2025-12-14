@@ -26,7 +26,7 @@ test.describe('Error Handling', () => {
   test('should display 404 for invalid admin routes', async ({ page }) => {
     const loginPage = new LoginPage(page);
     await loginPage.goto();
-    await loginPage.login('admin', 'admin123');
+    await loginPage.login('john.smith@example.com', 'admin123');
     await loginPage.expectLoggedIn();
 
     await page.goto('/admin/this-does-not-exist');
@@ -39,7 +39,7 @@ test.describe('Error Handling', () => {
   test('should display 404 for invalid person IdKey', async ({ page }) => {
     const loginPage = new LoginPage(page);
     await loginPage.goto();
-    await loginPage.login('admin', 'admin123');
+    await loginPage.login('john.smith@example.com', 'admin123');
     await loginPage.expectLoggedIn();
 
     // Try to access non-existent person
@@ -71,7 +71,7 @@ test.describe('Error Handling', () => {
 
     // Navigate to login
     await page.goto('/login');
-    await loginPage.login('admin', 'admin123');
+    await loginPage.login('john.smith@example.com', 'admin123');
     await loginPage.expectLoggedIn();
 
     // Should successfully navigate to valid admin page
@@ -85,7 +85,7 @@ test.describe('Error Boundaries', () => {
   test.beforeEach(async ({ page }) => {
     const loginPage = new LoginPage(page);
     await loginPage.goto();
-    await loginPage.login('admin', 'admin123');
+    await loginPage.login('john.smith@example.com', 'admin123');
     await loginPage.expectLoggedIn();
   });
 
@@ -146,7 +146,7 @@ test.describe('Protected Routes', () => {
 
     // Login
     const loginPage = new LoginPage(page);
-    await loginPage.login('admin', 'admin123');
+    await loginPage.login('john.smith@example.com', 'admin123');
 
     // Should redirect back to intended page (or dashboard)
     // Note: This behavior depends on ProtectedRoute implementation
@@ -158,7 +158,7 @@ test.describe('Navigation Resilience', () => {
   test.beforeEach(async ({ page }) => {
     const loginPage = new LoginPage(page);
     await loginPage.goto();
-    await loginPage.login('admin', 'admin123');
+    await loginPage.login('john.smith@example.com', 'admin123');
     await loginPage.expectLoggedIn();
   });
 
