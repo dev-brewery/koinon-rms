@@ -6,6 +6,10 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { AuthProvider } from './contexts/AuthContext';
 import App from './App.tsx';
 import './index.css';
+import { initErrorTracking } from './services/errorTracking';
+
+// Initialize error tracking
+initErrorTracking();
 
 // Configure React Query
 const queryClient = new QueryClient({
