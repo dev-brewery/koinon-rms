@@ -18,7 +18,12 @@ import { Button, Card } from '@/components/ui';
 import {
   useCheckinSearch,
   useCheckinOpportunities,
+  useCheckinConfiguration,
 } from '@/hooks/useCheckin';
+import {
+  useSupervisorAttendance,
+  extractLocationIdKeys,
+} from '@/hooks/useSupervisorAttendance';
 import { useOfflineCheckin } from '@/hooks/useOfflineCheckin';
 import { useIdleTimeout } from '@/hooks/useIdleTimeout';
 import { useSupervisorMode } from '@/hooks/useSupervisorMode';
@@ -65,6 +70,18 @@ export function CheckinPage() {
   const [pinError, setPinError] = useState<string | null>(null);
   const [isPinLoading, setIsPinLoading] = useState(false);
   const supervisorMode = useSupervisorMode();
+
+  // Fetch check-in configuration for kiosk locations
+  const configQuery = useCheckinConfiguration();
+
+  // Extract location IdKeys from configuration for supervisor attendance
+  const locationIdKeys = extractLocationIdKeys(configQuery.data?.areas);
+
+  // Fetch current attendance for supervisor mode (only when active)
+  const supervisorAttendanceQuery = useSupervisorAttendance(
+    locationIdKeys,
+    supervisorMode.isActive
+  );
 
   // Store attendance response for confirmation page
   const recordAttendanceData = useRef<RecordAttendanceResponse | null>(null);
@@ -588,8 +605,7 @@ export function CheckinPage() {
           <div className="max-w-4xl mx-auto p-6">
             <SupervisorMode
               supervisor={supervisorMode.supervisor}
-              // TODO(#191): Fetch current attendance from API
-              currentAttendance={[]}
+              currentAttendance={supervisorAttendanceQuery.data ?? []}
               onReprint={handleSupervisorReprint}
               onCheckout={handleSupervisorCheckout}
               onExit={handleSupervisorExit}
