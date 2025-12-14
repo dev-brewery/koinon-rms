@@ -3,18 +3,14 @@
  * Tests creating, reading, updating, and deleting families
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../../../fixtures/auth.fixture';
 import { FamiliesPage } from '../../../fixtures/page-objects/families.page';
-import { LoginPage } from '../../../fixtures/page-objects/login.page';
 import { testData } from '../../../fixtures/test-data';
 
 test.describe('Family CRUD Operations', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ loginAsAdmin }) => {
     // Login first
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+    await loginAsAdmin();
   });
 
   test('should create a new family successfully', async ({ page }) => {
@@ -306,11 +302,8 @@ test.describe('Family CRUD Operations', () => {
 });
 
 test.describe('Family Form Validation', () => {
-  test.beforeEach(async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+  test.beforeEach(async ({ loginAsAdmin }) => {
+    await loginAsAdmin();
   });
 
   test('should validate name length', async ({ page }) => {
@@ -392,11 +385,8 @@ test.describe('Family Form Validation', () => {
 });
 
 test.describe('Family Form - Edit Mode Differences', () => {
-  test.beforeEach(async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+  test.beforeEach(async ({ loginAsAdmin }) => {
+    await loginAsAdmin();
   });
 
   test('should not show address fields in edit mode', async ({ page }) => {

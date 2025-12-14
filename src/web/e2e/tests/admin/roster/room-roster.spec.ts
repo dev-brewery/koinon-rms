@@ -6,17 +6,13 @@
  * Full roster functionality (location selection, attendance display) is tested separately.
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../../../fixtures/auth.fixture';
 import { RosterPage } from '../../../fixtures/page-objects/roster.page';
-import { LoginPage } from '../../../fixtures/page-objects/login.page';
 
 test.describe('Room Roster Navigation', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ loginAsAdmin }) => {
     // Login first
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+    await loginAsAdmin();
   });
 
   test('should navigate to roster page from admin sidebar', async ({ page }) => {

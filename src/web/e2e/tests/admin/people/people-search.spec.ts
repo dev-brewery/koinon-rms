@@ -12,17 +12,13 @@
  * NOTE: Update selectors when UI is implemented to use data-testid attributes
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../../../fixtures/auth.fixture';
 import { PeoplePage } from '../../../fixtures/page-objects/people.page';
-import { LoginPage } from '../../../fixtures/page-objects/login.page';
 import { testData } from '../../../fixtures/test-data';
 
 test.describe('People Search', () => {
-  test.beforeEach(async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+  test.beforeEach(async ({ loginAsAdmin, page }) => {
+    await loginAsAdmin();
 
     // Verify test data exists
     await page.goto('/admin/people');
@@ -189,11 +185,8 @@ test.describe('People Search', () => {
 });
 
 test.describe('People Filters', () => {
-  test.beforeEach(async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+  test.beforeEach(async ({ loginAsAdmin, page }) => {
+    await loginAsAdmin();
 
     // Verify test data exists
     await page.goto('/admin/people');
@@ -300,11 +293,8 @@ test.describe('People Filters', () => {
 });
 
 test.describe('People List Pagination', () => {
-  test.beforeEach(async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+  test.beforeEach(async ({ loginAsAdmin, page }) => {
+    await loginAsAdmin();
 
     // Verify test data exists
     await page.goto('/admin/people');
@@ -386,11 +376,8 @@ test.describe('People List Pagination', () => {
 });
 
 test.describe('People List - Search Edge Cases', () => {
-  test.beforeEach(async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+  test.beforeEach(async ({ loginAsAdmin, page }) => {
+    await loginAsAdmin();
 
     // Verify test data exists
     await page.goto('/admin/people');
