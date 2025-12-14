@@ -1,6 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import * as checkinApi from '@/services/api/checkin';
-import type { AttendanceResultDto, RosterChildDto, RoomRosterDto } from '@/services/api/types';
+import type {
+  AttendanceResultDto,
+  RosterChildDto,
+  RoomRosterDto,
+  CheckinAreaDto
+} from '@/services/api/types';
 
 /**
  * Maps RosterChildDto to AttendanceResultDto for supervisor mode display.
@@ -32,6 +37,10 @@ function aggregateRostersToAttendance(rosters: RoomRosterDto[]): AttendanceResul
   const attendances: AttendanceResultDto[] = [];
 
   for (const roster of rosters) {
+    if (!roster.children || roster.children.length === 0) {
+      continue;
+    }
+
     for (const child of roster.children) {
       attendances.push(mapRosterChildToAttendance(child, roster.locationName));
     }
@@ -54,6 +63,8 @@ export function useSupervisorAttendance(
   locationIdKeys: string[] | undefined,
   enabled: boolean = true
 ) {
+  const isEnabled = enabled && !!locationIdKeys && locationIdKeys.length > 0;
+
   return useQuery({
     queryKey: ['supervisor', 'attendance', locationIdKeys],
     queryFn: async () => {
@@ -61,33 +72,41 @@ export function useSupervisorAttendance(
         return [];
       }
 
-      const rosters = await checkinApi.getMultipleRoomRosters(locationIdKeys);
-      return aggregateRostersToAttendance(rosters);
+      try {
+        const rosters = await checkinApi.getMultipleRoomRosters(locationIdKeys);
+        return aggregateRostersToAttendance(rosters);
+      } catch (error) {
+        // Log error in development but return empty array to avoid breaking UI
+        if (import.meta.env.DEV) {
+          console.error('Failed to fetch supervisor attendance:', error);
+        }
+        return [];
+      }
     },
-    enabled: enabled && !!locationIdKeys && locationIdKeys.length > 0,
+    enabled: isEnabled,
     staleTime: 15 * 1000, // 15 seconds - shorter stale time for real-time display
-    refetchInterval: enabled ? 30 * 1000 : false, // Auto-refresh every 30 seconds when active
+    refetchInterval: isEnabled ? 30 * 1000 : false, // Auto-refresh every 30 seconds when active
   });
 }
 
 /**
- * Extracts all location IdKeys from the check-in configuration.
+ * Extracts all unique location IdKeys from the check-in configuration.
  * Used to determine which locations to fetch attendance for.
  */
 export function extractLocationIdKeys(
-  areas: { groups: { locations: { idKey: string }[] }[] }[] | undefined
+  areas: CheckinAreaDto[] | undefined
 ): string[] {
   if (!areas) return [];
 
-  const locationIdKeys: string[] = [];
+  const locationIdKeys = new Set<string>();
 
   for (const area of areas) {
     for (const group of area.groups) {
       for (const location of group.locations) {
-        locationIdKeys.push(location.idKey);
+        locationIdKeys.add(location.idKey);
       }
     }
   }
 
-  return locationIdKeys;
+  return Array.from(locationIdKeys);
 }
