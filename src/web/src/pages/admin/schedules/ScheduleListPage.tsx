@@ -4,11 +4,15 @@
  */
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useSchedules, useUpdateSchedule } from '@/hooks/useSchedules';
 import { DAYS_OF_WEEK, formatTime12Hour } from '@/utils/dateFormatters';
+import { Loading, EmptyState } from '@/components/ui';
+import { useToast } from '@/contexts/ToastContext';
 
 export function ScheduleListPage() {
+  const navigate = useNavigate();
+  const toast = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDay, setSelectedDay] = useState<number | undefined>();
   const [includeInactive, setIncludeInactive] = useState(false);
@@ -30,7 +34,7 @@ export function ScheduleListPage() {
         request: { isActive: !currentStatus },
       });
     } catch (error) {
-      console.error('Failed to toggle schedule active status:', error);
+      toast.error('Failed to update schedule status', 'Please try again later');
     }
   };
 
@@ -106,8 +110,8 @@ export function ScheduleListPage() {
 
       {/* Loading State */}
       {isLoading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="inline-block w-8 h-8 border-4 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+        <div className="bg-white rounded-lg border border-gray-200">
+          <Loading text="Loading schedules..." />
         </div>
       )}
 
@@ -138,28 +142,33 @@ export function ScheduleListPage() {
       {!isLoading && !error && (
         <div className="space-y-4">
           {schedules.length === 0 ? (
-            <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-              <svg
-                className="w-12 h-12 text-gray-400 mx-auto mb-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-              <p className="text-gray-500 mb-4">No schedules found</p>
-              <Link
-                to="/admin/schedules/new"
-                className="inline-block px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-              >
-                Create First Schedule
-              </Link>
+            <div className="bg-white rounded-lg border border-gray-200">
+              <EmptyState
+                icon={
+                  <svg
+                    className="w-12 h-12 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                }
+                title={searchQuery || selectedDay !== undefined ? "No schedules found" : "No schedules yet"}
+                description={searchQuery || selectedDay !== undefined
+                  ? "Try adjusting your filters"
+                  : "Get started by creating your first schedule"}
+                action={!searchQuery && selectedDay === undefined ? {
+                  label: "Create Schedule",
+                  onClick: () => navigate('/admin/schedules/new')
+                } : undefined}
+              />
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

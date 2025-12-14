@@ -4,13 +4,15 @@
  */
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { usePeople } from '@/hooks/usePeople';
 import { PersonSearchBar } from '@/components/admin/people/PersonSearchBar';
 import { PersonCard } from '@/components/admin/people/PersonCard';
+import { Loading, EmptyState } from '@/components/ui';
 import type { PersonSearchParams } from '@/services/api/types';
 
 export function PeopleListPage() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [pageSize, setPageSize] = useState(25);
   const [currentPage, setCurrentPage] = useState(1);
@@ -129,10 +131,7 @@ export function PeopleListPage() {
       {/* Results */}
       <div className="bg-white rounded-lg border border-gray-200">
         {isLoading ? (
-          <div className="p-12 text-center">
-            <div className="inline-block w-8 h-8 border-4 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
-            <p className="mt-4 text-gray-500">Loading people...</p>
-          </div>
+          <Loading text="Loading people..." />
         ) : error ? (
           <div className="p-12 text-center">
             <svg
@@ -155,33 +154,32 @@ export function PeopleListPage() {
             </p>
           </div>
         ) : people.length === 0 ? (
-          <div className="p-12 text-center">
-            <svg
-              className="w-12 h-12 text-gray-400 mx-auto mb-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-              />
-            </svg>
-            <p className="text-gray-500">
-              {searchQuery ? 'No people found matching your search' : 'No people yet'}
-            </p>
-            {!searchQuery && (
-              <Link
-                to="/admin/people/new"
-                className="inline-block mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+          <EmptyState
+            icon={
+              <svg
+                className="w-12 h-12 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
               >
-                Add your first person
-              </Link>
-            )}
-          </div>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                />
+              </svg>
+            }
+            title={searchQuery ? "No people found" : "No people yet"}
+            description={searchQuery
+              ? "Try adjusting your search criteria"
+              : "Get started by adding your first person"}
+            action={!searchQuery ? {
+              label: "Add Person",
+              onClick: () => navigate('/admin/people/new')
+            } : undefined}
+          />
         ) : (
           <>
             {/* List */}
