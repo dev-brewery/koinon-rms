@@ -11,7 +11,7 @@ import { ApiClientError } from '../../services/api';
 export function LoginForm() {
   const { login } = useAuth();
   const { handleError } = useErrorHandler();
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -22,11 +22,11 @@ export function LoginForm() {
     setIsLoading(true);
 
     try {
-      await login({ username, password });
+      await login({ email, password });
     } catch (err) {
       // For 401 (invalid credentials), show inline error without toast
       if (err instanceof ApiClientError && err.statusCode === 401) {
-        setError('Invalid username or password');
+        setError('Invalid email or password');
       } else {
         // For all other errors, show toast notification
         const userError = handleError(err, 'Login');
@@ -41,18 +41,18 @@ export function LoginForm() {
     <form onSubmit={handleSubmit} className="space-y-4 max-w-sm mx-auto">
       <div>
         <label
-          htmlFor="username"
+          htmlFor="email"
           className="block text-sm font-medium text-gray-700 mb-1"
         >
-          Username
+          Email
         </label>
         <input
-          id="username"
-          type="text"
-          value={username}
-          onChange={e => setUsername(e.target.value)}
+          id="email"
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
           required
-          autoComplete="username"
+          autoComplete="email"
           className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
         />
       </div>

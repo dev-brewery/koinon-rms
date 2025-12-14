@@ -10,7 +10,7 @@ test.describe('Breadcrumb Navigation', () => {
   test.beforeEach(async ({ page }) => {
     const loginPage = new LoginPage(page);
     await loginPage.goto();
-    await loginPage.login('admin', 'admin123');
+    await loginPage.login('john.smith@example.com', 'admin123');
     await loginPage.expectLoggedIn();
   });
 
@@ -62,7 +62,7 @@ test.describe('Page Titles', () => {
   test.beforeEach(async ({ page }) => {
     const loginPage = new LoginPage(page);
     await loginPage.goto();
-    await loginPage.login('admin', 'admin123');
+    await loginPage.login('john.smith@example.com', 'admin123');
     await loginPage.expectLoggedIn();
   });
 

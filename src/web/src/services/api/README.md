@@ -20,7 +20,7 @@ import { authApi, setTokens } from '@/services/api';
 
 // Login
 const result = await authApi.login({
-  username: 'user@example.com',
+  email: 'user@example.com',
   password: 'password123'
 });
 
