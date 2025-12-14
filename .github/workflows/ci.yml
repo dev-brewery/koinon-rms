@@ -343,15 +343,24 @@ jobs:
 
     - name: Start CI services
       run: |
+        # Use unique container names to avoid conflicts between concurrent runs
+        echo "Using RUN_ID: $RUN_ID"
+
+        # Clean up any stale containers with same name
+        docker rm -f ci-postgres-$RUN_ID ci-redis-$RUN_ID 2>/dev/null || true
+
         echo "Starting postgres and redis via docker-compose..."
         docker-compose -f docker-compose.ci.yml up -d --wait
-        echo "Services healthy. Verifying PostgreSQL accepts connections..."
-        timeout 60 bash -c 'until docker exec ci-postgres pg_isready -U koinon -d koinon; do
+
+        echo "Services started. Verifying PostgreSQL accepts connections..."
+        timeout 90 bash -c 'until docker exec ci-postgres-'"$RUN_ID"' pg_isready -U koinon -d koinon; do
           echo "Waiting for PostgreSQL to accept connections..."
           sleep 2
         done'
         echo "PostgreSQL ready!"
         docker-compose -f docker-compose.ci.yml ps
+      env:
+        RUN_ID: ${{ github.run_id }}
 
     - name: Restore and build API
       run: |
@@ -368,7 +377,7 @@ jobs:
           --configuration Release
       env:
         ASPNETCORE_ENVIRONMENT: "Production"
-        ConnectionStrings__DefaultConnection: "Host=ci-postgres;Port=5432;Database=koinon;Username=koinon;Password=koinon"
+        ConnectionStrings__DefaultConnection: "Host=ci-postgres-${{ github.run_id }};Port=5432;Database=koinon;Username=koinon;Password=koinon"
         Jwt__Secret: "ci-integration-test-jwt-key-minimum-32-chars-long-for-security"
         Jwt__Issuer: "koinon-ci-integration"
         Jwt__Audience: "koinon-ci-integration"
@@ -381,8 +390,8 @@ jobs:
         sleep 5
       env:
         ASPNETCORE_URLS: "http://0.0.0.0:5000"
-        ConnectionStrings__DefaultConnection: "Host=ci-postgres;Port=5432;Database=koinon;Username=koinon;Password=koinon"
-        ConnectionStrings__Redis: "ci-redis:6379"
+        ConnectionStrings__DefaultConnection: "Host=ci-postgres-${{ github.run_id }};Port=5432;Database=koinon;Username=koinon;Password=koinon"
+        ConnectionStrings__Redis: "ci-redis-${{ github.run_id }}:6379"
         Jwt__Secret: "ci-integration-test-jwt-key-minimum-32-chars-long-for-security"
         Jwt__Issuer: "koinon-ci-integration"
         Jwt__Audience: "koinon-ci-integration"
@@ -414,7 +423,7 @@ jobs:
 
     - name: Check database connectivity
       run: |
-        docker exec ci-postgres psql -U koinon -d koinon -c "SELECT 1"
+        docker exec ci-postgres-${{ github.run_id }} psql -U koinon -d koinon -c "SELECT 1"
 
     - name: Cleanup
       if: always()
@@ -422,7 +431,9 @@ jobs:
         if [ -f /tmp/api.pid ]; then
           kill $(cat /tmp/api.pid) 2>/dev/null || true
         fi
-        docker-compose -f docker-compose.ci.yml down || true
+        docker rm -f ci-postgres-${{ github.run_id }} ci-redis-${{ github.run_id }} 2>/dev/null || true
+      env:
+        RUN_ID: ${{ github.run_id }}
 
   # Work unit validation
   work-unit-validation:
