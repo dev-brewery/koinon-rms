@@ -1,5 +1,6 @@
 using FluentValidation;
 using Koinon.Application.Common;
+using Koinon.Application.Constants;
 using Koinon.Application.DTOs;
 using Koinon.Application.DTOs.Requests;
 using Koinon.Application.Interfaces;
@@ -470,7 +471,7 @@ public class MyGroupsService(
         }
 
         // Check if user is a staff/admin role (can access all groups)
-        if (userContext.IsInRole("Staff") || userContext.IsInRole("Admin"))
+        if (userContext.IsInRole(Roles.Staff) || userContext.IsInRole(Roles.Admin))
         {
             return true;
         }

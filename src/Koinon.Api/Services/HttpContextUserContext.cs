@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Koinon.Application.Constants;
 using Koinon.Application.Interfaces;
 
 namespace Koinon.Api.Services;
@@ -54,13 +55,13 @@ public class HttpContextUserContext(IHttpContextAccessor httpContextAccessor) : 
         }
 
         // Admin role has access to all person data
-        if (IsInRole("Admin"))
+        if (IsInRole(Roles.Admin))
         {
             return true;
         }
 
         // Staff role has access to all person data
-        if (IsInRole("Staff"))
+        if (IsInRole(Roles.Staff))
         {
             return true;
         }
@@ -86,13 +87,13 @@ public class HttpContextUserContext(IHttpContextAccessor httpContextAccessor) : 
         }
 
         // Admin role has access to all locations
-        if (IsInRole("Admin"))
+        if (IsInRole(Roles.Admin))
         {
             return true;
         }
 
         // Check-in worker role
-        if (IsInRole("CheckInWorker"))
+        if (IsInRole(Roles.CheckInWorker))
         {
             return true;
         }
@@ -117,13 +118,13 @@ public class HttpContextUserContext(IHttpContextAccessor httpContextAccessor) : 
         }
 
         // Admin role has access to all families
-        if (IsInRole("Admin"))
+        if (IsInRole(Roles.Admin))
         {
             return true;
         }
 
         // Staff role has access to all families
-        if (IsInRole("Staff"))
+        if (IsInRole(Roles.Staff))
         {
             return true;
         }
