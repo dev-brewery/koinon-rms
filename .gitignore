@@ -183,7 +183,7 @@ temp/
 .git-sync/
 
 # GitHub - all files (prevent agent CI modifications)
-#.github/
+.github/
 
 # Claude Code temporary files
 tmp/validate-output.log
