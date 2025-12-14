@@ -1,3 +1,4 @@
+using Koinon.Application.Interfaces;
 using Koinon.Domain.Entities;
 using Koinon.Domain.Enums;
 using Koinon.Infrastructure.Data;
@@ -13,7 +14,8 @@ namespace Koinon.TestDataSeeder;
 public class DataSeeder
 {
     private readonly KoinonDbContext _context;
-    private readonly ILogger _logger;
+    private readonly ILogger<DataSeeder> _logger;
+    private readonly IAuthService _authService;
 
     // Fixed GUIDs for deterministic data
     private static readonly Guid _smithFamilyGuid = new("11111111-1111-1111-1111-111111111111");
@@ -37,10 +39,11 @@ public class DataSeeder
     private static readonly Guid _childRoleGuid = new("40404040-4040-4040-4040-404040404040");
     private static readonly Guid _memberRoleGuid = new("50505050-5050-5050-5050-505050505050");
 
-    public DataSeeder(KoinonDbContext context, ILogger logger)
+    public DataSeeder(KoinonDbContext context, ILogger<DataSeeder> logger, IAuthService authService)
     {
         _context = context;
         _logger = logger;
+        _authService = authService;
     }
 
     /// <summary>
@@ -275,7 +278,7 @@ public class DataSeeder
         // Save family group so we have its ID for people
         await _context.SaveChangesAsync(cancellationToken);
 
-        // John Smith (Adult)
+        // John Smith (Adult) - Admin user for E2E tests
         var johnSmith = new Person
         {
             Guid = _johnSmithGuid,
@@ -289,6 +292,7 @@ public class DataSeeder
             Email = "john.smith@example.com",
             IsEmailActive = true,
             PrimaryFamilyId = smithFamily.Id,
+            PasswordHash = await _authService.HashPasswordAsync("admin123"),
             CreatedDateTime = now
         };
         people.Add(johnSmith);
