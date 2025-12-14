@@ -19,7 +19,9 @@
     "e2e:ui": "playwright test --ui",
     "e2e:codegen": "playwright codegen http://localhost:5173",
     "e2e:debug": "playwright test --debug",
-    "e2e:report": "playwright show-report"
+    "e2e:report": "playwright show-report",
+    "perf:report": "npx tsx scripts/performance-report.ts",
+    "perf:validate": "npx tsx scripts/performance-report.ts --fail-on-regression"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -58,6 +60,7 @@
     "postcss": "^8.4.32",
     "sharp": "^0.34.5",
     "tailwindcss": "^3.3.6",
+    "tsx": "^4.7.0",
     "typescript": "^5.3.3",
     "vite": "^5.0.8",
     "vite-plugin-pwa": "^1.2.0",
