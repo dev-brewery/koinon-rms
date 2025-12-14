@@ -6,14 +6,15 @@
 #   2. Connect each runner container: docker network connect koinon-ci <runner-container>
 #
 # Usage in CI workflows:
-#   docker-compose -f docker-compose.ci.yml up -d
-#   # ... run tests with Host=ci-postgres, redis=ci-redis:6379 ...
+#   export COMPOSE_PROJECT_NAME="ci-${GITHUB_RUN_ID}"
+#   docker-compose -f docker-compose.ci.yml up -d --wait
+#   # Connect using container names: ci-postgres-${GITHUB_RUN_ID}, ci-redis-${GITHUB_RUN_ID}
 #   docker-compose -f docker-compose.ci.yml down
 
 services:
-  ci-postgres:
+  postgres:
     image: postgis/postgis:16-3.5-alpine
-    container_name: ci-postgres
+    container_name: ci-postgres-${RUN_ID:-default}
     environment:
       POSTGRES_USER: koinon
       POSTGRES_PASSWORD: koinon
@@ -26,9 +27,9 @@ services:
     networks:
       - koinon-ci
 
-  ci-redis:
+  redis:
     image: redis:7-alpine
-    container_name: ci-redis
+    container_name: ci-redis-${RUN_ID:-default}
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
