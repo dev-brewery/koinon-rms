@@ -23,7 +23,7 @@ export function RosterList({ roster, isLoading }: RosterListProps) {
 
   if (isLoading) {
     return (
-      <Card className="p-6">
+      <Card className="p-6" data-testid="roster-loading">
         <div className="animate-pulse space-y-4">
           <div className="h-4 bg-gray-200 rounded w-1/4"></div>
           <div className="space-y-3">

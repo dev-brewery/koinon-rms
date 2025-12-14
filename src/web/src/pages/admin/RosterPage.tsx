@@ -72,6 +72,7 @@ export function RosterPage() {
               checked={autoRefresh}
               onChange={(e) => setAutoRefresh(e.target.checked)}
               className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+              data-testid="auto-refresh-checkbox"
             />
             Auto-refresh (30s)
           </label>
@@ -107,6 +108,7 @@ export function RosterPage() {
           value={selectedLocationIdKey}
           onChange={setSelectedLocationIdKey}
           campusIdKey={campusIdKey}
+          data-testid="location-picker"
         />
         {!campusIdKey && (
           <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
@@ -120,7 +122,7 @@ export function RosterPage() {
 
       {/* Error state */}
       {error && (
-        <Card className="p-6 bg-red-50 border border-red-200">
+        <Card className="p-6 bg-red-50 border border-red-200" data-testid="roster-error">
           <p className="text-red-700 font-medium">Failed to load roster</p>
           <p className="text-red-600 text-sm mt-1">
             {error instanceof Error ? error.message : 'An unknown error occurred'}
@@ -130,7 +132,7 @@ export function RosterPage() {
 
       {/* Roster display */}
       {selectedLocationIdKey && !error && (
-        <RosterList roster={roster} isLoading={isLoading} />
+        <RosterList roster={roster} isLoading={isLoading} data-testid="roster-list" />
       )}
 
       {/* Empty state */}
