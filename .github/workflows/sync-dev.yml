@@ -6,7 +6,7 @@
 
   jobs:
     sync-dev:
-      runs-on: [self-hosted, linux]
+      runs-on: ubuntu-latest
       permissions:
         contents: write
       steps:
