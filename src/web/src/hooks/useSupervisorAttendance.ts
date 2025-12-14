@@ -79,12 +79,11 @@ export function useSupervisorAttendance(
         const rosters = await checkinApi.getMultipleRoomRosters(locationIdKeys);
         return aggregateRostersToAttendance(rosters);
       } catch (error) {
-        // Log error for debugging but return empty array to avoid breaking UI
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         if (import.meta.env.DEV) {
           console.error('Failed to fetch supervisor attendance:', errorMessage, error);
         }
-        // Re-throw to let React Query handle error state if needed
+        // Re-throw to let React Query handle error state
         throw new Error(`Failed to fetch supervisor attendance: ${errorMessage}`);
       }
     },
