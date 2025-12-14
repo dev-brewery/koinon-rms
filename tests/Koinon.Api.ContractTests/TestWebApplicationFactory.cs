@@ -1,9 +1,9 @@
+using Koinon.Application.Interfaces;
+using Koinon.Infrastructure.Data;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Koinon.Infrastructure.Data;
-using Koinon.Application.Interfaces;
 
 namespace Koinon.Api.ContractTests;
 
