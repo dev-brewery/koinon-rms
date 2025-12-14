@@ -10,9 +10,7 @@ import { RosterList } from '@/components/admin/roster/RosterList';
 import { Button, Card } from '@/components/ui';
 import { LocationPicker } from '@/components/LocationPicker';
 import * as referenceApi from '@/services/api/reference';
-
-// localStorage key for persisting selected location
-const LOCATION_STORAGE_KEY = 'selectedLocationIdKey';
+import { STORAGE_KEYS } from '@/lib/storageKeys';
 
 export function RosterPage() {
   const [selectedLocationIdKey, setSelectedLocationIdKey] = useState<string>('');
@@ -35,7 +33,7 @@ export function RosterPage() {
 
   // Load saved location from localStorage on mount (CRITICAL-1 FIX: Single source of truth)
   useEffect(() => {
-    const savedLocationIdKey = localStorage.getItem(LOCATION_STORAGE_KEY);
+    const savedLocationIdKey = localStorage.getItem(STORAGE_KEYS.SELECTED_LOCATION_ID_KEY);
     if (savedLocationIdKey) {
       setSelectedLocationIdKey(savedLocationIdKey);
     }
@@ -44,7 +42,7 @@ export function RosterPage() {
   // Persist location selection to localStorage whenever it changes
   useEffect(() => {
     if (selectedLocationIdKey) {
-      localStorage.setItem(LOCATION_STORAGE_KEY, selectedLocationIdKey);
+      localStorage.setItem(STORAGE_KEYS.SELECTED_LOCATION_ID_KEY, selectedLocationIdKey);
     }
   }, [selectedLocationIdKey]);
 
