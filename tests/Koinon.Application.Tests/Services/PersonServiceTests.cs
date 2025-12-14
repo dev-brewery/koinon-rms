@@ -8,6 +8,7 @@ using Koinon.Application.Interfaces;
 using Koinon.Application.Mapping;
 using Koinon.Application.Services;
 using Koinon.Application.Validators;
+using Koinon.Domain.Data;
 using Koinon.Domain.Entities;
 using Koinon.Domain.Enums;
 using Koinon.Infrastructure.Data;
@@ -473,6 +474,307 @@ public class PersonServiceTests : IDisposable
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value!.Age.Should().Be(25);
+    }
+
+    [Fact]
+    public async Task UpdatePhotoAsync_UserUpdatingOwnPhoto_Succeeds()
+    {
+        // Arrange
+        var person = await _context.People.FindAsync(1);
+        var idKey = person!.IdKey;
+
+        // Create a binary file (photo)
+        var photo = new BinaryFile
+        {
+            Id = 1,
+            FileName = "profile.jpg",
+            MimeType = "image/jpeg",
+            StorageKey = "photos/profile.jpg",
+            FileSizeBytes = 12345,
+            CreatedDateTime = DateTime.UtcNow
+        };
+        await _context.BinaryFiles.AddAsync(photo);
+        await _context.SaveChangesAsync();
+
+        var photoIdKey = photo.IdKey;
+
+        // Mock user context to simulate user updating their own photo
+        var mockUserContext = new Mock<IUserContext>();
+        mockUserContext.Setup(x => x.CurrentPersonId).Returns(1);
+        mockUserContext.Setup(x => x.IsAuthenticated).Returns(true);
+        mockUserContext.Setup(x => x.CanAccessPerson(1)).Returns(true);
+
+        var service = new PersonService(
+            _context,
+            _mapper,
+            _createValidator,
+            _updateValidator,
+            mockUserContext.Object,
+            _mockLogger.Object
+        );
+
+        // Act
+        var result = await service.UpdatePhotoAsync(idKey, photoIdKey);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.PhotoUrl.Should().NotBeNull();
+
+        // Verify in database
+        var updatedPerson = await _context.People.FindAsync(1);
+        updatedPerson!.PhotoId.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task UpdatePhotoAsync_AdminUpdatingOtherPersonPhoto_Succeeds()
+    {
+        // Arrange
+        var person = await _context.People.FindAsync(1);
+        var idKey = person!.IdKey;
+
+        // Create a binary file (photo)
+        var photo = new BinaryFile
+        {
+            Id = 2,
+            FileName = "admin-uploaded.jpg",
+            MimeType = "image/jpeg",
+            StorageKey = "photos/admin-uploaded.jpg",
+            FileSizeBytes = 23456,
+            CreatedDateTime = DateTime.UtcNow
+        };
+        await _context.BinaryFiles.AddAsync(photo);
+        await _context.SaveChangesAsync();
+
+        var photoIdKey = photo.IdKey;
+
+        // Mock user context to simulate admin updating another person's photo
+        var mockUserContext = new Mock<IUserContext>();
+        mockUserContext.Setup(x => x.CurrentPersonId).Returns(99); // Different person ID
+        mockUserContext.Setup(x => x.IsAuthenticated).Returns(true);
+        mockUserContext.Setup(x => x.CanAccessPerson(1)).Returns(true); // Admin can access
+        mockUserContext.Setup(x => x.IsInRole("Admin")).Returns(true);
+
+        var service = new PersonService(
+            _context,
+            _mapper,
+            _createValidator,
+            _updateValidator,
+            mockUserContext.Object,
+            _mockLogger.Object
+        );
+
+        // Act
+        var result = await service.UpdatePhotoAsync(idKey, photoIdKey);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.PhotoUrl.Should().NotBeNull();
+
+        // Verify in database
+        var updatedPerson = await _context.People.FindAsync(1);
+        updatedPerson!.PhotoId.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task UpdatePhotoAsync_StaffUpdatingOtherPersonPhoto_Succeeds()
+    {
+        // Arrange
+        var person = await _context.People.FindAsync(2);
+        var idKey = person!.IdKey;
+
+        // Create a binary file (photo)
+        var photo = new BinaryFile
+        {
+            Id = 3,
+            FileName = "staff-uploaded.jpg",
+            MimeType = "image/jpeg",
+            StorageKey = "photos/staff-uploaded.jpg",
+            FileSizeBytes = 34567,
+            CreatedDateTime = DateTime.UtcNow
+        };
+        await _context.BinaryFiles.AddAsync(photo);
+        await _context.SaveChangesAsync();
+
+        var photoIdKey = photo.IdKey;
+
+        // Mock user context to simulate staff updating another person's photo
+        var mockUserContext = new Mock<IUserContext>();
+        mockUserContext.Setup(x => x.CurrentPersonId).Returns(88); // Different person ID
+        mockUserContext.Setup(x => x.IsAuthenticated).Returns(true);
+        mockUserContext.Setup(x => x.CanAccessPerson(2)).Returns(true); // Staff can access
+        mockUserContext.Setup(x => x.IsInRole("Staff")).Returns(true);
+
+        var service = new PersonService(
+            _context,
+            _mapper,
+            _createValidator,
+            _updateValidator,
+            mockUserContext.Object,
+            _mockLogger.Object
+        );
+
+        // Act
+        var result = await service.UpdatePhotoAsync(idKey, photoIdKey);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.PhotoUrl.Should().NotBeNull();
+
+        // Verify in database
+        var updatedPerson = await _context.People.FindAsync(2);
+        updatedPerson!.PhotoId.Should().Be(3);
+    }
+
+    [Fact]
+    public async Task UpdatePhotoAsync_RegularUserUpdatingOtherPersonPhoto_Fails()
+    {
+        // Arrange
+        var person = await _context.People.FindAsync(1);
+        var idKey = person!.IdKey;
+
+        // Create a binary file (photo)
+        var photo = new BinaryFile
+        {
+            Id = 4,
+            FileName = "unauthorized.jpg",
+            MimeType = "image/jpeg",
+            StorageKey = "photos/unauthorized.jpg",
+            FileSizeBytes = 45678,
+            CreatedDateTime = DateTime.UtcNow
+        };
+        await _context.BinaryFiles.AddAsync(photo);
+        await _context.SaveChangesAsync();
+
+        var photoIdKey = photo.IdKey;
+
+        // Mock user context to simulate regular user trying to update another person's photo
+        var mockUserContext = new Mock<IUserContext>();
+        mockUserContext.Setup(x => x.CurrentPersonId).Returns(2); // Different person ID
+        mockUserContext.Setup(x => x.IsAuthenticated).Returns(true);
+        mockUserContext.Setup(x => x.CanAccessPerson(1)).Returns(false); // No access
+        mockUserContext.Setup(x => x.IsInRole("Admin")).Returns(false);
+        mockUserContext.Setup(x => x.IsInRole("Staff")).Returns(false);
+
+        var service = new PersonService(
+            _context,
+            _mapper,
+            _createValidator,
+            _updateValidator,
+            mockUserContext.Object,
+            _mockLogger.Object
+        );
+
+        // Act
+        var result = await service.UpdatePhotoAsync(idKey, photoIdKey);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Code.Should().Be("FORBIDDEN");
+        result.Error.Message.Should().Contain("permission");
+
+        // Verify photo was not updated in database
+        var unchangedPerson = await _context.People.FindAsync(1);
+        unchangedPerson!.PhotoId.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task UpdatePhotoAsync_UnauthenticatedUser_Fails()
+    {
+        // Arrange
+        var person = await _context.People.FindAsync(1);
+        var idKey = person!.IdKey;
+
+        // Mock user context to simulate unauthenticated user
+        var mockUserContext = new Mock<IUserContext>();
+        mockUserContext.Setup(x => x.CurrentPersonId).Returns((int?)null);
+        mockUserContext.Setup(x => x.IsAuthenticated).Returns(false);
+
+        var service = new PersonService(
+            _context,
+            _mapper,
+            _createValidator,
+            _updateValidator,
+            mockUserContext.Object,
+            _mockLogger.Object
+        );
+
+        // Act
+        var result = await service.UpdatePhotoAsync(idKey, "photo-idkey");
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Code.Should().Be("FORBIDDEN");
+        result.Error.Message.Should().Contain("Authentication required");
+    }
+
+    [Fact]
+    public async Task UpdatePhotoAsync_WithNullPhotoIdKey_RemovesPhoto()
+    {
+        // Arrange
+        var person = await _context.People.FindAsync(1);
+        person!.PhotoId = 999; // Set existing photo
+        await _context.SaveChangesAsync();
+
+        var idKey = person.IdKey;
+
+        // Mock user context
+        var mockUserContext = new Mock<IUserContext>();
+        mockUserContext.Setup(x => x.CurrentPersonId).Returns(1);
+        mockUserContext.Setup(x => x.IsAuthenticated).Returns(true);
+        mockUserContext.Setup(x => x.CanAccessPerson(1)).Returns(true);
+
+        var service = new PersonService(
+            _context,
+            _mapper,
+            _createValidator,
+            _updateValidator,
+            mockUserContext.Object,
+            _mockLogger.Object
+        );
+
+        // Act
+        var result = await service.UpdatePhotoAsync(idKey, null);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+
+        // Verify photo was removed in database
+        var updatedPerson = await _context.People.FindAsync(1);
+        updatedPerson!.PhotoId.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task UpdatePhotoAsync_WithNonexistentPhotoId_ReturnsNotFound()
+    {
+        // Arrange
+        var person = await _context.People.FindAsync(1);
+        var idKey = person!.IdKey;
+
+        // Create a valid IdKey for a photo that doesn't exist in database
+        var nonexistentPhotoIdKey = IdKeyHelper.Encode(9999);
+
+        // Mock user context
+        var mockUserContext = new Mock<IUserContext>();
+        mockUserContext.Setup(x => x.CurrentPersonId).Returns(1);
+        mockUserContext.Setup(x => x.IsAuthenticated).Returns(true);
+        mockUserContext.Setup(x => x.CanAccessPerson(1)).Returns(true);
+
+        var service = new PersonService(
+            _context,
+            _mapper,
+            _createValidator,
+            _updateValidator,
+            mockUserContext.Object,
+            _mockLogger.Object
+        );
+
+        // Act
+        var result = await service.UpdatePhotoAsync(idKey, nonexistentPhotoIdKey);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Code.Should().Be("NOT_FOUND");
+        result.Error.Message.Should().Contain("Photo");
     }
 
     public void Dispose()
