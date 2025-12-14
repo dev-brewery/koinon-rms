@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { LoginPage } from '../../fixtures/page-objects/login.page';
+import { testData } from '../../fixtures/test-data';
 
 test.describe('Login Flow', () => {
   test.beforeEach(async ({ page }) => {
@@ -25,14 +26,14 @@ test.describe('Login Flow', () => {
   test('should redirect to dashboard on successful login', async ({ page }) => {
     const loginPage = new LoginPage(page);
 
-    await loginPage.login('john.smith@example.com', 'admin123');
+    await loginPage.login(testData.credentials.admin.email, testData.credentials.admin.password);
     await loginPage.expectLoggedIn();
   });
 
   test('should persist session after page reload', async ({ page }) => {
     const loginPage = new LoginPage(page);
 
-    await loginPage.login('john.smith@example.com', 'admin123');
+    await loginPage.login(testData.credentials.admin.email, testData.credentials.admin.password);
     await loginPage.expectLoggedIn();
 
     // Reload and verify still logged in
@@ -49,15 +50,15 @@ test.describe('Login Flow', () => {
   test('@smoke should complete login flow', async ({ page }) => {
     const loginPage = new LoginPage(page);
 
-    await loginPage.login('john.smith@example.com', 'admin123');
+    await loginPage.login(testData.credentials.admin.email, testData.credentials.admin.password);
     await loginPage.expectLoggedIn();
   });
 
   test('should submit form on Enter key press', async ({ page }) => {
     const loginPage = new LoginPage(page);
 
-    await loginPage.emailInput.fill('john.smith@example.com');
-    await loginPage.passwordInput.fill('admin123');
+    await loginPage.emailInput.fill(testData.credentials.admin.email);
+    await loginPage.passwordInput.fill(testData.credentials.admin.password);
     await loginPage.passwordInput.press('Enter');
 
     await loginPage.expectLoggedIn();

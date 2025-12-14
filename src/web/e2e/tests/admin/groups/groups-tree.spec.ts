@@ -3,18 +3,14 @@
  * Tests the groups tree view, search, and navigation functionality
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../../../fixtures/auth.fixture';
 import { GroupsPage } from '../../../fixtures/page-objects/groups.page';
-import { LoginPage } from '../../../fixtures/page-objects/login.page';
 import { testData } from '../../../fixtures/test-data';
 
 test.describe('Groups Tree Navigation', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ loginAsAdmin, page }) => {
     // Login first
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+    await loginAsAdmin();
 
     // Navigate to groups page
     const groupsPage = new GroupsPage(page);
@@ -159,11 +155,8 @@ test.describe('Groups Tree Navigation', () => {
 });
 
 test.describe('Groups Tree - Navigation Performance', () => {
-  test.beforeEach(async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+  test.beforeEach(async ({ loginAsAdmin }) => {
+    await loginAsAdmin();
   });
 
   test('should load groups page within reasonable time', async ({ page }) => {

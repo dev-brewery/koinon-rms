@@ -12,18 +12,14 @@
  * NOTE: Update selectors when UI is implemented to use data-testid attributes
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../../../fixtures/auth.fixture';
 import { PeoplePage } from '../../../fixtures/page-objects/people.page';
-import { LoginPage } from '../../../fixtures/page-objects/login.page';
 import { testData } from '../../../fixtures/test-data';
 
 test.describe('Person CRUD Operations', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ loginAsAdmin }) => {
     // Login first
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+    await loginAsAdmin();
   });
 
   test('should create a new person successfully', async ({ page }) => {
@@ -458,11 +454,8 @@ test.describe('Person CRUD Operations', () => {
 });
 
 test.describe('Person Form Validation', () => {
-  test.beforeEach(async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+  test.beforeEach(async ({ loginAsAdmin }) => {
+    await loginAsAdmin();
   });
 
   test('should validate first name max length (50 chars)', async ({ page }) => {

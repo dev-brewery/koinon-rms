@@ -4,7 +4,9 @@
  */
 
 import { test, expect } from '@playwright/test';
+import { test as authTest } from '../../fixtures/auth.fixture';
 import { LoginPage } from '../../fixtures/page-objects/login.page';
+import { testData } from '../../fixtures/test-data';
 
 test.describe('Error Handling', () => {
   test('should display 404 page for non-existent routes', async ({ page }) => {
@@ -23,11 +25,8 @@ test.describe('Error Handling', () => {
     await expect(page).toHaveURL('/');
   });
 
-  test('should display 404 for invalid admin routes', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+  authTest('should display 404 for invalid admin routes', async ({ loginAsAdmin, page }) => {
+    await loginAsAdmin();
 
     await page.goto('/admin/this-does-not-exist');
 
@@ -36,11 +35,8 @@ test.describe('Error Handling', () => {
     await expect(errorHeading).toContainText(/404|not found|error/i);
   });
 
-  test('should display 404 for invalid person IdKey', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+  authTest('should display 404 for invalid person IdKey', async ({ loginAsAdmin, page }) => {
+    await loginAsAdmin();
 
     // Try to access non-existent person
     await page.goto('/admin/people/invalid-id-key');
@@ -71,7 +67,7 @@ test.describe('Error Handling', () => {
 
     // Navigate to login
     await page.goto('/login');
-    await loginPage.login('john.smith@example.com', 'admin123');
+    await loginPage.login(testData.credentials.admin.email, testData.credentials.admin.password);
     await loginPage.expectLoggedIn();
 
     // Should successfully navigate to valid admin page
@@ -82,11 +78,8 @@ test.describe('Error Handling', () => {
 });
 
 test.describe('Error Boundaries', () => {
-  test.beforeEach(async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+  test.beforeEach(async ({ loginAsAdmin }) => {
+    await loginAsAdmin();
   });
 
   test('should catch errors within admin routes', async ({ page }) => {
@@ -146,7 +139,7 @@ test.describe('Protected Routes', () => {
 
     // Login
     const loginPage = new LoginPage(page);
-    await loginPage.login('john.smith@example.com', 'admin123');
+    await loginPage.login(testData.credentials.admin.email, testData.credentials.admin.password);
 
     // Should redirect back to intended page (or dashboard)
     // Note: This behavior depends on ProtectedRoute implementation
@@ -155,11 +148,8 @@ test.describe('Protected Routes', () => {
 });
 
 test.describe('Navigation Resilience', () => {
-  test.beforeEach(async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+  test.beforeEach(async ({ loginAsAdmin }) => {
+    await loginAsAdmin();
   });
 
   test('should handle browser back/forward buttons', async ({ page }) => {

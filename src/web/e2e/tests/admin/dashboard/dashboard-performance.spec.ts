@@ -9,8 +9,7 @@
  * - First Contentful Paint occurs within 1000ms
  */
 
-import { test, expect } from '@playwright/test';
-import { LoginPage } from '../../../fixtures/page-objects/login.page';
+import { test, expect } from '../../../fixtures/auth.fixture';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -45,12 +44,9 @@ function saveBaseline(data: Record<string, unknown>) {
 }
 
 test.describe('Dashboard Performance', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ loginAsAdmin }) => {
     // Login before each test
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+    await loginAsAdmin();
   });
 
   test('should load dashboard page within 1000ms', async ({ page }) => {
@@ -240,11 +236,8 @@ test.describe('Dashboard Performance', () => {
 });
 
 test.describe('Dashboard Performance - Full Flow', () => {
-  test.beforeEach(async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+  test.beforeEach(async ({ loginAsAdmin }) => {
+    await loginAsAdmin();
   });
 
   test('should measure complete dashboard load cycle', async ({ page }) => {
@@ -283,11 +276,8 @@ test.describe('Dashboard Performance - Full Flow', () => {
 });
 
 test.describe('Dashboard Performance - Regression Detection', () => {
-  test.beforeEach(async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+  test.beforeEach(async ({ loginAsAdmin }) => {
+    await loginAsAdmin();
   });
 
   test('@smoke should not regress from baseline', async ({ page }) => {

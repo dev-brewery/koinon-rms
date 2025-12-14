@@ -15,16 +15,12 @@
  * NOTE: These tests target the existing phone editor UI in PersonFormPage.tsx
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../../../fixtures/auth.fixture';
 import { PeoplePage } from '../../../fixtures/page-objects/people.page';
-import { LoginPage } from '../../../fixtures/page-objects/login.page';
 
 test.describe('Person Phone Number Management - Create Mode', () => {
-  test.beforeEach(async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+  test.beforeEach(async ({ loginAsAdmin }) => {
+    await loginAsAdmin();
   });
 
   test('should create person without phone numbers', async ({ page }) => {
@@ -267,11 +263,8 @@ test.describe('Person Phone Number Management - Create Mode', () => {
 });
 
 test.describe('Person Phone Number Management - Edit Mode', () => {
-  test.beforeEach(async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+  test.beforeEach(async ({ loginAsAdmin }) => {
+    await loginAsAdmin();
   });
 
   test('should show existing phone numbers in edit mode', async ({ page }) => {
@@ -489,11 +482,8 @@ test.describe('Person Phone Number Management - Edit Mode', () => {
 });
 
 test.describe('Person Phone Number Management - Edge Cases', () => {
-  test.beforeEach(async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+  test.beforeEach(async ({ loginAsAdmin }) => {
+    await loginAsAdmin();
   });
 
   test('should handle adding many phones', async ({ page }) => {
@@ -610,11 +600,8 @@ test.describe('Person Phone Number Management - Edge Cases', () => {
 });
 
 test.describe('Person Phone Number - Form Interactions', () => {
-  test.beforeEach(async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+  test.beforeEach(async ({ loginAsAdmin }) => {
+    await loginAsAdmin();
   });
 
   test('should maintain phone data when form validation fails', async ({ page }) => {

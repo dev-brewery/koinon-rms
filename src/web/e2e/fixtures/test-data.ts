@@ -180,6 +180,16 @@ export const testData = {
       checkInEndOffsetMinutes: 15,
     },
   },
+
+  credentials: {
+    admin: {
+      email: 'john.smith@example.com',
+      password: 'admin123',
+    },
+    kiosk: {
+      deviceCode: 'KIOSK-001',
+    },
+  },
 } as const;
 
 export type TestData = typeof testData;

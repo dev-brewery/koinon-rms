@@ -3,16 +3,12 @@
  * Tests all admin navigation links and route accessibility
  */
 
-import { test, expect } from '@playwright/test';
-import { LoginPage } from '../../fixtures/page-objects/login.page';
+import { test, expect } from '../../fixtures/auth.fixture';
 
 test.describe('Admin Navigation', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ loginAsAdmin, page }) => {
     // Login before each test
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+    await loginAsAdmin();
 
     // Navigate to admin area
     await page.goto('/admin');
@@ -140,11 +136,8 @@ test.describe('Admin Navigation', () => {
 test.describe('Admin Navigation - Mobile', () => {
   test.use({ viewport: { width: 375, height: 667 } });
 
-  test.beforeEach(async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+  test.beforeEach(async ({ loginAsAdmin, page }) => {
+    await loginAsAdmin();
     await page.goto('/admin');
   });
 
