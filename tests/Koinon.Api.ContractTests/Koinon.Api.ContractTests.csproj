@@ -10,17 +10,11 @@
 
   <ItemGroup>
     <!-- Test framework -->
-    <PackageReference Include="xunit">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
+    <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-
-    <!-- Contract testing -->
-    <PackageReference Include="PactNet" />
 
     <!-- HTTP client -->
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
@@ -28,11 +22,16 @@
 
     <!-- Assertions -->
     <PackageReference Include="FluentAssertions" />
+
+    <!-- In-memory database for testing -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Reference API project once created -->
-    <!-- <ProjectReference Include="..\..\src\Koinon.Api\Koinon.Api.csproj" /> -->
+    <!-- Project references -->
+    <ProjectReference Include="..\..\src\Koinon.Api\Koinon.Api.csproj" />
+    <ProjectReference Include="..\..\src\Koinon.Application\Koinon.Application.csproj" />
+    <ProjectReference Include="..\..\src\Koinon.Domain\Koinon.Domain.csproj" />
   </ItemGroup>
 
 </Project>

@@ -90,8 +90,12 @@ builder.Services.AddKoinonInfrastructure(postgresConnectionString, builder.Confi
 // Add application services
 builder.Services.AddKoinonApplicationServices();
 
-// Add Hangfire background job processing
-builder.Services.AddKoinonHangfire(postgresConnectionString);
+// Add Hangfire background job processing (skip in Testing environment)
+var useHangfire = builder.Configuration.GetValue<bool>("UseHangfire", true);
+if (useHangfire && !builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Services.AddKoinonHangfire(postgresConnectionString);
+}
 
 // Add health checks
 builder.Services.AddHealthChecks()
@@ -135,13 +139,19 @@ app.MapControllers();
 // Map health check endpoint (no authentication required)
 app.MapHealthChecks("/health");
 
-// Map Hangfire dashboard (requires Admin role)
-app.MapHangfireDashboard("/hangfire", new DashboardOptions
+// Map Hangfire dashboard (requires Admin role) - only if Hangfire is enabled
+if (useHangfire && !app.Environment.IsEnvironment("Testing"))
 {
-    Authorization = new[] { new HangfireDashboardAuthorizationFilter() },
-    DashboardTitle = "Koinon RMS Background Jobs",
-    StatsPollingInterval = 10000,
-    DisplayStorageConnectionString = false
-});
+    app.MapHangfireDashboard("/hangfire", new DashboardOptions
+    {
+        Authorization = new[] { new HangfireDashboardAuthorizationFilter() },
+        DashboardTitle = "Koinon RMS Background Jobs",
+        StatsPollingInterval = 10000,
+        DisplayStorageConnectionString = false
+    });
+}
 
 await app.RunAsync();
+
+// Make the implicit Program class public for integration testing
+public partial class Program { }
