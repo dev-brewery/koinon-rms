@@ -9,45 +9,36 @@ on:
 env:
   DOTNET_VERSION: '8.0.x'
   NODE_VERSION: '20.x'
+  POSTGRES_VERSION: '16'
 
 jobs:
   # Backend build and test
+  # Uses docker-compose with unique container names to avoid port conflicts
   backend:
     name: Backend Build & Test
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux]
 
     permissions:
       checks: write
       contents: read
 
-    services:
-      postgres:
-        image: postgis/postgis:16-3.5-alpine
-        env:
-          POSTGRES_USER: koinon
-          POSTGRES_PASSWORD: koinon_test
-          POSTGRES_DB: koinon_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
-      redis:
-        image: redis:7-alpine
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 6379:6379
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+
+    - name: Start test services
+      run: |
+        # Clean up any stale containers
+        docker rm -f ci-postgres-$RUN_ID ci-redis-$RUN_ID 2>/dev/null || true
+
+        # Start services with unique project name to isolate from concurrent runs
+        docker-compose -f docker-compose.ci.yml up -d --wait
+
+        # Wait for postgres to accept connections
+        timeout 60 bash -c 'until docker exec ci-postgres-'"$RUN_ID"' pg_isready -U koinon -d koinon; do sleep 2; done'
+      env:
+        RUN_ID: ${{ github.run_id }}
+        COMPOSE_PROJECT_NAME: ci-${{ github.run_id }}
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
@@ -67,8 +58,8 @@ jobs:
     - name: Run unit tests
       run: dotnet test --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx"
       env:
-        ConnectionStrings__KoinonDb: "Host=localhost;Port=5432;Database=koinon_test;Username=koinon;Password=koinon_test"
-        ConnectionStrings__Redis: "localhost:6379"
+        ConnectionStrings__KoinonDb: "Host=ci-postgres-${{ github.run_id }};Port=5432;Database=koinon;Username=koinon;Password=koinon"
+        ConnectionStrings__Redis: "ci-redis-${{ github.run_id }}:6379"
 
     - name: Publish test results
       uses: dorny/test-reporter@v1
@@ -85,10 +76,14 @@ jobs:
         name: backend-coverage
         path: '**/coverage.cobertura.xml'
 
+    - name: Cleanup services
+      if: always()
+      run: docker rm -f ci-postgres-${{ github.run_id }} ci-redis-${{ github.run_id }} 2>/dev/null || true
+
   # Frontend build and test
   frontend:
     name: Frontend Build & Test
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux]
 
     defaults:
       run:
@@ -134,29 +129,15 @@ jobs:
         path: src/web/coverage
 
   # Migration safety check
+  # Uses docker-compose with unique container names to avoid port conflicts
   migration-check:
     name: Migration Safety Check
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux]
     if: github.event_name == 'pull_request'
 
     permissions:
       checks: write
       contents: read
-
-    services:
-      postgres:
-        image: postgis/postgis:16-3.5-alpine
-        env:
-          POSTGRES_USER: koinon
-          POSTGRES_PASSWORD: koinon_test
-          POSTGRES_DB: koinon_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
 
     steps:
     - name: Checkout code
@@ -185,10 +166,12 @@ jobs:
 
         if [ ! -d "$MIGRATIONS_DIR" ]; then
           echo "migrations_found=false" >> $GITHUB_OUTPUT
-          echo "Migrations directory not found"
+          echo "⚠️ Migrations directory not found"
           exit 0
         fi
 
+        # Find actual migration files (exclude Designer.cs and ModelSnapshot.cs)
+        # Compare against origin/main to find new migrations
         if git diff --name-only origin/main...HEAD -- "$MIGRATIONS_DIR/*.cs" | \
            grep -E "Migrations/[0-9]{14}_.*\.cs$" | \
            grep -v "\.Designer\.cs$" | \
@@ -205,6 +188,16 @@ jobs:
           echo "migrations_found=false" >> $GITHUB_OUTPUT
         fi
 
+    - name: Start postgres for migration check
+      if: steps.check-migrations.outputs.migrations_found == 'true'
+      run: |
+        docker rm -f ci-postgres-$RUN_ID 2>/dev/null || true
+        docker-compose -f docker-compose.ci.yml up -d postgres
+        timeout 60 bash -c 'until docker exec ci-postgres-'"$RUN_ID"' pg_isready -U koinon -d koinon; do sleep 2; done'
+      env:
+        RUN_ID: ${{ github.run_id }}
+        COMPOSE_PROJECT_NAME: ci-${{ github.run_id }}
+
     - name: Validate migrations can apply
       if: steps.check-migrations.outputs.migrations_found == 'true'
       run: |
@@ -219,13 +212,17 @@ jobs:
           --startup-project src/Koinon.Api \
           --verbose
 
-        echo "All migrations validated successfully"
+        echo "✅ All migrations validated successfully"
 
       env:
-        ConnectionStrings__KoinonDb: "Host=localhost;Port=5432;Database=koinon_test;Username=koinon;Password=koinon_test"
+        ConnectionStrings__KoinonDb: "Host=ci-postgres-${{ github.run_id }};Port=5432;Database=koinon;Username=koinon;Password=koinon"
         Jwt__Secret: "ci-test-jwt-secret-key-minimum-32-characters-long"
         Jwt__Issuer: "koinon-ci-test"
         Jwt__Audience: "koinon-ci-test"
+
+    - name: Cleanup postgres
+      if: always() && steps.check-migrations.outputs.migrations_found == 'true'
+      run: docker rm -f ci-postgres-${{ github.run_id }} 2>/dev/null || true
 
     - name: Check for destructive changes
       if: steps.check-migrations.outputs.migrations_found == 'true'
@@ -238,6 +235,8 @@ jobs:
 
         echo "Checking for destructive database changes in Up() methods..."
 
+        # List of destructive EF Core migration methods
+        # Note: RenameIndex is excluded as it's a metadata-only operation (no data loss)
         DESTRUCTIVE_PATTERNS=(
           "DropTable"
           "DropColumn"
@@ -252,6 +251,7 @@ jobs:
 
         DESTRUCTIVE_FOUND=false
 
+        # Get list of new migration files
         NEW_MIGRATIONS=$(git diff --name-only origin/main...HEAD -- "$MIGRATIONS_DIR/*.cs" | \
           grep -E "Migrations/[0-9]{14}_.*\.cs$" | \
           grep -v "\.Designer\.cs$" | \
@@ -262,20 +262,25 @@ jobs:
           exit 0
         fi
 
+        # Extract only Up() method content from each new migration
+        # Down() methods contain legitimate rollback code (drops) - we ignore those
         > "$UP_METHODS_FILE"
         for migration in $NEW_MIGRATIONS; do
           if [ -f "$migration" ]; then
             echo "Checking: $migration"
+            # Extract content between 'protected override void Up(' and 'protected override void Down('
+            # This ensures we only check the Up() method, not the Down() rollback method
             awk '/protected override void Up\(/,/protected override void Down\(/' "$migration" | \
               head -n -1 >> "$UP_METHODS_FILE"
           fi
         done
 
+        # Check Up() method content for destructive operations
         for pattern in "${DESTRUCTIVE_PATTERNS[@]}"; do
           if grep -n "migrationBuilder\.$pattern" "$UP_METHODS_FILE" > "$TEMP_FILE" 2>/dev/null; then
             if [ -s "$TEMP_FILE" ]; then
               echo ""
-              echo "WARNING: Potentially destructive operation detected in Up(): $pattern"
+              echo "⚠️ WARNING: Potentially destructive operation detected in Up(): $pattern"
               echo "Location:"
               cat "$TEMP_FILE"
               echo ""
@@ -285,47 +290,35 @@ jobs:
         done
 
         if [ "$DESTRUCTIVE_FOUND" = true ]; then
-          echo "DESTRUCTIVE MIGRATION DETECTED"
+          echo "❌ DESTRUCTIVE MIGRATION DETECTED"
           echo ""
-          echo "This migration's Up() method contains operations that may result in data loss."
-          echo "Please review and confirm this is intentional."
+          echo "This migration's Up() method contains operations that may result in data loss:"
+          echo "- DropTable: Entire table and data removed"
+          echo "- DropColumn: Column and all data removed"
+          echo "- DropIndex: Performance impact"
+          echo "- Other drop/rename operations: May cause service disruption"
+          echo ""
+          echo "REQUIRED: Please address one of the following:"
+          echo "1. Refactor migration to preserve data (e.g., archive instead of drop)"
+          echo "2. Add comment in migration explaining why data loss is acceptable"
+          echo "3. Update this job's DESTRUCTIVE_PATTERNS to exclude safe patterns"
+          echo ""
+          echo "Note: Down() methods are NOT checked - rollback code legitimately uses drops"
           exit 1
         else
-          echo "No destructive changes detected in Up() methods"
+          echo "✅ No destructive changes detected in Up() methods"
+          echo "   (Down() methods with rollback drops are expected and not flagged)"
         fi
 
         rm -f "$TEMP_FILE" "$UP_METHODS_FILE"
 
   # Integration smoke test
+  # Uses docker-compose with shared network (koinon-ci) for service containers
+  # Prerequisites: Runner containers must be connected to koinon-ci network
   integration:
     name: Integration Smoke Test
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux]
     needs: [backend, frontend]
-
-    services:
-      postgres:
-        image: postgis/postgis:16-3.5-alpine
-        env:
-          POSTGRES_USER: koinon
-          POSTGRES_PASSWORD: koinon
-          POSTGRES_DB: koinon
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
-      redis:
-        image: redis:7-alpine
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 6379:6379
 
     steps:
     - name: Checkout code
@@ -337,10 +330,46 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
         global-json-file: global.json
 
+    - name: Start CI services
+      run: |
+        # Use unique container names to avoid conflicts between concurrent runs
+        echo "Using RUN_ID: $RUN_ID"
+
+        # Clean up any stale containers with same name
+        docker rm -f ci-postgres-$RUN_ID ci-redis-$RUN_ID 2>/dev/null || true
+
+        echo "Starting postgres and redis via docker-compose..."
+        docker-compose -f docker-compose.ci.yml up -d --wait
+
+        echo "Services started. Verifying PostgreSQL accepts connections..."
+        timeout 90 bash -c 'until docker exec ci-postgres-'"$RUN_ID"' pg_isready -U koinon -d koinon; do
+          echo "Waiting for PostgreSQL to accept connections..."
+          sleep 2
+        done'
+        echo "PostgreSQL ready!"
+        docker-compose -f docker-compose.ci.yml ps
+      env:
+        RUN_ID: ${{ github.run_id }}
+        COMPOSE_PROJECT_NAME: ci-${{ github.run_id }}
+
     - name: Restore and build API
       run: |
         dotnet restore
         dotnet build --no-restore --configuration Release
+
+    - name: Verify database connectivity
+      run: |
+        echo "Verifying postgres container is running..."
+        docker ps | grep ci-postgres-${{ github.run_id }} || (echo "Container not found!" && exit 1)
+
+        echo "Testing connection via docker exec..."
+        docker exec ci-postgres-${{ github.run_id }} pg_isready -U koinon -d koinon
+
+        echo "Testing connection from runner..."
+        timeout 30 bash -c 'until nc -z ci-postgres-${{ github.run_id }} 5432; do echo "Waiting..."; sleep 2; done' || echo "nc failed, trying psql..."
+
+        echo "Container IP:"
+        docker inspect ci-postgres-${{ github.run_id }} --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'
 
     - name: Apply database migrations
       run: |
@@ -352,7 +381,7 @@ jobs:
           --configuration Release
       env:
         ASPNETCORE_ENVIRONMENT: "Production"
-        ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=koinon;Username=koinon;Password=koinon"
+        ConnectionStrings__DefaultConnection: "Host=ci-postgres-${{ github.run_id }};Port=5432;Database=koinon;Username=koinon;Password=koinon"
         Jwt__Secret: "ci-integration-test-jwt-key-minimum-32-chars-long-for-security"
         Jwt__Issuer: "koinon-ci-integration"
         Jwt__Audience: "koinon-ci-integration"
@@ -365,8 +394,8 @@ jobs:
         sleep 5
       env:
         ASPNETCORE_URLS: "http://0.0.0.0:5000"
-        ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=koinon;Username=koinon;Password=koinon"
-        ConnectionStrings__Redis: "localhost:6379"
+        ConnectionStrings__DefaultConnection: "Host=ci-postgres-${{ github.run_id }};Port=5432;Database=koinon;Username=koinon;Password=koinon"
+        ConnectionStrings__Redis: "ci-redis-${{ github.run_id }}:6379"
         Jwt__Secret: "ci-integration-test-jwt-key-minimum-32-chars-long-for-security"
         Jwt__Issuer: "koinon-ci-integration"
         Jwt__Audience: "koinon-ci-integration"
@@ -390,11 +419,15 @@ jobs:
         echo "HTTP Status: $HTTP_STATUS"
 
         if [ "$HTTP_STATUS" != "200" ]; then
-          echo "Health check failed with status $HTTP_STATUS"
+          echo "❌ Health check failed with status $HTTP_STATUS"
           exit 1
         fi
 
-        echo "API health check passed"
+        echo "✅ API health check passed"
+
+    - name: Check database connectivity
+      run: |
+        docker exec ci-postgres-${{ github.run_id }} psql -U koinon -d koinon -c "SELECT 1"
 
     - name: Cleanup
       if: always()
@@ -402,11 +435,14 @@ jobs:
         if [ -f /tmp/api.pid ]; then
           kill $(cat /tmp/api.pid) 2>/dev/null || true
         fi
+        docker rm -f ci-postgres-${{ github.run_id }} ci-redis-${{ github.run_id }} 2>/dev/null || true
+      env:
+        RUN_ID: ${{ github.run_id }}
 
   # Work unit validation
   work-unit-validation:
     name: Work Unit Validation
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux]
     if: github.event_name == 'pull_request'
 
     steps:
@@ -416,10 +452,10 @@ jobs:
     - name: Check work-units.json is updated
       run: |
         if [ -f .claude/work-units.json ]; then
-          echo "Work units tracker exists"
+          echo "✅ Work units tracker exists"
           cat .claude/work-units.json
         else
-          echo "Work units tracker not found - creating empty tracker"
+          echo "⚠️ Work units tracker not found - creating empty tracker"
           mkdir -p .claude
           echo '{"completed":[],"in_progress":null,"blocked":[]}' > .claude/work-units.json
         fi
@@ -428,13 +464,13 @@ jobs:
       run: |
         if [ -f .claude/work-units.json ]; then
           python3 -m json.tool .claude/work-units.json > /dev/null
-          echo "work-units.json is valid JSON"
+          echo "✅ work-units.json is valid JSON"
         fi
 
   # Summary job
   ci-success:
     name: CI Success
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux]
     needs: [backend, frontend, migration-check, integration, work-unit-validation]
     if: always()
     steps:
@@ -445,9 +481,9 @@ jobs:
            [[ "${{ needs.migration-check.result }}" == "success" || "${{ needs.migration-check.result }}" == "skipped" ]] && \
            [[ "${{ needs.integration.result }}" == "success" ]] && \
            [[ "${{ needs.work-unit-validation.result }}" == "success" || "${{ needs.work-unit-validation.result }}" == "skipped" ]]; then
-          echo "All CI checks passed"
+          echo "✅ All CI checks passed"
           exit 0
         else
-          echo "One or more CI checks failed"
+          echo "❌ One or more CI checks failed"
           exit 1
         fi
