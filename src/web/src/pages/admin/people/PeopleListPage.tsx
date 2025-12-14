@@ -8,7 +8,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { usePeople } from '@/hooks/usePeople';
 import { PersonSearchBar } from '@/components/admin/people/PersonSearchBar';
 import { PersonCard } from '@/components/admin/people/PersonCard';
-import { Loading, EmptyState } from '@/components/ui';
+import { Loading, EmptyState, ErrorState } from '@/components/ui';
 import type { PersonSearchParams } from '@/services/api/types';
 
 export function PeopleListPage() {
@@ -30,7 +30,7 @@ export function PeopleListPage() {
     includeInactive: false,
   };
 
-  const { data, isLoading, error } = usePeople(params);
+  const { data, isLoading, error, refetch } = usePeople(params);
 
   const people = data?.data || [];
   const meta = data?.meta;
@@ -133,26 +133,11 @@ export function PeopleListPage() {
         {isLoading ? (
           <Loading text="Loading people..." />
         ) : error ? (
-          <div className="p-12 text-center">
-            <svg
-              className="w-12 h-12 text-red-400 mx-auto mb-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <p className="text-red-600">Failed to load people</p>
-            <p className="text-sm text-gray-500 mt-2">
-              {error instanceof Error ? error.message : 'Unknown error'}
-            </p>
-          </div>
+          <ErrorState
+            title="Failed to load people"
+            message={error instanceof Error ? error.message : 'Unknown error'}
+            onRetry={() => refetch()}
+          />
         ) : people.length === 0 ? (
           <EmptyState
             icon={

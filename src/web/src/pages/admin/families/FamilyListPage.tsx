@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useFamilies } from '@/hooks/useFamilies';
-import { Loading, EmptyState } from '@/components/ui';
+import { Loading, EmptyState, ErrorState } from '@/components/ui';
 import type { FamiliesSearchParams } from '@/services/api/types';
 
 export function FamilyListPage() {
@@ -24,7 +24,7 @@ export function FamilyListPage() {
     includeInactive: false,
   };
 
-  const { data, isLoading, error } = useFamilies(params);
+  const { data, isLoading, error, refetch } = useFamilies(params);
 
   const families = data?.data || [];
   const meta = data?.meta;
@@ -115,26 +115,11 @@ export function FamilyListPage() {
         {isLoading ? (
           <Loading text="Loading families..." />
         ) : error ? (
-          <div className="p-12 text-center">
-            <svg
-              className="w-12 h-12 text-red-400 mx-auto mb-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <p className="text-red-600">Failed to load families</p>
-            <p className="text-sm text-gray-500 mt-2">
-              {error instanceof Error ? error.message : 'Unknown error'}
-            </p>
-          </div>
+          <ErrorState
+            title="Failed to load families"
+            message={error instanceof Error ? error.message : 'Unknown error'}
+            onRetry={() => refetch()}
+          />
         ) : families.length === 0 ? (
           <EmptyState
             icon={
