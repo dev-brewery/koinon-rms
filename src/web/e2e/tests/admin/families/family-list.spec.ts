@@ -3,18 +3,14 @@
  * Tests the families list view, search, and navigation functionality
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../../../fixtures/auth.fixture';
 import { FamiliesPage } from '../../../fixtures/page-objects/families.page';
-import { LoginPage } from '../../../fixtures/page-objects/login.page';
 import { testData } from '../../../fixtures/test-data';
 
 test.describe('Family List and Search', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ loginAsAdmin, page }) => {
     // Login first
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+    await loginAsAdmin();
 
     // Navigate to families page
     const familiesPage = new FamiliesPage(page);
@@ -168,11 +164,8 @@ test.describe('Family List and Search', () => {
 });
 
 test.describe('Family List - Pagination', () => {
-  test.beforeEach(async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+  test.beforeEach(async ({ loginAsAdmin }) => {
+    await loginAsAdmin();
   });
 
   test('should show pagination controls when needed', async ({ page }) => {
@@ -236,11 +229,8 @@ test.describe('Family List - Pagination', () => {
 });
 
 test.describe('Family List - Performance', () => {
-  test.beforeEach(async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+  test.beforeEach(async ({ loginAsAdmin }) => {
+    await loginAsAdmin();
   });
 
   test('should load families page within reasonable time', async ({ page }) => {

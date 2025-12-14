@@ -3,18 +3,14 @@
  * Tests viewing family details, members, and address information
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../../../fixtures/auth.fixture';
 import { FamiliesPage } from '../../../fixtures/page-objects/families.page';
-import { LoginPage } from '../../../fixtures/page-objects/login.page';
 import { testData } from '../../../fixtures/test-data';
 
 test.describe('Family Detail View', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ loginAsAdmin }) => {
     // Login first
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+    await loginAsAdmin();
   });
 
   test('should display family name and basic info', async ({ page }) => {
@@ -220,11 +216,8 @@ test.describe('Family Detail View', () => {
 });
 
 test.describe('Family Detail - Address Display', () => {
-  test.beforeEach(async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+  test.beforeEach(async ({ loginAsAdmin }) => {
+    await loginAsAdmin();
   });
 
   test('should show edit link for address', async ({ page }) => {

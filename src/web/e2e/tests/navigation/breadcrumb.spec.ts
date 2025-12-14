@@ -3,15 +3,11 @@
  * Tests breadcrumb navigation functionality and accuracy
  */
 
-import { test, expect } from '@playwright/test';
-import { LoginPage } from '../../fixtures/page-objects/login.page';
+import { test, expect } from '../../fixtures/auth.fixture';
 
 test.describe('Breadcrumb Navigation', () => {
-  test.beforeEach(async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+  test.beforeEach(async ({ loginAsAdmin }) => {
+    await loginAsAdmin();
   });
 
   test('should display breadcrumb on admin pages', async ({ page }) => {
@@ -59,11 +55,8 @@ test.describe('Breadcrumb Navigation', () => {
 });
 
 test.describe('Page Titles', () => {
-  test.beforeEach(async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('john.smith@example.com', 'admin123');
-    await loginPage.expectLoggedIn();
+  test.beforeEach(async ({ loginAsAdmin }) => {
+    await loginAsAdmin();
   });
 
   test('should display correct page heading for Dashboard', async ({ page }) => {
