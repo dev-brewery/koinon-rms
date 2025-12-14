@@ -10,6 +10,8 @@ import {
   PrintStatus,
   QrScanner,
   OfflineQueueIndicator,
+  PinEntry,
+  SupervisorMode,
 } from '@/components/checkin';
 import type { OpportunitySelection } from '@/components/checkin';
 import { Button, Card } from '@/components/ui';
@@ -19,6 +21,7 @@ import {
 } from '@/hooks/useCheckin';
 import { useOfflineCheckin } from '@/hooks/useOfflineCheckin';
 import { useIdleTimeout } from '@/hooks/useIdleTimeout';
+import { useSupervisorMode } from '@/hooks/useSupervisorMode';
 import type {
   CheckinFamilyDto,
   CheckinRequestItem,
@@ -28,6 +31,7 @@ import type {
 import { createSelectionKey, getTotalActivitiesCount } from '@/utils/checkinHelpers';
 import { printBridgeClient, type PrinterInfo } from '@/services/printing/PrintBridgeClient';
 import { OfflineIndicator } from '@/components/pwa';
+import { supervisorLogin, supervisorLogout, supervisorReprint, checkout } from '@/services/api/checkin';
 
 type CheckinStep = 'search' | 'select-family' | 'select-members' | 'confirmation';
 type SearchMode = 'phone' | 'name' | 'qr';
@@ -55,6 +59,12 @@ export function CheckinPage() {
   const [printerAvailable, setPrinterAvailable] = useState<PrinterInfo | null>(null);
   const [printStatus, setPrintStatus] = useState<'idle' | 'printing' | 'success' | 'error'>('idle');
   const [printError, setPrintError] = useState<string | null>(null);
+
+  // Supervisor mode state
+  const [showPinEntry, setShowPinEntry] = useState(false);
+  const [pinError, setPinError] = useState<string | null>(null);
+  const [isPinLoading, setIsPinLoading] = useState(false);
+  const supervisorMode = useSupervisorMode();
 
   // Store attendance response for confirmation page
   const recordAttendanceData = useRef<RecordAttendanceResponse | null>(null);
@@ -298,6 +308,47 @@ export function CheckinPage() {
     handleReset();
   };
 
+  // Supervisor mode handlers
+  const handlePinSubmit = async (pin: string) => {
+    setIsPinLoading(true);
+    setPinError(null);
+    try {
+      const response = await supervisorLogin({ pin });
+      supervisorMode.startSession({
+        token: response.sessionToken,
+        supervisor: response.supervisor,
+        expiresAt: response.expiresAt,
+      });
+      setShowPinEntry(false);
+    } catch (error) {
+      setPinError('Invalid PIN. Please try again.');
+    } finally {
+      setIsPinLoading(false);
+    }
+  };
+
+  const handleSupervisorReprint = async (attendanceIdKey: string) => {
+    if (!supervisorMode.sessionToken) throw new Error('No session');
+    supervisorMode.resetTimeout();
+    return supervisorReprint(attendanceIdKey, supervisorMode.sessionToken);
+  };
+
+  const handleSupervisorCheckout = async (attendanceIdKey: string) => {
+    supervisorMode.resetTimeout();
+    await checkout(attendanceIdKey);
+  };
+
+  const handleSupervisorExit = async () => {
+    if (supervisorMode.sessionToken) {
+      try {
+        await supervisorLogout(supervisorMode.sessionToken);
+      } catch {
+        // Ignore logout errors
+      }
+    }
+    supervisorMode.endSession();
+  };
+
   // Idle timeout - always active for privacy protection
   const { isWarning, secondsRemaining, resetTimer } = useIdleTimeout({
     timeout: IDLE_CONFIG.timeout,
@@ -317,6 +368,7 @@ export function CheckinPage() {
             : undefined
         }
         onReset={step !== 'search' ? handleReset : undefined}
+        onSupervisorTrigger={() => setShowPinEntry(true)}
       >
       {/* Step 1: Search */}
       {step === 'search' && (
@@ -514,6 +566,38 @@ export function CheckinPage() {
         />
       )}
       </KioskLayout>
+
+      {/* PIN Entry Modal */}
+      {showPinEntry && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <PinEntry
+            onSubmit={handlePinSubmit}
+            onCancel={() => {
+              setShowPinEntry(false);
+              setPinError(null);
+            }}
+            loading={isPinLoading}
+            error={pinError}
+          />
+        </div>
+      )}
+
+      {/* Supervisor Mode Panel */}
+      {supervisorMode.isActive && supervisorMode.supervisor && (
+        <div className="fixed inset-0 bg-white z-40 overflow-auto">
+          <div className="max-w-4xl mx-auto p-6">
+            <SupervisorMode
+              supervisor={supervisorMode.supervisor}
+              // TODO(#191): Fetch current attendance from API
+              currentAttendance={[]}
+              onReprint={handleSupervisorReprint}
+              onCheckout={handleSupervisorCheckout}
+              onExit={handleSupervisorExit}
+              printLabel={printerAvailable ? handlePrintLabels : undefined}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Idle Warning Modal */}
       <IdleWarningModal
