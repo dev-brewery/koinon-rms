@@ -73,12 +73,10 @@ jobs:
     - name: Publish test results
       uses: dorny/test-reporter@v1
       if: always()
-      continue-on-error: true
       with:
         name: Backend Tests
         path: '**/test-results.trx'
         reporter: dotnet-trx
-        fail-on-error: false
 
     - name: Upload coverage reports
       if: always()
