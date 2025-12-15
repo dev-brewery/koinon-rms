@@ -20,6 +20,17 @@ public interface IFamilyService
     Task<FamilyDto?> GetByIdKeyAsync(string idKey, CancellationToken ct = default);
 
     /// <summary>
+    /// Searches for families with optional filters and pagination.
+    /// </summary>
+    Task<PagedResult<FamilySummaryDto>> SearchAsync(
+        string? searchTerm,
+        string? campusIdKey,
+        bool includeInactive,
+        int page,
+        int pageSize,
+        CancellationToken ct = default);
+
+    /// <summary>
     /// Creates a new family group.
     /// </summary>
     Task<Result<FamilyDto>> CreateFamilyAsync(

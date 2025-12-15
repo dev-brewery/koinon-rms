@@ -41,6 +41,101 @@ public class FamiliesControllerTests
         };
     }
 
+    #region Search Tests
+
+    [Fact]
+    public async Task Search_ReturnsOkWithPagedResult()
+    {
+        // Arrange
+        var expectedResult = new PagedResult<FamilySummaryDto>(
+            new List<FamilySummaryDto>
+            {
+                new() { IdKey = _familyIdKey, Name = "Smith Family", MemberCount = 3 },
+                new() { IdKey = _newFamilyIdKey, Name = "Jones Family", MemberCount = 2 }
+            },
+            totalCount: 2,
+            page: 1,
+            pageSize: 25
+        );
+
+        _familyServiceMock
+            .Setup(s => s.SearchAsync(
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<bool>(),
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedResult);
+
+        // Act
+        var result = await _controller.Search(
+            searchTerm: null,
+            campusIdKey: null,
+            includeInactive: false,
+            page: 1,
+            pageSize: 25);
+
+        // Assert
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var pagedResult = okResult.Value.Should().BeOfType<PagedResult<FamilySummaryDto>>().Subject;
+        pagedResult.Items.Should().HaveCount(2);
+        pagedResult.TotalCount.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task Search_WithFilters_PassesFiltersToService()
+    {
+        // Arrange
+        var expectedResult = new PagedResult<FamilySummaryDto>(
+            new List<FamilySummaryDto>(),
+            totalCount: 0,
+            page: 1,
+            pageSize: 25
+        );
+
+        string? capturedSearchTerm = null;
+        string? capturedCampusIdKey = null;
+        bool capturedIncludeInactive = false;
+        int capturedPage = 0;
+        int capturedPageSize = 0;
+
+        _familyServiceMock
+            .Setup(s => s.SearchAsync(
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<bool>(),
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()))
+            .Callback<string?, string?, bool, int, int, CancellationToken>((st, cid, ia, p, ps, _) =>
+            {
+                capturedSearchTerm = st;
+                capturedCampusIdKey = cid;
+                capturedIncludeInactive = ia;
+                capturedPage = p;
+                capturedPageSize = ps;
+            })
+            .ReturnsAsync(expectedResult);
+
+        // Act
+        await _controller.Search(
+            searchTerm: "Smith",
+            campusIdKey: _campusIdKey,
+            includeInactive: true,
+            page: 2,
+            pageSize: 50);
+
+        // Assert
+        capturedSearchTerm.Should().Be("Smith");
+        capturedCampusIdKey.Should().Be(_campusIdKey);
+        capturedIncludeInactive.Should().BeTrue();
+        capturedPage.Should().Be(2);
+        capturedPageSize.Should().Be(50);
+    }
+
+    #endregion
+
     #region GetByIdKey Tests
 
     [Fact]
