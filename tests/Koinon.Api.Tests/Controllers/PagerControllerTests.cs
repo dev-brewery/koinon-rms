@@ -84,7 +84,10 @@ public class PagerControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var message = okResult.Value.Should().BeAssignableTo<PagerMessageDto>().Subject;
+        var response = okResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var message = dataProperty!.GetValue(response).Should().BeOfType<PagerMessageDto>().Subject;
         message.MessageType.Should().Be(PagerMessageType.PickupNeeded);
         message.Status.Should().Be(PagerMessageStatus.Sent);
         message.SentByPersonName.Should().Be("John Supervisor");
@@ -117,7 +120,10 @@ public class PagerControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var message = okResult.Value.Should().BeAssignableTo<PagerMessageDto>().Subject;
+        var response = okResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var message = dataProperty!.GetValue(response).Should().BeOfType<PagerMessageDto>().Subject;
         message.MessageType.Should().Be(PagerMessageType.Custom);
         message.MessageText.Should().Be("Your child needs a diaper change.");
     }
@@ -233,7 +239,10 @@ public class PagerControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var assignments = okResult.Value.Should().BeAssignableTo<List<PagerAssignmentDto>>().Subject;
+        var response = okResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var assignments = dataProperty!.GetValue(response).Should().BeAssignableTo<IEnumerable<PagerAssignmentDto>>().Subject.ToList();
         assignments.Should().HaveCount(1);
         assignments[0].PagerNumber.Should().Be(127);
         assignments[0].ChildName.Should().Be("Johnny Smith");
@@ -278,7 +287,10 @@ public class PagerControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var assignments = okResult.Value.Should().BeAssignableTo<List<PagerAssignmentDto>>().Subject;
+        var response = okResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var assignments = dataProperty!.GetValue(response).Should().BeAssignableTo<IEnumerable<PagerAssignmentDto>>().Subject.ToList();
         assignments.Should().HaveCount(2);
     }
 
@@ -312,7 +324,10 @@ public class PagerControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var assignments = okResult.Value.Should().BeAssignableTo<List<PagerAssignmentDto>>().Subject;
+        var response = okResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var assignments = dataProperty!.GetValue(response).Should().BeAssignableTo<IEnumerable<PagerAssignmentDto>>().Subject.ToList();
         assignments.Should().HaveCount(1);
     }
 
@@ -350,7 +365,10 @@ public class PagerControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var history = okResult.Value.Should().BeAssignableTo<PageHistoryDto>().Subject;
+        var response = okResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var history = dataProperty!.GetValue(response).Should().BeOfType<PageHistoryDto>().Subject;
         history.PagerNumber.Should().Be(_pagerNumber);
         history.ChildName.Should().Be("Johnny Smith");
         history.Messages.Should().HaveCount(1);
@@ -397,7 +415,10 @@ public class PagerControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var history = okResult.Value.Should().BeAssignableTo<PageHistoryDto>().Subject;
+        var response = okResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var history = dataProperty!.GetValue(response).Should().BeOfType<PageHistoryDto>().Subject;
         history.PagerNumber.Should().Be(_pagerNumber);
     }
 
@@ -420,7 +441,10 @@ public class PagerControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var nextNumber = okResult.Value.Should().BeAssignableTo<int>().Subject;
+        var response = okResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var nextNumber = (int)dataProperty!.GetValue(response)!;
         nextNumber.Should().Be(expectedNextNumber);
     }
 
@@ -440,7 +464,10 @@ public class PagerControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var nextNumber = okResult.Value.Should().BeAssignableTo<int>().Subject;
+        var response = okResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var nextNumber = (int)dataProperty!.GetValue(response)!;
         nextNumber.Should().Be(expectedNextNumber);
     }
 
@@ -459,7 +486,10 @@ public class PagerControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var nextNumber = okResult.Value.Should().BeAssignableTo<int>().Subject;
+        var response = okResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var nextNumber = (int)dataProperty!.GetValue(response)!;
         nextNumber.Should().Be(100);
     }
 

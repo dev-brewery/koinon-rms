@@ -62,7 +62,12 @@ public class DashboardControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var stats = okResult.Value.Should().BeOfType<DashboardStatsDto>().Subject;
+        var response = okResult.Value.Should().BeAssignableTo<object>().Subject;
+
+        // Extract data property using reflection
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var stats = dataProperty!.GetValue(response).Should().BeOfType<DashboardStatsDto>().Subject;
 
         stats.TotalPeople.Should().Be(150);
         stats.TotalFamilies.Should().Be(45);

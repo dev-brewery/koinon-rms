@@ -71,7 +71,7 @@ public class AuthController(
 
         logger.LogInformation("Login successful for user: {Email}", request.Email);
 
-        return Ok(response);
+        return Ok(new { data = response });
     }
 
     /// <summary>
@@ -119,7 +119,7 @@ public class AuthController(
 
         logger.LogInformation("Token refresh successful");
 
-        return Ok(response);
+        return Ok(new { data = response });
     }
 
     /// <summary>

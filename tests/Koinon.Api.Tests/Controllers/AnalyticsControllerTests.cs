@@ -60,7 +60,10 @@ public class AnalyticsControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var analytics = okResult.Value.Should().BeOfType<AttendanceAnalyticsDto>().Subject;
+        var response = okResult.Value.Should().BeAssignableTo<object>().Subject;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var analytics = dataProperty!.GetValue(response).Should().BeOfType<AttendanceAnalyticsDto>().Subject;
 
         analytics.TotalAttendance.Should().Be(450);
         analytics.UniqueAttendees.Should().Be(125);
@@ -137,7 +140,10 @@ public class AnalyticsControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var trends = okResult.Value.Should().BeAssignableTo<IReadOnlyList<AttendanceTrendDto>>().Subject;
+        var response = okResult.Value.Should().BeAssignableTo<object>().Subject;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var trends = dataProperty!.GetValue(response).Should().BeAssignableTo<IReadOnlyList<AttendanceTrendDto>>().Subject;
 
         trends.Should().HaveCount(3);
         trends[0].Date.Should().Be(new DateOnly(2024, 1, 1));
@@ -195,7 +201,10 @@ public class AnalyticsControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var byGroup = okResult.Value.Should().BeAssignableTo<IReadOnlyList<AttendanceByGroupDto>>().Subject;
+        var response = okResult.Value.Should().BeAssignableTo<object>().Subject;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var byGroup = dataProperty!.GetValue(response).Should().BeAssignableTo<IReadOnlyList<AttendanceByGroupDto>>().Subject;
 
         byGroup.Should().HaveCount(3);
         byGroup[0].GroupName.Should().Be("Youth Group");
@@ -323,7 +332,10 @@ public class AnalyticsControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var visitors = okResult.Value.Should().BeAssignableTo<IReadOnlyList<FirstTimeVisitorDto>>().Subject;
+        var response = okResult.Value.Should().BeAssignableTo<object>().Subject;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var visitors = dataProperty!.GetValue(response).Should().BeAssignableTo<IReadOnlyList<FirstTimeVisitorDto>>().Subject;
 
         visitors.Should().HaveCount(2);
         visitors[0].PersonName.Should().Be("John Doe");
@@ -400,7 +412,10 @@ public class AnalyticsControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var visitors = okResult.Value.Should().BeAssignableTo<IReadOnlyList<FirstTimeVisitorDto>>().Subject;
+        var response = okResult.Value.Should().BeAssignableTo<object>().Subject;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var visitors = dataProperty!.GetValue(response).Should().BeAssignableTo<IReadOnlyList<FirstTimeVisitorDto>>().Subject;
 
         visitors.Should().HaveCount(2);
         visitors[0].CheckInDateTime.Should().Be(new DateTime(2024, 1, 5));

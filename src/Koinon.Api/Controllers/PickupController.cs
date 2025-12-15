@@ -70,7 +70,7 @@ public class PickupController(
             "Pickup verification completed: AttendanceIdKey={AttendanceIdKey}, IsAuthorized={IsAuthorized}, RequiresOverride={RequiresOverride}",
             request.AttendanceIdKey, result.IsAuthorized, result.RequiresSupervisorOverride);
 
-        return Ok(result);
+        return Ok(new { data = result });
     }
 
     /// <summary>
@@ -176,6 +176,6 @@ public class PickupController(
             "Pickup history retrieved: ChildIdKey={ChildIdKey}, Count={Count}, FromDate={FromDate}, ToDate={ToDate}",
             childIdKey, history.Count, fromDate, toDate);
 
-        return Ok(history);
+        return Ok(new { data = history });
     }
 }

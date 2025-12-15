@@ -102,7 +102,7 @@ public class GroupMembershipRequestsController(
         return CreatedAtAction(
             nameof(GetPendingRequests),
             new { groupIdKey },
-            memberRequest);
+            new { data = memberRequest });
     }
 
     /// <summary>
@@ -161,7 +161,7 @@ public class GroupMembershipRequestsController(
             "Pending requests retrieved: GroupIdKey={GroupIdKey}, Count={Count}",
             groupIdKey, result.Value!.Count);
 
-        return Ok(result.Value);
+        return Ok(new { data = result.Value });
     }
 
     /// <summary>
@@ -238,6 +238,6 @@ public class GroupMembershipRequestsController(
             "Membership request processed: IdKey={IdKey}, GroupIdKey={GroupIdKey}, Status={Status}",
             memberRequest.IdKey, groupIdKey, memberRequest.Status);
 
-        return Ok(memberRequest);
+        return Ok(new { data = memberRequest });
     }
 }

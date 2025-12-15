@@ -108,7 +108,10 @@ public class PickupControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var verificationResult = okResult.Value.Should().BeAssignableTo<PickupVerificationResultDto>().Subject;
+        var response = okResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var verificationResult = dataProperty!.GetValue(response).Should().BeOfType<PickupVerificationResultDto>().Subject;
         verificationResult.IsAuthorized.Should().BeTrue();
         verificationResult.AuthorizationLevel.Should().Be(AuthorizationLevel.Always);
         verificationResult.RequiresSupervisorOverride.Should().BeFalse();
@@ -181,7 +184,10 @@ public class PickupControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var verificationResult = okResult.Value.Should().BeAssignableTo<PickupVerificationResultDto>().Subject;
+        var response = okResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var verificationResult = dataProperty!.GetValue(response).Should().BeOfType<PickupVerificationResultDto>().Subject;
         verificationResult.IsAuthorized.Should().BeFalse();
         verificationResult.RequiresSupervisorOverride.Should().BeTrue();
     }
@@ -224,7 +230,7 @@ public class PickupControllerTests
 
         // Assert
         var createdResult = result.Should().BeOfType<CreatedAtActionResult>().Subject;
-        var pickupLog = createdResult.Value.Should().BeAssignableTo<PickupLogDto>().Subject;
+        var pickupLog = createdResult.Value.Should().BeOfType<PickupLogDto>().Subject;
         pickupLog.WasAuthorized.Should().BeTrue();
         pickupLog.SupervisorOverride.Should().BeFalse();
         pickupLog.PickupPersonName.Should().Be("Sarah Smith");
@@ -289,7 +295,7 @@ public class PickupControllerTests
 
         // Assert
         var createdResult = result.Should().BeOfType<CreatedAtActionResult>().Subject;
-        var pickupLog = createdResult.Value.Should().BeAssignableTo<PickupLogDto>().Subject;
+        var pickupLog = createdResult.Value.Should().BeOfType<PickupLogDto>().Subject;
         pickupLog.SupervisorOverride.Should().BeTrue();
         pickupLog.SupervisorName.Should().Be("John Supervisor");
         pickupLog.WasAuthorized.Should().BeFalse();
@@ -364,7 +370,10 @@ public class PickupControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var history = okResult.Value.Should().BeAssignableTo<List<PickupLogDto>>().Subject;
+        var response = okResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var history = dataProperty!.GetValue(response).Should().BeAssignableTo<IEnumerable<PickupLogDto>>().Subject.ToList();
         history.Should().HaveCount(2);
         history[0].ChildName.Should().Be("Johnny Smith");
         history[1].PickupPersonName.Should().Be("Mike Smith");
@@ -421,7 +430,10 @@ public class PickupControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var history = okResult.Value.Should().BeAssignableTo<List<PickupLogDto>>().Subject;
+        var response = okResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var history = dataProperty!.GetValue(response).Should().BeAssignableTo<IEnumerable<PickupLogDto>>().Subject.ToList();
         history.Should().HaveCount(1);
         history[0].CheckoutDateTime.Should().BeAfter(fromDate).And.BeBefore(toDate);
     }
@@ -445,7 +457,10 @@ public class PickupControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var history = okResult.Value.Should().BeAssignableTo<List<PickupLogDto>>().Subject;
+        var response = okResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var history = dataProperty!.GetValue(response).Should().BeAssignableTo<IEnumerable<PickupLogDto>>().Subject.ToList();
         history.Should().BeEmpty();
     }
 

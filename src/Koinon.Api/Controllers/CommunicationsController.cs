@@ -52,7 +52,17 @@ public class CommunicationsController(
             "Communication search completed: Page={Page}, PageSize={PageSize}, Status={Status}, TotalCount={TotalCount}",
             result.Page, result.PageSize, status ?? "all", result.TotalCount);
 
-        return Ok(result);
+        return Ok(new
+        {
+            data = result.Items,
+            meta = new
+            {
+                page = result.Page,
+                pageSize = result.PageSize,
+                totalCount = result.TotalCount,
+                totalPages = (int)Math.Ceiling(result.TotalCount / (double)result.PageSize)
+            }
+        });
     }
 
     /// <summary>
@@ -85,7 +95,7 @@ public class CommunicationsController(
 
         logger.LogDebug("Communication retrieved: IdKey={IdKey}, Type={Type}", idKey, communication.CommunicationType);
 
-        return Ok(communication);
+        return Ok(new { data = communication });
     }
 
     /// <summary>
@@ -204,7 +214,7 @@ public class CommunicationsController(
 
         logger.LogInformation("Communication updated: IdKey={IdKey}", idKey);
 
-        return Ok(result.Value);
+        return Ok(new { data = result.Value });
     }
 
     /// <summary>
@@ -305,6 +315,6 @@ public class CommunicationsController(
             idKey,
             result.Value!.RecipientCount);
 
-        return Ok(result.Value);
+        return Ok(new { data = result.Value });
     }
 }

@@ -98,7 +98,10 @@ public class CheckinControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var areas = okResult.Value.Should().BeAssignableTo<IReadOnlyList<CheckinAreaDto>>().Subject;
+        var response = okResult.Value.Should().BeAssignableTo<object>().Subject;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var areas = dataProperty!.GetValue(response).Should().BeAssignableTo<IReadOnlyList<CheckinAreaDto>>().Subject;
         areas.Should().HaveCount(1);
         areas[0].Name.Should().Be("Children's Ministry");
     }
@@ -129,7 +132,10 @@ public class CheckinControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var areas = okResult.Value.Should().BeAssignableTo<IReadOnlyList<CheckinAreaDto>>().Subject;
+        var response = okResult.Value.Should().BeAssignableTo<object>().Subject;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var areas = dataProperty!.GetValue(response).Should().BeAssignableTo<IReadOnlyList<CheckinAreaDto>>().Subject;
         areas.Should().BeEmpty();
     }
 
@@ -158,7 +164,10 @@ public class CheckinControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var config = okResult.Value.Should().BeOfType<CheckinConfigurationDto>().Subject;
+        var response = okResult.Value.Should().BeAssignableTo<object>().Subject;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var config = dataProperty!.GetValue(response).Should().BeOfType<CheckinConfigurationDto>().Subject;
         config.Campus.Name.Should().Be("Main Campus");
     }
 
@@ -183,7 +192,10 @@ public class CheckinControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var config = okResult.Value.Should().BeOfType<CheckinConfigurationDto>().Subject;
+        var response = okResult.Value.Should().BeAssignableTo<object>().Subject;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var config = dataProperty!.GetValue(response).Should().BeOfType<CheckinConfigurationDto>().Subject;
         config.Campus.Name.Should().Be("Main Campus");
     }
 
@@ -259,7 +271,10 @@ public class CheckinControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var families = okResult.Value.Should().BeAssignableTo<List<CheckinFamilySearchResultDto>>().Subject;
+        var response = okResult.Value.Should().BeAssignableTo<object>().Subject;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var families = dataProperty!.GetValue(response).Should().BeAssignableTo<List<CheckinFamilySearchResultDto>>().Subject;
         families.Should().HaveCount(1);
         families[0].FamilyName.Should().Be("Doe Family");
     }
@@ -290,7 +305,10 @@ public class CheckinControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var families = okResult.Value.Should().BeAssignableTo<List<CheckinFamilySearchResultDto>>().Subject;
+        var response = okResult.Value.Should().BeAssignableTo<object>().Subject;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var families = dataProperty!.GetValue(response).Should().BeAssignableTo<List<CheckinFamilySearchResultDto>>().Subject;
         families.Should().BeEmpty();
     }
 
@@ -338,6 +356,7 @@ public class CheckinControllerTests
 
         // Assert
         var createdResult = result.Should().BeOfType<CreatedAtActionResult>().Subject;
+        // CreatedAtAction returns the resource directly (no data wrapper per API contract)
         var batchResult = createdResult.Value.Should().BeOfType<BatchCheckinResultDto>().Subject;
         batchResult.SuccessCount.Should().Be(1);
         batchResult.AllSucceeded.Should().BeTrue();
@@ -441,6 +460,7 @@ public class CheckinControllerTests
 
         // Assert
         var createdResult = result.Should().BeOfType<CreatedAtActionResult>().Subject;
+        // CreatedAtAction returns the resource directly (no data wrapper per API contract)
         var batchResult = createdResult.Value.Should().BeOfType<BatchCheckinResultDto>().Subject;
         batchResult.SuccessCount.Should().Be(1);
         batchResult.FailureCount.Should().Be(1);
@@ -513,7 +533,10 @@ public class CheckinControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var labels = okResult.Value.Should().BeOfType<LabelSetDto>().Subject;
+        var response = okResult.Value.Should().BeAssignableTo<object>().Subject;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var labels = dataProperty!.GetValue(response).Should().BeOfType<LabelSetDto>().Subject;
         labels.Labels.Should().HaveCount(1);
         labels.AttendanceIdKey.Should().Be(_attendanceIdKey);
     }
@@ -563,7 +586,10 @@ public class CheckinControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var attendance = okResult.Value.Should().BeAssignableTo<IReadOnlyList<AttendanceSummaryDto>>().Subject;
+        var response = okResult.Value.Should().BeAssignableTo<object>().Subject;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var attendance = dataProperty!.GetValue(response).Should().BeAssignableTo<IReadOnlyList<AttendanceSummaryDto>>().Subject;
         attendance.Should().HaveCount(1);
         attendance[0].Location.IdKey.Should().Be(_locationIdKey);
     }
@@ -581,7 +607,10 @@ public class CheckinControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var attendance = okResult.Value.Should().BeAssignableTo<IReadOnlyList<AttendanceSummaryDto>>().Subject;
+        var response = okResult.Value.Should().BeAssignableTo<object>().Subject;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var attendance = dataProperty!.GetValue(response).Should().BeAssignableTo<IReadOnlyList<AttendanceSummaryDto>>().Subject;
         attendance.Should().BeEmpty();
     }
 

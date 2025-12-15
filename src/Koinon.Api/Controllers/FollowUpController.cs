@@ -52,7 +52,7 @@ public class FollowUpController(
             "Pending follow-ups retrieved: Count={Count}, AssignedTo={AssignedToIdKey}",
             followUps.Count, assignedToIdKey ?? "All");
 
-        return Ok(followUps);
+        return Ok(new { data = followUps });
     }
 
     /// <summary>
@@ -85,7 +85,7 @@ public class FollowUpController(
 
         logger.LogDebug("Follow-up retrieved: IdKey={IdKey}, Person={PersonName}", idKey, followUp.PersonName);
 
-        return Ok(followUp);
+        return Ok(new { data = followUp });
     }
 
     /// <summary>
@@ -152,7 +152,7 @@ public class FollowUpController(
             "Follow-up status updated successfully: IdKey={IdKey}, Status={Status}",
             idKey, request.Status);
 
-        return Ok(followUp);
+        return Ok(new { data = followUp });
     }
 
     /// <summary>

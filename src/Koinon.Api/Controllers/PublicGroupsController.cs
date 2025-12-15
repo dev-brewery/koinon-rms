@@ -88,7 +88,17 @@ public class PublicGroupsController(
             "Public group search completed: Page={Page}, PageSize={PageSize}, TotalCount={TotalCount}",
             result.Page, result.PageSize, result.TotalCount);
 
-        return Ok(result);
+        return Ok(new
+        {
+            data = result.Items,
+            meta = new
+            {
+                page = result.Page,
+                pageSize = result.PageSize,
+                totalCount = result.TotalCount,
+                totalPages = (int)Math.Ceiling(result.TotalCount / (double)result.PageSize)
+            }
+        });
     }
 
     /// <summary>
@@ -126,6 +136,6 @@ public class PublicGroupsController(
 
         logger.LogDebug("Public group retrieved: IdKey={IdKey}, Name={Name}", idKey, group.Name);
 
-        return Ok(group);
+        return Ok(new { data = group });
     }
 }
