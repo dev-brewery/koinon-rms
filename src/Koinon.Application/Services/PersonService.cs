@@ -450,4 +450,56 @@ public class PersonService(
             : Result<PersonDto>.Failure(Error.UnprocessableEntity("Failed to retrieve updated person"));
     }
 
+    public async Task<PagedResult<PersonGroupMembershipDto>> GetGroupsAsync(
+        string idKey,
+        int page = 1,
+        int pageSize = 25,
+        CancellationToken ct = default)
+    {
+        if (!IdKeyHelper.TryDecode(idKey, out int id))
+        {
+            return new PagedResult<PersonGroupMembershipDto>(
+                new List<PersonGroupMembershipDto>(), 0, page, pageSize);
+        }
+
+        // Query group memberships excluding family groups
+        var query = context.GroupMembers
+            .AsNoTracking()
+            .Include(gm => gm.Group)
+                .ThenInclude(g => g!.GroupType)
+            .Include(gm => gm.GroupRole)
+            .Where(gm => gm.PersonId == id && gm.Group != null && gm.Group.GroupType != null && !gm.Group.GroupType.IsFamilyGroupType);
+
+        // Get total count
+        var totalCount = await query.CountAsync(ct);
+
+        // Apply pagination and map to DTO
+        var items = await query
+            .OrderBy(gm => gm.Group!.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(gm => new PersonGroupMembershipDto
+            {
+                IdKey = IdKeyHelper.Encode(gm.Id),
+                Guid = gm.Guid,
+                GroupIdKey = IdKeyHelper.Encode(gm.GroupId),
+                GroupName = gm.Group!.Name,
+                GroupTypeIdKey = IdKeyHelper.Encode(gm.Group.GroupTypeId),
+                GroupTypeName = gm.Group.GroupType!.Name,
+                RoleIdKey = IdKeyHelper.Encode(gm.GroupRoleId),
+                RoleName = gm.GroupRole!.Name,
+                MemberStatus = gm.GroupMemberStatus.ToString(),
+                CreatedDateTime = gm.CreatedDateTime,
+                ModifiedDateTime = gm.ModifiedDateTime
+            })
+            .ToListAsync(ct);
+
+        logger.LogInformation(
+            "Retrieved groups for person {PersonId}: Count={Count}, Page={Page}",
+            id, totalCount, page);
+
+        return new PagedResult<PersonGroupMembershipDto>(
+            items, totalCount, page, pageSize);
+    }
+
 }
