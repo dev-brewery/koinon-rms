@@ -71,7 +71,7 @@ public class FilesController : ControllerBase
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
             var result = await _fileService.UploadFileAsync(request, cancellationToken);
-            return CreatedAtAction(nameof(GetMetadata), new { idKey = result.IdKey }, result);
+            return CreatedAtAction(nameof(GetMetadata), new { idKey = result.IdKey }, new { data = result });
         }
         catch (Exception ex)
         {
@@ -99,7 +99,7 @@ public class FilesController : ControllerBase
             return NotFound();
         }
 
-        return Ok(metadata);
+        return Ok(new { data = metadata });
     }
 
     /// <summary>

@@ -39,7 +39,7 @@ public class GroupTypesController(
             groupTypes.Count,
             includeArchived);
 
-        return Ok(groupTypes);
+        return Ok(new { data = groupTypes });
     }
 
     /// <summary>
@@ -72,7 +72,7 @@ public class GroupTypesController(
 
         logger.LogDebug("Group type retrieved: IdKey={IdKey}, Name={Name}", idKey, groupType.Name);
 
-        return Ok(groupType);
+        return Ok(new { data = groupType });
     }
 
     /// <summary>
@@ -196,7 +196,7 @@ public class GroupTypesController(
             "Group type updated successfully: IdKey={IdKey}, Name={Name}",
             groupType.IdKey, groupType.Name);
 
-        return Ok(groupType);
+        return Ok(new { data = groupType });
     }
 
     /// <summary>
@@ -280,6 +280,6 @@ public class GroupTypesController(
             "Groups retrieved for group type: IdKey={IdKey}, GroupCount={GroupCount}",
             idKey, groups.Count);
 
-        return Ok(groups);
+        return Ok(new { data = groups });
     }
 }

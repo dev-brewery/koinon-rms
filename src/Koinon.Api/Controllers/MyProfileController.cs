@@ -34,7 +34,7 @@ public class MyProfileController(IMyProfileService myProfileService) : Controlle
             };
         }
 
-        return Ok(result.Value);
+        return Ok(new { data = result.Value });
     }
 
     /// <summary>
@@ -61,7 +61,7 @@ public class MyProfileController(IMyProfileService myProfileService) : Controlle
             };
         }
 
-        return Ok(result.Value);
+        return Ok(new { data = result.Value });
     }
 
     /// <summary>
@@ -83,7 +83,7 @@ public class MyProfileController(IMyProfileService myProfileService) : Controlle
             };
         }
 
-        return Ok(result.Value);
+        return Ok(new { data = result.Value });
     }
 
     /// <summary>
@@ -114,7 +114,7 @@ public class MyProfileController(IMyProfileService myProfileService) : Controlle
             };
         }
 
-        return Ok(result.Value);
+        return Ok(new { data = result.Value });
     }
 
     /// <summary>
@@ -136,6 +136,6 @@ public class MyProfileController(IMyProfileService myProfileService) : Controlle
             };
         }
 
-        return Ok(result.Value);
+        return Ok(new { data = result.Value });
     }
 }

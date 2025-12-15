@@ -55,6 +55,6 @@ public class CampusesController(
             campuses.Count,
             includeInactive);
 
-        return Ok(campuses);
+        return Ok(new { data = campuses });
     }
 }
