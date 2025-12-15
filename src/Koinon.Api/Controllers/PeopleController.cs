@@ -276,6 +276,33 @@ public class PeopleController(
     }
 
     /// <summary>
+    /// Gets the groups a person belongs to (excluding family groups).
+    /// </summary>
+    /// <param name="idKey">The person's IdKey</param>
+    /// <param name="page">Page number (1-based, default: 1)</param>
+    /// <param name="pageSize">Items per page (default: 25, max: 100)</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Paginated list of group memberships</returns>
+    /// <response code="200">Returns paginated list of group memberships</response>
+    [HttpGet("{idKey}/groups")]
+    [ValidateIdKey]
+    [ProducesResponseType(typeof(PagedResult<PersonGroupMembershipDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetGroups(
+        string idKey,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 25,
+        CancellationToken ct = default)
+    {
+        var result = await personService.GetGroupsAsync(idKey, page, pageSize, ct);
+
+        logger.LogInformation(
+            "Groups retrieved for person: IdKey={IdKey}, Page={Page}, PageSize={PageSize}, TotalCount={TotalCount}",
+            idKey, result.Page, result.PageSize, result.TotalCount);
+
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Gets a person's family with all members.
     /// </summary>
     /// <param name="idKey">The person's IdKey</param>

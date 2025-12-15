@@ -61,4 +61,18 @@ public interface IPersonService
     /// <param name="ct">Cancellation token</param>
     /// <returns>Result with updated person DTO</returns>
     Task<Result<PersonDto>> UpdatePhotoAsync(string idKey, string? photoIdKey, CancellationToken ct = default);
+
+    /// <summary>
+    /// Gets the groups a person belongs to (excluding family groups).
+    /// </summary>
+    /// <param name="idKey">Person's IdKey</param>
+    /// <param name="page">Page number (1-based)</param>
+    /// <param name="pageSize">Items per page</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Paginated list of group memberships</returns>
+    Task<PagedResult<PersonGroupMembershipDto>> GetGroupsAsync(
+        string idKey,
+        int page = 1,
+        int pageSize = 25,
+        CancellationToken ct = default);
 }
