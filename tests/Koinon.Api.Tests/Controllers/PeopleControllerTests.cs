@@ -932,4 +932,123 @@ public class PeopleControllerTests
     }
 
     #endregion
+
+    #region GetGroups Tests
+
+    [Fact]
+    public async Task GetGroups_WithExistingPerson_ReturnsOkWithPagedResult()
+    {
+        // Arrange
+        var groupIdKey = IdKeyHelper.Encode(200);
+        var groupTypeIdKey = IdKeyHelper.Encode(10);
+        var roleIdKey = IdKeyHelper.Encode(20);
+
+        var expectedResult = new PagedResult<PersonGroupMembershipDto>(
+            new List<PersonGroupMembershipDto>
+            {
+                new()
+                {
+                    IdKey = IdKeyHelper.Encode(1),
+                    Guid = Guid.NewGuid(),
+                    GroupIdKey = groupIdKey,
+                    GroupName = "Small Group Alpha",
+                    GroupTypeIdKey = groupTypeIdKey,
+                    GroupTypeName = "Small Group",
+                    RoleIdKey = roleIdKey,
+                    RoleName = "Member",
+                    MemberStatus = "Active",
+                    CreatedDateTime = DateTime.UtcNow.AddMonths(-2)
+                },
+                new()
+                {
+                    IdKey = IdKeyHelper.Encode(2),
+                    Guid = Guid.NewGuid(),
+                    GroupIdKey = IdKeyHelper.Encode(201),
+                    GroupName = "Serving Team",
+                    GroupTypeIdKey = IdKeyHelper.Encode(11),
+                    GroupTypeName = "Serving Team",
+                    RoleIdKey = IdKeyHelper.Encode(21),
+                    RoleName = "Leader",
+                    MemberStatus = "Active",
+                    CreatedDateTime = DateTime.UtcNow.AddMonths(-6)
+                }
+            },
+            totalCount: 2,
+            page: 1,
+            pageSize: 25
+        );
+
+        _personServiceMock
+            .Setup(s => s.GetGroupsAsync(_personIdKey, 1, 25, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedResult);
+
+        // Act
+        var result = await _controller.GetGroups(_personIdKey, page: 1, pageSize: 25);
+
+        // Assert
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var pagedResult = okResult.Value.Should().BeOfType<PagedResult<PersonGroupMembershipDto>>().Subject;
+        pagedResult.Items.Should().HaveCount(2);
+        pagedResult.TotalCount.Should().Be(2);
+        pagedResult.Page.Should().Be(1);
+        pagedResult.PageSize.Should().Be(25);
+        pagedResult.Items.First().GroupName.Should().Be("Small Group Alpha");
+    }
+
+    [Fact]
+    public async Task GetGroups_WithPagination_PassesPaginationParametersToService()
+    {
+        // Arrange
+        var expectedResult = new PagedResult<PersonGroupMembershipDto>(
+            new List<PersonGroupMembershipDto>(),
+            totalCount: 0,
+            page: 2,
+            pageSize: 10
+        );
+
+        int? capturedPage = null;
+        int? capturedPageSize = null;
+        _personServiceMock
+            .Setup(s => s.GetGroupsAsync(_personIdKey, It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .Callback<string, int, int, CancellationToken>((_, p, ps, _) =>
+            {
+                capturedPage = p;
+                capturedPageSize = ps;
+            })
+            .ReturnsAsync(expectedResult);
+
+        // Act
+        await _controller.GetGroups(_personIdKey, page: 2, pageSize: 10);
+
+        // Assert
+        capturedPage.Should().Be(2);
+        capturedPageSize.Should().Be(10);
+    }
+
+    [Fact]
+    public async Task GetGroups_WithNoGroups_ReturnsEmptyPagedResult()
+    {
+        // Arrange
+        var expectedResult = new PagedResult<PersonGroupMembershipDto>(
+            new List<PersonGroupMembershipDto>(),
+            totalCount: 0,
+            page: 1,
+            pageSize: 25
+        );
+
+        _personServiceMock
+            .Setup(s => s.GetGroupsAsync(_personIdKey, 1, 25, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedResult);
+
+        // Act
+        var result = await _controller.GetGroups(_personIdKey, page: 1, pageSize: 25);
+
+        // Assert
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var pagedResult = okResult.Value.Should().BeOfType<PagedResult<PersonGroupMembershipDto>>().Subject;
+        pagedResult.Items.Should().BeEmpty();
+        pagedResult.TotalCount.Should().Be(0);
+    }
+
+    #endregion
 }
