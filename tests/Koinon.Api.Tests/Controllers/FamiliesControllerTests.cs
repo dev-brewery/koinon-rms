@@ -397,8 +397,10 @@ public class FamiliesControllerTests
         createdResult.ActionName.Should().Be(nameof(FamiliesController.GetByIdKey));
         createdResult.RouteValues!["idKey"].Should().Be(_newFamilyIdKey);
 
-        // CreatedAtAction returns the resource directly (no data wrapper per API contract)
-        var returnedFamily = createdResult.Value.Should().BeOfType<FamilyDto>().Subject;
+        // Response is wrapped in { data: ... } per API contract
+        var response = createdResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        var returnedFamily = dataProperty!.GetValue(response).Should().BeOfType<FamilyDto>().Subject;
         returnedFamily.Name.Should().Be("New Family");
         returnedFamily.IdKey.Should().Be(_newFamilyIdKey);
     }
@@ -507,8 +509,10 @@ public class FamiliesControllerTests
         createdResult.ActionName.Should().Be(nameof(FamiliesController.GetMembers));
         createdResult.RouteValues!["idKey"].Should().Be(_familyIdKey);
 
-        // CreatedAtAction returns the resource directly (no data wrapper per API contract)
-        var returnedMember = createdResult.Value.Should().BeOfType<FamilyMemberDto>().Subject;
+        // Response is wrapped in { data: ... } per API contract
+        var response = createdResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        var returnedMember = dataProperty!.GetValue(response).Should().BeOfType<FamilyMemberDto>().Subject;
         returnedMember.Person.IdKey.Should().Be(_personIdKey);
     }
 

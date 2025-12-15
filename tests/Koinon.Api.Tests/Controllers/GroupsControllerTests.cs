@@ -282,8 +282,10 @@ public class GroupsControllerTests
         createdResult.RouteValues.Should().ContainKey("idKey");
         createdResult.RouteValues!["idKey"].Should().Be(_newGroupIdKey);
 
-        // CreatedAtAction returns the resource directly (no data wrapper per API contract)
-        var group = createdResult.Value.Should().BeOfType<GroupDto>().Subject;
+        // Response is wrapped in { data: ... } per API contract
+        var response = createdResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        var group = dataProperty!.GetValue(response).Should().BeOfType<GroupDto>().Subject;
         group.IdKey.Should().Be(_newGroupIdKey);
         group.Name.Should().Be("New Youth Group");
     }

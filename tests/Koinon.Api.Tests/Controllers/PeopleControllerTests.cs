@@ -225,7 +225,10 @@ public class PeopleControllerTests
         createdResult.RouteValues.Should().ContainKey("idKey");
         createdResult.RouteValues!["idKey"].Should().Be(_newPersonIdKey);
 
-        var person = createdResult.Value.Should().BeOfType<PersonDto>().Subject;
+        // Response is wrapped in { data: ... } per API contract
+        var response = createdResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        var person = dataProperty!.GetValue(response).Should().BeOfType<PersonDto>().Subject;
         person.IdKey.Should().Be(_newPersonIdKey);
         person.FullName.Should().Be("John Doe");
     }
