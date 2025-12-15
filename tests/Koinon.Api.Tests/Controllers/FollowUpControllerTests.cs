@@ -71,7 +71,10 @@ public class FollowUpControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var followUps = okResult.Value.Should().BeAssignableTo<IReadOnlyList<FollowUpDto>>().Subject;
+        var response = okResult.Value.Should().BeAssignableTo<object>().Subject;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var followUps = dataProperty!.GetValue(response).Should().BeAssignableTo<IReadOnlyList<FollowUpDto>>().Subject;
         followUps.Should().HaveCount(1);
         followUps[0].Status.Should().Be(FollowUpStatus.Pending);
     }
@@ -107,7 +110,10 @@ public class FollowUpControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var followUps = okResult.Value.Should().BeAssignableTo<IReadOnlyList<FollowUpDto>>().Subject;
+        var response = okResult.Value.Should().BeAssignableTo<object>().Subject;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var followUps = dataProperty!.GetValue(response).Should().BeAssignableTo<IReadOnlyList<FollowUpDto>>().Subject;
         followUps.Should().HaveCount(1);
         followUps[0].AssignedToIdKey.Should().Be(_assignedToIdKey);
     }
@@ -161,7 +167,10 @@ public class FollowUpControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var followUp = okResult.Value.Should().BeOfType<FollowUpDto>().Subject;
+        var response = okResult.Value.Should().BeAssignableTo<object>().Subject;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var followUp = dataProperty!.GetValue(response).Should().BeOfType<FollowUpDto>().Subject;
         followUp.IdKey.Should().Be(_followUpIdKey);
         followUp.PersonName.Should().Be("John Doe");
     }
@@ -226,7 +235,10 @@ public class FollowUpControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var followUp = okResult.Value.Should().BeOfType<FollowUpDto>().Subject;
+        var response = okResult.Value.Should().BeAssignableTo<object>().Subject;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var followUp = dataProperty!.GetValue(response).Should().BeOfType<FollowUpDto>().Subject;
         followUp.Status.Should().Be(FollowUpStatus.Contacted);
         followUp.Notes.Should().Be("Successfully contacted");
     }

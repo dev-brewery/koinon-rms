@@ -46,7 +46,7 @@ public class AuthorizedPickupController(
             "Authorized pickups retrieved: ChildIdKey={ChildIdKey}, Count={Count}",
             childIdKey, pickups.Count);
 
-        return Ok(pickups);
+        return Ok(new { data = pickups });
     }
 
     /// <summary>
@@ -80,7 +80,7 @@ public class AuthorizedPickupController(
         return CreatedAtAction(
             nameof(GetAuthorizedPickups),
             new { childIdKey },
-            pickup);
+            new { data = pickup });
     }
 
     /// <summary>
@@ -115,7 +115,7 @@ public class AuthorizedPickupController(
                 "Authorized pickup updated: PickupIdKey={PickupIdKey}, Name={Name}",
                 pickupIdKey, pickup.Name ?? pickup.AuthorizedPersonName);
 
-            return Ok(pickup);
+            return Ok(new { data = pickup });
         }
         catch (InvalidOperationException ex)
         {
@@ -214,9 +214,12 @@ public class AuthorizedPickupController(
 
         return Ok(new
         {
-            message = "Family members successfully added as authorized pickups",
-            count = pickups.Count,
-            pickups
+            data = new
+            {
+                message = "Family members successfully added as authorized pickups",
+                count = pickups.Count,
+                pickups
+            }
         });
     }
 }

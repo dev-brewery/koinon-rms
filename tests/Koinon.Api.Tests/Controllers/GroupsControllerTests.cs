@@ -76,11 +76,30 @@ public class GroupsControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var pagedResult = okResult.Value.Should().BeOfType<PagedResult<GroupSummaryDto>>().Subject;
-        pagedResult.Items.Should().HaveCount(2);
-        pagedResult.TotalCount.Should().Be(2);
-        pagedResult.Page.Should().Be(1);
-        pagedResult.PageSize.Should().Be(25);
+        var response = okResult.Value.Should().BeAssignableTo<object>().Subject;
+
+        // Extract data property
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var items = dataProperty!.GetValue(response).Should().BeAssignableTo<IEnumerable<GroupSummaryDto>>().Subject.ToList();
+
+        // Extract meta property
+        var metaProperty = response.GetType().GetProperty("meta");
+        metaProperty.Should().NotBeNull("response should have a 'meta' property");
+        var meta = metaProperty!.GetValue(response).Should().BeAssignableTo<object>().Subject;
+
+        // Get meta values
+        var pageProperty = meta.GetType().GetProperty("page");
+        var page = (int)pageProperty!.GetValue(meta)!;
+        var pageSizeProperty = meta.GetType().GetProperty("pageSize");
+        var pageSize = (int)pageSizeProperty!.GetValue(meta)!;
+        var totalCountProperty = meta.GetType().GetProperty("totalCount");
+        var totalCount = (int)totalCountProperty!.GetValue(meta)!;
+
+        items.Should().HaveCount(2);
+        totalCount.Should().Be(2);
+        page.Should().Be(1);
+        pageSize.Should().Be(25);
     }
 
     [Fact]
@@ -172,7 +191,10 @@ public class GroupsControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var group = okResult.Value.Should().BeOfType<GroupDto>().Subject;
+        var response = okResult.Value.Should().BeAssignableTo<object>().Subject;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var group = dataProperty!.GetValue(response).Should().BeOfType<GroupDto>().Subject;
         group.IdKey.Should().Be(_groupIdKey);
         group.Name.Should().Be("Youth Group");
     }
@@ -260,7 +282,10 @@ public class GroupsControllerTests
         createdResult.RouteValues.Should().ContainKey("idKey");
         createdResult.RouteValues!["idKey"].Should().Be(_newGroupIdKey);
 
-        var group = createdResult.Value.Should().BeOfType<GroupDto>().Subject;
+        // Response is wrapped in { data: ... } per API contract
+        var response = createdResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        var group = dataProperty!.GetValue(response).Should().BeOfType<GroupDto>().Subject;
         group.IdKey.Should().Be(_newGroupIdKey);
         group.Name.Should().Be("New Youth Group");
     }
@@ -378,7 +403,10 @@ public class GroupsControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var group = okResult.Value.Should().BeOfType<GroupDto>().Subject;
+        var response = okResult.Value.Should().BeAssignableTo<object>().Subject;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var group = dataProperty!.GetValue(response).Should().BeOfType<GroupDto>().Subject;
         group.IdKey.Should().Be(_groupIdKey);
         group.Name.Should().Be("Youth Group Updated");
         group.ModifiedDateTime.Should().NotBeNull();
@@ -510,7 +538,10 @@ public class GroupsControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var members = okResult.Value.Should().BeAssignableTo<IReadOnlyList<GroupMemberDto>>().Subject;
+        var response = okResult.Value.Should().BeAssignableTo<object>().Subject;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var members = dataProperty!.GetValue(response).Should().BeAssignableTo<IReadOnlyList<GroupMemberDto>>().Subject;
         members.Should().HaveCount(1);
         members[0].Person.IdKey.Should().Be(_personIdKey);
     }
@@ -528,7 +559,10 @@ public class GroupsControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var members = okResult.Value.Should().BeAssignableTo<IReadOnlyList<GroupMemberDto>>().Subject;
+        var response = okResult.Value.Should().BeAssignableTo<object>().Subject;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var members = dataProperty!.GetValue(response).Should().BeAssignableTo<IReadOnlyList<GroupMemberDto>>().Subject;
         members.Should().BeEmpty();
     }
 
@@ -583,6 +617,7 @@ public class GroupsControllerTests
         createdResult.RouteValues.Should().ContainKey("idKey");
         createdResult.RouteValues!["idKey"].Should().Be(_groupIdKey);
 
+        // CreatedAtAction returns the resource directly (no data wrapper per API contract)
         var member = createdResult.Value.Should().BeOfType<GroupMemberDto>().Subject;
         member.Person.IdKey.Should().Be(_personIdKey);
     }
@@ -680,7 +715,10 @@ public class GroupsControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var children = okResult.Value.Should().BeAssignableTo<IReadOnlyList<GroupSummaryDto>>().Subject;
+        var response = okResult.Value.Should().BeAssignableTo<object>().Subject;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var children = dataProperty!.GetValue(response).Should().BeAssignableTo<IReadOnlyList<GroupSummaryDto>>().Subject;
         children.Should().HaveCount(1);
         children[0].Name.Should().Be("Sub Group 1");
     }
@@ -698,7 +736,10 @@ public class GroupsControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var children = okResult.Value.Should().BeAssignableTo<IReadOnlyList<GroupSummaryDto>>().Subject;
+        var response = okResult.Value.Should().BeAssignableTo<object>().Subject;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var children = dataProperty!.GetValue(response).Should().BeAssignableTo<IReadOnlyList<GroupSummaryDto>>().Subject;
         children.Should().BeEmpty();
     }
 

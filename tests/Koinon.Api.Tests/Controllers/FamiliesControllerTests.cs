@@ -78,9 +78,24 @@ public class FamiliesControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var pagedResult = okResult.Value.Should().BeOfType<PagedResult<FamilySummaryDto>>().Subject;
-        pagedResult.Items.Should().HaveCount(2);
-        pagedResult.TotalCount.Should().Be(2);
+        var response = okResult.Value.Should().BeAssignableTo<object>().Subject;
+
+        // Extract data property
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var items = dataProperty!.GetValue(response).Should().BeAssignableTo<IEnumerable<FamilySummaryDto>>().Subject.ToList();
+
+        // Extract meta property
+        var metaProperty = response.GetType().GetProperty("meta");
+        metaProperty.Should().NotBeNull("response should have a 'meta' property");
+        var meta = metaProperty!.GetValue(response).Should().BeAssignableTo<object>().Subject;
+
+        // Get meta values
+        var totalCountProperty = meta.GetType().GetProperty("totalCount");
+        var totalCount = (int)totalCountProperty!.GetValue(meta)!;
+
+        items.Should().HaveCount(2);
+        totalCount.Should().Be(2);
     }
 
     [Fact]
@@ -182,7 +197,10 @@ public class FamiliesControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var returnedFamily = okResult.Value.Should().BeOfType<FamilyDto>().Subject;
+        var response = okResult.Value.Should().BeAssignableTo<object>().Subject;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var returnedFamily = dataProperty!.GetValue(response).Should().BeOfType<FamilyDto>().Subject;
         returnedFamily.IdKey.Should().Be(_familyIdKey);
         returnedFamily.Name.Should().Be("Smith Family");
         returnedFamily.Members.Should().HaveCount(1);
@@ -296,7 +314,10 @@ public class FamiliesControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var returnedMembers = okResult.Value.Should().BeAssignableTo<IReadOnlyList<FamilyMemberDto>>().Subject;
+        var response = okResult.Value.Should().BeAssignableTo<object>().Subject;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var returnedMembers = dataProperty!.GetValue(response).Should().BeAssignableTo<IReadOnlyList<FamilyMemberDto>>().Subject;
         returnedMembers.Should().HaveCount(2);
         returnedMembers[0].Person.FirstName.Should().Be("John");
         returnedMembers[1].Person.FirstName.Should().Be("Jane");
@@ -376,7 +397,10 @@ public class FamiliesControllerTests
         createdResult.ActionName.Should().Be(nameof(FamiliesController.GetByIdKey));
         createdResult.RouteValues!["idKey"].Should().Be(_newFamilyIdKey);
 
-        var returnedFamily = createdResult.Value.Should().BeOfType<FamilyDto>().Subject;
+        // Response is wrapped in { data: ... } per API contract
+        var response = createdResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        var returnedFamily = dataProperty!.GetValue(response).Should().BeOfType<FamilyDto>().Subject;
         returnedFamily.Name.Should().Be("New Family");
         returnedFamily.IdKey.Should().Be(_newFamilyIdKey);
     }
@@ -485,7 +509,10 @@ public class FamiliesControllerTests
         createdResult.ActionName.Should().Be(nameof(FamiliesController.GetMembers));
         createdResult.RouteValues!["idKey"].Should().Be(_familyIdKey);
 
-        var returnedMember = createdResult.Value.Should().BeOfType<FamilyMemberDto>().Subject;
+        // Response is wrapped in { data: ... } per API contract
+        var response = createdResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        var returnedMember = dataProperty!.GetValue(response).Should().BeOfType<FamilyMemberDto>().Subject;
         returnedMember.Person.IdKey.Should().Be(_personIdKey);
     }
 

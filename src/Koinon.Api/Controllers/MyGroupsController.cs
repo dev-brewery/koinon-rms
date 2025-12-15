@@ -22,7 +22,7 @@ public class MyGroupsController(IMyGroupsService myGroupsService) : ControllerBa
     public async Task<IActionResult> GetMyGroups(CancellationToken ct)
     {
         var groups = await myGroupsService.GetMyGroupsAsync(ct);
-        return Ok(groups);
+        return Ok(new { data = groups });
     }
 
     /// <summary>
@@ -48,7 +48,7 @@ public class MyGroupsController(IMyGroupsService myGroupsService) : ControllerBa
             };
         }
 
-        return Ok(result.Value);
+        return Ok(new { data = result.Value });
     }
 
     /// <summary>
@@ -80,7 +80,7 @@ public class MyGroupsController(IMyGroupsService myGroupsService) : ControllerBa
             };
         }
 
-        return Ok(result.Value);
+        return Ok(new { data = result.Value });
     }
 
     /// <summary>
