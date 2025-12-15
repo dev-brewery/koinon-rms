@@ -61,7 +61,7 @@ public class ApiEndpointContractTests : IClassFixture<TestWebApplicationFactory>
             $"{endpoint} should require authentication");
     }
 
-    [Fact(Skip = "FamiliesController has no GET list endpoint - only GET by idKey")]
+    [Fact]
     public async Task FamiliesEndpoint_RequiresAuthentication()
     {
         // Arrange
@@ -208,7 +208,7 @@ public class ApiEndpointContractTests : IClassFixture<TestWebApplicationFactory>
             $"{endpoint} should support {method} method");
     }
 
-    [Fact(Skip = "FamiliesController has no GET list endpoint")]
+    [Fact]
     public async Task FamiliesEndpoint_SupportsGetMethod()
     {
         // Arrange

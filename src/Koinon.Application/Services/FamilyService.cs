@@ -58,6 +58,61 @@ public class FamilyService(
         return await GetByIdAsync(id, ct);
     }
 
+    public async Task<PagedResult<FamilySummaryDto>> SearchAsync(
+        string? searchTerm,
+        string? campusIdKey,
+        bool includeInactive,
+        int page,
+        int pageSize,
+        CancellationToken ct = default)
+    {
+        var query = context.Groups
+            .AsNoTracking()
+            .Include(g => g.GroupType)
+            .Include(g => g.Members)
+            .Where(g => g.GroupType!.IsFamilyGroupType);
+
+        // Filter by active status
+        if (!includeInactive)
+        {
+            query = query.Where(g => g.IsActive);
+        }
+
+        // Filter by campus
+        if (!string.IsNullOrWhiteSpace(campusIdKey) && IdKeyHelper.TryDecode(campusIdKey, out int campusId))
+        {
+            query = query.Where(g => g.CampusId == campusId);
+        }
+
+        // Filter by search term (search in name)
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            query = query.Where(g => g.Name.Contains(searchTerm));
+        }
+
+        // Get total count
+        var totalCount = await query.CountAsync(ct);
+
+        // Apply pagination
+        var families = await query
+            .OrderBy(g => g.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(g => new FamilySummaryDto
+            {
+                IdKey = g.IdKey,
+                Name = g.Name,
+                MemberCount = g.Members.Count
+            })
+            .ToListAsync(ct);
+
+        logger.LogInformation(
+            "Family search completed: SearchTerm={SearchTerm}, CampusIdKey={CampusIdKey}, Page={Page}, PageSize={PageSize}, TotalCount={TotalCount}",
+            searchTerm, campusIdKey, page, pageSize, totalCount);
+
+        return new PagedResult<FamilySummaryDto>(families, totalCount, page, pageSize);
+    }
+
     public async Task<Result<FamilyDto>> CreateFamilyAsync(
         CreateFamilyRequest request,
         CancellationToken ct = default)
