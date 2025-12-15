@@ -425,7 +425,7 @@ public class PersonServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task GetFamilyAsync_WithNoFamily_ReturnsNull()
+    public async Task GetFamilyAsync_WithNoFamily_ReturnsSuccessWithNull()
     {
         // Arrange
         var person = await _context.People.FindAsync(1);
@@ -435,7 +435,8 @@ public class PersonServiceTests : IDisposable
         var result = await _service.GetFamilyAsync(idKey);
 
         // Assert
-        result.Should().BeNull();
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeNull();
     }
 
     [Fact]
