@@ -349,11 +349,11 @@ public class PersonService(
         return Result.Success();
     }
 
-    public async Task<FamilySummaryDto?> GetFamilyAsync(string idKey, CancellationToken ct = default)
+    public async Task<Result<FamilySummaryDto?>> GetFamilyAsync(string idKey, CancellationToken ct = default)
     {
         if (!IdKeyHelper.TryDecode(idKey, out int id))
         {
-            return null;
+            return Result<FamilySummaryDto?>.Failure(Error.NotFound("Person", idKey));
         }
 
         var person = await context.People
@@ -361,20 +361,27 @@ public class PersonService(
             .Include(p => p.PrimaryFamily)
             .FirstOrDefaultAsync(p => p.Id == id, ct);
 
-        if (person?.PrimaryFamily is null)
+        if (person is null)
         {
-            return null;
+            return Result<FamilySummaryDto?>.Failure(Error.NotFound("Person", idKey));
+        }
+
+        if (person.PrimaryFamily is null)
+        {
+            return Result<FamilySummaryDto?>.Success(null);
         }
 
         var memberCount = await context.GroupMembers
             .CountAsync(gm => gm.GroupId == person.PrimaryFamilyId, ct);
 
-        return new FamilySummaryDto
+        var familyDto = new FamilySummaryDto
         {
             IdKey = person.PrimaryFamily.IdKey,
             Name = person.PrimaryFamily.Name,
             MemberCount = memberCount
         };
+
+        return Result<FamilySummaryDto?>.Success(familyDto);
     }
 
     public async Task<Result<PersonDto>> UpdatePhotoAsync(string idKey, string? photoIdKey, CancellationToken ct = default)

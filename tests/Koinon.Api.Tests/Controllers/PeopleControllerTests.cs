@@ -880,7 +880,7 @@ public class PeopleControllerTests
 
         _personServiceMock
             .Setup(s => s.GetFamilyAsync(_personIdKey, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(expectedFamily);
+            .ReturnsAsync(Result<FamilySummaryDto?>.Success(expectedFamily));
 
         // Act
         var result = await _controller.GetFamily(_personIdKey);
@@ -894,21 +894,41 @@ public class PeopleControllerTests
     }
 
     [Fact]
-    public async Task GetFamily_WithNoFamily_ReturnsNotFound()
+    public async Task GetFamily_WithNoFamily_ReturnsOkWithNull()
     {
-        // Arrange
+        // Arrange - Person exists but has no family
         _personServiceMock
             .Setup(s => s.GetFamilyAsync(_personIdKey, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((FamilySummaryDto?)null);
+            .ReturnsAsync(Result<FamilySummaryDto?>.Success(null));
 
         // Act
         var result = await _controller.GetFamily(_personIdKey);
 
         // Assert
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        okResult.Value.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetFamily_WithNonExistentPerson_ReturnsNotFound()
+    {
+        // Arrange - Person doesn't exist
+        var nonExistentIdKey = IdKeyHelper.Encode(99999);
+        var error = Error.NotFound("Person", nonExistentIdKey);
+
+        _personServiceMock
+            .Setup(s => s.GetFamilyAsync(nonExistentIdKey, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<FamilySummaryDto?>.Failure(error));
+
+        // Act
+        var result = await _controller.GetFamily(nonExistentIdKey);
+
+        // Assert
         var notFoundResult = result.Should().BeOfType<NotFoundObjectResult>().Subject;
         var problemDetails = notFoundResult.Value.Should().BeOfType<ProblemDetails>().Subject;
         problemDetails.Status.Should().Be(StatusCodes.Status404NotFound);
-        problemDetails.Detail.Should().Contain(_personIdKey);
+        problemDetails.Title.Should().Be("Person not found");
+        problemDetails.Detail.Should().Contain(nonExistentIdKey);
     }
 
     #endregion

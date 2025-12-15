@@ -280,35 +280,42 @@ public class PeopleController(
     /// </summary>
     /// <param name="idKey">The person's IdKey</param>
     /// <param name="ct">Cancellation token</param>
-    /// <returns>Family details with members</returns>
-    /// <response code="200">Returns family details</response>
-    /// <response code="404">Person not found or has no family</response>
+    /// <returns>Family details with members, or null if person has no family</returns>
+    /// <response code="200">Returns family details or null if person has no family</response>
+    /// <response code="404">Person not found</response>
     [HttpGet("{idKey}/family")]
     [ValidateIdKey]
     [ProducesResponseType(typeof(FamilySummaryDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetFamily(string idKey, CancellationToken ct = default)
     {
-        var family = await personService.GetFamilyAsync(idKey, ct);
+        var result = await personService.GetFamilyAsync(idKey, ct);
 
-        if (family == null)
+        if (result.IsFailure)
         {
-            logger.LogDebug("Family not found for person: IdKey={IdKey}", idKey);
+            logger.LogDebug("Person not found: IdKey={IdKey}", idKey);
 
             return NotFound(new ProblemDetails
             {
-                Title = "Family not found",
-                Detail = $"No family found for person with IdKey '{idKey}'",
+                Title = "Person not found",
+                Detail = result.Error!.Message,
                 Status = StatusCodes.Status404NotFound,
                 Instance = HttpContext.Request.Path
             });
         }
 
-        logger.LogDebug(
-            "Family retrieved for person: IdKey={IdKey}, FamilyName={FamilyName}",
-            idKey, family.Name);
+        if (result.Value is null)
+        {
+            logger.LogDebug("Person has no family: IdKey={IdKey}", idKey);
+        }
+        else
+        {
+            logger.LogDebug(
+                "Family retrieved for person: IdKey={IdKey}, FamilyName={FamilyName}",
+                idKey, result.Value.Name);
+        }
 
-        return Ok(family);
+        return Ok(result.Value);
     }
 
     /// <summary>

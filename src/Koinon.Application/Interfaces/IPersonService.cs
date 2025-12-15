@@ -48,8 +48,10 @@ public interface IPersonService
 
     /// <summary>
     /// Gets the person's family with members.
+    /// Returns Success(null) when person exists but has no family.
+    /// Returns Failure(NotFound) when person doesn't exist.
     /// </summary>
-    Task<FamilySummaryDto?> GetFamilyAsync(string idKey, CancellationToken ct = default);
+    Task<Result<FamilySummaryDto?>> GetFamilyAsync(string idKey, CancellationToken ct = default);
 
     /// <summary>
     /// Updates a person's photo.
