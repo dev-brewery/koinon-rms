@@ -85,8 +85,7 @@ test.describe('Dashboard Performance', () => {
     await page.evaluate(() => performance.mark('stats-render-start'));
 
     // Wait for stats cards to be visible (at least one stat card should appear)
-    // TODO(#198): Replace fragile selector with data-testid="stat-card" when dashboard component adds test IDs
-    const statCards = page.locator('[data-testid*="stat-card"], .stat-card, [class*="stat"], [role="status"]').first();
+    const statCards = page.getByTestId('stat-card').first();
     await expect(statCards).toBeVisible({ timeout: 2000 });
 
     // End measurement
@@ -251,8 +250,7 @@ test.describe('Dashboard Performance - Full Flow', () => {
     await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible();
 
     // Wait for stats to load (check for any stat-related elements)
-    // TODO(#198): Replace fragile selector with data-testid="stat-card" when dashboard component adds test IDs
-    const statsVisible = page.locator('[data-testid*="stat"], .stat, [role="status"]').first();
+    const statsVisible = page.getByTestId('stat-card').first();
     try {
       await expect(statsVisible).toBeVisible({ timeout: 2000 });
     } catch {
