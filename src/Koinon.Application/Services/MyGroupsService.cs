@@ -41,7 +41,7 @@ public class MyGroupsService(
             .Include(gm => gm.GroupRole)
             .Where(gm => gm.PersonId == currentPersonId.Value
                 && gm.GroupMemberStatus == GroupMemberStatus.Active
-                && gm.GroupRole!.IsLeader
+                && gm.GroupRole != null && gm.GroupRole.IsLeader
                 && !gm.Group!.IsArchived
 )
             .Select(gm => gm.Group!)
@@ -120,9 +120,9 @@ public class MyGroupsService(
                 .ThenInclude(p => p!.PhoneNumbers)
             .Include(gm => gm.GroupRole)
             .Where(gm => gm.GroupId == groupId && gm.GroupMemberStatus == GroupMemberStatus.Active)
-            .OrderBy(gm => gm.GroupRole!.Order)
-            .ThenBy(gm => gm.Person!.LastName)
-            .ThenBy(gm => gm.Person!.FirstName)
+            .OrderBy(gm => gm.GroupRole != null ? gm.GroupRole.Order : int.MaxValue)
+            .ThenBy(gm => gm.Person != null ? gm.Person.LastName : "")
+            .ThenBy(gm => gm.Person != null ? gm.Person.FirstName : "")
             .ToListAsync(ct);
 
         var memberDtos = members.Select(m => new GroupMemberDetailDto
@@ -142,11 +142,16 @@ public class MyGroupsService(
                 ? DateTime.UtcNow.Year - m.Person.BirthDate.Value.Year
                 : null,
             Gender = m.Person.Gender.ToString(),
-            Role = new GroupTypeRoleDto
+            Role = m.GroupRole != null ? new GroupTypeRoleDto
             {
-                IdKey = m.GroupRole!.IdKey,
+                IdKey = m.GroupRole.IdKey,
                 Name = m.GroupRole.Name,
                 IsLeader = m.GroupRole.IsLeader
+            } : new GroupTypeRoleDto
+            {
+                IdKey = "(unknown)",
+                Name = "(Unknown)",
+                IsLeader = false
             },
             Status = m.GroupMemberStatus.ToString(),
             DateTimeAdded = m.DateTimeAdded,
@@ -278,11 +283,16 @@ public class MyGroupsService(
                 ? DateTime.UtcNow.Year - groupMember.Person.BirthDate.Value.Year
                 : null,
             Gender = groupMember.Person.Gender.ToString(),
-            Role = new GroupTypeRoleDto
+            Role = groupMember.GroupRole != null ? new GroupTypeRoleDto
             {
-                IdKey = groupMember.GroupRole!.IdKey,
+                IdKey = groupMember.GroupRole.IdKey,
                 Name = groupMember.GroupRole.Name,
                 IsLeader = groupMember.GroupRole.IsLeader
+            } : new GroupTypeRoleDto
+            {
+                IdKey = "(unknown)",
+                Name = "(Unknown)",
+                IsLeader = false
             },
             Status = groupMember.GroupMemberStatus.ToString(),
             DateTimeAdded = groupMember.DateTimeAdded,
@@ -483,6 +493,6 @@ public class MyGroupsService(
             .AnyAsync(gm => gm.GroupId == groupId
                 && gm.PersonId == currentPersonId.Value
                 && gm.GroupMemberStatus == GroupMemberStatus.Active
-                && gm.GroupRole!.IsLeader, ct);
+                && gm.GroupRole != null && gm.GroupRole.IsLeader, ct);
     }
 }

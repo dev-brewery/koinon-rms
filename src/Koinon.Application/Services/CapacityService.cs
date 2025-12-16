@@ -260,7 +260,7 @@ public class CapacityService(
                 && a.EndDateTime == null
                 && Context.GroupMembers.Any(m => m.Person!.Id == a.PersonAlias!.PersonId
                     && locationIds.Contains(m.GroupId)
-                    && m.GroupRole!.IsLeader))
+                    && m.GroupRole != null && m.GroupRole.IsLeader))
             .GroupBy(a => a.Occurrence!.GroupId)
             .Select(g => new { GroupId = g.Key, Count = g.Count() })
             .ToListAsync(ct);
@@ -339,7 +339,7 @@ public class CapacityService(
                 && a.EndDateTime == null
                 && Context.GroupMembers.Any(m => m.Person!.Id == a.PersonAlias!.PersonId
                     && m.GroupId == locationId
-                    && m.GroupRole!.IsLeader))
+                    && m.GroupRole != null && m.GroupRole.IsLeader))
             .CountAsync(ct);
     }
 

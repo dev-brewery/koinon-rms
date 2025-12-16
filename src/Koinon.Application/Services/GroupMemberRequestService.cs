@@ -318,6 +318,6 @@ public class GroupMemberRequestService(
             .AnyAsync(gm => gm.GroupId == groupId
                 && gm.PersonId == currentPersonId.Value
                 && gm.GroupMemberStatus == GroupMemberStatus.Active
-                && gm.GroupRole!.IsLeader, ct);
+                && gm.GroupRole != null && gm.GroupRole.IsLeader, ct);
     }
 }
