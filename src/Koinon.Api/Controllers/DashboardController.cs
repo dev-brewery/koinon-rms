@@ -32,6 +32,6 @@ public class DashboardController(
             "Dashboard stats retrieved: People={TotalPeople}, Families={TotalFamilies}, Groups={ActiveGroups}",
             stats.TotalPeople, stats.TotalFamilies, stats.ActiveGroups);
 
-        return Ok(stats);
+        return Ok(new { data = stats });
     }
 }

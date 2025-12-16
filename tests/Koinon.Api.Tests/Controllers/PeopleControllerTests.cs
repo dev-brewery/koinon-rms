@@ -77,11 +77,15 @@ public class PeopleControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var pagedResult = okResult.Value.Should().BeOfType<PagedResult<PersonSummaryDto>>().Subject;
-        pagedResult.Items.Should().HaveCount(2);
-        pagedResult.TotalCount.Should().Be(2);
-        pagedResult.Page.Should().Be(1);
-        pagedResult.PageSize.Should().Be(25);
+        var response = okResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        var items = dataProperty!.GetValue(response).Should().BeAssignableTo<IEnumerable<PersonSummaryDto>>().Subject.ToList();
+        var metaProperty = response.GetType().GetProperty("meta");
+        var meta = metaProperty!.GetValue(response)!;
+        var totalCountProp = meta.GetType().GetProperty("totalCount");
+        var totalCount = (int)totalCountProp!.GetValue(meta)!;
+        items.Should().HaveCount(2);
+        totalCount.Should().Be(2);
     }
 
     [Fact]
@@ -152,7 +156,10 @@ public class PeopleControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var person = okResult.Value.Should().BeOfType<PersonDto>().Subject;
+        var response = okResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var person = dataProperty!.GetValue(response).Should().BeOfType<PersonDto>().Subject;
         person.IdKey.Should().Be(_personIdKey);
         person.FullName.Should().Be("John Doe");
     }
@@ -218,7 +225,10 @@ public class PeopleControllerTests
         createdResult.RouteValues.Should().ContainKey("idKey");
         createdResult.RouteValues!["idKey"].Should().Be(_newPersonIdKey);
 
-        var person = createdResult.Value.Should().BeOfType<PersonDto>().Subject;
+        // Response is wrapped in { data: ... } per API contract
+        var response = createdResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        var person = dataProperty!.GetValue(response).Should().BeOfType<PersonDto>().Subject;
         person.IdKey.Should().Be(_newPersonIdKey);
         person.FullName.Should().Be("John Doe");
     }
@@ -319,7 +329,10 @@ public class PeopleControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var person = okResult.Value.Should().BeOfType<PersonDto>().Subject;
+        var response = okResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var person = dataProperty!.GetValue(response).Should().BeOfType<PersonDto>().Subject;
         person.IdKey.Should().Be(_personIdKey);
         person.FirstName.Should().Be("John Updated");
         person.ModifiedDateTime.Should().NotBeNull();
@@ -486,7 +499,10 @@ public class PeopleControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var person = okResult.Value.Should().BeOfType<PersonDto>().Subject;
+        var response = okResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var person = dataProperty!.GetValue(response).Should().BeOfType<PersonDto>().Subject;
         person.IdKey.Should().Be(_personIdKey);
         person.PhotoUrl.Should().Be($"/api/v1/files/{photoIdKey}");
 
@@ -887,7 +903,10 @@ public class PeopleControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var family = okResult.Value.Should().BeOfType<FamilySummaryDto>().Subject;
+        var response = okResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var family = dataProperty!.GetValue(response).Should().BeOfType<FamilySummaryDto>().Subject;
         family.IdKey.Should().Be(_familyIdKey);
         family.Name.Should().Be("Doe Family");
         family.MemberCount.Should().Be(4);
@@ -906,7 +925,11 @@ public class PeopleControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        okResult.Value.Should().BeNull();
+        var response = okResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var family = dataProperty!.GetValue(response);
+        family.Should().BeNull();
     }
 
     [Fact]
@@ -987,12 +1010,16 @@ public class PeopleControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var pagedResult = okResult.Value.Should().BeOfType<PagedResult<PersonGroupMembershipDto>>().Subject;
-        pagedResult.Items.Should().HaveCount(2);
-        pagedResult.TotalCount.Should().Be(2);
-        pagedResult.Page.Should().Be(1);
-        pagedResult.PageSize.Should().Be(25);
-        pagedResult.Items.First().GroupName.Should().Be("Small Group Alpha");
+        var response = okResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        var items = dataProperty!.GetValue(response).Should().BeAssignableTo<IEnumerable<PersonGroupMembershipDto>>().Subject.ToList();
+        var metaProperty = response.GetType().GetProperty("meta");
+        var meta = metaProperty!.GetValue(response)!;
+        var totalCountProp = meta.GetType().GetProperty("totalCount");
+        var totalCount = (int)totalCountProp!.GetValue(meta)!;
+        items.Should().HaveCount(2);
+        totalCount.Should().Be(2);
+        items.First().GroupName.Should().Be("Small Group Alpha");
     }
 
     [Fact]
@@ -1045,9 +1072,15 @@ public class PeopleControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var pagedResult = okResult.Value.Should().BeOfType<PagedResult<PersonGroupMembershipDto>>().Subject;
-        pagedResult.Items.Should().BeEmpty();
-        pagedResult.TotalCount.Should().Be(0);
+        var response = okResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        var items = dataProperty!.GetValue(response).Should().BeAssignableTo<IEnumerable<PersonGroupMembershipDto>>().Subject.ToList();
+        var metaProperty = response.GetType().GetProperty("meta");
+        var meta = metaProperty!.GetValue(response)!;
+        var totalCountProp = meta.GetType().GetProperty("totalCount");
+        var totalCount = (int)totalCountProp!.GetValue(meta)!;
+        items.Should().BeEmpty();
+        totalCount.Should().Be(0);
     }
 
     #endregion

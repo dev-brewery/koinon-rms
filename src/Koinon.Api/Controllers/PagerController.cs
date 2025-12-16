@@ -105,7 +105,7 @@ public class PagerController(
             "Page sent successfully: PagerNumber={PagerNumber}, MessageType={MessageType}, SentBy={SentByPersonId}",
             request.PagerNumber, request.MessageType, sentByPersonId);
 
-        return Ok(message);
+        return Ok(new { data = message });
     }
 
     /// <summary>
@@ -137,7 +137,7 @@ public class PagerController(
             "Pager search completed: SearchTerm={SearchTerm}, Date={Date}, ResultCount={Count}",
             searchTerm ?? "All", date?.ToString("yyyy-MM-dd") ?? "Today", assignments.Count);
 
-        return Ok(assignments);
+        return Ok(new { data = assignments });
     }
 
     /// <summary>
@@ -181,7 +181,7 @@ public class PagerController(
             "Page history retrieved: PagerNumber={PagerNumber}, Date={Date}, MessageCount={MessageCount}",
             pagerNumber, date?.ToString("yyyy-MM-dd") ?? "Today", history.Messages.Count);
 
-        return Ok(history);
+        return Ok(new { data = history });
     }
 
     /// <summary>
@@ -219,6 +219,6 @@ public class PagerController(
             "Next pager number retrieved: CampusId={CampusId}, NextNumber={NextNumber}",
             campusId ?? "All", nextNumber);
 
-        return Ok(nextNumber);
+        return Ok(new { data = nextNumber });
     }
 }

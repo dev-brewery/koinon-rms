@@ -62,7 +62,7 @@ public class CheckinController(
             "Active check-in areas retrieved: CampusId={CampusId}, AreaCount={AreaCount}",
             campusId, areas.Count);
 
-        return Ok(areas);
+        return Ok(new { data = areas });
     }
 
     /// <summary>
@@ -127,7 +127,7 @@ public class CheckinController(
             "Check-in configuration retrieved: Campus={Campus}, AreaCount={AreaCount}",
             config.Campus.Name, config.Areas.Count);
 
-        return Ok(config);
+        return Ok(new { data = config });
     }
 
     /// <summary>
@@ -166,7 +166,7 @@ public class CheckinController(
             "Family search completed: Query={Query}, ResultCount={ResultCount}",
             query, families.Count);
 
-        return Ok(families);
+        return Ok(new { data = families });
     }
 
     /// <summary>
@@ -302,7 +302,7 @@ public class CheckinController(
                 "Labels generated: AttendanceIdKey={AttendanceIdKey}, LabelCount={LabelCount}",
                 attendanceIdKey, labels.Labels.Count);
 
-            return Ok(labels);
+            return Ok(new { data = labels });
         }
         catch (InvalidOperationException ex)
         {
@@ -343,7 +343,7 @@ public class CheckinController(
             "Current attendance retrieved: LocationIdKey={LocationIdKey}, Count={Count}",
             locationIdKey, attendance.Count);
 
-        return Ok(attendance);
+        return Ok(new { data = attendance });
     }
 
     /// <summary>
@@ -396,7 +396,7 @@ public class CheckinController(
             "Supervisor login successful: {SupervisorName}",
             response.Supervisor.FullName);
 
-        return Ok(response);
+        return Ok(new { data = response });
     }
 
     /// <summary>
@@ -471,7 +471,7 @@ public class CheckinController(
             "Room roster retrieved: LocationIdKey={LocationIdKey}, ChildCount={ChildCount}",
             locationIdKey, roster.TotalCount);
 
-        return Ok(roster);
+        return Ok(new { data = roster });
     }
 
     /// <summary>
@@ -510,7 +510,7 @@ public class CheckinController(
             "Multiple room rosters retrieved: LocationCount={LocationCount}",
             rosters.Count);
 
-        return Ok(rosters);
+        return Ok(new { data = rosters });
     }
 
     /// <summary>
@@ -585,7 +585,7 @@ public class CheckinController(
                 attendanceIdKey,
                 supervisor.FullName);
 
-            return Ok(labels);
+            return Ok(new { data = labels });
         }
         catch (InvalidOperationException ex)
         {
@@ -643,7 +643,7 @@ public class CheckinController(
             "Location capacity retrieved: LocationIdKey={LocationIdKey}, Status={Status}, Count={Count}/{Capacity}",
             locationIdKey, capacity.CapacityStatus, capacity.CurrentCount, capacity.SoftCapacity);
 
-        return Ok(capacity);
+        return Ok(new { data = capacity });
     }
 
     /// <summary>
@@ -728,6 +728,6 @@ public class CheckinController(
             "Overflow location retrieved: PrimaryLocationIdKey={PrimaryIdKey}, OverflowIdKey={OverflowIdKey}",
             locationIdKey, overflow.IdKey);
 
-        return Ok(overflow);
+        return Ok(new { data = overflow });
     }
 }

@@ -57,7 +57,17 @@ public class SchedulesController(
             "Schedule search completed: Query={Query}, Page={Page}, PageSize={PageSize}, TotalCount={TotalCount}",
             query, result.Page, result.PageSize, result.TotalCount);
 
-        return Ok(result);
+        return Ok(new
+        {
+            data = result.Items,
+            meta = new
+            {
+                page = result.Page,
+                pageSize = result.PageSize,
+                totalCount = result.TotalCount,
+                totalPages = (int)Math.Ceiling(result.TotalCount / (double)result.PageSize)
+            }
+        });
     }
 
     /// <summary>
@@ -90,7 +100,7 @@ public class SchedulesController(
 
         logger.LogDebug("Schedule retrieved: IdKey={IdKey}, Name={Name}", idKey, schedule.Name);
 
-        return Ok(schedule);
+        return Ok(new { data = schedule });
     }
 
     /// <summary>
@@ -214,7 +224,7 @@ public class SchedulesController(
             "Schedule updated successfully: IdKey={IdKey}, Name={Name}",
             schedule.IdKey, schedule.Name);
 
-        return Ok(schedule);
+        return Ok(new { data = schedule });
     }
 
     /// <summary>
@@ -300,6 +310,6 @@ public class SchedulesController(
             "Schedule occurrences retrieved: IdKey={IdKey}, Count={Count}",
             idKey, occurrences.Count);
 
-        return Ok(occurrences);
+        return Ok(new { data = occurrences });
     }
 }

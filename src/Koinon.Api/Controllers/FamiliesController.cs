@@ -64,7 +64,17 @@ public class FamiliesController(
             "Family search completed: SearchTerm={SearchTerm}, CampusIdKey={CampusIdKey}, Page={Page}, PageSize={PageSize}, TotalCount={TotalCount}",
             searchTerm, campusIdKey, result.Page, result.PageSize, result.TotalCount);
 
-        return Ok(result);
+        return Ok(new
+        {
+            data = result.Items,
+            meta = new
+            {
+                page = result.Page,
+                pageSize = result.PageSize,
+                totalCount = result.TotalCount,
+                totalPages = (int)Math.Ceiling(result.TotalCount / (double)result.PageSize)
+            }
+        });
     }
 
     /// <summary>
@@ -100,7 +110,7 @@ public class FamiliesController(
             }
 
             logger.LogDebug("Family retrieved: IdKey={IdKey}, Name={Name}", idKey, family.Name);
-            return Ok(family);
+            return Ok(new { data = family });
         }
         catch (UnauthorizedAccessException ex)
         {
@@ -151,7 +161,7 @@ public class FamiliesController(
                 "Family members retrieved: IdKey={IdKey}, MemberCount={MemberCount}",
                 idKey, family.Members.Count);
 
-            return Ok(family.Members);
+            return Ok(new { data = family.Members });
         }
         catch (UnauthorizedAccessException ex)
         {
@@ -220,7 +230,7 @@ public class FamiliesController(
         return CreatedAtAction(
             nameof(GetByIdKey),
             new { idKey = family.IdKey },
-            family);
+            new { data = family });
     }
 
     /// <summary>
@@ -298,7 +308,7 @@ public class FamiliesController(
         return CreatedAtAction(
             nameof(GetMembers),
             new { idKey },
-            member);
+            new { data = member });
     }
 
     /// <summary>

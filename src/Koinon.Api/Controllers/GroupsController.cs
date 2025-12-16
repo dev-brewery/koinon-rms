@@ -66,7 +66,17 @@ public class GroupsController(
             "Group search completed: Query={Query}, Page={Page}, PageSize={PageSize}, TotalCount={TotalCount}",
             query, result.Page, result.PageSize, result.TotalCount);
 
-        return Ok(result);
+        return Ok(new
+        {
+            data = result.Items,
+            meta = new
+            {
+                page = result.Page,
+                pageSize = result.PageSize,
+                totalCount = result.TotalCount,
+                totalPages = (int)Math.Ceiling(result.TotalCount / (double)result.PageSize)
+            }
+        });
     }
 
     /// <summary>
@@ -99,7 +109,7 @@ public class GroupsController(
 
         logger.LogDebug("Group retrieved: IdKey={IdKey}, Name={Name}", idKey, group.Name);
 
-        return Ok(group);
+        return Ok(new { data = group });
     }
 
     /// <summary>
@@ -156,7 +166,7 @@ public class GroupsController(
         return CreatedAtAction(
             nameof(GetByIdKey),
             new { idKey = group.IdKey },
-            group);
+            new { data = group });
     }
 
     /// <summary>
@@ -223,7 +233,7 @@ public class GroupsController(
             "Group updated successfully: IdKey={IdKey}, Name={Name}",
             group.IdKey, group.Name);
 
-        return Ok(group);
+        return Ok(new { data = group });
     }
 
     /// <summary>
@@ -292,7 +302,7 @@ public class GroupsController(
             "Group members retrieved: IdKey={IdKey}, MemberCount={MemberCount}",
             idKey, members.Count);
 
-        return Ok(members);
+        return Ok(new { data = members });
     }
 
     /// <summary>
@@ -437,7 +447,7 @@ public class GroupsController(
             "Child groups retrieved: IdKey={IdKey}, ChildCount={ChildCount}",
             idKey, childGroups.Count);
 
-        return Ok(childGroups);
+        return Ok(new { data = childGroups });
     }
 
     /// <summary>
@@ -459,7 +469,7 @@ public class GroupsController(
             "Group schedules retrieved: IdKey={IdKey}, ScheduleCount={ScheduleCount}",
             idKey, schedules.Count);
 
-        return Ok(schedules);
+        return Ok(new { data = schedules });
     }
 
     /// <summary>

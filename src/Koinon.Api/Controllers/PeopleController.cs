@@ -65,7 +65,17 @@ public class PeopleController(
             "People search completed: Query={Query}, Page={Page}, PageSize={PageSize}, TotalCount={TotalCount}",
             query, result.Page, result.PageSize, result.TotalCount);
 
-        return Ok(result);
+        return Ok(new
+        {
+            data = result.Items,
+            meta = new
+            {
+                page = result.Page,
+                pageSize = result.PageSize,
+                totalCount = result.TotalCount,
+                totalPages = (int)Math.Ceiling(result.TotalCount / (double)result.PageSize)
+            }
+        });
     }
 
     /// <summary>
@@ -99,7 +109,7 @@ public class PeopleController(
 
         logger.LogDebug("Person retrieved: IdKey={IdKey}, Name={Name}", idKey, person.FullName);
 
-        return Ok(person);
+        return Ok(new { data = person });
     }
 
     /// <summary>
@@ -156,7 +166,7 @@ public class PeopleController(
         return CreatedAtAction(
             nameof(GetByIdKey),
             new { idKey = person.IdKey },
-            person);
+            new { data = person });
     }
 
     /// <summary>
@@ -224,7 +234,7 @@ public class PeopleController(
             "Person updated successfully: IdKey={IdKey}, Name={Name}",
             person.IdKey, person.FullName);
 
-        return Ok(person);
+        return Ok(new { data = person });
     }
 
     /// <summary>
@@ -299,7 +309,17 @@ public class PeopleController(
             "Groups retrieved for person: IdKey={IdKey}, Page={Page}, PageSize={PageSize}, TotalCount={TotalCount}",
             idKey, result.Page, result.PageSize, result.TotalCount);
 
-        return Ok(result);
+        return Ok(new
+        {
+            data = result.Items,
+            meta = new
+            {
+                page = result.Page,
+                pageSize = result.PageSize,
+                totalCount = result.TotalCount,
+                totalPages = (int)Math.Ceiling(result.TotalCount / (double)result.PageSize)
+            }
+        });
     }
 
     /// <summary>
@@ -342,7 +362,7 @@ public class PeopleController(
                 idKey, result.Value.Name);
         }
 
-        return Ok(result.Value);
+        return Ok(new { data = result.Value });
     }
 
     /// <summary>
@@ -514,7 +534,7 @@ public class PeopleController(
                 "Photo uploaded successfully for person: IdKey={IdKey}, PhotoIdKey={PhotoIdKey}",
                 idKey, uploadedFile.IdKey);
 
-            return Ok(result.Value);
+            return Ok(new { data = result.Value });
         }
         catch (Exception ex)
         {

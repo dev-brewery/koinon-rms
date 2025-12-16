@@ -21,55 +21,45 @@ public class DashboardService(
         var today = DateOnly.FromDateTime(now);
         var lastWeek = today.AddDays(-7);
 
-        // Execute all count queries in parallel for better performance
-        var totalPeopleTask = context.People
+        // Execute queries sequentially - DbContext is NOT thread-safe
+        var totalPeople = await context.People
             .CountAsync(p => !p.IsDeceased, cancellationToken);
 
-        var totalFamiliesTask = context.Families
+        var totalFamilies = await context.Families
             .CountAsync(f => f.IsActive, cancellationToken);
 
-        var activeGroupsTask = context.Groups
+        var activeGroups = await context.Groups
             .CountAsync(g => g.IsActive && !g.IsArchived, cancellationToken);
 
-        var activeSchedulesTask = context.Schedules
+        var activeSchedules = await context.Schedules
             .CountAsync(s => s.IsActive, cancellationToken);
 
         // Check-ins for today (attendance records where StartDateTime is today in UTC)
         var todayStart = today.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
         var todayEnd = today.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
 
-        var todayCheckInsTask = context.Attendances
+        var todayCheckIns = await context.Attendances
             .CountAsync(a => a.StartDateTime >= todayStart && a.StartDateTime < todayEnd, cancellationToken);
 
         // Check-ins for same day last week
         var lastWeekStart = lastWeek.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
         var lastWeekEnd = lastWeek.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
 
-        var lastWeekCheckInsTask = context.Attendances
+        var lastWeekCheckIns = await context.Attendances
             .CountAsync(a => a.StartDateTime >= lastWeekStart && a.StartDateTime < lastWeekEnd, cancellationToken);
 
         // Get upcoming schedules (next 5 active weekly schedules)
-        var upcomingSchedulesTask = GetUpcomingSchedulesAsync(now, cancellationToken);
-
-        // Await all tasks
-        await Task.WhenAll(
-            totalPeopleTask,
-            totalFamiliesTask,
-            activeGroupsTask,
-            activeSchedulesTask,
-            todayCheckInsTask,
-            lastWeekCheckInsTask,
-            upcomingSchedulesTask);
+        var upcomingSchedules = await GetUpcomingSchedulesAsync(now, cancellationToken);
 
         var stats = new DashboardStatsDto
         {
-            TotalPeople = await totalPeopleTask,
-            TotalFamilies = await totalFamiliesTask,
-            ActiveGroups = await activeGroupsTask,
-            ActiveSchedules = await activeSchedulesTask,
-            TodayCheckIns = await todayCheckInsTask,
-            LastWeekCheckIns = await lastWeekCheckInsTask,
-            UpcomingSchedules = await upcomingSchedulesTask
+            TotalPeople = totalPeople,
+            TotalFamilies = totalFamilies,
+            ActiveGroups = activeGroups,
+            ActiveSchedules = activeSchedules,
+            TodayCheckIns = todayCheckIns,
+            LastWeekCheckIns = lastWeekCheckIns,
+            UpcomingSchedules = upcomingSchedules
         };
 
         logger.LogInformation(

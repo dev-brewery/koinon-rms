@@ -56,7 +56,7 @@ public class AnalyticsController(
             "Attendance summary retrieved: StartDate={StartDate}, EndDate={EndDate}, TotalAttendance={TotalAttendance}, UniqueAttendees={UniqueAttendees}",
             analytics.StartDate, analytics.EndDate, analytics.TotalAttendance, analytics.UniqueAttendees);
 
-        return Ok(analytics);
+        return Ok(new { data = analytics });
     }
 
     /// <summary>
@@ -99,7 +99,7 @@ public class AnalyticsController(
             "Attendance trends retrieved: StartDate={StartDate}, EndDate={EndDate}, GroupBy={GroupBy}, DataPoints={DataPoints}",
             startDate, endDate, groupBy, trends.Count);
 
-        return Ok(trends);
+        return Ok(new { data = trends });
     }
 
     /// <summary>
@@ -136,7 +136,7 @@ public class AnalyticsController(
             "Attendance by group retrieved: StartDate={StartDate}, EndDate={EndDate}, GroupCount={GroupCount}",
             startDate, endDate, byGroup.Count);
 
-        return Ok(byGroup);
+        return Ok(new { data = byGroup });
     }
 
     /// <summary>
@@ -160,7 +160,7 @@ public class AnalyticsController(
             "Today's first-time visitors retrieved: CampusIdKey={CampusIdKey}, Count={Count}",
             campusIdKey ?? "All", visitors.Count);
 
-        return Ok(visitors);
+        return Ok(new { data = visitors });
     }
 
     /// <summary>
@@ -214,6 +214,6 @@ public class AnalyticsController(
             "First-time visitors by date range retrieved: StartDate={StartDate}, EndDate={EndDate}, CampusIdKey={CampusIdKey}, Count={Count}",
             startDate, endDate, campusIdKey ?? "All", visitors.Count);
 
-        return Ok(visitors);
+        return Ok(new { data = visitors });
     }
 }
