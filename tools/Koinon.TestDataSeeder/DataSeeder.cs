@@ -120,7 +120,6 @@ public class DataSeeder
             GroupTerm = "Family",
             GroupMemberTerm = "Family Member",
             IsSystem = true,
-            IsFamilyGroupType = true,
             ShowInGroupList = false,
             ShowInNavigation = false,
             TakesAttendance = false,
@@ -291,7 +290,6 @@ public class DataSeeder
             BirthDay = 15,
             Email = "john.smith@example.com",
             IsEmailActive = true,
-            PrimaryFamilyId = smithFamily.Id,
             PasswordHash = await _authService.HashPasswordAsync("admin123"),
             CreatedDateTime = now
         };
@@ -310,7 +308,6 @@ public class DataSeeder
             BirthDay = 22,
             Email = "jane.smith@example.com",
             IsEmailActive = true,
-            PrimaryFamilyId = smithFamily.Id,
             CreatedDateTime = now
         };
         people.Add(janeSmith);
@@ -327,7 +324,6 @@ public class DataSeeder
             BirthYear = currentYear - 6,
             BirthMonth = 3,
             BirthDay = 10,
-            PrimaryFamilyId = smithFamily.Id,
             CreatedDateTime = now
         };
         people.Add(johnnySmith);
@@ -343,7 +339,6 @@ public class DataSeeder
             BirthYear = currentYear - 4,
             BirthMonth = 11,
             BirthDay = 5,
-            PrimaryFamilyId = smithFamily.Id,
             Allergies = "Peanuts",
             HasCriticalAllergies = true,
             CreatedDateTime = now
@@ -380,7 +375,6 @@ public class DataSeeder
             BirthDay = 14,
             Email = "bob.johnson@example.com",
             IsEmailActive = true,
-            PrimaryFamilyId = johnsonFamily.Id,
             CreatedDateTime = now
         };
         people.Add(bobJohnson);
@@ -398,7 +392,6 @@ public class DataSeeder
             BirthDay = 30,
             Email = "barbara.johnson@example.com",
             IsEmailActive = true,
-            PrimaryFamilyId = johnsonFamily.Id,
             CreatedDateTime = now
         };
         people.Add(barbaraJohnson);
@@ -414,7 +407,6 @@ public class DataSeeder
             BirthYear = currentYear - 5,
             BirthMonth = 7,
             BirthDay = 18,
-            PrimaryFamilyId = johnsonFamily.Id,
             CreatedDateTime = now
         };
         people.Add(billyJohnson);

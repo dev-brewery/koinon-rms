@@ -441,7 +441,6 @@ public class LabelGenerationServiceTests : IDisposable
         var groupType = new GroupType
         {
             Name = "Check-In Area",
-            IsFamilyGroupType = false
         };
         await _context.GroupTypes.AddAsync(groupType);
         await _context.SaveChangesAsync();

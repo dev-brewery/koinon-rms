@@ -69,7 +69,7 @@ public record GroupTypeSummaryDto
     public required Guid Guid { get; init; }
     public required string Name { get; init; }
     public string? Description { get; init; }
-    public required bool IsFamilyGroupType { get; init; }
+    public bool IsFamilyGroupType { get; init; } = false; // Deprecated: families are now separate
     public required bool AllowMultipleLocations { get; init; }
     public required IReadOnlyList<GroupTypeRoleDto> Roles { get; init; }
 }

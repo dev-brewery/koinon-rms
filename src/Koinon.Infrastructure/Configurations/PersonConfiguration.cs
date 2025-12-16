@@ -147,6 +147,13 @@ public class PersonConfiguration : IEntityTypeConfiguration<Person>
         builder.Property(p => p.GivingGroupId)
             .HasColumnName("giving_group_id");
 
+        // Primary campus
+        builder.Property(p => p.PrimaryCampusId)
+            .HasColumnName("primary_campus_id");
+
+        builder.HasIndex(p => p.PrimaryCampusId)
+            .HasDatabaseName("ix_person_primary_campus_id");
+
         // Email fields
         builder.Property(p => p.Email)
             .HasColumnName("email")
@@ -171,18 +178,6 @@ public class PersonConfiguration : IEntityTypeConfiguration<Person>
         // Communication preference
         builder.Property(p => p.CommunicationPreference)
             .HasColumnName("communication_preference");
-
-        // Primary family (denormalized)
-        builder.Property(p => p.PrimaryFamilyId)
-            .HasColumnName("primary_family_id");
-        builder.HasIndex(p => p.PrimaryFamilyId)
-            .HasDatabaseName("ix_person_primary_family_id");
-
-        // Primary campus (denormalized)
-        builder.Property(p => p.PrimaryCampusId)
-            .HasColumnName("primary_campus_id");
-        builder.HasIndex(p => p.PrimaryCampusId)
-            .HasDatabaseName("ix_person_primary_campus_id");
 
         // Allergy and special needs fields
         builder.Property(p => p.Allergies)

@@ -406,40 +406,44 @@ public class AuthorizedPickupService(
             throw new ArgumentException($"Invalid child IdKey: {childIdKey}", nameof(childIdKey));
         }
 
-        // Get the child and their primary family
-        var child = await context.People
-            .AsNoTracking()
-            .Include(p => p.PrimaryFamily)
-            .ThenInclude(f => f!.GroupType)
-            .FirstOrDefaultAsync(p => p.Id == childId, ct);
+        // Get the child and verify they exist
+        var childExists = await context.People
+            .AnyAsync(p => p.Id == childId, ct);
 
-        if (child == null)
+        if (!childExists)
         {
             throw new ArgumentException($"Child with IdKey {childIdKey} not found", nameof(childIdKey));
         }
 
-        if (child.PrimaryFamilyId == null)
+        // Find child's family via FamilyMember (preferring primary if multiple)
+        var childFamilyMember = await context.FamilyMembers
+            .AsNoTracking()
+            .Where(fm => fm.PersonId == childId)
+            .OrderByDescending(fm => fm.IsPrimary)
+            .FirstOrDefaultAsync(ct);
+
+        if (childFamilyMember == null)
         {
-            logger.LogWarning("Child {ChildId} has no primary family", childId);
+            logger.LogWarning("Child {ChildId} has no family membership", childId);
             return;
         }
 
+        var familyId = childFamilyMember.FamilyId;
+
         // Get adult family members (parents/guardians)
         // Filter to adult roles in the database query using EF.Functions.Like for case-insensitive matching
-        var adultMembers = await context.GroupMembers
+        var adultMembers = await context.FamilyMembers
             .AsNoTracking()
-            .Include(gm => gm.Person)
-            .Include(gm => gm.GroupRole)
-            .Where(gm =>
-                gm.GroupId == child.PrimaryFamilyId.Value &&
-                gm.GroupMemberStatus == GroupMemberStatus.Active &&
-                !gm.IsArchived &&
-                gm.Person != null &&
-                gm.PersonId != childId && // Exclude the child themselves
-                gm.GroupRole != null &&
-                (EF.Functions.Like(gm.GroupRole.Name, "%Adult%") ||
-                 EF.Functions.Like(gm.GroupRole.Name, "%Parent%") ||
-                 EF.Functions.Like(gm.GroupRole.Name, "%Guardian%")))
+            .Include(fm => fm.Person)
+            .Include(fm => fm.FamilyRole)
+            .Where(fm =>
+                fm.FamilyId == familyId &&
+                fm.Person != null &&
+                fm.PersonId != childId && // Exclude the child themselves
+                fm.FamilyRole != null &&
+                (EF.Functions.Like(fm.FamilyRole.Name, "%Adult%") ||
+                 EF.Functions.Like(fm.FamilyRole.Name, "%Parent%") ||
+                 EF.Functions.Like(fm.FamilyRole.Name, "%Guardian%")))
             .ToListAsync(ct);
 
         if (!adultMembers.Any())

@@ -39,7 +39,7 @@ public class GroupService(
                 .ThenInclude(m => m.GroupRole)
             .Include(g => g.ChildGroups.Where(cg => !cg.IsArchived))
                 .ThenInclude(cg => cg.GroupType)
-            .FirstOrDefaultAsync(g => g.Id == id && !g.GroupType!.IsFamilyGroupType, ct);
+            .FirstOrDefaultAsync(g => g.Id == id && g.GroupType!.Guid != SystemGuid.GroupType.Family, ct);
 
         if (group is null)
         {
@@ -82,7 +82,7 @@ public class GroupService(
         var query = context.Groups
             .AsNoTracking()
             .Include(g => g.GroupType)
-            .Where(g => !g.GroupType!.IsFamilyGroupType);
+            .Where(g => !g.IsArchived && g.GroupType!.Guid != SystemGuid.GroupType.Family); // Exclude archived and family groups
 
         // Apply search query
         if (!string.IsNullOrWhiteSpace(parameters.Query))
@@ -199,10 +199,11 @@ public class GroupService(
             return Result<GroupDto>.Failure(Error.NotFound("GroupType", request.GroupTypeId));
         }
 
-        if (groupType.IsFamilyGroupType)
+        // Prevent creating family groups - use FamilyService instead
+        if (groupType.Guid == SystemGuid.GroupType.Family)
         {
-            return Result<GroupDto>.Failure(
-                Error.UnprocessableEntity("Cannot create family groups via GroupService. Use FamilyService instead."));
+            return Result<GroupDto>.Failure(Error.UnprocessableEntity(
+                "Family groups cannot be created through GroupService. Use FamilyService instead."));
         }
 
         // Map to entity
@@ -216,7 +217,7 @@ public class GroupService(
             if (IdKeyHelper.TryDecode(request.ParentGroupId, out int parentGroupId))
             {
                 var parentExists = await context.Groups
-                    .AnyAsync(g => g.Id == parentGroupId && !g.GroupType!.IsFamilyGroupType, ct);
+                    .AnyAsync(g => g.Id == parentGroupId, ct);
 
                 if (!parentExists)
                 {
@@ -276,7 +277,7 @@ public class GroupService(
 
         var group = await context.Groups
             .Include(g => g.GroupType)
-            .FirstOrDefaultAsync(g => g.Id == id && !g.GroupType!.IsFamilyGroupType, ct);
+            .FirstOrDefaultAsync(g => g.Id == id, ct);
 
         if (group is null)
         {
@@ -357,7 +358,7 @@ public class GroupService(
 
         var group = await context.Groups
             .Include(g => g.GroupType)
-            .FirstOrDefaultAsync(g => g.Id == id && !g.GroupType!.IsFamilyGroupType, ct);
+            .FirstOrDefaultAsync(g => g.Id == id, ct);
 
         if (group is null)
         {
@@ -403,7 +404,7 @@ public class GroupService(
 
         var group = await context.Groups
             .Include(g => g.GroupType)
-            .FirstOrDefaultAsync(g => g.Id == groupId && !g.GroupType!.IsFamilyGroupType, ct);
+            .FirstOrDefaultAsync(g => g.Id == groupId, ct);
 
         if (group is null)
         {
@@ -514,7 +515,7 @@ public class GroupService(
 
         var group = await context.Groups
             .Include(g => g.GroupType)
-            .FirstOrDefaultAsync(g => g.Id == groupId && !g.GroupType!.IsFamilyGroupType, ct);
+            .FirstOrDefaultAsync(g => g.Id == groupId, ct);
 
         if (group is null)
         {
@@ -568,7 +569,7 @@ public class GroupService(
                 .ThenInclude(g => g!.GroupType)
             .Where(gm => gm.GroupId == groupId
                 && gm.GroupMemberStatus == GroupMemberStatus.Active
-                && !gm.Group!.GroupType!.IsFamilyGroupType)
+)
             .OrderBy(gm => gm.GroupRole!.Order)
             .ThenBy(gm => gm.Person!.LastName)
             .ThenBy(gm => gm.Person!.FirstName)
@@ -590,7 +591,7 @@ public class GroupService(
             .AsNoTracking()
             .Include(g => g.ParentGroup)
                 .ThenInclude(pg => pg!.GroupType)
-            .FirstOrDefaultAsync(g => g.Id == groupId && !g.GroupType!.IsFamilyGroupType, ct);
+            .FirstOrDefaultAsync(g => g.Id == groupId, ct);
 
         if (group?.ParentGroup is null)
         {
@@ -626,7 +627,7 @@ public class GroupService(
             .Include(g => g.GroupType)
             .Where(g => g.ParentGroupId == groupId
                 && !g.IsArchived
-                && !g.GroupType!.IsFamilyGroupType)
+)
             .OrderBy(g => g.Order)
             .ThenBy(g => g.Name)
             .ToListAsync(ct);
