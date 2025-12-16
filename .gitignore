@@ -200,3 +200,7 @@ tmp/validate-output.log
 # Change Orders and Requests
 docs/change-orders/
 test-results/.last-run.json
+
+# Maximus Ephemeral Configs
+.maximus.conf
+CLAUDE.md

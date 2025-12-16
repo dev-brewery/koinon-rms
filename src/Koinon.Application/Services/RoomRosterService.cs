@@ -118,6 +118,7 @@ public class RoomRosterService(
         var parentInfo = await Context.GroupMembers
             .AsNoTracking()
             .Where(gm => familyIds.Contains(gm.GroupId)
+                && gm.Person != null
                 && gm.GroupRole != null
                 && gm.GroupRole.IsLeader) // Parents are leaders in family groups
             .Select(gm => new

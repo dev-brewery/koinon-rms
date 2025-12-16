@@ -1,0 +1,21 @@
+{
+  "project_name": "koinon-demo",
+  "config": {
+    "maximus_github_owner": "dev-brewery",
+    "maximus_github_repo": "koinon-rms",
+    "maximus_ollama_host": "http://host.docker.internal:11434"
+  },
+  "languages": [
+    "javascript",
+    "typescript",
+    "python",
+    "csharp"
+  ],
+  "architecture": {
+    "architecture": "Standard",
+    "layers": {},
+    "file_patterns": {},
+    "conventions": [],
+    "entry_points": {}
+  }
+}

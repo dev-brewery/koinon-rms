@@ -255,12 +255,16 @@ public class CapacityService(
         // Single query to load all staff counts for all locations
         var staffCounts = await Context.Attendances
             .AsNoTracking()
-            .Where(a => a.Occurrence!.OccurrenceDate == occurrenceDate.Value
+            .Where(a => a.Occurrence != null
+                && a.Occurrence.OccurrenceDate == occurrenceDate.Value
                 && locationIds.Contains(a.Occurrence.GroupId ?? 0)
                 && a.EndDateTime == null
-                && Context.GroupMembers.Any(m => m.Person!.Id == a.PersonAlias!.PersonId
+                && a.PersonAlias != null
+                && Context.GroupMembers.Any(m => m.Person != null
+                    && m.GroupRole != null
+                    && m.Person.Id == a.PersonAlias.PersonId
                     && locationIds.Contains(m.GroupId)
-                    && m.GroupRole!.IsLeader))
+                    && m.GroupRole.IsLeader))
             .GroupBy(a => a.Occurrence!.GroupId)
             .Select(g => new { GroupId = g.Key, Count = g.Count() })
             .ToListAsync(ct);
@@ -334,12 +338,16 @@ public class CapacityService(
         // Count active members with staff roles checked in today
         return await Context.Attendances
             .AsNoTracking()
-            .Where(a => a.Occurrence!.OccurrenceDate == occurrenceDate
+            .Where(a => a.Occurrence != null
+                && a.Occurrence.OccurrenceDate == occurrenceDate
                 && a.Occurrence.GroupId == locationId
                 && a.EndDateTime == null
-                && Context.GroupMembers.Any(m => m.Person!.Id == a.PersonAlias!.PersonId
+                && a.PersonAlias != null
+                && Context.GroupMembers.Any(m => m.Person != null
+                    && m.GroupRole != null
+                    && m.Person.Id == a.PersonAlias.PersonId
                     && m.GroupId == locationId
-                    && m.GroupRole!.IsLeader))
+                    && m.GroupRole.IsLeader))
             .CountAsync(ct);
     }
 

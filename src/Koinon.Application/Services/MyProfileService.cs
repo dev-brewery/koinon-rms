@@ -172,7 +172,9 @@ public class MyProfileService(
                     .ThenInclude(pn => pn.NumberTypeValue)
             .Include(gm => gm.GroupRole)
             .Where(gm => gm.GroupId == person.PrimaryFamilyId.Value
-                && gm.GroupMemberStatus == GroupMemberStatus.Active)
+                && gm.GroupMemberStatus == GroupMemberStatus.Active
+                && gm.Person != null
+                && gm.GroupRole != null)
             .OrderByDescending(gm => gm.GroupRole!.Guid == SystemGuid.GroupTypeRole.FamilyAdult)
             .ThenBy(gm => gm.Person!.BirthYear)
             .ThenBy(gm => gm.Person!.BirthMonth)
@@ -425,8 +427,10 @@ public class MyProfileService(
             .Include(gm => gm.GroupRole)
             .Where(gm => gm.PersonId == currentPersonId.Value
                 && gm.GroupMemberStatus == GroupMemberStatus.Active
-                && !gm.Group!.IsArchived
-                && !gm.Group.GroupType!.IsFamilyGroupType)
+                && gm.Group != null
+                && gm.Group.GroupType != null
+                && !gm.Group.IsArchived
+                && !gm.Group.GroupType.IsFamilyGroupType)
             .ToListAsync(ct);
 
         var groupIds = groupMemberships.Select(gm => gm.GroupId).ToList();

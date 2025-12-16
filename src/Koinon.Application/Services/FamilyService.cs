@@ -70,7 +70,7 @@ public class FamilyService(
             .AsNoTracking()
             .Include(g => g.GroupType)
             .Include(g => g.Members)
-            .Where(g => g.GroupType!.IsFamilyGroupType);
+            .Where(g => g.GroupType != null && g.GroupType.IsFamilyGroupType);
 
         // Filter by active status
         if (!includeInactive)

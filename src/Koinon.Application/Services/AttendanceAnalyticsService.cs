@@ -217,7 +217,7 @@ public class AttendanceAnalyticsService(
             .Include(a => a.Occurrence)
                 .ThenInclude(o => o!.Group)
                     .ThenInclude(g => g!.GroupType)
-            .Where(a => a.Occurrence!.OccurrenceDate >= startDate && a.Occurrence.OccurrenceDate <= endDate);
+            .Where(a => a.Occurrence != null && a.Occurrence.OccurrenceDate >= startDate && a.Occurrence.OccurrenceDate <= endDate);
 
         // Filter by campus if specified
         if (!string.IsNullOrWhiteSpace(options.CampusIdKey))
@@ -230,7 +230,7 @@ public class AttendanceAnalyticsService(
         if (!string.IsNullOrWhiteSpace(options.GroupTypeIdKey))
         {
             var groupTypeId = IdKeyHelper.Decode(options.GroupTypeIdKey);
-            query = query.Where(a => a.Occurrence!.Group!.GroupTypeId == groupTypeId);
+            query = query.Where(a => a.Occurrence != null && a.Occurrence.Group != null && a.Occurrence.Group.GroupTypeId == groupTypeId);
         }
 
         // Filter by specific group if specified

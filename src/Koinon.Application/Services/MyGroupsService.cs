@@ -41,9 +41,12 @@ public class MyGroupsService(
             .Include(gm => gm.GroupRole)
             .Where(gm => gm.PersonId == currentPersonId.Value
                 && gm.GroupMemberStatus == GroupMemberStatus.Active
-                && gm.GroupRole!.IsLeader
-                && !gm.Group!.IsArchived
-                && !gm.Group.GroupType!.IsFamilyGroupType)
+                && gm.Group != null
+                && gm.Group.GroupType != null
+                && gm.GroupRole != null
+                && gm.GroupRole.IsLeader
+                && !gm.Group.IsArchived
+                && !gm.Group.GroupType.IsFamilyGroupType)
             .Select(gm => gm.Group!)
             .Distinct()
             .ToListAsync(ct);
@@ -119,7 +122,7 @@ public class MyGroupsService(
             .Include(gm => gm.Person)
                 .ThenInclude(p => p!.PhoneNumbers)
             .Include(gm => gm.GroupRole)
-            .Where(gm => gm.GroupId == groupId && gm.GroupMemberStatus == GroupMemberStatus.Active)
+            .Where(gm => gm.GroupId == groupId && gm.GroupMemberStatus == GroupMemberStatus.Active && gm.Person != null && gm.GroupRole != null)
             .OrderBy(gm => gm.GroupRole!.Order)
             .ThenBy(gm => gm.Person!.LastName)
             .ThenBy(gm => gm.Person!.FirstName)

@@ -276,10 +276,11 @@ public class ParentPagingService(
                 // Use ToLower() on both pattern and columns - EF Core translates to SQL LOWER()
                 var searchPattern = $"%{searchTerm.ToLower()}%";
                 query = query.Where(pa =>
-                    EF.Functions.Like(pa.Attendance!.PersonAlias!.Person!.FirstName.ToLower(), searchPattern) ||
-                    EF.Functions.Like(pa.Attendance!.PersonAlias!.Person!.LastName.ToLower(), searchPattern) ||
-                    (pa.Attendance!.PersonAlias!.Person!.NickName != null &&
-                     EF.Functions.Like(pa.Attendance!.PersonAlias!.Person!.NickName.ToLower(), searchPattern))
+                    pa.Attendance != null && pa.Attendance.PersonAlias != null && pa.Attendance.PersonAlias.Person != null &&
+                    (EF.Functions.Like(pa.Attendance.PersonAlias.Person.FirstName.ToLower(), searchPattern) ||
+                    EF.Functions.Like(pa.Attendance.PersonAlias.Person.LastName.ToLower(), searchPattern) ||
+                    (pa.Attendance.PersonAlias.Person.NickName != null &&
+                     EF.Functions.Like(pa.Attendance.PersonAlias.Person.NickName.ToLower(), searchPattern)))
                 );
             }
         }

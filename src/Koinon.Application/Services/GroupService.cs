@@ -82,7 +82,7 @@ public class GroupService(
         var query = context.Groups
             .AsNoTracking()
             .Include(g => g.GroupType)
-            .Where(g => !g.GroupType!.IsFamilyGroupType);
+            .Where(g => g.GroupType != null && !g.GroupType.IsFamilyGroupType);
 
         // Apply search query
         if (!string.IsNullOrWhiteSpace(parameters.Query))
@@ -568,7 +568,11 @@ public class GroupService(
                 .ThenInclude(g => g!.GroupType)
             .Where(gm => gm.GroupId == groupId
                 && gm.GroupMemberStatus == GroupMemberStatus.Active
-                && !gm.Group!.GroupType!.IsFamilyGroupType)
+                && gm.Group != null
+                && gm.Group.GroupType != null
+                && gm.Person != null
+                && gm.GroupRole != null
+                && !gm.Group.GroupType.IsFamilyGroupType)
             .OrderBy(gm => gm.GroupRole!.Order)
             .ThenBy(gm => gm.Person!.LastName)
             .ThenBy(gm => gm.Person!.FirstName)
@@ -588,11 +592,12 @@ public class GroupService(
 
         var group = await context.Groups
             .AsNoTracking()
+            .Include(g => g.GroupType)
             .Include(g => g.ParentGroup)
                 .ThenInclude(pg => pg!.GroupType)
-            .FirstOrDefaultAsync(g => g.Id == groupId && !g.GroupType!.IsFamilyGroupType, ct);
+            .FirstOrDefaultAsync(g => g.Id == groupId && g.GroupType != null && !g.GroupType.IsFamilyGroupType, ct);
 
-        if (group?.ParentGroup is null)
+        if (group?.ParentGroup is null || group.ParentGroup.GroupType is null)
         {
             return null;
         }
@@ -608,7 +613,7 @@ public class GroupService(
             Description = group.ParentGroup.Description,
             IsActive = group.ParentGroup.IsActive,
             MemberCount = memberCount,
-            GroupTypeName = group.ParentGroup.GroupType!.Name
+            GroupTypeName = group.ParentGroup.GroupType.Name
         };
     }
 
@@ -626,7 +631,8 @@ public class GroupService(
             .Include(g => g.GroupType)
             .Where(g => g.ParentGroupId == groupId
                 && !g.IsArchived
-                && !g.GroupType!.IsFamilyGroupType)
+                && g.GroupType != null
+                && !g.GroupType.IsFamilyGroupType)
             .OrderBy(g => g.Order)
             .ThenBy(g => g.Name)
             .ToListAsync(ct);
@@ -661,7 +667,7 @@ public class GroupService(
         var groupSchedules = await context.GroupSchedules
             .AsNoTracking()
             .Include(gs => gs.Schedule)
-            .Where(gs => gs.GroupId == groupId)
+            .Where(gs => gs.GroupId == groupId && gs.Schedule != null)
             .OrderBy(gs => gs.Order)
             .ToListAsync(ct);
 

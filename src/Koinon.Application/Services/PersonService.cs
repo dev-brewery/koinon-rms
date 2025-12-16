@@ -468,7 +468,7 @@ public class PersonService(
             .Include(gm => gm.Group)
                 .ThenInclude(g => g!.GroupType)
             .Include(gm => gm.GroupRole)
-            .Where(gm => gm.PersonId == id && gm.Group != null && gm.Group.GroupType != null && !gm.Group.GroupType.IsFamilyGroupType);
+            .Where(gm => gm.PersonId == id && gm.Group != null && gm.Group.GroupType != null && gm.GroupRole != null && !gm.Group.GroupType.IsFamilyGroupType);
 
         // Get total count
         var totalCount = await query.CountAsync(ct);
