@@ -235,16 +235,18 @@ public class ParentPagingService(
             .Include(pa => pa.Attendance)
                 .ThenInclude(a => a!.PersonAlias)
                     .ThenInclude(pa => pa!.Person)
-                        .ThenInclude(p => p!.PrimaryFamily)
-                            .ThenInclude(f => f!.Members)
-                                .ThenInclude(m => m.Person)
-                                    .ThenInclude(p => p!.PhoneNumbers)
+                        .ThenInclude(p => p!.FamilyMemberships.Where(fm => fm.IsPrimary))
+                            .ThenInclude(fm => fm.Family)
+                                .ThenInclude(f => f.Members)
+                                    .ThenInclude(m => m.Person)
+                                        .ThenInclude(p => p!.PhoneNumbers)
             .Include(pa => pa.Attendance)
                 .ThenInclude(a => a!.PersonAlias)
                     .ThenInclude(pa => pa!.Person)
-                        .ThenInclude(p => p!.PrimaryFamily)
-                            .ThenInclude(f => f!.Members)
-                                .ThenInclude(m => m.GroupRole)
+                        .ThenInclude(p => p!.FamilyMemberships.Where(fm => fm.IsPrimary))
+                            .ThenInclude(fm => fm.Family)
+                                .ThenInclude(f => f.Members)
+                                    .ThenInclude(m => m.FamilyRole)
             .Include(pa => pa.Attendance)
                 .ThenInclude(a => a!.Occurrence)
                     .ThenInclude(o => o!.Group)
@@ -376,22 +378,31 @@ public class ParentPagingService(
     /// </summary>
     private static string? GetParentPhoneNumberFromLoadedData(Person? person)
     {
-        if (person?.PrimaryFamily == null)
+        if (person?.FamilyMemberships == null || !person.FamilyMemberships.Any())
         {
             return null;
         }
 
-        // Get adult family members (role GUID = FamilyAdult)
-        var adultMembers = person.PrimaryFamily.Members
-            .Where(m => m.GroupRole?.Guid == SystemGuid.GroupTypeRole.FamilyAdult)
-            .Select(m => m.Person)
-            .Where(p => p != null)
+        // Get the primary family membership
+        var primaryFamilyMembership = person.FamilyMemberships.FirstOrDefault(fm => fm.IsPrimary);
+        if (primaryFamilyMembership?.Family?.Members == null)
+        {
+            return null;
+        }
+
+        // Get adult family members (filter by Adult, Parent, or Guardian roles)
+        var adultMembers = primaryFamilyMembership.Family.Members
+            .Where(m => m.Person != null && m.FamilyRole != null &&
+                       (m.FamilyRole.Name.Contains("Adult", StringComparison.OrdinalIgnoreCase) ||
+                        m.FamilyRole.Name.Contains("Parent", StringComparison.OrdinalIgnoreCase) ||
+                        m.FamilyRole.Name.Contains("Guardian", StringComparison.OrdinalIgnoreCase)))
+            .Select(m => m.Person!)
             .ToList();
 
         // Find first SMS-enabled mobile phone number from adults
         foreach (var adult in adultMembers)
         {
-            var mobilePhone = adult!.PhoneNumbers
+            var mobilePhone = adult.PhoneNumbers
                 .Where(pn => pn.IsMessagingEnabled)
                 .OrderBy(pn => pn.Id) // Get the first one added
                 .FirstOrDefault();
@@ -416,33 +427,40 @@ public class ParentPagingService(
             return null;
         }
 
-        // Get the person's primary family
-        var person = await context.People
-            .Include(p => p.PrimaryFamily)
-                .ThenInclude(f => f!.Members)
-                    .ThenInclude(m => m.Person)
-                        .ThenInclude(p => p!.PhoneNumbers)
-            .Include(p => p.PrimaryFamily)
-                .ThenInclude(f => f!.Members)
-                    .ThenInclude(m => m.GroupRole)
-            .FirstOrDefaultAsync(p => p.Id == personId.Value, ct);
+        // Get the person's family membership (preferring primary if multiple)
+        var familyMembership = await context.FamilyMembers
+            .AsNoTracking()
+            .Where(fm => fm.PersonId == personId.Value)
+            .OrderByDescending(fm => fm.IsPrimary)
+            .FirstOrDefaultAsync(ct);
 
-        if (person?.PrimaryFamily == null)
+        if (familyMembership == null)
         {
             return null;
         }
 
-        // Get adult family members (role GUID = FamilyAdult)
-        var adultMembers = person.PrimaryFamily.Members
-            .Where(m => m.GroupRole?.Guid == SystemGuid.GroupTypeRole.FamilyAdult)
-            .Select(m => m.Person)
-            .Where(p => p != null)
+        // Get all family members from the same family with their phone numbers
+        var familyMembers = await context.FamilyMembers
+            .AsNoTracking()
+            .Include(fm => fm.Person)
+                .ThenInclude(p => p!.PhoneNumbers)
+            .Include(fm => fm.FamilyRole)
+            .Where(fm => fm.FamilyId == familyMembership.FamilyId)
+            .ToListAsync(ct);
+
+        // Get adult family members (filter by Adult, Parent, or Guardian roles)
+        var adultMembers = familyMembers
+            .Where(fm => fm.Person != null && fm.FamilyRole != null &&
+                        (fm.FamilyRole.Name.Contains("Adult", StringComparison.OrdinalIgnoreCase) ||
+                         fm.FamilyRole.Name.Contains("Parent", StringComparison.OrdinalIgnoreCase) ||
+                         fm.FamilyRole.Name.Contains("Guardian", StringComparison.OrdinalIgnoreCase)))
+            .Select(fm => fm.Person!)
             .ToList();
 
         // Find first SMS-enabled mobile phone number from adults
         foreach (var adult in adultMembers)
         {
-            var mobilePhone = adult!.PhoneNumbers
+            var mobilePhone = adult.PhoneNumbers
                 .Where(pn => pn.IsMessagingEnabled)
                 .OrderBy(pn => pn.Id) // Get the first one added
                 .FirstOrDefault();

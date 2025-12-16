@@ -146,11 +146,6 @@ public class GroupType : Entity
     /// </summary>
     public int Order { get; set; }
 
-    /// <summary>
-    /// Indicates whether this is a family group type.
-    /// Family groups have special behavior and UI considerations.
-    /// </summary>
-    public bool IsFamilyGroupType { get; set; }
 
     // Navigation Properties
 

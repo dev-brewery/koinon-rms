@@ -83,7 +83,6 @@ public class CheckinConfigurationServiceTests : IDisposable
         {
             Id = 1,
             Name = "Check-in Area",
-            IsFamilyGroupType = false,
             AllowMultipleLocations = true,
             TakesAttendance = true,
             IsSystem = false,
@@ -866,7 +865,6 @@ public class CheckinConfigurationServiceTests : IDisposable
                 IdKey = "test",
                 Guid = Guid.NewGuid(),
                 Name = "Test Type",
-                IsFamilyGroupType = false,
                 AllowMultipleLocations = true,
                 Roles = new List<GroupTypeRoleDto>()
             },

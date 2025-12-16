@@ -439,7 +439,7 @@ public class AuthorizedPickupServiceTests : IDisposable
         var groupType = new GroupType
         {
             Name = "Family",
-            Guid = Guid.NewGuid(),
+            Guid = SystemGuid.GroupType.Family,
             CreatedDateTime = DateTime.UtcNow
         };
         _context.GroupTypes.Add(groupType);
@@ -465,57 +465,55 @@ public class AuthorizedPickupServiceTests : IDisposable
         _context.GroupTypeRoles.Add(childRole);
         _context.SaveChanges();
 
-        var family = new Group
+        var family = new Family
         {
-            GroupTypeId = groupType.Id,
             Name = "Smith Family",
-            Guid = Guid.NewGuid(),
+            IsActive = true,
             CreatedDateTime = DateTime.UtcNow
         };
-        _context.Groups.Add(family);
+        _context.Families.Add(family);
         _context.SaveChanges();
 
         var child = await CreatePersonAsync("Tommy", "Smith");
-        child.PrimaryFamilyId = family.Id;
 
         var parent1 = await CreatePersonAsync("John", "Smith");
         var parent2 = await CreatePersonAsync("Jane", "Smith");
 
-        var childMember = new GroupMember
+        var childMember = new FamilyMember
         {
-            GroupId = family.Id,
+            FamilyId = family.Id,
             PersonId = child.Id,
-            GroupRoleId = childRole.Id,
-            GroupMemberStatus = GroupMemberStatus.Active,
-            IsArchived = false,
+            FamilyRoleId = childRole.Id,
+            IsPrimary = false,
+            DateAdded = DateTime.UtcNow,
             Guid = Guid.NewGuid(),
             CreatedDateTime = DateTime.UtcNow
         };
-        _context.GroupMembers.Add(childMember);
+        _context.FamilyMembers.Add(childMember);
 
-        var parentMember1 = new GroupMember
+        var parentMember1 = new FamilyMember
         {
-            GroupId = family.Id,
+            FamilyId = family.Id,
             PersonId = parent1.Id,
-            GroupRoleId = adultRole.Id,
-            GroupMemberStatus = GroupMemberStatus.Active,
-            IsArchived = false,
+            FamilyRoleId = adultRole.Id,
+            IsPrimary = true,
+            DateAdded = DateTime.UtcNow,
             Guid = Guid.NewGuid(),
             CreatedDateTime = DateTime.UtcNow
         };
-        _context.GroupMembers.Add(parentMember1);
+        _context.FamilyMembers.Add(parentMember1);
 
-        var parentMember2 = new GroupMember
+        var parentMember2 = new FamilyMember
         {
-            GroupId = family.Id,
+            FamilyId = family.Id,
             PersonId = parent2.Id,
-            GroupRoleId = adultRole.Id,
-            GroupMemberStatus = GroupMemberStatus.Active,
-            IsArchived = false,
+            FamilyRoleId = adultRole.Id,
+            IsPrimary = false,
+            DateAdded = DateTime.UtcNow,
             Guid = Guid.NewGuid(),
             CreatedDateTime = DateTime.UtcNow
         };
-        _context.GroupMembers.Add(parentMember2);
+        _context.FamilyMembers.Add(parentMember2);
 
         await _context.SaveChangesAsync();
 
@@ -570,7 +568,6 @@ public class AuthorizedPickupServiceTests : IDisposable
         _context.SaveChanges();
 
         var child = await CreatePersonAsync("Sarah", "Johnson");
-        child.PrimaryFamilyId = family.Id;
 
         var parent = await CreatePersonAsync("Bob", "Johnson");
 
@@ -963,6 +960,8 @@ public class AuthorizedPickupServiceTests : IDisposable
         public DbSet<GroupTypeRole> GroupTypeRoles { get; set; } = null!;
         public DbSet<GroupMember> GroupMembers { get; set; } = null!;
         public DbSet<GroupMemberRequest> GroupMemberRequests { get; set; } = null!;
+        public DbSet<FamilyMember> FamilyMembers { get; set; } = null!;
+        public DbSet<Family> Families { get; set; } = null!;
         public DbSet<GroupSchedule> GroupSchedules { get; set; } = null!;
         public DbSet<Campus> Campuses { get; set; } = null!;
         public DbSet<Location> Locations { get; set; } = null!;

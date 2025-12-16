@@ -430,7 +430,6 @@ public class CheckinConfigurationService(
             Guid = groupType.Guid,
             Name = groupType.Name,
             Description = groupType.Description,
-            IsFamilyGroupType = groupType.IsFamilyGroupType,
             AllowMultipleLocations = groupType.AllowMultipleLocations,
             Roles = groupType.Roles
                 .Select(r => new GroupTypeRoleDto

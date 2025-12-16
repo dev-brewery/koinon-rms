@@ -50,12 +50,12 @@ public class ParentPagingServiceTests : IDisposable
 
     private void SeedTestData()
     {
-        // Create family group type
+        // Create family group type for roles
         var familyGroupType = new GroupType
         {
             Id = 1,
             Name = "Family",
-            IsFamilyGroupType = true,
+            Guid = SystemGuid.GroupType.Family,
             CreatedDateTime = DateTime.UtcNow
         };
         _context.GroupTypes.Add(familyGroupType);
@@ -80,15 +80,15 @@ public class ParentPagingServiceTests : IDisposable
         };
         _context.Set<GroupTypeRole>().AddRange(adultRole, childRole);
 
-        // Create family
-        var family = new Group
+        // Create family using Family entity
+        var family = new Family
         {
             Id = 1,
             Name = "Doe Family",
-            GroupTypeId = 1,
+            IsActive = true,
             CreatedDateTime = DateTime.UtcNow
         };
-        _context.Groups.Add(family);
+        _context.Families.Add(family);
 
         // Create parent
         var parent = new Person
@@ -96,7 +96,6 @@ public class ParentPagingServiceTests : IDisposable
             Id = 1,
             FirstName = "John",
             LastName = "Doe",
-            PrimaryFamilyId = 1,
             CreatedDateTime = DateTime.UtcNow
         };
 
@@ -118,32 +117,35 @@ public class ParentPagingServiceTests : IDisposable
             Id = 2,
             FirstName = "Jane",
             LastName = "Doe",
-            PrimaryFamilyId = 1,
             CreatedDateTime = DateTime.UtcNow
         };
 
         _context.People.AddRange(parent, child);
 
         // Add family members
-        var parentMember = new GroupMember
+        var parentMember = new FamilyMember
         {
             Id = 1,
-            GroupId = 1,
+            FamilyId = 1,
             PersonId = 1,
-            GroupRoleId = 1,
+            FamilyRoleId = 1,
+            IsPrimary = true,
+            DateAdded = DateTime.UtcNow,
             CreatedDateTime = DateTime.UtcNow
         };
 
-        var childMember = new GroupMember
+        var childMember = new FamilyMember
         {
             Id = 2,
-            GroupId = 1,
+            FamilyId = 1,
             PersonId = 2,
-            GroupRoleId = 2,
+            FamilyRoleId = 2,
+            IsPrimary = false,
+            DateAdded = DateTime.UtcNow,
             CreatedDateTime = DateTime.UtcNow
         };
 
-        _context.GroupMembers.AddRange(parentMember, childMember);
+        _context.FamilyMembers.AddRange(parentMember, childMember);
 
         // Create person aliases
         var parentAlias = new PersonAlias

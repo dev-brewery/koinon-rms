@@ -230,15 +230,15 @@ public class CheckinDataLoader(IApplicationDbContext context, ILogger<CheckinDat
             return new();
         }
 
-        // QUERY 1: Families with all active members and their roles
-        var families = await context.Groups
+        // QUERY 1: Families with all members
+        var families = await context.Families
             .AsNoTracking()
-            .Where(g => ids.Contains(g.Id))
-            .Include(g => g.Members.Where(m => m.GroupMemberStatus == GroupMemberStatus.Active))
+            .Where(f => ids.Contains(f.Id) && f.IsActive)
+            .Include(f => f.Members)
                 .ThenInclude(m => m.Person)
-            .Include(g => g.Members.Where(m => m.GroupMemberStatus == GroupMemberStatus.Active))
-                .ThenInclude(m => m.GroupRole)
-            .Include(g => g.Campus)
+            .Include(f => f.Members)
+                .ThenInclude(m => m.FamilyRole)
+            .Include(f => f.Campus)
             .ToListAsync(ct);
 
         // Extract all people in all families
@@ -303,7 +303,7 @@ public class CheckinDataLoader(IApplicationDbContext context, ILogger<CheckinDat
 
             // CRITICAL: Log warning if family has zero accessible members (data quality issue)
             var accessibleMemberCount = family.Members
-                .Count(m => m.GroupMemberStatus == GroupMemberStatus.Active && m.Person != null);
+                .Count(m => m.Person != null);
 
             if (accessibleMemberCount == 0)
             {
@@ -328,7 +328,7 @@ public record PersonWithAliasDto(Person Person, PersonAlias? PrimaryAlias);
 /// DTO for complete family data including people and recent check-ins.
 /// </summary>
 public record FamilyDataDto(
-    Group Family,
+    Family Family,
     List<PersonAlias> PersonAliases,
     HashSet<int> RecentCheckInPeople,
     Dictionary<int, DateTime> LastCheckInByPersonId);

@@ -43,7 +43,7 @@ public class MyGroupsService(
                 && gm.GroupMemberStatus == GroupMemberStatus.Active
                 && gm.GroupRole!.IsLeader
                 && !gm.Group!.IsArchived
-                && !gm.Group.GroupType!.IsFamilyGroupType)
+)
             .Select(gm => gm.Group!)
             .Distinct()
             .ToListAsync(ct);

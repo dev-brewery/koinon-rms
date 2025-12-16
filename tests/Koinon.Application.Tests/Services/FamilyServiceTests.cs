@@ -7,6 +7,7 @@ using Koinon.Application.Mapping;
 using Koinon.Application.Services;
 using Koinon.Application.Tests.Fakes;
 using Koinon.Application.Validators;
+using Koinon.Domain.Data;
 using Koinon.Domain.Entities;
 using Koinon.Domain.Enums;
 using Koinon.Infrastructure.Data;
@@ -30,7 +31,6 @@ public class FamilyServiceTests : IDisposable
     private readonly Mock<ILogger<FamilyService>> _mockLogger;
     private readonly FamilyService _service;
 
-    private int _familyGroupTypeId;
     private int _adultRoleId;
     private int _childRoleId;
 
@@ -90,27 +90,23 @@ public class FamilyServiceTests : IDisposable
         };
         _context.Campuses.Add(campus1);
 
-        // Add family group type
+        // Add family group type and roles
         var familyGroupType = new GroupType
         {
             Id = 1,
             Name = "Family",
-            GroupTerm = "Family",
-            GroupMemberTerm = "Family Member",
-            IsFamilyGroupType = true,
+            Guid = SystemGuid.GroupType.Family,
             IsSystem = true,
             CreatedDateTime = DateTime.UtcNow
         };
         _context.GroupTypes.Add(familyGroupType);
-        _familyGroupTypeId = 1;
 
-        // Add roles
         var adultRole = new GroupTypeRole
         {
             Id = 1,
             GroupTypeId = 1,
             Name = "Adult",
-            IsLeader = true,
+            Guid = SystemGuid.GroupTypeRole.FamilyAdult,
             CreatedDateTime = DateTime.UtcNow
         };
         _context.GroupTypeRoles.Add(adultRole);
@@ -121,7 +117,7 @@ public class FamilyServiceTests : IDisposable
             Id = 2,
             GroupTypeId = 1,
             Name = "Child",
-            IsLeader = false,
+            Guid = SystemGuid.GroupTypeRole.FamilyChild,
             CreatedDateTime = DateTime.UtcNow
         };
         _context.GroupTypeRoles.Add(childRole);
@@ -168,40 +164,39 @@ public class FamilyServiceTests : IDisposable
         _context.People.Add(person3);
 
         // Add test family
-        var testFamily = new Group
+        var testFamily = new Family
         {
             Id = 1,
-            GroupTypeId = 1,
             Name = "Doe Family",
             IsActive = true,
             CreatedDateTime = DateTime.UtcNow
         };
-        _context.Groups.Add(testFamily);
+        _context.Families.Add(testFamily);
 
         // Add family members
-        var member1 = new GroupMember
+        var member1 = new FamilyMember
         {
             Id = 1,
-            GroupId = 1,
+            FamilyId = 1,
             PersonId = 1,
-            GroupRoleId = 1,
-            GroupMemberStatus = GroupMemberStatus.Active,
-            DateTimeAdded = DateTime.UtcNow,
+            FamilyRoleId = 1,
+            IsPrimary = false,
+            DateAdded = DateTime.UtcNow,
             CreatedDateTime = DateTime.UtcNow
         };
-        _context.GroupMembers.Add(member1);
+        _context.FamilyMembers.Add(member1);
 
-        var member2 = new GroupMember
+        var member2 = new FamilyMember
         {
             Id = 2,
-            GroupId = 1,
+            FamilyId = 1,
             PersonId = 2,
-            GroupRoleId = 1,
-            GroupMemberStatus = GroupMemberStatus.Active,
-            DateTimeAdded = DateTime.UtcNow,
+            FamilyRoleId = 1,
+            IsPrimary = false,
+            DateAdded = DateTime.UtcNow,
             CreatedDateTime = DateTime.UtcNow
         };
-        _context.GroupMembers.Add(member2);
+        _context.FamilyMembers.Add(member2);
 
         _context.SaveChanges();
     }
@@ -271,13 +266,12 @@ public class FamilyServiceTests : IDisposable
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.Name.Should().Be("Smith Family");
-        result.Value.Description.Should().Be("The Smith household");
+        result.Value.Description.Should().BeNull(); // Family entity doesn't support Description
 
         // Verify in database
-        var family = await _context.Groups
-            .FirstOrDefaultAsync(g => g.Name == "Smith Family");
+        var family = await _context.Families
+            .FirstOrDefaultAsync(f => f.Name == "Smith Family");
         family.Should().NotBeNull();
-        family!.GroupTypeId.Should().Be(_familyGroupTypeId);
     }
 
     [Fact]
@@ -307,8 +301,8 @@ public class FamilyServiceTests : IDisposable
         result.Value!.Name.Should().Be("Jones Family");
 
         // Verify campus is set
-        var family = await _context.Groups
-            .FirstOrDefaultAsync(g => g.Name == "Jones Family");
+        var family = await _context.Families
+            .FirstOrDefaultAsync(f => f.Name == "Jones Family");
         family.Should().NotBeNull();
         family!.CampusId.Should().Be(1);
 
@@ -354,16 +348,19 @@ public class FamilyServiceTests : IDisposable
         var result = await _service.AddFamilyMemberAsync(familyIdKey, request);
 
         // Assert
+        if (!result.IsSuccess)
+        {
+            throw new Exception($"Expected success but got error: {result.Error?.Code} - {result.Error?.Message}");
+        }
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.Person.FirstName.Should().Be("Jimmy");
         result.Value.Role.Name.Should().Be("Child");
 
         // Verify in database
-        var member = await _context.GroupMembers
-            .FirstOrDefaultAsync(gm => gm.GroupId == 1 && gm.PersonId == 3);
+        var member = await _context.FamilyMembers
+            .FirstOrDefaultAsync(fm => fm.FamilyId == 1 && fm.PersonId == 3);
         member.Should().NotBeNull();
-        member!.GroupMemberStatus.Should().Be(GroupMemberStatus.Active);
     }
 
     [Fact]
@@ -425,12 +422,10 @@ public class FamilyServiceTests : IDisposable
         // Assert
         result.IsSuccess.Should().BeTrue();
 
-        // Verify in database - should be marked inactive, not deleted
-        var member = await _context.GroupMembers
-            .FirstOrDefaultAsync(gm => gm.GroupId == 1 && gm.PersonId == 2);
-        member.Should().NotBeNull();
-        member!.GroupMemberStatus.Should().Be(GroupMemberStatus.Inactive);
-        member.InactiveDateTime.Should().NotBeNull();
+        // Verify in database - should be deleted (FamilyMember uses hard delete)
+        var member = await _context.FamilyMembers
+            .FirstOrDefaultAsync(fm => fm.FamilyId == 1 && fm.PersonId == 2);
+        member.Should().BeNull();
     }
 
     [Fact]
@@ -465,7 +460,6 @@ public class FamilyServiceTests : IDisposable
         // Verify in database
         var person = await _context.People.FindAsync(1);
         person.Should().NotBeNull();
-        person!.PrimaryFamilyId.Should().Be(1);
     }
 
     [Fact]

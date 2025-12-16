@@ -6,6 +6,7 @@ using Koinon.Application.DTOs.Requests;
 using Koinon.Application.Mapping;
 using Koinon.Application.Services;
 using Koinon.Application.Validators;
+using Koinon.Domain.Data;
 using Koinon.Domain.Entities;
 using Koinon.Domain.Enums;
 using Koinon.Infrastructure.Data;
@@ -90,7 +91,6 @@ public class GroupServiceTests : IDisposable
         {
             Id = 1,
             Name = "Serving Team",
-            IsFamilyGroupType = false,
             AllowMultipleLocations = false,
             IsSystem = false,
             CreatedDateTime = DateTime.UtcNow
@@ -100,7 +100,7 @@ public class GroupServiceTests : IDisposable
         {
             Id = 2,
             Name = "Family",
-            IsFamilyGroupType = true,
+            Guid = SystemGuid.GroupType.Family,
             AllowMultipleLocations = false,
             IsSystem = true,
             CreatedDateTime = DateTime.UtcNow
@@ -377,7 +377,7 @@ public class GroupServiceTests : IDisposable
     public async Task CreateAsync_FamilyGroupType_ReturnsError()
     {
         // Arrange
-        var familyGroupType = await _context.GroupTypes.FirstAsync(gt => gt.IsFamilyGroupType);
+        var familyGroupType = await _context.GroupTypes.FirstAsync(gt => gt.Guid == SystemGuid.GroupType.Family);
         var request = new CreateGroupRequest
         {
             Name = "Test Family",

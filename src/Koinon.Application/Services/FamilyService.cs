@@ -30,15 +30,14 @@ public class FamilyService(
         // Authorization check - throws if user doesn't have access
         await AuthorizeFamilyAccessAsync(id, nameof(GetByIdAsync), ct);
 
-        var family = await context.Groups
+        var family = await context.Families
             .AsNoTracking()
-            .Include(g => g.GroupType)
-            .Include(g => g.Campus)
-            .Include(g => g.Members)
+            .Include(f => f.Campus)
+            .Include(f => f.Members)
                 .ThenInclude(m => m.Person)
-            .Include(g => g.Members)
-                .ThenInclude(m => m.GroupRole)
-            .FirstOrDefaultAsync(g => g.Id == id && g.GroupType!.IsFamilyGroupType, ct);
+            .Include(f => f.Members)
+                .ThenInclude(m => m.FamilyRole)
+            .FirstOrDefaultAsync(f => f.Id == id, ct);
 
         if (family is null)
         {
@@ -66,28 +65,27 @@ public class FamilyService(
         int pageSize,
         CancellationToken ct = default)
     {
-        var query = context.Groups
+        var query = context.Families
             .AsNoTracking()
-            .Include(g => g.GroupType)
-            .Include(g => g.Members)
-            .Where(g => g.GroupType!.IsFamilyGroupType);
+            .Include(f => f.Members)
+            .Where(f => true);
 
         // Filter by active status
         if (!includeInactive)
         {
-            query = query.Where(g => g.IsActive);
+            query = query.Where(f => f.IsActive);
         }
 
         // Filter by campus
         if (!string.IsNullOrWhiteSpace(campusIdKey) && IdKeyHelper.TryDecode(campusIdKey, out int campusId))
         {
-            query = query.Where(g => g.CampusId == campusId);
+            query = query.Where(f => f.CampusId == campusId);
         }
 
         // Filter by search term (search in name)
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
-            query = query.Where(g => g.Name.Contains(searchTerm));
+            query = query.Where(f => f.Name.Contains(searchTerm));
         }
 
         // Get total count
@@ -95,14 +93,14 @@ public class FamilyService(
 
         // Apply pagination
         var families = await query
-            .OrderBy(g => g.Name)
+            .OrderBy(f => f.Name)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(g => new FamilySummaryDto
+            .Select(f => new FamilySummaryDto
             {
-                IdKey = g.IdKey,
-                Name = g.Name,
-                MemberCount = g.Members.Count
+                IdKey = f.IdKey,
+                Name = f.Name,
+                MemberCount = f.Members.Count
             })
             .ToListAsync(ct);
 
@@ -124,19 +122,8 @@ public class FamilyService(
             return Result<FamilyDto>.Failure(Error.FromFluentValidation(validation));
         }
 
-        // Get family group type
-        var familyGroupType = await context.GroupTypes
-            .FirstOrDefaultAsync(gt => gt.IsFamilyGroupType, ct);
-
-        if (familyGroupType is null)
-        {
-            return Result<FamilyDto>.Failure(
-                Error.UnprocessableEntity(FamilyGroupTypeNotFoundMessage));
-        }
-
         // Map to entity
-        var family = mapper.Map<Group>(request);
-        family.GroupTypeId = familyGroupType.Id;
+        var family = mapper.Map<Family>(request);
         family.CreatedDateTime = DateTime.UtcNow;
 
         // Decode and set campus ID if provided
@@ -158,7 +145,7 @@ public class FamilyService(
         }
 
         // Add to database
-        await context.Groups.AddAsync(family, ct);
+        await context.Families.AddAsync(family, ct);
         await context.SaveChangesAsync(ct);
 
         logger.LogInformation("Created family {FamilyId}: {Name}", family.Id, family.Name);
@@ -200,9 +187,8 @@ public class FamilyService(
                 Error.Forbidden("Not authorized to modify this family"));
         }
 
-        var family = await context.Groups
-            .Include(g => g.GroupType)
-            .FirstOrDefaultAsync(g => g.Id == familyId && g.GroupType!.IsFamilyGroupType, ct);
+        var family = await context.Families
+            .FirstOrDefaultAsync(f => f.Id == familyId, ct);
 
         if (family is null)
         {
@@ -228,17 +214,17 @@ public class FamilyService(
         }
 
         var role = await context.GroupTypeRoles
-            .FirstOrDefaultAsync(r => r.Id == roleId && r.GroupTypeId == family.GroupTypeId, ct);
+            .FirstOrDefaultAsync(r => r.Id == roleId, ct);
 
         if (role is null)
         {
             return Result<FamilyMemberDto>.Failure(
-                Error.UnprocessableEntity("Role is not valid for this family group type"));
+                Error.NotFound("FamilyRole", request.RoleId));
         }
 
         // Check if person is already a member
-        var existingMember = await context.GroupMembers
-            .FirstOrDefaultAsync(gm => gm.GroupId == familyId && gm.PersonId == personId, ct);
+        var existingMember = await context.FamilyMembers
+            .FirstOrDefaultAsync(fm => fm.FamilyId == familyId && fm.PersonId == personId, ct);
 
         if (existingMember != null)
         {
@@ -246,18 +232,18 @@ public class FamilyService(
                 Error.Conflict("Person is already a member of this family"));
         }
 
-        // Create group member
-        var groupMember = new GroupMember
+        // Create family member
+        var familyMember = new FamilyMember
         {
-            GroupId = familyId,
+            FamilyId = familyId,
             PersonId = personId,
-            GroupRoleId = roleId,
-            GroupMemberStatus = GroupMemberStatus.Active,
-            DateTimeAdded = DateTime.UtcNow,
+            FamilyRoleId = roleId,
+            IsPrimary = false, // Can be changed via SetPrimaryFamilyAsync
+            DateAdded = DateTime.UtcNow,
             CreatedDateTime = DateTime.UtcNow
         };
 
-        await context.GroupMembers.AddAsync(groupMember, ct);
+        await context.FamilyMembers.AddAsync(familyMember, ct);
         await context.SaveChangesAsync(ct);
 
         logger.LogInformation(
@@ -265,11 +251,11 @@ public class FamilyService(
             personId, familyId, roleId);
 
         // Fetch full member with includes
-        var createdMember = await context.GroupMembers
+        var createdMember = await context.FamilyMembers
             .AsNoTracking()
-            .Include(gm => gm.Person)
-            .Include(gm => gm.GroupRole)
-            .FirstOrDefaultAsync(gm => gm.Id == groupMember.Id, ct);
+            .Include(fm => fm.Person)
+            .Include(fm => fm.FamilyRole)
+            .FirstOrDefaultAsync(fm => fm.Id == familyMember.Id, ct);
 
         if (createdMember is null)
         {
@@ -304,9 +290,8 @@ public class FamilyService(
                 Error.Forbidden("Not authorized to modify this family"));
         }
 
-        var family = await context.Groups
-            .Include(g => g.GroupType)
-            .FirstOrDefaultAsync(g => g.Id == familyId && g.GroupType!.IsFamilyGroupType, ct);
+        var family = await context.Families
+            .FirstOrDefaultAsync(f => f.Id == familyId, ct);
 
         if (family is null)
         {
@@ -319,20 +304,18 @@ public class FamilyService(
             return Result.Failure(Error.NotFound("Person", personIdKey));
         }
 
-        // Find group member
-        var groupMember = await context.GroupMembers
-            .FirstOrDefaultAsync(gm => gm.GroupId == familyId && gm.PersonId == personId, ct);
+        // Find family member
+        var familyMember = await context.FamilyMembers
+            .FirstOrDefaultAsync(fm => fm.FamilyId == familyId && fm.PersonId == personId, ct);
 
-        if (groupMember is null)
+        if (familyMember is null)
         {
             return Result.Failure(
-                Error.NotFound("GroupMember", $"Person {personIdKey} in Family {familyIdKey}"));
+                Error.NotFound("FamilyMember", $"Person {personIdKey} in Family {familyIdKey}"));
         }
 
-        // Soft delete by marking as inactive
-        groupMember.GroupMemberStatus = GroupMemberStatus.Inactive;
-        groupMember.InactiveDateTime = DateTime.UtcNow;
-        groupMember.ModifiedDateTime = DateTime.UtcNow;
+        // Hard delete the family member
+        context.FamilyMembers.Remove(familyMember);
 
         await context.SaveChangesAsync(ct);
 
@@ -378,9 +361,8 @@ public class FamilyService(
                 Error.Forbidden("Not authorized to modify this family"));
         }
 
-        var family = await context.Groups
-            .Include(g => g.GroupType)
-            .FirstOrDefaultAsync(g => g.Id == familyId && g.GroupType!.IsFamilyGroupType, ct);
+        var family = await context.Families
+            .FirstOrDefaultAsync(f => f.Id == familyId, ct);
 
         if (family is null)
         {
@@ -388,9 +370,8 @@ public class FamilyService(
         }
 
         // Check if person is a member of the family
-        var isMember = await context.GroupMembers
-            .AnyAsync(gm => gm.GroupId == familyId && gm.PersonId == personId
-                && gm.GroupMemberStatus == GroupMemberStatus.Active, ct);
+        var isMember = await context.FamilyMembers
+            .AnyAsync(fm => fm.FamilyId == familyId && fm.PersonId == personId, ct);
 
         if (!isMember)
         {
@@ -398,8 +379,27 @@ public class FamilyService(
                 Error.UnprocessableEntity("Person must be an active member of the family to set it as primary"));
         }
 
-        // Set primary family
-        person.PrimaryFamilyId = familyId;
+        // Set primary family by updating the IsPrimary flag on FamilyMember
+        // First, clear any existing primary family
+        var existingPrimaryMembership = await context.FamilyMembers
+            .FirstOrDefaultAsync(fm => fm.PersonId == personId && fm.IsPrimary, ct);
+
+        if (existingPrimaryMembership != null)
+        {
+            existingPrimaryMembership.IsPrimary = false;
+            existingPrimaryMembership.ModifiedDateTime = DateTime.UtcNow;
+        }
+
+        // Set the new primary family
+        var newPrimaryMembership = await context.FamilyMembers
+            .FirstOrDefaultAsync(fm => fm.FamilyId == familyId && fm.PersonId == personId, ct);
+
+        if (newPrimaryMembership != null)
+        {
+            newPrimaryMembership.IsPrimary = true;
+            newPrimaryMembership.ModifiedDateTime = DateTime.UtcNow;
+        }
+
         person.ModifiedDateTime = DateTime.UtcNow;
 
         await context.SaveChangesAsync(ct);
@@ -421,13 +421,12 @@ public class FamilyService(
             Error.NotImplemented("Address management is not yet implemented")));
     }
 
-    private Task<FamilyDto> MapToFamilyDtoAsync(Group group, CancellationToken ct)
+    private Task<FamilyDto> MapToFamilyDtoAsync(Family family, CancellationToken ct)
     {
-        var familyDto = mapper.Map<FamilyDto>(group);
+        var familyDto = mapper.Map<FamilyDto>(family);
 
         // Map members
-        var memberDtos = group.Members
-            .Where(m => m.GroupMemberStatus == GroupMemberStatus.Active)
+        var memberDtos = family.Members
             .Select(m => mapper.Map<FamilyMemberDto>(m))
             .ToList();
 
@@ -468,11 +467,10 @@ public class FamilyService(
         }
 
         // Check if current user is a member of this family
-        var isMember = await context.GroupMembers
+        var isMember = await context.FamilyMembers
             .AnyAsync(
-                gm => gm.GroupId == familyId
-                    && gm.PersonId == userContext.CurrentPersonId.Value
-                    && gm.GroupMemberStatus == GroupMemberStatus.Active,
+                fm => fm.FamilyId == familyId
+                    && fm.PersonId == userContext.CurrentPersonId.Value,
                 ct);
 
         return isMember;
