@@ -514,7 +514,7 @@ public class PersonService(
                 GroupTypeIdKey = IdKeyHelper.Encode(gm.Group.GroupTypeId),
                 GroupTypeName = gm.Group.GroupType!.Name,
                 RoleIdKey = IdKeyHelper.Encode(gm.GroupRoleId),
-                RoleName = gm.GroupRole!.Name,
+                RoleName = gm.GroupRole != null ? gm.GroupRole.Name : "(Unknown)",
                 MemberStatus = gm.GroupMemberStatus.ToString(),
                 CreatedDateTime = gm.CreatedDateTime,
                 ModifiedDateTime = gm.ModifiedDateTime

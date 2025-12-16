@@ -570,9 +570,9 @@ public class GroupService(
             .Where(gm => gm.GroupId == groupId
                 && gm.GroupMemberStatus == GroupMemberStatus.Active
 )
-            .OrderBy(gm => gm.GroupRole!.Order)
-            .ThenBy(gm => gm.Person!.LastName)
-            .ThenBy(gm => gm.Person!.FirstName)
+            .OrderBy(gm => gm.GroupRole != null ? gm.GroupRole.Order : int.MaxValue)
+            .ThenBy(gm => gm.Person != null ? gm.Person.LastName : "")
+            .ThenBy(gm => gm.Person != null ? gm.Person.FirstName : "")
             .ToListAsync(ct);
 
         return members.Select(m => mapper.Map<GroupMemberDto>(m)).ToList();
