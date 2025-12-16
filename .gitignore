@@ -200,3 +200,6 @@ tmp/validate-output.log
 # Change Orders and Requests
 docs/change-orders/
 test-results/.last-run.json
+
+# MAXIMUS orchestrator - local backup and session files
+.maximus/
