@@ -13,55 +13,39 @@ public class FamilyMappingProfile : Profile
     public FamilyMappingProfile()
     {
         // Entity to DTO mappings
-        CreateMap<Group, FamilyDto>()
+        CreateMap<Family, FamilyDto>()
             .ForMember(d => d.IdKey, o => o.MapFrom(s => s.IdKey))
+            .ForMember(d => d.Description, o => o.MapFrom(s => (string?)null)) // Family entity doesn't have Description
             .ForMember(d => d.Address, o => o.Ignore()) // Will be set separately
             .ForMember(d => d.Members, o => o.Ignore()); // Will be set separately
 
-        CreateMap<GroupMember, FamilyMemberDto>()
+        CreateMap<FamilyMember, FamilyMemberDto>()
             .ForMember(d => d.IdKey, o => o.MapFrom(s => s.IdKey))
             .ForMember(d => d.Person, o => o.MapFrom(s => s.Person))
-            .ForMember(d => d.Role, o => o.MapFrom(s => s.GroupRole))
-            .ForMember(d => d.Status, o => o.MapFrom(s => s.GroupMemberStatus.ToString()));
+            .ForMember(d => d.Role, o => o.MapFrom(s => s.FamilyRole))
+            .ForMember(d => d.Status, o => o.MapFrom(s => "Active")) // FamilyMember doesn't have status
+            .ForMember(d => d.DateTimeAdded, o => o.MapFrom(s => (DateTime?)s.DateAdded));
 
         CreateMap<Location, LocationDto>()
             .ForMember(d => d.IdKey, o => o.MapFrom(s => s.IdKey))
             .ForMember(d => d.FormattedAddress, o => o.MapFrom(s => FormatAddress(s)));
 
         CreateMap<GroupTypeRole, GroupTypeRoleDto>()
-            .ForMember(d => d.IdKey, o => o.MapFrom(s => s.IdKey));
+            .ForMember(d => d.IdKey, o => o.MapFrom(s => s.IdKey))
+            .ForMember(d => d.Name, o => o.MapFrom(s => s.Name))
+            .ForMember(d => d.IsLeader, o => o.MapFrom(s => s.IsLeader));
 
         // Request to Entity mappings
-        CreateMap<CreateFamilyRequest, Group>()
+        CreateMap<CreateFamilyRequest, Family>()
             .ForMember(d => d.Id, o => o.Ignore())
             .ForMember(d => d.Guid, o => o.Ignore())
             .ForMember(d => d.CreatedDateTime, o => o.Ignore())
             .ForMember(d => d.ModifiedDateTime, o => o.Ignore())
-            .ForMember(d => d.CreatedByPersonAliasId, o => o.Ignore())
-            .ForMember(d => d.ModifiedByPersonAliasId, o => o.Ignore())
-            .ForMember(d => d.GroupTypeId, o => o.Ignore()) // Set by service
-            .ForMember(d => d.ParentGroupId, o => o.Ignore())
             .ForMember(d => d.CampusId, o => o.Ignore()) // Set by service
-            .ForMember(d => d.IsSystem, o => o.MapFrom(s => false))
             .ForMember(d => d.IsActive, o => o.MapFrom(s => true))
-            .ForMember(d => d.IsArchived, o => o.MapFrom(s => false))
-            .ForMember(d => d.IsSecurityRole, o => o.MapFrom(s => false))
-            .ForMember(d => d.AllowGuests, o => o.MapFrom(s => false))
-            .ForMember(d => d.IsPublic, o => o.MapFrom(s => false))
-            .ForMember(d => d.Order, o => o.MapFrom(s => 0))
-            .ForMember(d => d.ArchivedByPersonAliasId, o => o.Ignore())
-            .ForMember(d => d.ArchivedDateTime, o => o.Ignore())
-            .ForMember(d => d.GroupCapacity, o => o.Ignore())
-            .ForMember(d => d.ScheduleId, o => o.Ignore())
-            .ForMember(d => d.WelcomeSystemCommunicationId, o => o.Ignore())
-            .ForMember(d => d.ExitSystemCommunicationId, o => o.Ignore())
-            .ForMember(d => d.RequiredSignatureDocumentTemplateId, o => o.Ignore())
-            .ForMember(d => d.StatusValueId, o => o.Ignore())
-            .ForMember(d => d.GroupType, o => o.Ignore())
             .ForMember(d => d.Campus, o => o.Ignore())
-            .ForMember(d => d.ParentGroup, o => o.Ignore())
-            .ForMember(d => d.ChildGroups, o => o.Ignore())
             .ForMember(d => d.Members, o => o.Ignore());
+        // Note: Description in request is ignored (Family entity doesn't have this property)
 
         CreateMap<CreateFamilyAddressRequest, Location>()
             .ForMember(d => d.Id, o => o.Ignore())

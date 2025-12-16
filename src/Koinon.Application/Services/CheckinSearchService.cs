@@ -88,14 +88,10 @@ public class CheckinSearchService(
                 }
 
                 // Get families for these people
-                var familyIds = await Context.GroupMembers
+                var familyIds = await Context.FamilyMembers
                     .AsNoTracking()
-                    .Where(gm => matchingPhones.Contains(gm.PersonId) &&
-                                gm.GroupMemberStatus == GroupMemberStatus.Active &&
-                                gm.Group != null &&
-                                gm.Group.GroupType != null &&
-                                gm.Group.GroupType.IsFamilyGroupType)
-                    .Select(gm => gm.GroupId)
+                    .Where(fm => matchingPhones.Contains(fm.PersonId))
+                    .Select(fm => fm.FamilyId)
                     .Distinct()
                     .Take(MaxSearchResults)
                     .ToListAsync(ct);
@@ -179,14 +175,10 @@ public class CheckinSearchService(
                 }
 
                 // Get families for these people
-                var familyIds = await Context.GroupMembers
+                var familyIds = await Context.FamilyMembers
                     .AsNoTracking()
-                    .Where(gm => matchingPeople.Contains(gm.PersonId) &&
-                                gm.GroupMemberStatus == GroupMemberStatus.Active &&
-                                gm.Group != null &&
-                                gm.Group.GroupType != null &&
-                                gm.Group.GroupType.IsFamilyGroupType)
-                    .Select(gm => gm.GroupId)
+                    .Where(fm => matchingPeople.Contains(fm.PersonId))
+                    .Select(fm => fm.FamilyId)
                     .Distinct()
                     .Take(MaxSearchResults)
                     .ToListAsync(ct);
@@ -282,12 +274,13 @@ public class CheckinSearchService(
                     return null;
                 }
 
-                // Get the person's family
-                var person = await Context.People
+                // Get the person's primary family
+                var primaryFamilyMember = await Context.FamilyMembers
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(p => p.Id == personAlias.PersonId, ct);
+                    .Where(fm => fm.PersonId == personAlias.PersonId && fm.IsPrimary)
+                    .FirstOrDefaultAsync(ct);
 
-                if (person?.PrimaryFamilyId == null)
+                if (primaryFamilyMember == null)
                 {
                     Logger.LogWarning("Person {PersonId} has no primary family for code {Code}",
                         personAlias.PersonId, normalizedCode);
@@ -296,11 +289,11 @@ public class CheckinSearchService(
 
                 // Get family with members using batch loader
                 var familyData = await _dataLoader.LoadFamilyDataAsync(
-                    new[] { person.PrimaryFamilyId.Value },
+                    new[] { primaryFamilyMember.FamilyId },
                     DateTime.UtcNow.AddDays(-RecentCheckInDays),
                     ct);
 
-                if (!familyData.TryGetValue(person.PrimaryFamilyId.Value, out var data))
+                if (!familyData.TryGetValue(primaryFamilyMember.FamilyId, out var data))
                 {
                     return null;
                 }
@@ -426,26 +419,26 @@ public class CheckinSearchService(
 
         var members = new List<CheckinFamilyMemberDto>();
 
-        foreach (var groupMember in family.Members.Where(m => m.GroupMemberStatus == GroupMemberStatus.Active))
+        foreach (var familyMember in family.Members)
         {
-            if (groupMember.Person == null)
+            if (familyMember.Person == null)
             {
                 continue; // Skip if person not loaded
             }
 
             // Use pre-loaded check-in data (O(1) HashSet lookup)
-            var hasRecentCheckIn = recentCheckInPeople.Contains(groupMember.PersonId);
+            var hasRecentCheckIn = recentCheckInPeople.Contains(familyMember.PersonId);
 
             // Get last check-in date (O(1) dictionary lookup)
-            lastCheckInByPerson.TryGetValue(groupMember.PersonId, out var lastCheckIn);
+            lastCheckInByPerson.TryGetValue(familyMember.PersonId, out var lastCheckIn);
 
             // Calculate age
             int? age = null;
-            if (groupMember.Person.BirthDate.HasValue)
+            if (familyMember.Person.BirthDate.HasValue)
             {
                 var today = DateOnly.FromDateTime(DateTime.UtcNow);
-                age = today.Year - groupMember.Person.BirthDate.Value.Year;
-                if (groupMember.Person.BirthDate.Value > today.AddYears(-age.Value))
+                age = today.Year - familyMember.Person.BirthDate.Value.Year;
+                if (familyMember.Person.BirthDate.Value > today.AddYears(-age.Value))
                 {
                     age--;
                 }
@@ -455,26 +448,26 @@ public class CheckinSearchService(
             var isChild = age.HasValue && age.Value < 18;
 
             // Calculate grade from graduation year
-            var grade = CalculateGrade(groupMember.Person.GraduationYear);
+            var grade = CalculateGrade(familyMember.Person.GraduationYear);
 
             members.Add(new CheckinFamilyMemberDto
             {
-                PersonIdKey = groupMember.Person.IdKey,
-                FullName = groupMember.Person.FullName,
-                FirstName = groupMember.Person.FirstName,
-                LastName = groupMember.Person.LastName,
-                NickName = groupMember.Person.NickName,
+                PersonIdKey = familyMember.Person.IdKey,
+                FullName = familyMember.Person.FullName,
+                FirstName = familyMember.Person.FirstName,
+                LastName = familyMember.Person.LastName,
+                NickName = familyMember.Person.NickName,
                 Age = age,
-                Gender = groupMember.Person.Gender.ToString(),
+                Gender = familyMember.Person.Gender.ToString(),
                 PhotoUrl = null, // Photo URLs require BinaryFile entity (not yet implemented)
-                RoleName = groupMember.GroupRole?.Name ?? "Member",
+                RoleName = familyMember.FamilyRole?.Name ?? "Member",
                 IsChild = isChild,
                 HasRecentCheckIn = hasRecentCheckIn,
                 LastCheckIn = lastCheckIn == default ? null : lastCheckIn,
                 Grade = grade,
-                Allergies = groupMember.Person.Allergies,
-                HasCriticalAllergies = groupMember.Person.HasCriticalAllergies,
-                SpecialNeeds = groupMember.Person.SpecialNeeds
+                Allergies = familyMember.Person.Allergies,
+                HasCriticalAllergies = familyMember.Person.HasCriticalAllergies,
+                SpecialNeeds = familyMember.Person.SpecialNeeds
             });
         }
 
@@ -486,7 +479,6 @@ public class CheckinSearchService(
 
         // Count recent check-ins for this family
         var recentCheckInCount = family.Members
-            .Where(m => m.GroupMemberStatus == GroupMemberStatus.Active)
             .Count(m => recentCheckInPeople.Contains(m.PersonId));
 
         return new CheckinFamilySearchResultDto

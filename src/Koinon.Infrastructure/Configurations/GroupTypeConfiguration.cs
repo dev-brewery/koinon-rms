@@ -171,18 +171,9 @@ public class GroupTypeConfiguration : IEntityTypeConfiguration<GroupType>
             .IsRequired()
             .HasDefaultValue(0);
 
-        builder.Property(e => e.IsFamilyGroupType)
-            .HasColumnName("is_family_group_type")
-            .IsRequired()
-            .HasDefaultValue(false);
-
         // Indexes
         builder.HasIndex(e => e.Name)
             .HasDatabaseName("ix_group_type_name");
-
-        builder.HasIndex(e => e.IsFamilyGroupType)
-            .HasDatabaseName("ix_group_type_is_family_group_type")
-            .HasFilter("is_family_group_type = true");
 
         // Relationships
         builder.HasMany(e => e.Roles)

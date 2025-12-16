@@ -35,7 +35,6 @@ public class MyProfileService(
             .AsNoTracking()
             .Include(p => p.PhoneNumbers)
                 .ThenInclude(pn => pn.NumberTypeValue)
-            .Include(p => p.PrimaryFamily)
             .Include(p => p.PrimaryCampus)
             .FirstOrDefaultAsync(p => p.Id == currentPersonId.Value, ct);
 
@@ -45,7 +44,7 @@ public class MyProfileService(
                 Error.NotFound("Person", IdKeyHelper.Encode(currentPersonId.Value)));
         }
 
-        var dto = MapToMyProfileDto(person);
+        var dto = await MapToMyProfileDtoAsync(person, ct);
 
         logger.LogInformation(
             "Retrieved profile for PersonIdKey={PersonIdKey}",
@@ -75,7 +74,6 @@ public class MyProfileService(
         var person = await context.People
             .Include(p => p.PhoneNumbers)
                 .ThenInclude(pn => pn.NumberTypeValue)
-            .Include(p => p.PrimaryFamily)
             .Include(p => p.PrimaryCampus)
             .FirstOrDefaultAsync(p => p.Id == currentPersonId.Value, ct);
 
@@ -124,7 +122,7 @@ public class MyProfileService(
             .Include(pn => pn.NumberTypeValue)
             .LoadAsync(ct);
 
-        var dto = MapToMyProfileDto(person);
+        var dto = await MapToMyProfileDtoAsync(person, ct);
 
         logger.LogInformation(
             "Updated profile for PersonIdKey={PersonIdKey}",
@@ -142,46 +140,47 @@ public class MyProfileService(
                 Error.Forbidden("User is not authenticated"));
         }
 
-        var person = await context.People
+        // Find user's primary family via FamilyMember
+        var primaryFamilyMember = await context.FamilyMembers
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Id == currentPersonId.Value, ct);
+            .Where(fm => fm.PersonId == currentPersonId.Value && fm.IsPrimary)
+            .FirstOrDefaultAsync(ct);
 
-        if (person == null || !person.PrimaryFamilyId.HasValue)
+        if (primaryFamilyMember == null)
         {
             return Result<IReadOnlyList<MyFamilyMemberDto>>.Success(
                 Array.Empty<MyFamilyMemberDto>());
         }
 
+        var familyId = primaryFamilyMember.FamilyId;
+
         // Get current user's role in family to determine edit permissions
-        var currentUserRole = await context.GroupMembers
+        var currentUserFamilyRole = await context.FamilyMembers
             .AsNoTracking()
-            .Include(gm => gm.GroupRole)
-            .Where(gm => gm.GroupId == person.PrimaryFamilyId.Value
-                && gm.PersonId == currentPersonId.Value
-                && gm.GroupMemberStatus == GroupMemberStatus.Active)
-            .Select(gm => gm.GroupRole)
+            .Include(fm => fm.FamilyRole)
+            .Where(fm => fm.FamilyId == familyId && fm.PersonId == currentPersonId.Value)
+            .Select(fm => fm.FamilyRole)
             .FirstOrDefaultAsync(ct);
 
-        bool currentUserIsAdult = currentUserRole?.Guid == SystemGuid.GroupTypeRole.FamilyAdult;
+        bool currentUserIsAdult = currentUserFamilyRole?.Guid == SystemGuid.GroupTypeRole.FamilyAdult;
 
         // Get family members
-        var familyMembers = await context.GroupMembers
+        var familyMembers = await context.FamilyMembers
             .AsNoTracking()
-            .Include(gm => gm.Person)
+            .Include(fm => fm.Person)
                 .ThenInclude(p => p!.PhoneNumbers)
                     .ThenInclude(pn => pn.NumberTypeValue)
-            .Include(gm => gm.GroupRole)
-            .Where(gm => gm.GroupId == person.PrimaryFamilyId.Value
-                && gm.GroupMemberStatus == GroupMemberStatus.Active)
-            .OrderByDescending(gm => gm.GroupRole!.Guid == SystemGuid.GroupTypeRole.FamilyAdult)
-            .ThenBy(gm => gm.Person!.BirthYear)
-            .ThenBy(gm => gm.Person!.BirthMonth)
-            .ThenBy(gm => gm.Person!.BirthDay)
+            .Include(fm => fm.FamilyRole)
+            .Where(fm => fm.FamilyId == familyId)
+            .OrderByDescending(fm => fm.FamilyRole!.Guid == SystemGuid.GroupTypeRole.FamilyAdult)
+            .ThenBy(fm => fm.Person!.BirthYear)
+            .ThenBy(fm => fm.Person!.BirthMonth)
+            .ThenBy(fm => fm.Person!.BirthDay)
             .ToListAsync(ct);
 
         var dtos = familyMembers.Select(fm =>
         {
-            var isChild = fm.GroupRole?.Guid == SystemGuid.GroupTypeRole.FamilyChild;
+            var isChild = fm.FamilyRole?.Guid == SystemGuid.GroupTypeRole.FamilyChild;
             var canEdit = currentUserIsAdult && isChild;
 
             return new MyFamilyMemberDto
@@ -219,7 +218,7 @@ public class MyProfileService(
                     })
                     .ToList(),
                 PhotoUrl = null, // TODO(#116): Implement photo URLs
-                FamilyRole = fm.GroupRole?.Name ?? "Unknown",
+                FamilyRole = fm.FamilyRole?.Name ?? "Unknown",
                 CanEdit = canEdit,
                 Allergies = fm.Person.Allergies,
                 HasCriticalAllergies = fm.Person.HasCriticalAllergies,
@@ -259,31 +258,26 @@ public class MyProfileService(
             return Result<MyFamilyMemberDto>.Failure(Error.NotFound("Person", personIdKey));
         }
 
-        // Get current user
-        var currentPerson = await context.People
+        // Find current user's primary family
+        var currentUserFamilyMember = await context.FamilyMembers
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Id == currentPersonId.Value, ct);
+            .Include(fm => fm.FamilyRole)
+            .Where(fm => fm.PersonId == currentPersonId.Value && fm.IsPrimary)
+            .FirstOrDefaultAsync(ct);
 
-        if (currentPerson == null || !currentPerson.PrimaryFamilyId.HasValue)
+        if (currentUserFamilyMember == null)
         {
             return Result<MyFamilyMemberDto>.Failure(
                 Error.Forbidden("You must be part of a family to update family members"));
         }
 
-        // Get current user's role
-        var currentUserMembership = await context.GroupMembers
-            .AsNoTracking()
-            .Include(gm => gm.GroupRole)
-            .Where(gm => gm.GroupId == currentPerson.PrimaryFamilyId.Value
-                && gm.PersonId == currentPersonId.Value
-                && gm.GroupMemberStatus == GroupMemberStatus.Active)
-            .FirstOrDefaultAsync(ct);
-
-        if (currentUserMembership?.GroupRole?.Guid != SystemGuid.GroupTypeRole.FamilyAdult)
+        if (currentUserFamilyMember.FamilyRole?.Guid != SystemGuid.GroupTypeRole.FamilyAdult)
         {
             return Result<MyFamilyMemberDto>.Failure(
                 Error.Forbidden("Only adults can update family member information"));
         }
+
+        var familyId = currentUserFamilyMember.FamilyId;
 
         // Get target person
         var targetPerson = await context.People
@@ -297,22 +291,20 @@ public class MyProfileService(
         }
 
         // Verify target person is in same family
-        var targetMembership = await context.GroupMembers
+        var targetFamilyMember = await context.FamilyMembers
             .AsNoTracking()
-            .Include(gm => gm.GroupRole)
-            .Where(gm => gm.GroupId == currentPerson.PrimaryFamilyId.Value
-                && gm.PersonId == targetPersonId
-                && gm.GroupMemberStatus == GroupMemberStatus.Active)
+            .Include(fm => fm.FamilyRole)
+            .Where(fm => fm.FamilyId == familyId && fm.PersonId == targetPersonId)
             .FirstOrDefaultAsync(ct);
 
-        if (targetMembership == null)
+        if (targetFamilyMember == null)
         {
             return Result<MyFamilyMemberDto>.Failure(
                 Error.Forbidden("Person is not part of your family"));
         }
 
         // Verify target is a child
-        if (targetMembership.GroupRole?.Guid != SystemGuid.GroupTypeRole.FamilyChild)
+        if (targetFamilyMember.FamilyRole?.Guid != SystemGuid.GroupTypeRole.FamilyChild)
         {
             return Result<MyFamilyMemberDto>.Failure(
                 Error.Forbidden("You can only update information for children in your family"));
@@ -391,7 +383,7 @@ public class MyProfileService(
                 })
                 .ToList(),
             PhotoUrl = null,
-            FamilyRole = targetMembership.GroupRole?.Name ?? "Child",
+            FamilyRole = targetFamilyMember.FamilyRole?.Name ?? "Child",
             CanEdit = true,
             Allergies = targetPerson.Allergies,
             HasCriticalAllergies = targetPerson.HasCriticalAllergies,
@@ -425,8 +417,7 @@ public class MyProfileService(
             .Include(gm => gm.GroupRole)
             .Where(gm => gm.PersonId == currentPersonId.Value
                 && gm.GroupMemberStatus == GroupMemberStatus.Active
-                && !gm.Group!.IsArchived
-                && !gm.Group.GroupType!.IsFamilyGroupType)
+                && !gm.Group!.IsArchived)
             .ToListAsync(ct);
 
         var groupIds = groupMemberships.Select(gm => gm.GroupId).ToList();
@@ -494,8 +485,29 @@ public class MyProfileService(
 
     // Private helper methods
 
-    private static MyProfileDto MapToMyProfileDto(Person person)
+    private async Task<MyProfileDto> MapToMyProfileDtoAsync(Person person, CancellationToken ct)
     {
+        // Query primary family via FamilyMember
+        FamilySummaryDto? primaryFamily = null;
+        var primaryFamilyMember = await context.FamilyMembers
+            .AsNoTracking()
+            .Include(fm => fm.Family)
+            .Where(fm => fm.PersonId == person.Id && fm.IsPrimary)
+            .FirstOrDefaultAsync(ct);
+
+        if (primaryFamilyMember?.Family != null)
+        {
+            var memberCount = await context.FamilyMembers
+                .CountAsync(fm => fm.FamilyId == primaryFamilyMember.FamilyId, ct);
+
+            primaryFamily = new FamilySummaryDto
+            {
+                IdKey = primaryFamilyMember.Family.IdKey,
+                Name = primaryFamilyMember.Family.Name,
+                MemberCount = memberCount
+            };
+        }
+
         return new MyProfileDto
         {
             IdKey = person.IdKey,
@@ -534,12 +546,7 @@ public class MyProfileService(
                     IsUnlisted = pn.IsUnlisted
                 })
                 .ToList(),
-            PrimaryFamily = person.PrimaryFamily != null ? new FamilySummaryDto
-            {
-                IdKey = person.PrimaryFamily.IdKey,
-                Name = person.PrimaryFamily.Name,
-                MemberCount = 0 // Will be populated separately if needed
-            } : null,
+            PrimaryFamily = primaryFamily,
             PrimaryCampus = person.PrimaryCampus != null ? new CampusSummaryDto
             {
                 IdKey = person.PrimaryCampus.IdKey,

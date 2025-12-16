@@ -2,6 +2,7 @@ using FluentAssertions;
 using Koinon.Application.Services;
 using Koinon.Application.Services.Common;
 using Koinon.Application.Tests.Fakes;
+using Koinon.Domain.Data;
 using Koinon.Domain.Entities;
 using Koinon.Domain.Enums;
 using Koinon.Infrastructure.Data;
@@ -49,8 +50,7 @@ public class CheckinSearchServiceTests : IDisposable
     public async Task SearchByPhoneAsync_WithLast4Digits_ReturnsMatchingFamilies()
     {
         // Arrange
-        var (family, _, _) = await CreateTestFamilyAsync();
-        var person = family.Members.First().Person!;
+        var (family, person, _) = await CreateTestFamilyAsync();
 
         var phone = new PhoneNumber
         {
@@ -180,8 +180,7 @@ public class CheckinSearchServiceTests : IDisposable
     public async Task SearchByNameAsync_WithNickName_ReturnsMatchingFamilies()
     {
         // Arrange
-        var (family, _, _) = await CreateTestFamilyAsync();
-        var person = family.Members.First().Person!;
+        var (family, person, _) = await CreateTestFamilyAsync();
         person.NickName = "Johnny";
         await _context.SaveChangesAsync();
 
@@ -238,8 +237,7 @@ public class CheckinSearchServiceTests : IDisposable
     public async Task SearchByNameAsync_ExcludesDeceasedPersons()
     {
         // Arrange
-        var (family, _, _) = await CreateTestFamilyAsync("TestFamily", "John", "Doe");
-        var person = family.Members.First().Person!;
+        var (family, person, _) = await CreateTestFamilyAsync("TestFamily", "John", "Doe");
         person.IsDeceased = true;
         await _context.SaveChangesAsync();
 
@@ -397,16 +395,17 @@ public class CheckinSearchServiceTests : IDisposable
             BirthDay = 1
         };
         await _context.People.AddAsync(child);
+        await _context.SaveChangesAsync();
 
-        var childMember = new GroupMember
+        var childMember = new FamilyMember
         {
-            GroupId = family.Id,
+            FamilyId = family.Id,
             PersonId = child.Id,
-            GroupRoleId = childRole.Id,
-            GroupMemberStatus = GroupMemberStatus.Active,
-            DateTimeAdded = DateTime.UtcNow
+            FamilyRoleId = childRole.Id,
+            IsPrimary = false,
+            DateAdded = DateTime.UtcNow
         };
-        await _context.GroupMembers.AddAsync(childMember);
+        await _context.FamilyMembers.AddAsync(childMember);
         await _context.SaveChangesAsync();
 
         // Act
@@ -484,8 +483,7 @@ public class CheckinSearchServiceTests : IDisposable
     {
         // Arrange
         _userContext.IsAuthenticated = false;
-        var (family, _, _) = await CreateTestFamilyAsync();
-        var person = family.Members.First().Person!;
+        var (family, person, _) = await CreateTestFamilyAsync();
 
         var phone = new PhoneNumber
         {
@@ -529,52 +527,41 @@ public class CheckinSearchServiceTests : IDisposable
 
     // Helper methods
 
-    private async Task<(Group family, Person person, GroupMember member)> CreateTestFamilyAsync(
+    private async Task<(Family family, Person person, FamilyMember member)> CreateTestFamilyAsync(
         string familyName = "Test Family",
         string firstName = "Test",
         string lastName = "Person")
     {
-        // Get or create family group type
-        var familyGroupType = await _context.GroupTypes.FirstOrDefaultAsync(gt => gt.IsFamilyGroupType);
+        // Get or create Family group type for roles
+        var familyGroupType = await _context.GroupTypes
+            .FirstOrDefaultAsync(gt => gt.Guid == SystemGuid.GroupType.Family);
         if (familyGroupType == null)
         {
             familyGroupType = new GroupType
             {
                 Name = "Family",
-                IsFamilyGroupType = true,
+                Guid = SystemGuid.GroupType.Family,
                 GroupTerm = "Family",
-                GroupMemberTerm = "Family Member"
+                GroupMemberTerm = "Family Member",
+                IsSystem = true
             };
             await _context.GroupTypes.AddAsync(familyGroupType);
             await _context.SaveChangesAsync();
         }
 
-        // Get or create roles
+        // Get or create Adult role (used for family members)
         var adultRole = await _context.GroupTypeRoles
-            .FirstOrDefaultAsync(r => r.GroupTypeId == familyGroupType.Id && r.Name == "Adult");
+            .FirstOrDefaultAsync(r => r.Name == "Adult" && r.GroupTypeId == familyGroupType.Id);
         if (adultRole == null)
         {
             adultRole = new GroupTypeRole
             {
                 GroupTypeId = familyGroupType.Id,
                 Name = "Adult",
-                IsLeader = true
+                IsLeader = true,
+                Guid = Guid.NewGuid()
             };
             await _context.GroupTypeRoles.AddAsync(adultRole);
-            await _context.SaveChangesAsync();
-        }
-
-        var childRole = await _context.GroupTypeRoles
-            .FirstOrDefaultAsync(r => r.GroupTypeId == familyGroupType.Id && r.Name == "Child");
-        if (childRole == null)
-        {
-            childRole = new GroupTypeRole
-            {
-                GroupTypeId = familyGroupType.Id,
-                Name = "Child",
-                IsLeader = false
-            };
-            await _context.GroupTypeRoles.AddAsync(childRole);
             await _context.SaveChangesAsync();
         }
 
@@ -598,30 +585,27 @@ public class CheckinSearchServiceTests : IDisposable
             AliasPersonId = person.Id
         };
         await _context.PersonAliases.AddAsync(personAlias);
-
-        // Create family
-        var family = new Group
-        {
-            Name = familyName,
-            GroupTypeId = familyGroupType.Id,
-            IsActive = true
-        };
-        await _context.Groups.AddAsync(family);
         await _context.SaveChangesAsync();
 
-        // Create group member
-        var member = new GroupMember
+        // Create family using Family entity
+        var family = new Family
         {
-            GroupId = family.Id,
-            PersonId = person.Id,
-            GroupRoleId = adultRole.Id,
-            GroupMemberStatus = GroupMemberStatus.Active,
-            DateTimeAdded = DateTime.UtcNow
+            Name = familyName,
+            IsActive = true
         };
-        await _context.GroupMembers.AddAsync(member);
+        await _context.Families.AddAsync(family);
+        await _context.SaveChangesAsync();
 
-        // Set primary family
-        person.PrimaryFamilyId = family.Id;
+        // Create family member
+        var member = new FamilyMember
+        {
+            FamilyId = family.Id,
+            PersonId = person.Id,
+            FamilyRoleId = adultRole.Id, // Uses GroupTypeRole ID for now
+            IsPrimary = true,
+            DateAdded = DateTime.UtcNow
+        };
+        await _context.FamilyMembers.AddAsync(member);
         await _context.SaveChangesAsync();
 
         return (family, person, member);
@@ -670,15 +654,31 @@ public class CheckinSearchServiceTests : IDisposable
         return occurrence;
     }
 
-    private async Task<(Group family, GroupTypeRole adultRole, GroupTypeRole childRole)> CreateTestFamilyWithRolesAsync()
+    private async Task<(Family family, GroupTypeRole adultRole, GroupTypeRole childRole)> CreateTestFamilyWithRolesAsync()
     {
         var (family, _, _) = await CreateTestFamilyAsync("Test Family", "Test", "Person");
 
-        var familyGroupType = await _context.GroupTypes.FirstAsync(gt => gt.IsFamilyGroupType);
+        var familyGroupType = await _context.GroupTypes
+            .FirstAsync(gt => gt.Guid == SystemGuid.GroupType.Family);
+
         var adultRole = await _context.GroupTypeRoles
-            .FirstAsync(r => r.GroupTypeId == familyGroupType.Id && r.Name == "Adult");
+            .FirstAsync(r => r.Name == "Adult" && r.GroupTypeId == familyGroupType.Id);
+
+        // Get or create child role
         var childRole = await _context.GroupTypeRoles
-            .FirstAsync(r => r.GroupTypeId == familyGroupType.Id && r.Name == "Child");
+            .FirstOrDefaultAsync(r => r.Name == "Child" && r.GroupTypeId == familyGroupType.Id);
+        if (childRole == null)
+        {
+            childRole = new GroupTypeRole
+            {
+                GroupTypeId = familyGroupType.Id,
+                Name = "Child",
+                IsLeader = false,
+                Guid = Guid.NewGuid()
+            };
+            await _context.GroupTypeRoles.AddAsync(childRole);
+            await _context.SaveChangesAsync();
+        }
 
         return (family, adultRole, childRole);
     }
@@ -739,16 +739,17 @@ public class CheckinSearchServiceTests : IDisposable
             GraduationYear = graduationYear
         };
         await _context.People.AddAsync(child);
+        await _context.SaveChangesAsync();
 
-        var childMember = new GroupMember
+        var childMember = new FamilyMember
         {
-            GroupId = family.Id,
+            FamilyId = family.Id,
             PersonId = child.Id,
-            GroupRoleId = childRole.Id,
-            GroupMemberStatus = GroupMemberStatus.Active,
-            DateTimeAdded = DateTime.UtcNow
+            FamilyRoleId = childRole.Id,
+            IsPrimary = false,
+            DateAdded = DateTime.UtcNow
         };
-        await _context.GroupMembers.AddAsync(childMember);
+        await _context.FamilyMembers.AddAsync(childMember);
         await _context.SaveChangesAsync();
 
         // Act
@@ -781,8 +782,7 @@ public class CheckinSearchServiceTests : IDisposable
     public async Task SearchByNameAsync_WithGraduatedPerson_GradeShowsGraduated()
     {
         // Arrange
-        var (family, _, _) = await CreateTestFamilyAsync("TestFamily", "Graduate", "Person");
-        var person = family.Members.First().Person!;
+        var (family, person, _) = await CreateTestFamilyAsync("TestFamily", "Graduate", "Person");
         person.GraduationYear = DateTime.Today.Year - 2; // Graduated 2 years ago
         await _context.SaveChangesAsync();
 

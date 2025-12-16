@@ -79,7 +79,6 @@ public class GroupMemberRequestServiceTests : IDisposable
         {
             Id = 1,
             Name = "Small Group",
-            IsFamilyGroupType = false,
             CreatedDateTime = DateTime.UtcNow
         };
         _context.GroupTypes.Add(groupType);

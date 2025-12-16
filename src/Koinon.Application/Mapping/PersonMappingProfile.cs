@@ -24,13 +24,7 @@ public class PersonMappingProfile : Profile
             .ForMember(d => d.PhoneNumbers, o => o.MapFrom(s => s.PhoneNumbers))
             .ForMember(d => d.RecordStatus, o => o.MapFrom(s => s.RecordStatusValue))
             .ForMember(d => d.ConnectionStatus, o => o.MapFrom(s => s.ConnectionStatusValue))
-            .ForMember(d => d.PrimaryFamily, o => o.MapFrom(s =>
-                s.PrimaryFamily != null ? new FamilySummaryDto
-                {
-                    IdKey = s.PrimaryFamily.IdKey,
-                    Name = s.PrimaryFamily.Name,
-                    MemberCount = 0 // Will be calculated separately if needed
-                } : null))
+            .ForMember(d => d.PrimaryFamily, o => o.Ignore()) // Set in service layer via FamilyMember query
             .ForMember(d => d.PrimaryCampus, o => o.MapFrom(s => s.PrimaryCampus))
             .ForMember(d => d.PhotoUrl, o => o.MapFrom(s => s.Photo != null ? ApiPaths.GetFileUrl(s.Photo.IdKey) : null));
 
@@ -51,10 +45,6 @@ public class PersonMappingProfile : Profile
         CreateMap<DefinedValue, DefinedValueDto>()
             .ForMember(d => d.IdKey, o => o.MapFrom(s => s.IdKey));
 
-        CreateMap<Group, FamilySummaryDto>()
-            .ForMember(d => d.IdKey, o => o.MapFrom(s => s.IdKey))
-            .ForMember(d => d.MemberCount, o => o.Ignore()); // Calculated separately
-
         CreateMap<Campus, CampusSummaryDto>()
             .ForMember(d => d.IdKey, o => o.MapFrom(s => s.IdKey));
 
@@ -73,7 +63,6 @@ public class PersonMappingProfile : Profile
             .ForMember(d => d.PhoneNumbers, o => o.Ignore())
             .ForMember(d => d.GroupMemberships, o => o.Ignore())
             .ForMember(d => d.PersonAliases, o => o.Ignore())
-            .ForMember(d => d.PrimaryFamily, o => o.Ignore())
             .ForMember(d => d.IsSystem, o => o.MapFrom(s => false))
             .ForMember(d => d.IsDeceased, o => o.MapFrom(s => false))
             .ForMember(d => d.IsEmailActive, o => o.MapFrom(s => true));

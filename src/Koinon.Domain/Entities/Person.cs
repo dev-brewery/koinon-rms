@@ -188,9 +188,6 @@ public class Person : Entity
     public string? SystemNote { get; set; }
 
     /// <summary>
-    /// Foreign key to Group representing the person's primary family (denormalized for performance).
-    /// </summary>
-    public int? PrimaryFamilyId { get; set; }
 
     /// <summary>
     /// Foreign key to Campus representing the person's primary campus (denormalized for performance).
@@ -251,12 +248,6 @@ public class Person : Entity
     public virtual DefinedValue? ConnectionStatusValue { get; set; }
 
     /// <summary>
-    /// Navigation property to the primary family group (denormalized for performance).
-    /// </summary>
-    public virtual Group? PrimaryFamily { get; set; }
-
-    /// <summary>
-    /// Navigation property to the primary campus (denormalized for performance).
     /// </summary>
     public virtual Campus? PrimaryCampus { get; set; }
 
@@ -280,6 +271,11 @@ public class Person : Entity
     /// PersonAlias provides historical tracking of name changes and alternate identifiers.
     /// </summary>
     public virtual ICollection<PersonAlias> PersonAliases { get; set; } = new List<PersonAlias>();
+
+    /// <summary>
+    /// Collection of family memberships for this person.
+    /// </summary>
+    public virtual ICollection<FamilyMember> FamilyMemberships { get; set; } = new List<FamilyMember>();
 
     // CI validation test v2
 }

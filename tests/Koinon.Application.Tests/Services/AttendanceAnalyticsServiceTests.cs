@@ -53,7 +53,6 @@ public class AttendanceAnalyticsServiceTests : IDisposable
         {
             Id = 1,
             Name = "Worship Service",
-            IsFamilyGroupType = false,
             AllowMultipleLocations = false,
             IsSystem = false,
             CreatedDateTime = now
@@ -63,7 +62,6 @@ public class AttendanceAnalyticsServiceTests : IDisposable
         {
             Id = 2,
             Name = "Small Group",
-            IsFamilyGroupType = false,
             AllowMultipleLocations = false,
             IsSystem = false,
             CreatedDateTime = now

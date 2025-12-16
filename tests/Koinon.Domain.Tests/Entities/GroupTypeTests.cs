@@ -23,7 +23,6 @@ public class GroupTypeTests
         Assert.Equal("Member", groupType.GroupMemberTerm);
         Assert.Equal(0, groupType.Order);
         Assert.False(groupType.IsSystem);
-        Assert.False(groupType.IsFamilyGroupType);
         Assert.False(groupType.TakesAttendance);
         Assert.NotNull(groupType.Roles);
         Assert.Empty(groupType.Roles);
@@ -83,17 +82,17 @@ public class GroupTypeTests
     }
 
     [Fact]
-    public void GroupType_IsFamilyGroupType_CanBeSet()
+    public void GroupType_PurposeValue_CanBeSet()
     {
         // Arrange & Act
         var groupType = new GroupType
         {
             Name = "Family",
-            IsFamilyGroupType = true
+            GroupTypePurposeValueId = 1
         };
 
         // Assert
-        Assert.True(groupType.IsFamilyGroupType);
+        Assert.Equal(1, groupType.GroupTypePurposeValueId);
     }
 
     [Fact]
@@ -243,8 +242,7 @@ public class GroupTypeTests
             GroupTypePurposeValueId = 2,
             IgnorePersonInactivated = false,
             IsArchived = false,
-            Order = 3,
-            IsFamilyGroupType = false
+            Order = 3
         };
 
         // Assert
@@ -268,6 +266,5 @@ public class GroupTypeTests
         Assert.False(groupType.IgnorePersonInactivated);
         Assert.False(groupType.IsArchived);
         Assert.Equal(3, groupType.Order);
-        Assert.False(groupType.IsFamilyGroupType);
     }
 }

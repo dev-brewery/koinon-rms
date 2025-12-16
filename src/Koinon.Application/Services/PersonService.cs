@@ -30,7 +30,6 @@ public class PersonService(
         var person = await context.People
             .AsNoTracking()
             .Include(p => p.PhoneNumbers)
-            .Include(p => p.PrimaryFamily)
             .Include(p => p.RecordStatusValue)
             .Include(p => p.ConnectionStatusValue)
             .Include(p => p.PrimaryCampus)
@@ -42,7 +41,32 @@ public class PersonService(
             return null;
         }
 
-        return mapper.Map<PersonDto>(person);
+        var dto = mapper.Map<PersonDto>(person);
+
+        // Query primary family via FamilyMember junction
+        var primaryFamilyMember = await context.FamilyMembers
+            .AsNoTracking()
+            .Include(fm => fm.Family)
+            .Where(fm => fm.PersonId == id && fm.IsPrimary)
+            .FirstOrDefaultAsync(ct);
+
+        if (primaryFamilyMember?.Family != null)
+        {
+            var memberCount = await context.FamilyMembers
+                .CountAsync(fm => fm.FamilyId == primaryFamilyMember.FamilyId, ct);
+
+            dto = dto with
+            {
+                PrimaryFamily = new FamilySummaryDto
+                {
+                    IdKey = primaryFamilyMember.Family.IdKey,
+                    Name = primaryFamilyMember.Family.Name,
+                    MemberCount = memberCount
+                }
+            };
+        }
+
+        return dto;
     }
 
     public async Task<PersonDto?> GetByIdKeyAsync(string idKey, CancellationToken ct = default)
@@ -356,28 +380,31 @@ public class PersonService(
             return Result<FamilySummaryDto?>.Failure(Error.NotFound("Person", idKey));
         }
 
-        var person = await context.People
-            .AsNoTracking()
-            .Include(p => p.PrimaryFamily)
-            .FirstOrDefaultAsync(p => p.Id == id, ct);
-
-        if (person is null)
+        var personExists = await context.People.AnyAsync(p => p.Id == id, ct);
+        if (!personExists)
         {
             return Result<FamilySummaryDto?>.Failure(Error.NotFound("Person", idKey));
         }
 
-        if (person.PrimaryFamily is null)
+        // Query primary family via FamilyMember junction
+        var primaryFamilyMember = await context.FamilyMembers
+            .AsNoTracking()
+            .Include(fm => fm.Family)
+            .Where(fm => fm.PersonId == id && fm.IsPrimary)
+            .FirstOrDefaultAsync(ct);
+
+        if (primaryFamilyMember?.Family == null)
         {
             return Result<FamilySummaryDto?>.Success(null);
         }
 
-        var memberCount = await context.GroupMembers
-            .CountAsync(gm => gm.GroupId == person.PrimaryFamilyId, ct);
+        var memberCount = await context.FamilyMembers
+            .CountAsync(fm => fm.FamilyId == primaryFamilyMember.FamilyId, ct);
 
         var familyDto = new FamilySummaryDto
         {
-            IdKey = person.PrimaryFamily.IdKey,
-            Name = person.PrimaryFamily.Name,
+            IdKey = primaryFamilyMember.Family.IdKey,
+            Name = primaryFamilyMember.Family.Name,
             MemberCount = memberCount
         };
 
@@ -468,7 +495,7 @@ public class PersonService(
             .Include(gm => gm.Group)
                 .ThenInclude(g => g!.GroupType)
             .Include(gm => gm.GroupRole)
-            .Where(gm => gm.PersonId == id && gm.Group != null && gm.Group.GroupType != null && !gm.Group.GroupType.IsFamilyGroupType);
+            .Where(gm => gm.PersonId == id && gm.Group != null && gm.Group.GroupType != null);
 
         // Get total count
         var totalCount = await query.CountAsync(ct);

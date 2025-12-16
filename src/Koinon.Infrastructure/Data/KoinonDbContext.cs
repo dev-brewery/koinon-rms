@@ -29,6 +29,10 @@ public class KoinonDbContext : DbContext, IApplicationDbContext
     public DbSet<GroupMemberRequest> GroupMemberRequests { get; set; } = null!;
     public DbSet<GroupSchedule> GroupSchedules { get; set; } = null!;
 
+    // Family entities
+    public DbSet<Family> Families { get; set; } = null!;
+    public DbSet<FamilyMember> FamilyMembers { get; set; } = null!;
+
     // Organization entities
     public DbSet<Campus> Campuses { get; set; } = null!;
     public DbSet<Location> Locations { get; set; } = null!;

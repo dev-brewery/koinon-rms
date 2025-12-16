@@ -51,7 +51,6 @@ public class DashboardServiceTests : IDisposable
         {
             Id = 1,
             Name = "Family",
-            IsFamilyGroupType = true,
             AllowMultipleLocations = false,
             IsSystem = true,
             CreatedDateTime = now
@@ -61,7 +60,6 @@ public class DashboardServiceTests : IDisposable
         {
             Id = 2,
             Name = "Serving Team",
-            IsFamilyGroupType = false,
             AllowMultipleLocations = false,
             IsSystem = false,
             CreatedDateTime = now
@@ -79,14 +77,14 @@ public class DashboardServiceTests : IDisposable
         };
         _context.People.AddRange(people);
 
-        // Add family groups (should be counted in TotalFamilies)
-        var families = new List<Group>
+        // Add families using Family entity (not Group)
+        var families = new List<Family>
         {
-            new() { Id = 1, GroupTypeId = 1, Name = "Doe Family", IsActive = true, IsArchived = false, CreatedDateTime = now },
-            new() { Id = 2, GroupTypeId = 1, Name = "Smith Family", IsActive = true, IsArchived = false, CreatedDateTime = now },
-            new() { Id = 3, GroupTypeId = 1, Name = "Archived Family", IsActive = true, IsArchived = true, ArchivedDateTime = now, CreatedDateTime = now }
+            new() { Id = 1, Name = "Doe Family", IsActive = true, CreatedDateTime = now },
+            new() { Id = 2, Name = "Smith Family", IsActive = true, CreatedDateTime = now },
+            new() { Id = 3, Name = "Archived Family", IsActive = false, CreatedDateTime = now }
         };
-        _context.Groups.AddRange(families);
+        _context.Families.AddRange(families);
 
         // Add non-family groups (should be counted in ActiveGroups)
         var groups = new List<Group>
@@ -242,6 +240,7 @@ public class DashboardServiceTests : IDisposable
     {
         // Arrange - Clear all data
         _context.People.RemoveRange(_context.People);
+        _context.Families.RemoveRange(_context.Families);
         _context.Groups.RemoveRange(_context.Groups);
         _context.Schedules.RemoveRange(_context.Schedules);
         _context.Attendances.RemoveRange(_context.Attendances);

@@ -20,6 +20,8 @@ public interface IApplicationDbContext
     DbSet<GroupMember> GroupMembers { get; }
     DbSet<GroupMemberRequest> GroupMemberRequests { get; }
     DbSet<GroupSchedule> GroupSchedules { get; }
+    DbSet<Family> Families { get; }
+    DbSet<FamilyMember> FamilyMembers { get; }
     DbSet<Campus> Campuses { get; }
     DbSet<Location> Locations { get; }
     DbSet<DefinedType> DefinedTypes { get; }

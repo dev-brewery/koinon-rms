@@ -25,11 +25,11 @@ public class DashboardService(
         var totalPeople = await context.People
             .CountAsync(p => !p.IsDeceased, cancellationToken);
 
-        var totalFamilies = await context.Groups
-            .CountAsync(g => g.GroupType != null && g.GroupType.IsFamilyGroupType && !g.IsArchived, cancellationToken);
+        var totalFamilies = await context.Families
+            .CountAsync(f => f.IsActive, cancellationToken);
 
         var activeGroups = await context.Groups
-            .CountAsync(g => g.GroupType != null && !g.GroupType.IsFamilyGroupType && g.IsActive && !g.IsArchived, cancellationToken);
+            .CountAsync(g => g.IsActive && !g.IsArchived, cancellationToken);
 
         var activeSchedules = await context.Schedules
             .CountAsync(s => s.IsActive, cancellationToken);
