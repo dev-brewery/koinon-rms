@@ -64,6 +64,7 @@ public static class ServiceCollectionExtensions
 
         // Analytics services
         services.AddScoped<IAttendanceAnalyticsService, AttendanceAnalyticsService>();
+        services.AddScoped<IAttendanceTakerService, AttendanceTakerService>();
 
         // First-time visitor and follow-up services
         services.AddScoped<IFirstTimeVisitorService, FirstTimeVisitorService>();
