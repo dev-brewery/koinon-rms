@@ -36,6 +36,7 @@ import {
   ScheduleFormPage,
 } from './pages/admin/schedules';
 import { GroupTypesPage } from './pages/admin/settings/GroupTypesPage';
+import { ImportSettingsPage } from './pages/admin/settings/ImportSettingsPage';
 import { PWAUpdatePrompt, InstallPrompt } from './components/pwa';
 import { GroupFinderPage } from './pages/public/GroupFinderPage';
 import { MyGroupsPage } from './pages/MyGroupsPage';
@@ -236,6 +237,7 @@ function App() {
           <Route path="roster" element={<RosterPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="settings/group-types" element={<GroupTypesPage />} />
+          <Route path="settings/import" element={<ImportSettingsPage />} />
         </Route>
 
         {/* Check-in route */}
