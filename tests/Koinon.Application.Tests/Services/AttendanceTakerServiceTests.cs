@@ -64,11 +64,11 @@ public class AttendanceTakerServiceTests : IDisposable
     {
         // Arrange
         var (person, occurrence) = await SetupTestDataAsync();
-        
+
         // Create initial attendance with DidAttend=false
         var personAlias = await _context.PersonAliases
             .FirstOrDefaultAsync(pa => pa.PersonId == person.Id && pa.AliasPersonId == null);
-        
+
         var existingAttendance = new Attendance
         {
             OccurrenceId = occurrence.Id,
@@ -84,7 +84,7 @@ public class AttendanceTakerServiceTests : IDisposable
 
         // Assert
         Assert.True(result.Success);
-        
+
         // Verify attendance was updated
         var updated = await _context.Attendances.FindAsync(existingAttendance.Id);
         Assert.NotNull(updated);
@@ -155,10 +155,10 @@ public class AttendanceTakerServiceTests : IDisposable
         {
             var personAlias = await _context.PersonAliases
                 .FirstOrDefaultAsync(pa => pa.PersonId == member.Id && pa.AliasPersonId == null);
-            
+
             var attendance = await _context.Attendances
                 .FirstOrDefaultAsync(a => a.OccurrenceId == occurrence.Id && a.PersonAliasId == personAlias!.Id);
-            
+
             Assert.NotNull(attendance);
             Assert.True(attendance.DidAttend);
         }
@@ -195,10 +195,10 @@ public class AttendanceTakerServiceTests : IDisposable
         // Verify attendance was updated
         var personAlias = await _context.PersonAliases
             .FirstOrDefaultAsync(pa => pa.PersonId == person.Id && pa.AliasPersonId == null);
-        
+
         var attendance = await _context.Attendances
             .FirstOrDefaultAsync(a => a.OccurrenceId == occurrence.Id && a.PersonAliasId == personAlias!.Id);
-        
+
         Assert.NotNull(attendance);
         Assert.False(attendance.DidAttend);
         Assert.Null(attendance.PresentDateTime);
@@ -222,7 +222,7 @@ public class AttendanceTakerServiceTests : IDisposable
     {
         // Arrange
         var (group, occurrence, members) = await SetupGroupTestDataAsync(3);
-        
+
         // Mark one member as attended
         await _service.MarkAttendedAsync(occurrence.IdKey, members[0].IdKey);
 
@@ -233,7 +233,7 @@ public class AttendanceTakerServiceTests : IDisposable
         Assert.Equal(3, roster.Count);
         Assert.Single(roster.Where(r => r.IsAttending));
         Assert.Equal(2, roster.Count(r => !r.IsAttending));
-        
+
         var attendedMember = roster.First(r => r.IsAttending);
         Assert.NotNull(attendedMember.AttendanceIdKey);
         Assert.NotNull(attendedMember.PresentDateTime);
@@ -244,13 +244,13 @@ public class AttendanceTakerServiceTests : IDisposable
     {
         // Arrange
         var (group, occurrence, family1, family2) = await SetupMultipleFamiliesTestDataAsync();
-        
+
         // Mark one person from family1
         var family1Members = await _context.FamilyMembers
             .Where(fm => fm.FamilyId == family1.Id)
             .Select(fm => fm.Person)
             .ToListAsync();
-        
+
         await _service.MarkAttendedAsync(occurrence.IdKey, family1Members[0].IdKey);
 
         // Act
@@ -258,7 +258,7 @@ public class AttendanceTakerServiceTests : IDisposable
 
         // Assert
         Assert.Equal(2, groups.Count);
-        
+
         var family1Group = groups.First(g => g.FamilyIdKey == family1.IdKey);
         Assert.Equal(1, family1Group.AttendingCount);
         Assert.Equal(2, family1Group.TotalCount);
@@ -298,10 +298,10 @@ public class AttendanceTakerServiceTests : IDisposable
         {
             var personAlias = await _context.PersonAliases
                 .FirstOrDefaultAsync(pa => pa.PersonId == member.Id && pa.AliasPersonId == null);
-            
+
             var attendance = await _context.Attendances
                 .FirstOrDefaultAsync(a => a.OccurrenceId == occurrence.Id && a.PersonAliasId == personAlias!.Id);
-            
+
             Assert.NotNull(attendance);
             Assert.True(attendance.DidAttend);
         }
