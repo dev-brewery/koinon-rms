@@ -16,6 +16,7 @@
 
   <!-- Application layer packages -->
   <ItemGroup>
+    <PackageReference Include="CsvHelper" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
     <PackageReference Include="MediatR" />
     <PackageReference Include="FluentValidation" />
