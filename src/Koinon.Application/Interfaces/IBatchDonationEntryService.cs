@@ -89,4 +89,36 @@ public interface IBatchDonationEntryService
     /// <param name="ct">Cancellation token.</param>
     /// <returns>List of active funds.</returns>
     Task<IReadOnlyList<FundDto>> GetActiveFundsAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Gets a fund by its IdKey.
+    /// </summary>
+    /// <param name="idKey">The fund IdKey.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>The fund if found.</returns>
+    Task<Result<FundDto>> GetFundAsync(string idKey, CancellationToken ct = default);
+
+    /// <summary>
+    /// Gets a paginated list of batches with optional filters.
+    /// </summary>
+    /// <param name="filter">Filter and pagination parameters.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>Paginated list of batches.</returns>
+    Task<PagedResult<ContributionBatchDto>> GetBatchesAsync(BatchFilterRequest filter, CancellationToken ct = default);
+
+    /// <summary>
+    /// Gets all contributions in a batch.
+    /// </summary>
+    /// <param name="batchIdKey">The batch IdKey.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>List of contributions in the batch.</returns>
+    Task<Result<IReadOnlyList<ContributionDto>>> GetBatchContributionsAsync(string batchIdKey, CancellationToken ct = default);
+
+    /// <summary>
+    /// Gets a contribution by its IdKey.
+    /// </summary>
+    /// <param name="idKey">The contribution IdKey.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>The contribution if found.</returns>
+    Task<Result<ContributionDto>> GetContributionAsync(string idKey, CancellationToken ct = default);
 }

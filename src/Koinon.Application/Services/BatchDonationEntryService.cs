@@ -654,6 +654,149 @@ public class BatchDonationEntryService(
         return funds;
     }
 
+    public async Task<Result<FundDto>> GetFundAsync(string idKey, CancellationToken ct = default)
+    {
+        if (!IdKeyHelper.TryDecode(idKey, out int fundId))
+        {
+            return Result<FundDto>.Failure(Error.NotFound("Fund", idKey));
+        }
+
+        var fund = await context.Funds
+            .AsNoTracking()
+            .FirstOrDefaultAsync(f => f.Id == fundId, ct);
+
+        if (fund is null)
+        {
+            return Result<FundDto>.Failure(Error.NotFound("Fund", idKey));
+        }
+
+        var dto = new FundDto
+        {
+            IdKey = fund.IdKey,
+            Name = fund.Name,
+            PublicName = fund.PublicName,
+            IsActive = fund.IsActive,
+            IsPublic = fund.IsPublic
+        };
+
+        return Result<FundDto>.Success(dto);
+    }
+
+    public async Task<PagedResult<ContributionBatchDto>> GetBatchesAsync(
+        BatchFilterRequest filter,
+        CancellationToken ct = default)
+    {
+        var query = context.ContributionBatches
+            .AsNoTracking()
+            .Include(b => b.Campus)
+            .AsQueryable();
+
+        // Apply status filter
+        if (!string.IsNullOrWhiteSpace(filter.Status))
+        {
+            if (Enum.TryParse<BatchStatus>(filter.Status, ignoreCase: true, out var status))
+            {
+                query = query.Where(b => b.Status == status);
+            }
+        }
+
+        // Apply campus filter
+        if (!string.IsNullOrWhiteSpace(filter.CampusIdKey))
+        {
+            if (IdKeyHelper.TryDecode(filter.CampusIdKey, out int campusId))
+            {
+                query = query.Where(b => b.CampusId == campusId);
+            }
+        }
+
+        // Apply date filters
+        if (filter.StartDate.HasValue)
+        {
+            query = query.Where(b => b.BatchDate >= filter.StartDate.Value);
+        }
+
+        if (filter.EndDate.HasValue)
+        {
+            query = query.Where(b => b.BatchDate <= filter.EndDate.Value);
+        }
+
+        // Get total count
+        var totalCount = await query.CountAsync(ct);
+
+        // Apply pagination
+        var batches = await query
+            .OrderByDescending(b => b.BatchDate)
+            .ThenByDescending(b => b.CreatedDateTime)
+            .Skip((filter.PageNumber - 1) * filter.PageSize)
+            .Take(filter.PageSize)
+            .ToListAsync(ct);
+
+        var items = batches.Select(MapToBatchDto).ToList();
+
+        return new PagedResult<ContributionBatchDto>(items, totalCount, filter.PageNumber, filter.PageSize);
+    }
+
+    public async Task<Result<IReadOnlyList<ContributionDto>>> GetBatchContributionsAsync(
+        string batchIdKey,
+        CancellationToken ct = default)
+    {
+        if (!IdKeyHelper.TryDecode(batchIdKey, out int batchId))
+        {
+            return Result<IReadOnlyList<ContributionDto>>.Failure(
+                Error.NotFound("ContributionBatch", batchIdKey));
+        }
+
+        // Verify batch exists
+        var batchExists = await context.ContributionBatches
+            .AnyAsync(b => b.Id == batchId, ct);
+
+        if (!batchExists)
+        {
+            return Result<IReadOnlyList<ContributionDto>>.Failure(
+                Error.NotFound("ContributionBatch", batchIdKey));
+        }
+
+        var contributions = await context.Contributions
+            .AsNoTracking()
+            .Include(c => c.PersonAlias)
+                .ThenInclude(pa => pa != null ? pa.Person : null)
+            .Include(c => c.ContributionDetails)
+                .ThenInclude(cd => cd.Fund)
+            .Where(c => c.BatchId == batchId)
+            .OrderByDescending(c => c.TransactionDateTime)
+            .ThenByDescending(c => c.CreatedDateTime)
+            .ToListAsync(ct);
+
+        var dtos = contributions.Select(MapToContributionDto).ToList();
+
+        return Result<IReadOnlyList<ContributionDto>>.Success(dtos);
+    }
+
+    public async Task<Result<ContributionDto>> GetContributionAsync(
+        string idKey,
+        CancellationToken ct = default)
+    {
+        if (!IdKeyHelper.TryDecode(idKey, out int contributionId))
+        {
+            return Result<ContributionDto>.Failure(Error.NotFound("Contribution", idKey));
+        }
+
+        var contribution = await context.Contributions
+            .AsNoTracking()
+            .Include(c => c.PersonAlias)
+                .ThenInclude(pa => pa != null ? pa.Person : null)
+            .Include(c => c.ContributionDetails)
+                .ThenInclude(cd => cd.Fund)
+            .FirstOrDefaultAsync(c => c.Id == contributionId, ct);
+
+        if (contribution is null)
+        {
+            return Result<ContributionDto>.Failure(Error.NotFound("Contribution", idKey));
+        }
+
+        return Result<ContributionDto>.Success(MapToContributionDto(contribution));
+    }
+
     private ContributionBatchDto MapToBatchDto(ContributionBatch batch)
     {
         return new ContributionBatchDto
