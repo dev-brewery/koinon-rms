@@ -21,7 +21,7 @@ public class DataImportService(
     IApplicationDbContext context,
     ICsvParserService csvParser,
     IPersonService personService,
-    
+
     ILogger<DataImportService> logger) : IDataImportService
 {
     private const int BatchSize = 100;
@@ -75,7 +75,7 @@ public class DataImportService(
 
         return templates.Select(t =>
         {
-            var mappings = JsonSerializer.Deserialize<Dictionary<string, string>>(t.FieldMappings) 
+            var mappings = JsonSerializer.Deserialize<Dictionary<string, string>>(t.FieldMappings)
                 ?? new Dictionary<string, string>();
             return MapTemplateToDto(t, mappings);
         }).ToList();
@@ -99,9 +99,9 @@ public class DataImportService(
             return Result<ImportTemplateDto>.Failure(Error.NotFound("ImportTemplate", templateIdKey));
         }
 
-        var mappings = JsonSerializer.Deserialize<Dictionary<string, string>>(template.FieldMappings) 
+        var mappings = JsonSerializer.Deserialize<Dictionary<string, string>>(template.FieldMappings)
             ?? new Dictionary<string, string>();
-        
+
         var dto = MapTemplateToDto(template, mappings);
         return Result<ImportTemplateDto>.Success(dto);
     }
@@ -175,7 +175,7 @@ public class DataImportService(
 
         // Validate CSV file structure
         var csvPreview = await csvParser.GeneratePreviewAsync(request.FileStream, ct);
-        
+
         // Validate that mapped CSV columns exist in the file
         var missingColumns = request.FieldMappings.Values
             .Where(csvColumn => !csvPreview.Headers.Contains(csvColumn, StringComparer.OrdinalIgnoreCase))
@@ -215,7 +215,7 @@ public class DataImportService(
             errors.Count);
 
         var dto = MapJobToDto(job, errors.Count > 0 ? errors : null);
-        
+
         return errors.Count > 0
             ? Result<ImportJobDto>.Failure(new Error("VALIDATION_ERROR", "Import validation failed", null))
             : Result<ImportJobDto>.Success(dto);
@@ -248,7 +248,7 @@ public class DataImportService(
 
         // Get CSV preview for row count
         var csvPreview = await csvParser.GeneratePreviewAsync(request.FileStream, ct);
-        
+
         // Reset stream position for processing
         if (request.FileStream.CanSeek)
         {
