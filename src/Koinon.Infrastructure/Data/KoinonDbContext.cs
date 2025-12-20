@@ -21,6 +21,12 @@ public class KoinonDbContext : DbContext, IApplicationDbContext
     public DbSet<PersonAlias> PersonAliases { get; set; } = null!;
     public DbSet<PhoneNumber> PhoneNumbers { get; set; } = null!;
 
+    // Security entities
+    public DbSet<SecurityRole> SecurityRoles { get; set; } = null!;
+    public DbSet<SecurityClaim> SecurityClaims { get; set; } = null!;
+    public DbSet<PersonSecurityRole> PersonSecurityRoles { get; set; } = null!;
+    public DbSet<RoleSecurityClaim> RoleSecurityClaims { get; set; } = null!;
+
     // Group-related entities
     public DbSet<Group> Groups { get; set; } = null!;
     public DbSet<GroupType> GroupTypes { get; set; } = null!;
