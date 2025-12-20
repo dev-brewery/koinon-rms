@@ -1,6 +1,6 @@
+using System.Security.Claims;
 using Koinon.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
 
 namespace Koinon.Api.Authorization;
 

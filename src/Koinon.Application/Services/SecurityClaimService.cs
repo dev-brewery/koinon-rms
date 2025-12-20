@@ -109,7 +109,7 @@ public class SecurityClaimService : ISecurityClaimService
         foreach (var claimValue in claimValuesList)
         {
             var claimsForValue = roleClaims.Where(rc => rc.ClaimValue == claimValue).ToList();
-            
+
             // Skip if any DENY exists for this claim value
             if (claimsForValue.Any(rc => rc.AllowOrDeny == 'D'))
             {
