@@ -45,6 +45,13 @@ public interface IApplicationDbContext
     DbSet<ImportTemplate> ImportTemplates { get; }
     DbSet<ImportJob> ImportJobs { get; }
 
+    // Giving/Financial
+    DbSet<Fund> Funds { get; }
+    DbSet<ContributionBatch> ContributionBatches { get; }
+    DbSet<Contribution> Contributions { get; }
+    DbSet<ContributionDetail> ContributionDetails { get; }
+    DbSet<FinancialAuditLog> FinancialAuditLogs { get; }
+
     DatabaseFacade Database { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     EntityEntry<TEntity> Entry<TEntity>(TEntity entity) where TEntity : class;

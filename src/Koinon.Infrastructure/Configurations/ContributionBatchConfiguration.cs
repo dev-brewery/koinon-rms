@@ -46,6 +46,9 @@ public class ContributionBatchConfiguration : IEntityTypeConfiguration<Contribut
             .HasColumnName("control_amount")
             .HasPrecision(18, 2);
 
+        builder.Property(cb => cb.ControlItemCount)
+            .HasColumnName("control_item_count");
+
         builder.Property(cb => cb.CampusId)
             .HasColumnName("campus_id");
 

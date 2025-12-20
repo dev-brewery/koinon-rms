@@ -30,6 +30,12 @@ public class ContributionBatch : Entity
     public decimal? ControlAmount { get; set; }
 
     /// <summary>
+    /// Expected number of items for reconciliation purposes.
+    /// Nullable - not all batches have a predetermined control count.
+    /// </summary>
+    public int? ControlItemCount { get; set; }
+
+    /// <summary>
     /// Optional campus association for the batch.
     /// </summary>
     public int? CampusId { get; set; }
