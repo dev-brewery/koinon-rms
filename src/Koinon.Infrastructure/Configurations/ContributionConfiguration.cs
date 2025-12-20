@@ -29,7 +29,7 @@ public class ContributionConfiguration : IEntityTypeConfiguration<Contribution>
 
         // Business fields
         builder.Property(c => c.PersonAliasId).HasColumnName("person_alias_id");
-        
+
         builder.Property(c => c.BatchId).HasColumnName("batch_id");
 
         builder.Property(c => c.TransactionDateTime).HasColumnName("transaction_date_time").IsRequired();
