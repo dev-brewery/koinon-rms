@@ -450,6 +450,13 @@ public class AuthServiceTests
         public DbSet<ImportTemplate> ImportTemplates { get; set; } = null!;
         public DbSet<ImportJob> ImportJobs { get; set; } = null!;
 
+        // Giving/Financial
+        public DbSet<Fund> Funds { get; set; } = null!;
+        public DbSet<ContributionBatch> ContributionBatches { get; set; } = null!;
+        public DbSet<Contribution> Contributions { get; set; } = null!;
+        public DbSet<ContributionDetail> ContributionDetails { get; set; } = null!;
+        public DbSet<FinancialAuditLog> FinancialAuditLogs { get; set; } = null!;
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
