@@ -75,6 +75,9 @@ public class KoinonDbContext : DbContext, IApplicationDbContext
     public DbSet<ImportTemplate> ImportTemplates { get; set; } = null!;
     public DbSet<ImportJob> ImportJobs { get; set; } = null!;
 
+    // Giving entities
+    public DbSet<Fund> Funds { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
