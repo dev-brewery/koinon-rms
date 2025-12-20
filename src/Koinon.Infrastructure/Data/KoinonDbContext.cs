@@ -87,6 +87,9 @@ public class KoinonDbContext : DbContext, IApplicationDbContext
     public DbSet<Contribution> Contributions { get; set; } = null!;
     public DbSet<ContributionDetail> ContributionDetails { get; set; } = null!;
 
+    // Financial audit entities
+    public DbSet<FinancialAuditLog> FinancialAuditLogs { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
