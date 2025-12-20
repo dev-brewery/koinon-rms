@@ -115,7 +115,7 @@ public class ImportController : ControllerBase
         CancellationToken ct = default)
     {
         var result = await _importService.CreateTemplateAsync(request, ct);
-        
+
         if (!result.IsSuccess)
         {
             return BadRequest(new { error = result.Error });
@@ -216,7 +216,7 @@ public class ImportController : ControllerBase
         {
             mappings = JsonSerializer.Deserialize<Dictionary<string, string>>(fieldMappingsJson)
                 ?? new Dictionary<string, string>();
-            
+
             if (mappings.Count == 0)
             {
                 return BadRequest(new { error = "Field mappings must be a valid JSON object" });
@@ -293,7 +293,7 @@ public class ImportController : ControllerBase
         {
             mappings = JsonSerializer.Deserialize<Dictionary<string, string>>(fieldMappingsJson)
                 ?? new Dictionary<string, string>();
-            
+
             if (mappings.Count == 0)
             {
                 return BadRequest(new { error = "Field mappings must be a valid JSON object" });
