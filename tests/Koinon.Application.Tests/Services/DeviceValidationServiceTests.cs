@@ -277,6 +277,8 @@ public class DeviceValidationServiceTests : IDisposable
         public DbSet<Communication> Communications { get; set; } = null!;
         public DbSet<CommunicationRecipient> CommunicationRecipients { get; set; } = null!;
         public DbSet<BinaryFile> BinaryFiles { get; set; } = null!;
+        public DbSet<ImportTemplate> ImportTemplates { get; set; } = null!;
+        public DbSet<ImportJob> ImportJobs { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
