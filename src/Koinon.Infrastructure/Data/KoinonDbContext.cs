@@ -71,6 +71,10 @@ public class KoinonDbContext : DbContext, IApplicationDbContext
     // File storage entities
     public DbSet<BinaryFile> BinaryFiles { get; set; } = null!;
 
+    // Import entities
+    public DbSet<ImportTemplate> ImportTemplates { get; set; } = null!;
+    public DbSet<ImportJob> ImportJobs { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
