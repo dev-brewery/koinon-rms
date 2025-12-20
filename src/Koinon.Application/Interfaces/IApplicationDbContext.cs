@@ -45,6 +45,12 @@ public interface IApplicationDbContext
     DbSet<ImportTemplate> ImportTemplates { get; }
     DbSet<ImportJob> ImportJobs { get; }
 
+    // Security/RBAC
+    DbSet<SecurityRole> SecurityRoles { get; }
+    DbSet<SecurityClaim> SecurityClaims { get; }
+    DbSet<PersonSecurityRole> PersonSecurityRoles { get; }
+    DbSet<RoleSecurityClaim> RoleSecurityClaims { get; }
+
     // Giving/Financial
     DbSet<Fund> Funds { get; }
     DbSet<ContributionBatch> ContributionBatches { get; }

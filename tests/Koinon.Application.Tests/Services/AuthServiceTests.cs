@@ -457,6 +457,12 @@ public class AuthServiceTests
         public DbSet<ContributionDetail> ContributionDetails { get; set; } = null!;
         public DbSet<FinancialAuditLog> FinancialAuditLogs { get; set; } = null!;
 
+        // Security
+        public DbSet<SecurityRole> SecurityRoles { get; set; } = null!;
+        public DbSet<SecurityClaim> SecurityClaims { get; set; } = null!;
+        public DbSet<PersonSecurityRole> PersonSecurityRoles { get; set; } = null!;
+        public DbSet<RoleSecurityClaim> RoleSecurityClaims { get; set; } = null!;
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
