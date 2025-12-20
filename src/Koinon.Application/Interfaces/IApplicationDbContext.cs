@@ -42,6 +42,8 @@ public interface IApplicationDbContext
     DbSet<Communication> Communications { get; }
     DbSet<CommunicationRecipient> CommunicationRecipients { get; }
     DbSet<BinaryFile> BinaryFiles { get; }
+    DbSet<ImportTemplate> ImportTemplates { get; }
+    DbSet<ImportJob> ImportJobs { get; }
 
     DatabaseFacade Database { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
