@@ -70,6 +70,11 @@ public class Contribution : Entity
     public virtual Campus? Campus { get; set; }
 
     /// <summary>
+    /// Optional batch association.
+    /// </summary>
+    public virtual ContributionBatch? Batch { get; set; }
+
+    /// <summary>
     /// Line items splitting the contribution across funds.
     /// </summary>
     public virtual ICollection<ContributionDetail> ContributionDetails { get; set; } = new List<ContributionDetail>();

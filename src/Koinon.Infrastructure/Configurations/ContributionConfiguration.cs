@@ -73,6 +73,12 @@ public class ContributionConfiguration : IEntityTypeConfiguration<Contribution>
             .OnDelete(DeleteBehavior.Restrict)
             .HasConstraintName("fk_contribution_campus");
 
+        builder.HasOne(c => c.Batch)
+            .WithMany(cb => cb.Contributions)
+            .HasForeignKey(c => c.BatchId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_contribution_batch");
+
         builder.HasMany(c => c.ContributionDetails)
             .WithOne(cd => cd.Contribution)
             .HasForeignKey(cd => cd.ContributionId)
