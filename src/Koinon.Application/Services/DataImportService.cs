@@ -81,6 +81,18 @@ public class DataImportService(
         }).ToList();
     }
 
+    public async Task<IReadOnlyList<ImportTemplateDto>> GetAllTemplatesAsync(
+        CancellationToken ct = default)
+    {
+        var allTemplates = new List<ImportTemplateDto>();
+        foreach (ImportType enumType in Enum.GetValues<ImportType>())
+        {
+            var typeTemplates = await GetTemplatesAsync(enumType, ct);
+            allTemplates.AddRange(typeTemplates);
+        }
+        return allTemplates;
+    }
+
     public async Task<Result<ImportTemplateDto>> GetTemplateAsync(
         string templateIdKey,
         CancellationToken ct = default)
@@ -367,13 +379,13 @@ public class DataImportService(
         }
     }
 
-    public async Task<ImportJobDto?> GetImportStatusAsync(
+    public async Task<Result<ImportJobDto>> GetImportStatusAsync(
         string jobIdKey,
         CancellationToken ct = default)
     {
         if (!IdKeyHelper.TryDecode(jobIdKey, out int id))
         {
-            return null;
+            return Result<ImportJobDto>.Failure(Error.NotFound("ImportJob", jobIdKey));
         }
 
         var job = await context.ImportJobs
@@ -383,14 +395,15 @@ public class DataImportService(
 
         if (job == null)
         {
-            return null;
+            return Result<ImportJobDto>.Failure(Error.NotFound("ImportJob", jobIdKey));
         }
 
         var errors = !string.IsNullOrWhiteSpace(job.ErrorDetails)
             ? DeserializeErrors(job.ErrorDetails)
             : null;
 
-        return MapJobToDto(job, errors);
+        var dto = MapJobToDto(job, errors);
+        return Result<ImportJobDto>.Success(dto);
     }
 
     public async Task<Result<Stream>> GenerateErrorReportAsync(

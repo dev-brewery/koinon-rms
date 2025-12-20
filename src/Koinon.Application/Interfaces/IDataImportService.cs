@@ -23,6 +23,11 @@ public interface IDataImportService
     Task<IReadOnlyList<ImportTemplateDto>> GetTemplatesAsync(ImportType type, CancellationToken ct = default);
 
     /// <summary>
+    /// Gets all templates across all import types.
+    /// </summary>
+    Task<IReadOnlyList<ImportTemplateDto>> GetAllTemplatesAsync(CancellationToken ct = default);
+
+    /// <summary>
     /// Gets a single template by IdKey.
     /// </summary>
     Task<Result<ImportTemplateDto>> GetTemplateAsync(string templateIdKey, CancellationToken ct = default);
@@ -48,7 +53,7 @@ public interface IDataImportService
     /// <summary>
     /// Gets the current status of an import job.
     /// </summary>
-    Task<ImportJobDto?> GetImportStatusAsync(string jobIdKey, CancellationToken ct = default);
+    Task<Result<ImportJobDto>> GetImportStatusAsync(string jobIdKey, CancellationToken ct = default);
 
     // Error handling
 
