@@ -1,0 +1,23 @@
+{
+  "name": "koinon-rms",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Koinon Church Management System - monorepo root",
+  "scripts": {
+    "prepare": "husky",
+    "validate": "./scripts/validate-local.sh",
+    "validate:quick": "./scripts/validate-staged.sh",
+    "build": "dotnet build",
+    "test": "dotnet test && npm run --prefix src/web test",
+    "typecheck": "npm run --prefix src/web typecheck",
+    "lint": "npm run --prefix src/web lint",
+    "dev:api": "dotnet watch run --project src/Koinon.Api",
+    "dev:web": "npm run --prefix src/web dev"
+  },
+  "devDependencies": {
+    "husky": "^9.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

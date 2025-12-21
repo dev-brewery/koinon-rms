@@ -1,0 +1,11 @@
+#!/bin/sh
+# Pre-push hook: Full validation before pushing to remote
+# Runs all tests to catch issues before CI
+
+echo "Running pre-push validation (this may take a minute)..."
+
+# Run full local validation
+./scripts/validate-local.sh
+
+# Exit with the script's exit code
+exit $?

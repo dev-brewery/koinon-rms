@@ -1,0 +1,11 @@
+#!/bin/sh
+# Pre-commit hook: Quick validation of staged files
+# Runs build and typecheck to catch obvious errors before commit
+
+echo "Running pre-commit validation..."
+
+# Run quick staged validation
+./scripts/validate-staged.sh
+
+# Exit with the script's exit code
+exit $?
