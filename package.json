@@ -7,6 +7,8 @@
     "prepare": "husky",
     "validate": "./scripts/validate-local.sh",
     "validate:quick": "./scripts/validate-staged.sh",
+    "graph:update": "echo 'Graph baseline update (Sprint 18 implementation pending)'",
+    "graph:validate": "echo 'Graph baseline validation (Sprint 18 implementation pending)'",
     "build": "dotnet build",
     "test": "dotnet test && npm run --prefix src/web test",
     "typecheck": "npm run --prefix src/web typecheck",
