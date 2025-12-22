@@ -22,8 +22,8 @@ public class FamiliesController(
     /// <summary>
     /// Searches for families with optional filters and pagination.
     /// </summary>
-    /// <param name="searchTerm">Optional search term to filter by family name</param>
-    /// <param name="campusIdKey">Optional campus IdKey to filter by</param>
+    /// <param name="query">Optional search term to filter by family name</param>
+    /// <param name="campusId">Optional campus IdKey to filter by</param>
     /// <param name="includeInactive">Include inactive families (default: false)</param>
     /// <param name="page">Page number (1-based, default: 1)</param>
     /// <param name="pageSize">Items per page (default: 25, max: 100)</param>
@@ -34,8 +34,8 @@ public class FamiliesController(
     [ValidateIdKey]
     [ProducesResponseType(typeof(PagedResult<FamilySummaryDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> Search(
-        [FromQuery] string? searchTerm,
-        [FromQuery] string? campusIdKey,
+        [FromQuery] string? query = null,
+        [FromQuery] string? campusId = null,
         [FromQuery] bool includeInactive = false,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 25,
@@ -53,16 +53,16 @@ public class FamiliesController(
         }
 
         var result = await familyService.SearchAsync(
-            searchTerm,
-            campusIdKey,
+            query,
+            campusId,
             includeInactive,
             page,
             pageSize,
             ct);
 
         logger.LogInformation(
-            "Family search completed: SearchTerm={SearchTerm}, CampusIdKey={CampusIdKey}, Page={Page}, PageSize={PageSize}, TotalCount={TotalCount}",
-            searchTerm, campusIdKey, result.Page, result.PageSize, result.TotalCount);
+            "Family search completed: Query={Query}, CampusId={CampusId}, Page={Page}, PageSize={PageSize}, TotalCount={TotalCount}",
+            query, campusId, result.Page, result.PageSize, result.TotalCount);
 
         return Ok(new
         {

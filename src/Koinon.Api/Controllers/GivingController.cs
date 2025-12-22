@@ -36,7 +36,7 @@ public class GivingController(
 
         logger.LogInformation("Retrieved {Count} active funds", funds.Count);
 
-        return Ok(funds);
+        return Ok(new { data = funds });
     }
 
     /// <summary>
@@ -59,12 +59,16 @@ public class GivingController(
         if (!result.IsSuccess)
         {
             logger.LogWarning("Fund not found: {IdKey}", idKey);
-            return NotFound(new { error = result.Error });
+            return Problem(
+                detail: result.Error?.Message ?? "Fund not found",
+                statusCode: StatusCodes.Status404NotFound,
+                title: "Not Found"
+            );
         }
 
         logger.LogInformation("Retrieved fund: {IdKey}", idKey);
 
-        return Ok(result.Value);
+        return Ok(new { data = result.Value });
     }
 
     #endregion
@@ -122,12 +126,16 @@ public class GivingController(
         if (!result.IsSuccess)
         {
             logger.LogWarning("Batch not found: {IdKey}", idKey);
-            return NotFound(new { error = result.Error });
+            return Problem(
+                detail: result.Error?.Message ?? "Batch not found",
+                statusCode: StatusCodes.Status404NotFound,
+                title: "Not Found"
+            );
         }
 
         logger.LogInformation("Retrieved batch: {IdKey}", idKey);
 
-        return Ok(result.Value);
+        return Ok(new { data = result.Value });
     }
 
     /// <summary>
@@ -150,12 +158,16 @@ public class GivingController(
         if (!result.IsSuccess)
         {
             logger.LogWarning("Batch not found for summary: {IdKey}", idKey);
-            return NotFound(new { error = result.Error });
+            return Problem(
+                detail: result.Error?.Message ?? "Batch not found",
+                statusCode: StatusCodes.Status404NotFound,
+                title: "Not Found"
+            );
         }
 
         logger.LogInformation("Retrieved batch summary: {IdKey}", idKey);
 
-        return Ok(result.Value);
+        return Ok(new { data = result.Value });
     }
 
     /// <summary>
@@ -177,7 +189,11 @@ public class GivingController(
         if (!result.IsSuccess)
         {
             logger.LogWarning("Failed to create batch: {Error}", result.Error);
-            return BadRequest(new { error = result.Error });
+            return Problem(
+                detail: result.Error?.Message ?? "Failed to create batch",
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Bad Request"
+            );
         }
 
         logger.LogInformation("Created batch: {IdKey}", result.Value!.IdKey);
@@ -213,10 +229,18 @@ public class GivingController(
 
             if (result.Error?.Code == "NOT_FOUND")
             {
-                return NotFound(new { error = result.Error });
+                return Problem(
+                    detail: result.Error?.Message ?? "Batch not found",
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Not Found"
+                );
             }
 
-            return BadRequest(new { error = result.Error });
+            return Problem(
+                detail: result.Error?.Message ?? "Failed to open batch",
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Bad Request"
+            );
         }
 
         logger.LogInformation("Opened batch: {IdKey}", idKey);
@@ -249,10 +273,18 @@ public class GivingController(
 
             if (result.Error?.Code == "NOT_FOUND")
             {
-                return NotFound(new { error = result.Error });
+                return Problem(
+                    detail: result.Error?.Message ?? "Batch not found",
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Not Found"
+                );
             }
 
-            return BadRequest(new { error = result.Error });
+            return Problem(
+                detail: result.Error?.Message ?? "Failed to close batch",
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Bad Request"
+            );
         }
 
         logger.LogInformation("Closed batch: {IdKey}", idKey);
@@ -284,12 +316,16 @@ public class GivingController(
         if (!result.IsSuccess)
         {
             logger.LogWarning("Failed to get contributions for batch {BatchIdKey}: {Error}", batchIdKey, result.Error);
-            return NotFound(new { error = result.Error });
+            return Problem(
+                detail: result.Error?.Message ?? "Batch not found",
+                statusCode: StatusCodes.Status404NotFound,
+                title: "Not Found"
+            );
         }
 
         logger.LogInformation("Retrieved {Count} contributions for batch {BatchIdKey}", result.Value!.Count, batchIdKey);
 
-        return Ok(result.Value);
+        return Ok(new { data = result.Value });
     }
 
     /// <summary>
@@ -321,10 +357,18 @@ public class GivingController(
 
             if (result.Error?.Code == "NOT_FOUND")
             {
-                return NotFound(new { error = result.Error });
+                return Problem(
+                    detail: result.Error?.Message ?? "Batch not found",
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Not Found"
+                );
             }
 
-            return BadRequest(new { error = result.Error });
+            return Problem(
+                detail: result.Error?.Message ?? "Failed to add contribution",
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Bad Request"
+            );
         }
 
         logger.LogInformation("Added contribution {IdKey} to batch {BatchIdKey}", result.Value!.IdKey, batchIdKey);
@@ -355,12 +399,16 @@ public class GivingController(
         if (!result.IsSuccess)
         {
             logger.LogWarning("Contribution not found: {IdKey}", idKey);
-            return NotFound(new { error = result.Error });
+            return Problem(
+                detail: result.Error?.Message ?? "Contribution not found",
+                statusCode: StatusCodes.Status404NotFound,
+                title: "Not Found"
+            );
         }
 
         logger.LogInformation("Retrieved contribution: {IdKey}", idKey);
 
-        return Ok(result.Value);
+        return Ok(new { data = result.Value });
     }
 
     /// <summary>
@@ -392,15 +440,23 @@ public class GivingController(
 
             if (result.Error?.Code == "NOT_FOUND")
             {
-                return NotFound(new { error = result.Error });
+                return Problem(
+                    detail: result.Error?.Message ?? "Contribution not found",
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Not Found"
+                );
             }
 
-            return BadRequest(new { error = result.Error });
+            return Problem(
+                detail: result.Error?.Message ?? "Failed to update contribution",
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Bad Request"
+            );
         }
 
         logger.LogInformation("Updated contribution: {IdKey}", idKey);
 
-        return Ok(result.Value);
+        return Ok(new { data = result.Value });
     }
 
     /// <summary>
@@ -428,10 +484,18 @@ public class GivingController(
 
             if (result.Error?.Code == "NOT_FOUND")
             {
-                return NotFound(new { error = result.Error });
+                return Problem(
+                    detail: result.Error?.Message ?? "Contribution not found",
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Not Found"
+                );
             }
 
-            return BadRequest(new { error = result.Error });
+            return Problem(
+                detail: result.Error?.Message ?? "Failed to delete contribution",
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Bad Request"
+            );
         }
 
         logger.LogInformation("Deleted contribution: {IdKey}", idKey);

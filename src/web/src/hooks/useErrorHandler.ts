@@ -18,10 +18,10 @@ export function useErrorHandler() {
    */
   const handleError = useCallback(
     (error: unknown, context?: string) => {
-      // Log error for debugging
+      // Log error for debugging (includes traceId in dev mode)
       logError(error, context);
 
-      // Get user-friendly message
+      // Get user-friendly message (extracts detail field from ProblemDetails)
       const userError = getErrorMessage(error);
 
       // Show toast notification

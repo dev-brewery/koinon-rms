@@ -3,12 +3,12 @@
  * Uses native fetch with automatic token refresh and error handling
  */
 
-import type { ApiError } from './types';
+import type { ApiError, ProblemDetails } from './types';
 import {
-  ApiErrorSchema,
   RefreshResponseSchema,
   parseWithSchema,
   safeJsonParse,
+  parseErrorResponse as parseErrorResponseHelper,
 } from './validators';
 import { isNetworkError } from '../../lib/networkUtils';
 
@@ -52,20 +52,72 @@ export function getRefreshToken(): string | null {
 // ============================================================================
 
 export class ApiClientError extends Error {
+  public readonly format: 'problemDetails' | 'legacy';
+  public readonly problemDetails?: ProblemDetails;
+  public readonly legacyError?: ApiError['error'];
+  public readonly traceId?: string;
+
   constructor(
     public statusCode: number,
-    public error: ApiError['error'],
+    errorData: ProblemDetails | ApiError['error'],
+    format: 'problemDetails' | 'legacy' = 'legacy',
     message?: string
   ) {
-    super(message || error.message);
+    // Determine message based on format
+    let errorMessage = message;
+    if (!errorMessage) {
+      if (format === 'problemDetails' && 'detail' in errorData) {
+        errorMessage = errorData.detail || 'An error occurred';
+      } else if ('message' in errorData) {
+        errorMessage = errorData.message;
+      } else {
+        errorMessage = 'An error occurred';
+      }
+    }
+
+    super(errorMessage);
     this.name = 'ApiClientError';
+    this.format = format;
+
+    if (format === 'problemDetails' && 'detail' in errorData) {
+      this.problemDetails = errorData as ProblemDetails;
+      this.traceId = errorData.traceId;
+    } else {
+      this.legacyError = errorData as ApiError['error'];
+      this.traceId = (errorData as ApiError['error']).traceId;
+    }
+  }
+
+  /**
+   * Get the error for backward compatibility with legacy code
+   */
+  get error(): ApiError['error'] {
+    if (this.legacyError) {
+      return this.legacyError;
+    }
+
+    // Convert ProblemDetails to legacy format for backwards compatibility
+    if (this.problemDetails) {
+      return {
+        code: this.problemDetails.type?.split('/').pop() || 'ERROR',
+        message: this.problemDetails.detail || this.message,
+        traceId: this.problemDetails.traceId,
+        details: this.problemDetails.extensions?.errors as Record<string, string[]> | undefined,
+      };
+    }
+
+    // Fallback
+    return {
+      code: 'UNKNOWN_ERROR',
+      message: this.message,
+    };
   }
 }
 
 /**
- * Parse error response from API
+ * Parse error response from API - supports both ProblemDetails and legacy formats
  */
-async function parseErrorResponse(response: Response): Promise<ApiError['error']> {
+async function parseErrorResponse(response: Response): Promise<ApiClientError> {
   const contentType = response.headers.get('content-type');
 
   if (contentType?.includes('application/json')) {
@@ -74,13 +126,8 @@ async function parseErrorResponse(response: Response): Promise<ApiError['error']
       const json = safeJsonParse(text);
 
       if (json) {
-        // Validate against ApiErrorSchema
-        const validated = parseWithSchema(
-          ApiErrorSchema,
-          json,
-          'error response'
-        );
-        return validated.error;
+        const { format, error } = parseErrorResponseHelper(json);
+        return new ApiClientError(response.status, error, format);
       }
     } catch (error) {
       if (import.meta.env.DEV) {
@@ -104,10 +151,14 @@ async function parseErrorResponse(response: Response): Promise<ApiError['error']
     }
   }
 
-  return {
-    code: 'UNKNOWN_ERROR',
-    message: text || response.statusText || 'An unknown error occurred',
-  };
+  return new ApiClientError(
+    response.status,
+    {
+      code: 'UNKNOWN_ERROR',
+      message: text || response.statusText || 'An unknown error occurred',
+    },
+    'legacy'
+  );
 }
 
 // ============================================================================
@@ -323,9 +374,10 @@ export async function apiClient<T>(
           endpoint,
           status: response.status,
           error,
+          traceId: error.traceId,
         });
       }
-      throw new ApiClientError(response.status, error);
+      throw error;
     }
 
     // Handle 204 No Content
@@ -380,6 +432,7 @@ export async function apiClient<T>(
             code: 'REQUEST_TIMEOUT',
             message: `Request timeout after ${timeoutMs}ms`,
           },
+          'legacy',
           'Request timeout'
         );
       }
@@ -398,6 +451,7 @@ export async function apiClient<T>(
             code: 'NETWORK_ERROR',
             message: 'Network connection failed',
           },
+          'legacy',
           'Network error'
         );
       }
@@ -427,6 +481,7 @@ export async function apiClient<T>(
         code: 'UNKNOWN_ERROR',
         message: 'An unknown error occurred',
       },
+      'legacy',
       'Unknown error'
     );
   }

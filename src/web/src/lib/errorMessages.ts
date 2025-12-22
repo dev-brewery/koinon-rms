@@ -51,24 +51,41 @@ export function getErrorMessage(error: unknown): UserFriendlyError {
  * Map ApiClientError to user-friendly message
  */
 function getApiErrorMessage(error: ApiClientError): UserFriendlyError {
-  const { statusCode, error: apiError } = error;
+  const { statusCode } = error;
+
+  // Extract error details based on format
+  let message: string;
+  let details: Record<string, string[]> | undefined;
+
+  if (error.format === 'problemDetails' && error.problemDetails) {
+    message = error.problemDetails.detail || error.message;
+    // Extract validation errors from extensions if present
+    if (error.problemDetails.extensions?.errors) {
+      details = error.problemDetails.extensions.errors as Record<string, string[]>;
+    }
+  } else {
+    // Legacy format
+    const apiError = error.error;
+    message = apiError.message;
+    details = apiError.details;
+  }
 
   // 400 - Bad Request (validation errors)
   if (statusCode === 400) {
     // If we have validation details, show them
-    if (apiError.details && Object.keys(apiError.details).length > 0) {
-      const firstField = Object.keys(apiError.details)[0];
-      const firstError = apiError.details[firstField]?.[0];
+    if (details && Object.keys(details).length > 0) {
+      const firstField = Object.keys(details)[0];
+      const firstError = details[firstField]?.[0];
       return {
         title: 'Validation Error',
-        message: firstError || apiError.message || 'Please check your input and try again.',
+        message: firstError || message || 'Please check your input and try again.',
         variant: 'error',
       };
     }
 
     return {
       title: 'Invalid Request',
-      message: apiError.message || 'Please check your input and try again.',
+      message: message || 'Please check your input and try again.',
       variant: 'error',
     };
   }
@@ -113,7 +130,7 @@ function getApiErrorMessage(error: ApiClientError): UserFriendlyError {
   if (statusCode === 409) {
     return {
       title: 'Conflict',
-      message: apiError.message || 'This operation conflicts with existing data.',
+      message: message || 'This operation conflicts with existing data.',
       variant: 'error',
     };
   }
@@ -139,7 +156,7 @@ function getApiErrorMessage(error: ApiClientError): UserFriendlyError {
   // Default error message
   return {
     title: 'Error',
-    message: apiError.message || 'Something went wrong. Please try again.',
+    message: message || 'Something went wrong. Please try again.',
     variant: 'error',
   };
 }
@@ -156,12 +173,27 @@ export function logError(error: unknown, context?: string): void {
   const prefix = context ? `[${context}]` : '[Error]';
 
   if (error instanceof ApiClientError) {
-    // Don't log traceId or details (may contain sensitive data)
-    console.error(prefix, 'API Error:', {
+    const logData: Record<string, unknown> = {
       statusCode: error.statusCode,
-      code: error.error.code,
-      message: error.error.message,
-    });
+      format: error.format,
+    };
+
+    if (error.format === 'problemDetails' && error.problemDetails) {
+      if (error.problemDetails.type) logData.type = error.problemDetails.type;
+      if (error.problemDetails.title) logData.title = error.problemDetails.title;
+      if (error.problemDetails.status) logData.status = error.problemDetails.status;
+      if (error.problemDetails.detail) logData.detail = error.problemDetails.detail;
+      if (error.problemDetails.instance) logData.instance = error.problemDetails.instance;
+      if (error.traceId) logData.traceId = error.traceId;
+    } else {
+      logData.code = error.error.code;
+      logData.message = error.error.message;
+      if (error.traceId) {
+        logData.traceId = error.traceId;
+      }
+    }
+
+    console.error(prefix, 'API Error:', logData);
   } else if (error instanceof Error) {
     console.error(prefix, error.name, error.message, {
       stack: error.stack,
