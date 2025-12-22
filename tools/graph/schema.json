@@ -1,0 +1,456 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://koinon-rms.local/schema/graph.json",
+  "title": "Koinon RMS Architecture Graph Schema",
+  "description": "JSON Schema for validating the API graph baseline and generated graph files",
+  "type": "object",
+  "required": [
+    "version",
+    "generated_at",
+    "entities",
+    "dtos",
+    "services",
+    "controllers",
+    "hooks",
+    "api_functions",
+    "components",
+    "edges"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Schema version (semantic versioning)",
+      "pattern": "^\\d+\\.\\d+(\\.\\d+)?$",
+      "examples": ["1.0", "1.0.0"]
+    },
+    "generated_at": {
+      "type": "string",
+      "description": "ISO 8601 timestamp when graph was generated",
+      "format": "date-time"
+    },
+    "entities": {
+      "type": "object",
+      "description": "Domain entities mapped by name",
+      "additionalProperties": {
+        "$ref": "#/definitions/Entity"
+      }
+    },
+    "dtos": {
+      "type": "object",
+      "description": "Data transfer objects mapped by name",
+      "additionalProperties": {
+        "$ref": "#/definitions/DTO"
+      }
+    },
+    "services": {
+      "type": "object",
+      "description": "Application services mapped by name",
+      "additionalProperties": {
+        "$ref": "#/definitions/Service"
+      }
+    },
+    "controllers": {
+      "type": "object",
+      "description": "API controllers mapped by name",
+      "additionalProperties": {
+        "$ref": "#/definitions/Controller"
+      }
+    },
+    "hooks": {
+      "type": "object",
+      "description": "React hooks mapped by name",
+      "additionalProperties": {
+        "$ref": "#/definitions/Hook"
+      }
+    },
+    "api_functions": {
+      "type": "object",
+      "description": "Frontend API functions mapped by name",
+      "additionalProperties": {
+        "$ref": "#/definitions/ApiFunction"
+      }
+    },
+    "components": {
+      "type": "object",
+      "description": "React components mapped by name",
+      "additionalProperties": {
+        "$ref": "#/definitions/Component"
+      }
+    },
+    "edges": {
+      "type": "array",
+      "description": "Edges representing relationships between nodes",
+      "items": {
+        "$ref": "#/definitions/Edge"
+      }
+    }
+  },
+  "definitions": {
+    "Entity": {
+      "type": "object",
+      "description": "Domain entity representing core business object",
+      "required": ["name", "namespace", "table", "properties", "navigations"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Entity class name (PascalCase)",
+          "pattern": "^[A-Z][a-zA-Z0-9]*$"
+        },
+        "namespace": {
+          "type": "string",
+          "description": "C# namespace where entity is defined",
+          "enum": ["Koinon.Domain.Entities"]
+        },
+        "table": {
+          "type": "string",
+          "description": "Database table name (snake_case)",
+          "pattern": "^[a-z_]+$"
+        },
+        "properties": {
+          "type": "object",
+          "description": "Entity properties mapped by name",
+          "additionalProperties": {
+            "type": "string",
+            "description": "C# type name (e.g., 'string', 'int', 'DateTime?', 'Guid')"
+          }
+        },
+        "navigations": {
+          "type": "array",
+          "description": "Navigation properties to other entities",
+          "items": {
+            "type": "object",
+            "required": ["name", "target_entity", "type"],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Navigation property name (PascalCase)"
+              },
+              "target_entity": {
+                "type": "string",
+                "description": "Name of the target entity"
+              },
+              "type": {
+                "type": "string",
+                "enum": ["one", "many"],
+                "description": "Cardinality: one or many"
+              }
+            }
+          }
+        }
+      }
+    },
+    "DTO": {
+      "type": "object",
+      "description": "Data transfer object for API communication",
+      "required": ["name", "namespace", "properties"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "DTO class name (PascalCase, typically ending in 'Dto')",
+          "pattern": "^[A-Z][a-zA-Z0-9]*Dto$"
+        },
+        "namespace": {
+          "type": "string",
+          "description": "C# namespace where DTO is defined",
+          "pattern": "^Koinon\\.Application\\.DTOs(\\.Requests|\\.Responses)?$"
+        },
+        "properties": {
+          "type": "object",
+          "description": "DTO properties mapped by name",
+          "additionalProperties": {
+            "type": "string",
+            "description": "C# type name"
+          }
+        },
+        "linked_entity": {
+          "type": "string",
+          "description": "Optional reference to source entity if DTO maps directly"
+        }
+      }
+    },
+    "Service": {
+      "type": "object",
+      "description": "Application service implementing business logic",
+      "required": ["name", "namespace", "methods", "dependencies"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Service class name (PascalCase, typically ending in 'Service')",
+          "pattern": "^I?[A-Z][a-zA-Z0-9]*Service$"
+        },
+        "namespace": {
+          "type": "string",
+          "description": "C# namespace where service is defined",
+          "pattern": "^Koinon\\.Application\\.Interfaces|Koinon\\.Application\\.Services$"
+        },
+        "methods": {
+          "type": "array",
+          "description": "Public methods of the service",
+          "items": {
+            "type": "object",
+            "required": ["name"],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Method name"
+              },
+              "return_type": {
+                "type": "string",
+                "description": "Return type (e.g., 'Task<PersonDto>', 'void')"
+              },
+              "is_async": {
+                "type": "boolean",
+                "description": "Whether method is async"
+              }
+            }
+          }
+        },
+        "dependencies": {
+          "type": "array",
+          "description": "Service dependencies injected via constructor",
+          "items": {
+            "type": "string",
+            "description": "Dependency type name"
+          }
+        }
+      }
+    },
+    "Controller": {
+      "type": "object",
+      "description": "ASP.NET Core API controller handling HTTP requests",
+      "required": ["name", "namespace", "route", "endpoints", "patterns"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Controller class name (PascalCase, typically ending in 'Controller')",
+          "pattern": "^[A-Z][a-zA-Z0-9]*Controller$"
+        },
+        "namespace": {
+          "type": "string",
+          "description": "C# namespace where controller is defined",
+          "enum": ["Koinon.Api.Controllers"]
+        },
+        "route": {
+          "type": "string",
+          "description": "Base route prefix for controller (e.g., 'api/v1/people')",
+          "pattern": "^api/v\\d+/[a-z-]+$"
+        },
+        "endpoints": {
+          "type": "array",
+          "description": "HTTP endpoints (actions) in controller",
+          "items": {
+            "type": "object",
+            "required": ["name", "method", "route"],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Action method name (PascalCase)"
+              },
+              "method": {
+                "type": "string",
+                "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],
+                "description": "HTTP method"
+              },
+              "route": {
+                "type": "string",
+                "description": "Relative route pattern (e.g., '{idKey}', 'batch', '{idKey}/children')"
+              },
+              "request_type": {
+                "type": "string",
+                "description": "Request body DTO type (if POST/PUT/PATCH)"
+              },
+              "response_type": {
+                "type": "string",
+                "description": "Response body DTO type"
+              },
+              "requires_auth": {
+                "type": "boolean",
+                "description": "Whether endpoint requires authentication",
+                "default": true
+              },
+              "required_roles": {
+                "type": "array",
+                "description": "Required authorization roles",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "patterns": {
+          "type": "object",
+          "description": "Architectural patterns used in controller",
+          "additionalProperties": false,
+          "properties": {
+            "response_envelope": {
+              "type": "boolean",
+              "description": "Uses envelope pattern like new { data = ... } instead of direct response"
+            },
+            "idkey_routes": {
+              "type": "boolean",
+              "description": "Uses {idKey} in routes instead of {id}"
+            },
+            "problem_details": {
+              "type": "boolean",
+              "description": "Uses ProblemDetails for error responses"
+            },
+            "result_pattern": {
+              "type": "boolean",
+              "description": "Uses Result<T> pattern for return values"
+            }
+          }
+        }
+      }
+    },
+    "Hook": {
+      "type": "object",
+      "description": "React custom hook for data fetching and state management",
+      "required": ["name", "path", "api_binding"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Hook name (camelCase with 'use' prefix)",
+          "pattern": "^use[A-Z][a-zA-Z0-9]*$"
+        },
+        "path": {
+          "type": "string",
+          "description": "File path relative to src/web/src",
+          "pattern": "^hooks/use[A-Z][a-zA-Z0-9]*\\.ts$"
+        },
+        "api_binding": {
+          "type": "string",
+          "description": "Binding to API function or service (e.g., 'searchPeople', 'getPersonByIdKey')"
+        },
+        "query_key": {
+          "type": "array",
+          "description": "TanStack Query key array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "uses_query": {
+          "type": "boolean",
+          "description": "Whether hook uses useQuery"
+        },
+        "uses_mutation": {
+          "type": "boolean",
+          "description": "Whether hook uses useMutation"
+        }
+      }
+    },
+    "ApiFunction": {
+      "type": "object",
+      "description": "Frontend API function for HTTP communication with backend",
+      "required": ["name", "path", "endpoint", "method", "response_type"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Function name (camelCase)",
+          "pattern": "^[a-z][a-zA-Z0-9]*$"
+        },
+        "path": {
+          "type": "string",
+          "description": "File path relative to src/web/src",
+          "pattern": "^services/api/[a-z-]+\\.ts$"
+        },
+        "endpoint": {
+          "type": "string",
+          "description": "API endpoint path (e.g., '/people', '/groups/{idKey}')"
+        },
+        "method": {
+          "type": "string",
+          "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"],
+          "description": "HTTP method"
+        },
+        "request_type": {
+          "type": "string",
+          "description": "TypeScript request type (if POST/PUT/PATCH)"
+        },
+        "response_type": {
+          "type": "string",
+          "description": "TypeScript response type"
+        }
+      }
+    },
+    "Component": {
+      "type": "object",
+      "description": "React component for UI rendering",
+      "required": ["name", "path"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Component name (PascalCase)",
+          "pattern": "^[A-Z][a-zA-Z0-9]*$"
+        },
+        "path": {
+          "type": "string",
+          "description": "File path relative to src/web/src",
+          "pattern": "^(components|features)/.*\\.tsx$"
+        },
+        "hooks": {
+          "type": "array",
+          "description": "Custom hooks used by component",
+          "items": {
+            "type": "string",
+            "pattern": "^use[A-Z][a-zA-Z0-9]*$"
+          }
+        },
+        "is_page": {
+          "type": "boolean",
+          "description": "Whether component is a page (route component)"
+        },
+        "route": {
+          "type": "string",
+          "description": "Route path if component is a page (e.g., '/people/:idKey')"
+        }
+      }
+    },
+    "Edge": {
+      "type": "object",
+      "description": "Relationship between two nodes in the graph",
+      "required": ["from", "to", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "from": {
+          "type": "string",
+          "description": "Source node identifier (e.g., 'Entity:Person')"
+        },
+        "to": {
+          "type": "string",
+          "description": "Target node identifier (e.g., 'DTO:PersonDto')"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "entity_to_dto",
+            "dto_to_service",
+            "service_to_controller",
+            "controller_to_dto",
+            "hook_to_api",
+            "component_to_hook",
+            "component_to_component",
+            "api_to_api"
+          ],
+          "description": "Type of relationship"
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Optional metadata about the relationship",
+          "additionalProperties": true
+        }
+      }
+    }
+  }
+}
