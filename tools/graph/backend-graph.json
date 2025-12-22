@@ -1,0 +1,5889 @@
+{
+  "version": "1.0",
+  "generated_at": "2025-12-22T22:04:29.764877+00:00",
+  "entities": {
+    "Attendance": {
+      "name": "Attendance",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "attendance",
+      "properties": {
+        "PersonAliasId": "int?",
+        "DeviceId": "int?",
+        "AttendanceCodeId": "int?",
+        "QualifierValueId": "int?",
+        "EndDateTime": "DateTime?",
+        "RSVP": "RSVP",
+        "DidAttend": "bool?",
+        "Note": "string?",
+        "CampusId": "int?",
+        "ProcessedDateTime": "DateTime?",
+        "IsFirstTime": "bool",
+        "PresentDateTime": "DateTime?",
+        "PresentByPersonAliasId": "int?",
+        "CheckedOutByPersonAliasId": "int?",
+        "RequestedToAttend": "bool",
+        "ScheduledToAttend": "bool",
+        "DeclineReasonValueId": "int?",
+        "ScheduledByPersonAliasId": "int?",
+        "ScheduleConfirmationSent": "bool"
+      },
+      "navigations": [
+        {
+          "name": "RSVP",
+          "target_entity": "RSVP",
+          "type": "one"
+        }
+      ]
+    },
+    "AttendanceCode": {
+      "name": "AttendanceCode",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "attendance_code",
+      "properties": {
+        "IssueDate": "DateOnly"
+      },
+      "navigations": [
+        {
+          "name": "IssueDate",
+          "target_entity": "DateOnly",
+          "type": "one"
+        }
+      ]
+    },
+    "AttendanceOccurrence": {
+      "name": "AttendanceOccurrence",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "attendance_occurrence",
+      "properties": {
+        "GroupId": "int?",
+        "LocationId": "int?",
+        "ScheduleId": "int?",
+        "DidNotOccur": "bool?",
+        "Notes": "string?",
+        "AnonymousAttendanceCount": "int?",
+        "AttendanceTypeValueId": "int?",
+        "DeclineConfirmationMessage": "string?",
+        "ShowDeclineReasons": "bool",
+        "AcceptConfirmationMessage": "string?"
+      },
+      "navigations": []
+    },
+    "AuthorizedPickup": {
+      "name": "AuthorizedPickup",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "authorized_pickup",
+      "properties": {
+        "AuthorizedPersonId": "int?",
+        "Name": "string?",
+        "PhoneNumber": "string?",
+        "Relationship": "PickupRelationship",
+        "AuthorizationLevel": "AuthorizationLevel",
+        "PhotoUrl": "string?",
+        "CustodyNotes": "string?",
+        "IsActive": "bool"
+      },
+      "navigations": [
+        {
+          "name": "Relationship",
+          "target_entity": "PickupRelationship",
+          "type": "one"
+        },
+        {
+          "name": "AuthorizationLevel",
+          "target_entity": "AuthorizationLevel",
+          "type": "one"
+        }
+      ]
+    },
+    "BinaryFile": {
+      "name": "BinaryFile",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "binary_file",
+      "properties": {
+        "FileSizeBytes": "long",
+        "Width": "int?",
+        "Height": "int?",
+        "BinaryFileTypeId": "int?",
+        "Description": "string?"
+      },
+      "navigations": []
+    },
+    "Campus": {
+      "name": "Campus",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "campus",
+      "properties": {
+        "ShortCode": "string?",
+        "Description": "string?",
+        "IsActive": "bool",
+        "Url": "string?",
+        "PhoneNumber": "string?",
+        "TimeZoneId": "string?",
+        "CampusStatusValueId": "int?",
+        "LeaderPersonAliasId": "int?",
+        "ServiceTimes": "string?",
+        "Order": "int"
+      },
+      "navigations": []
+    },
+    "Communication": {
+      "name": "Communication",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "communication",
+      "properties": {
+        "Status": "CommunicationStatus",
+        "Subject": "string?",
+        "FromEmail": "string?",
+        "FromName": "string?",
+        "ReplyToEmail": "string?",
+        "SentDateTime": "DateTime?",
+        "RecipientCount": "int",
+        "DeliveredCount": "int",
+        "FailedCount": "int",
+        "OpenedCount": "int",
+        "Note": "string?"
+      },
+      "navigations": [
+        {
+          "name": "Status",
+          "target_entity": "CommunicationStatus",
+          "type": "one"
+        }
+      ]
+    },
+    "CommunicationRecipient": {
+      "name": "CommunicationRecipient",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "communication_recipient",
+      "properties": {
+        "RecipientName": "string?",
+        "Status": "CommunicationRecipientStatus",
+        "DeliveredDateTime": "DateTime?",
+        "OpenedDateTime": "DateTime?",
+        "ErrorMessage": "string?",
+        "GroupId": "int?"
+      },
+      "navigations": [
+        {
+          "name": "Status",
+          "target_entity": "CommunicationRecipientStatus",
+          "type": "one"
+        }
+      ]
+    },
+    "Contribution": {
+      "name": "Contribution",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "contribution",
+      "properties": {
+        "PersonAliasId": "int?",
+        "BatchId": "int?",
+        "TransactionCode": "string?",
+        "Summary": "string?",
+        "CampusId": "int?"
+      },
+      "navigations": []
+    },
+    "ContributionBatch": {
+      "name": "ContributionBatch",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "contribution_batch",
+      "properties": {
+        "Status": "BatchStatus",
+        "ControlAmount": "decimal?",
+        "ControlItemCount": "int?",
+        "CampusId": "int?",
+        "Note": "string?"
+      },
+      "navigations": [
+        {
+          "name": "Status",
+          "target_entity": "BatchStatus",
+          "type": "one"
+        }
+      ]
+    },
+    "ContributionDetail": {
+      "name": "ContributionDetail",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "contribution_detail",
+      "properties": {
+        "Summary": "string?"
+      },
+      "navigations": []
+    },
+    "DefinedType": {
+      "name": "DefinedType",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "defined_type",
+      "properties": {
+        "Description": "string?",
+        "Category": "string?",
+        "HelpText": "string?",
+        "IsSystem": "bool",
+        "Order": "int",
+        "FieldTypeAssemblyName": "string?"
+      },
+      "navigations": []
+    },
+    "DefinedValue": {
+      "name": "DefinedValue",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "defined_value",
+      "properties": {
+        "Description": "string?",
+        "Order": "int",
+        "IsActive": "bool"
+      },
+      "navigations": []
+    },
+    "Device": {
+      "name": "Device",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "device",
+      "properties": {
+        "Description": "string?",
+        "DeviceTypeValueId": "int?",
+        "IpAddress": "string?",
+        "PrinterSettings": "string?",
+        "CampusId": "int?",
+        "Locations": "string?",
+        "IsActive": "bool",
+        "KioskToken": "string?",
+        "KioskTokenExpiresAt": "DateTime?"
+      },
+      "navigations": []
+    },
+    "Entity": {
+      "name": "Entity",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "entity",
+      "properties": {
+        "Id": "int",
+        "Guid": "Guid",
+        "CreatedDateTime": "DateTime",
+        "ModifiedDateTime": "DateTime?",
+        "CreatedByPersonAliasId": "int?",
+        "ModifiedByPersonAliasId": "int?"
+      },
+      "navigations": [
+        {
+          "name": "Guid",
+          "target_entity": "Guid",
+          "type": "one"
+        },
+        {
+          "name": "CreatedDateTime",
+          "target_entity": "DateTime",
+          "type": "one"
+        }
+      ]
+    },
+    "Family": {
+      "name": "Family",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "family",
+      "properties": {
+        "CampusId": "int?",
+        "IsActive": "bool"
+      },
+      "navigations": []
+    },
+    "FamilyMember": {
+      "name": "FamilyMember",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "family_member",
+      "properties": {
+        "FamilyId": "int",
+        "PersonId": "int",
+        "FamilyRoleId": "int",
+        "IsPrimary": "bool",
+        "DateAdded": "DateTime"
+      },
+      "navigations": [
+        {
+          "name": "DateAdded",
+          "target_entity": "DateTime",
+          "type": "one"
+        }
+      ]
+    },
+    "FinancialAuditLog": {
+      "name": "FinancialAuditLog",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "financial_audit_log",
+      "properties": {
+        "Id": "long",
+        "PersonId": "int",
+        "ActionType": "FinancialAuditAction",
+        "IpAddress": "string?",
+        "UserAgent": "string?",
+        "Details": "string?",
+        "Timestamp": "DateTime"
+      },
+      "navigations": [
+        {
+          "name": "ActionType",
+          "target_entity": "FinancialAuditAction",
+          "type": "one"
+        },
+        {
+          "name": "Timestamp",
+          "target_entity": "DateTime",
+          "type": "one"
+        }
+      ]
+    },
+    "FollowUp": {
+      "name": "FollowUp",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "follow_up",
+      "properties": {
+        "PersonId": "int",
+        "AttendanceId": "int?",
+        "Status": "FollowUpStatus",
+        "Notes": "string?",
+        "AssignedToPersonId": "int?",
+        "ContactedDateTime": "DateTime?",
+        "CompletedDateTime": "DateTime?"
+      },
+      "navigations": [
+        {
+          "name": "Status",
+          "target_entity": "FollowUpStatus",
+          "type": "one"
+        }
+      ]
+    },
+    "Fund": {
+      "name": "Fund",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "fund",
+      "properties": {
+        "PublicName": "string?",
+        "Description": "string?",
+        "GlCode": "string?",
+        "IsTaxDeductible": "bool",
+        "IsActive": "bool",
+        "IsPublic": "bool",
+        "StartDate": "DateTime?",
+        "EndDate": "DateTime?",
+        "Order": "int",
+        "ParentFundId": "int?",
+        "CampusId": "int?"
+      },
+      "navigations": []
+    },
+    "Group": {
+      "name": "Group",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "group",
+      "properties": {
+        "IsSystem": "bool",
+        "ParentGroupId": "int?",
+        "CampusId": "int?",
+        "Description": "string?",
+        "IsSecurityRole": "bool",
+        "IsActive": "bool",
+        "IsArchived": "bool",
+        "ArchivedByPersonAliasId": "int?",
+        "ArchivedDateTime": "DateTime?",
+        "Order": "int",
+        "AllowGuests": "bool",
+        "IsPublic": "bool",
+        "PublicDescription": "string?",
+        "GroupCapacity": "int?",
+        "ScheduleId": "int?",
+        "WelcomeSystemCommunicationId": "int?",
+        "ExitSystemCommunicationId": "int?",
+        "RequiredSignatureDocumentTemplateId": "int?",
+        "StatusValueId": "int?",
+        "MinAgeMonths": "int?",
+        "MaxAgeMonths": "int?",
+        "MinGrade": "int?",
+        "MaxGrade": "int?"
+      },
+      "navigations": []
+    },
+    "GroupMember": {
+      "name": "GroupMember",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "group_member",
+      "properties": {
+        "IsSystem": "bool",
+        "GroupMemberStatus": "GroupMemberStatus",
+        "DateTimeAdded": "DateTime?",
+        "InactiveDateTime": "DateTime?",
+        "IsArchived": "bool",
+        "ArchivedDateTime": "DateTime?",
+        "ArchivedByPersonAliasId": "int?",
+        "Note": "string?",
+        "IsNotified": "bool",
+        "CommunicationPreference": "int?",
+        "GuestCount": "int?"
+      },
+      "navigations": [
+        {
+          "name": "GroupMemberStatus",
+          "target_entity": "GroupMemberStatus",
+          "type": "one"
+        }
+      ]
+    },
+    "GroupMemberRequest": {
+      "name": "GroupMemberRequest",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "group_member_request",
+      "properties": {
+        "Status": "GroupMemberRequestStatus",
+        "RequestNote": "string?",
+        "ResponseNote": "string?",
+        "ProcessedByPersonId": "int?",
+        "ProcessedDateTime": "DateTime?"
+      },
+      "navigations": [
+        {
+          "name": "Status",
+          "target_entity": "GroupMemberRequestStatus",
+          "type": "one"
+        }
+      ]
+    },
+    "GroupSchedule": {
+      "name": "GroupSchedule",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "group_schedule",
+      "properties": {
+        "LocationId": "int?",
+        "Order": "int"
+      },
+      "navigations": []
+    },
+    "GroupType": {
+      "name": "GroupType",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "group_type",
+      "properties": {
+        "IsSystem": "bool",
+        "Description": "string?",
+        "GroupTerm": "string",
+        "GroupMemberTerm": "string",
+        "DefaultGroupRoleId": "int?",
+        "IconCssClass": "string?",
+        "Color": "string?",
+        "DefaultIsPublic": "bool",
+        "AllowSelfRegistration": "bool",
+        "RequiresMemberApproval": "bool",
+        "DefaultGroupCapacity": "int?",
+        "AllowMultipleLocations": "bool",
+        "ShowInGroupList": "bool",
+        "ShowInNavigation": "bool",
+        "TakesAttendance": "bool",
+        "AttendanceCountsAsWeekendService": "bool",
+        "SendAttendanceReminder": "bool",
+        "ShowConnectionStatus": "bool",
+        "EnableSpecificGroupRequirements": "bool",
+        "AllowGroupSync": "bool",
+        "AllowSpecificGroupMemberAttributes": "bool",
+        "GroupTypePurposeValueId": "int?",
+        "IgnorePersonInactivated": "bool",
+        "IsArchived": "bool",
+        "ArchivedByPersonAliasId": "int?",
+        "ArchivedDateTime": "DateTime?",
+        "Order": "int"
+      },
+      "navigations": []
+    },
+    "GroupTypeRole": {
+      "name": "GroupTypeRole",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "group_type_role",
+      "properties": {
+        "IsSystem": "bool",
+        "Description": "string?",
+        "IsLeader": "bool",
+        "CanView": "bool",
+        "CanEdit": "bool",
+        "CanManageMembers": "bool",
+        "ReceiveRequirementsNotifications": "bool",
+        "Order": "int",
+        "MaxCount": "int?",
+        "MinCount": "int?",
+        "IsArchived": "bool"
+      },
+      "navigations": []
+    },
+    "Location": {
+      "name": "Location",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "location",
+      "properties": {
+        "ParentLocationId": "int?",
+        "LocationTypeValueId": "int?",
+        "IsActive": "bool",
+        "Description": "string?",
+        "PrinterDeviceId": "int?",
+        "ImageId": "int?",
+        "SoftRoomThreshold": "int?",
+        "FirmRoomThreshold": "int?",
+        "IsGeoPointLocked": "bool",
+        "Street1": "string?",
+        "Street2": "string?",
+        "City": "string?",
+        "State": "string?",
+        "PostalCode": "string?",
+        "Country": "string?",
+        "Latitude": "double?",
+        "Longitude": "double?",
+        "Order": "int",
+        "StaffToChildRatio": "int?",
+        "OverflowLocationId": "int?",
+        "AutoAssignOverflow": "bool"
+      },
+      "navigations": []
+    },
+    "PagerAssignment": {
+      "name": "PagerAssignment",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "pager_assignment",
+      "properties": {
+        "CampusId": "int?",
+        "LocationId": "int?"
+      },
+      "navigations": []
+    },
+    "PagerMessage": {
+      "name": "PagerMessage",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "pager_message",
+      "properties": {
+        "TwilioMessageSid": "string?",
+        "Status": "PagerMessageStatus",
+        "SentDateTime": "DateTime?",
+        "DeliveredDateTime": "DateTime?",
+        "FailureReason": "string?"
+      },
+      "navigations": [
+        {
+          "name": "Status",
+          "target_entity": "PagerMessageStatus",
+          "type": "one"
+        }
+      ]
+    },
+    "Person": {
+      "name": "Person",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "person",
+      "properties": {
+        "IsSystem": "bool",
+        "RecordTypeValueId": "int?",
+        "RecordStatusValueId": "int?",
+        "RecordStatusReasonValueId": "int?",
+        "ConnectionStatusValueId": "int?",
+        "ReviewReasonNote": "string?",
+        "IsDeceased": "bool",
+        "TitleValueId": "int?",
+        "NickName": "string?",
+        "MiddleName": "string?",
+        "SuffixValueId": "int?",
+        "PhotoId": "int?",
+        "PasswordHash": "string?",
+        "SupervisorPinHash": "string?",
+        "BirthDay": "int?",
+        "BirthMonth": "int?",
+        "BirthYear": "int?",
+        "BirthDate": "DateOnly?",
+        "Gender": "Gender",
+        "MaritalStatusValueId": "int?",
+        "AnniversaryDate": "DateOnly?",
+        "GraduationYear": "int?",
+        "GivingGroupId": "int?",
+        "Email": "string?",
+        "IsEmailActive": "bool",
+        "EmailNote": "string?",
+        "EmailPreference": "EmailPreference",
+        "CommunicationPreference": "int?",
+        "InactiveReasonNote": "string?",
+        "SystemNote": "string?",
+        "PrimaryCampusId": "int?",
+        "Allergies": "string?",
+        "HasCriticalAllergies": "bool",
+        "SpecialNeeds": "string?",
+        "FullName": "string",
+        "FullNameReversed": "string"
+      },
+      "navigations": [
+        {
+          "name": "Gender",
+          "target_entity": "Gender",
+          "type": "one"
+        },
+        {
+          "name": "EmailPreference",
+          "target_entity": "EmailPreference",
+          "type": "one"
+        }
+      ]
+    },
+    "PersonAlias": {
+      "name": "PersonAlias",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "person_alias",
+      "properties": {
+        "PersonId": "int?",
+        "Name": "string?",
+        "AliasPersonId": "int?",
+        "AliasPersonGuid": "Guid?"
+      },
+      "navigations": []
+    },
+    "PersonSecurityRole": {
+      "name": "PersonSecurityRole",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "person_security_role",
+      "properties": {
+        "PersonId": "int",
+        "SecurityRoleId": "int",
+        "ExpiresDateTime": "DateTime?"
+      },
+      "navigations": []
+    },
+    "PhoneNumber": {
+      "name": "PhoneNumber",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "phone_number",
+      "properties": {
+        "PersonId": "int",
+        "NumberNormalized": "string",
+        "CountryCode": "string?",
+        "Extension": "string?",
+        "NumberTypeValueId": "int?",
+        "IsMessagingEnabled": "bool",
+        "IsUnlisted": "bool",
+        "Description": "string?"
+      },
+      "navigations": []
+    },
+    "PickupLog": {
+      "name": "PickupLog",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "pickup_log",
+      "properties": {
+        "PickupPersonId": "int?",
+        "PickupPersonName": "string?",
+        "WasAuthorized": "bool",
+        "AuthorizedPickupId": "int?",
+        "SupervisorOverride": "bool",
+        "SupervisorPersonId": "int?",
+        "Notes": "string?"
+      },
+      "navigations": []
+    },
+    "RefreshToken": {
+      "name": "RefreshToken",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "refresh_token",
+      "properties": {
+        "PersonId": "int",
+        "ExpiresAt": "DateTime",
+        "RevokedAt": "DateTime?",
+        "ReplacedByToken": "string?",
+        "CreatedByIp": "string?",
+        "RevokedByIp": "string?"
+      },
+      "navigations": [
+        {
+          "name": "ExpiresAt",
+          "target_entity": "DateTime",
+          "type": "one"
+        }
+      ]
+    },
+    "RoleSecurityClaim": {
+      "name": "RoleSecurityClaim",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "role_security_claim",
+      "properties": {
+        "SecurityRoleId": "int",
+        "SecurityClaimId": "int",
+        "AllowOrDeny": "char"
+      },
+      "navigations": []
+    },
+    "Schedule": {
+      "name": "Schedule",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "schedule",
+      "properties": {
+        "Description": "string?",
+        "ICalendarContent": "string?",
+        "CheckInStartOffsetMinutes": "int?",
+        "CheckInEndOffsetMinutes": "int?",
+        "EffectiveStartDate": "DateOnly?",
+        "EffectiveEndDate": "DateOnly?",
+        "CategoryId": "int?",
+        "WeeklyDayOfWeek": "DayOfWeek?",
+        "WeeklyTimeOfDay": "TimeSpan?",
+        "Order": "int",
+        "IsActive": "bool",
+        "AutoInactivateWhenComplete": "bool",
+        "IsPublic": "bool"
+      },
+      "navigations": []
+    },
+    "SecurityClaim": {
+      "name": "SecurityClaim",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "security_claim",
+      "properties": {
+        "Description": "string?"
+      },
+      "navigations": []
+    },
+    "SecurityRole": {
+      "name": "SecurityRole",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "security_role",
+      "properties": {
+        "Description": "string?",
+        "IsSystemRole": "bool",
+        "IsActive": "bool"
+      },
+      "navigations": []
+    },
+    "SupervisorAuditLog": {
+      "name": "SupervisorAuditLog",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "supervisor_audit_log",
+      "properties": {
+        "PersonId": "int?",
+        "SupervisorSessionId": "int?",
+        "IpAddress": "string?",
+        "EntityType": "string?",
+        "EntityIdKey": "string?",
+        "Success": "bool",
+        "Details": "string?"
+      },
+      "navigations": []
+    },
+    "SupervisorSession": {
+      "name": "SupervisorSession",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "supervisor_session",
+      "properties": {
+        "PersonId": "int",
+        "ExpiresAt": "DateTime",
+        "EndedAt": "DateTime?",
+        "CreatedByIp": "string?"
+      },
+      "navigations": [
+        {
+          "name": "ExpiresAt",
+          "target_entity": "DateTime",
+          "type": "one"
+        }
+      ]
+    }
+  },
+  "dtos": {
+    "AttendanceAnalyticsDto": {
+      "name": "AttendanceAnalyticsDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {},
+      "linked_entity": "Attendance"
+    },
+    "AttendanceByGroupDto": {
+      "name": "AttendanceByGroupDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {},
+      "linked_entity": "Attendance"
+    },
+    "MarkAttendanceResultDto": {
+      "name": "MarkAttendanceResultDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {}
+    },
+    "BulkMarkAttendanceResultDto": {
+      "name": "BulkMarkAttendanceResultDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {}
+    },
+    "OccurrenceRosterEntryDto": {
+      "name": "OccurrenceRosterEntryDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {}
+    },
+    "FamilyRosterGroupDto": {
+      "name": "FamilyRosterGroupDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {},
+      "linked_entity": "Family"
+    },
+    "AttendanceTrendDto": {
+      "name": "AttendanceTrendDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {},
+      "linked_entity": "Attendance"
+    },
+    "AuthorizedPickupDto": {
+      "name": "AuthorizedPickupDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {},
+      "linked_entity": "AuthorizedPickup"
+    },
+    "CheckinRequestDto": {
+      "name": "CheckinRequestDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "ScheduleIdKey": "string?",
+        "OccurrenceDate": "DateOnly?",
+        "DeviceIdKey": "string?",
+        "GenerateSecurityCode": "bool",
+        "Note": "string?"
+      }
+    },
+    "BatchCheckinRequestDto": {
+      "name": "BatchCheckinRequestDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "ScheduleIdKey": "string?",
+        "OccurrenceDate": "DateOnly?",
+        "DeviceIdKey": "string?",
+        "GenerateSecurityCode": "bool",
+        "Note": "string?"
+      }
+    },
+    "CheckinResultDto": {
+      "name": "CheckinResultDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "ScheduleIdKey": "string?",
+        "OccurrenceDate": "DateOnly?",
+        "DeviceIdKey": "string?",
+        "GenerateSecurityCode": "bool",
+        "Note": "string?"
+      }
+    },
+    "BatchCheckinResultDto": {
+      "name": "BatchCheckinResultDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "ScheduleIdKey": "string?",
+        "OccurrenceDate": "DateOnly?",
+        "DeviceIdKey": "string?",
+        "GenerateSecurityCode": "bool",
+        "Note": "string?"
+      }
+    },
+    "AttendanceSummaryDto": {
+      "name": "AttendanceSummaryDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "ScheduleIdKey": "string?",
+        "OccurrenceDate": "DateOnly?",
+        "DeviceIdKey": "string?",
+        "GenerateSecurityCode": "bool",
+        "Note": "string?"
+      },
+      "linked_entity": "Attendance"
+    },
+    "CheckinPersonSummaryDto": {
+      "name": "CheckinPersonSummaryDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "ScheduleIdKey": "string?",
+        "OccurrenceDate": "DateOnly?",
+        "DeviceIdKey": "string?",
+        "GenerateSecurityCode": "bool",
+        "Note": "string?"
+      }
+    },
+    "CheckinLocationSummaryDto": {
+      "name": "CheckinLocationSummaryDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "ScheduleIdKey": "string?",
+        "OccurrenceDate": "DateOnly?",
+        "DeviceIdKey": "string?",
+        "GenerateSecurityCode": "bool",
+        "Note": "string?"
+      }
+    },
+    "CheckinConfigurationDto": {
+      "name": "CheckinConfigurationDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Description": "string?",
+        "Schedule": "ScheduleDto?",
+        "MinAgeMonths": "int?",
+        "MaxAgeMonths": "int?",
+        "MinGrade": "int?",
+        "MaxGrade": "int?",
+        "SoftCapacity": "int?",
+        "HardCapacity": "int?",
+        "PrinterDeviceIdKey": "string?",
+        "PercentageFull": "int",
+        "OverflowLocationIdKey": "string?",
+        "OverflowLocationName": "string?",
+        "AutoAssignOverflow": "bool",
+        "WeeklyDayOfWeek": "DayOfWeek?",
+        "WeeklyTimeOfDay": "TimeSpan?",
+        "CheckInStartOffsetMinutes": "int?",
+        "CheckInEndOffsetMinutes": "int?",
+        "CheckinStartTime": "DateTime?",
+        "CheckinEndTime": "DateTime?",
+        "IsPublic": "bool",
+        "Order": "int",
+        "EffectiveStartDate": "DateOnly?",
+        "EffectiveEndDate": "DateOnly?",
+        "ICalendarContent": "string?",
+        "AutoInactivateWhenComplete": "bool",
+        "CreatedDateTime": "DateTime",
+        "ModifiedDateTime": "DateTime?"
+      }
+    },
+    "CheckinAreaDto": {
+      "name": "CheckinAreaDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Description": "string?",
+        "Schedule": "ScheduleDto?",
+        "MinAgeMonths": "int?",
+        "MaxAgeMonths": "int?",
+        "MinGrade": "int?",
+        "MaxGrade": "int?",
+        "SoftCapacity": "int?",
+        "HardCapacity": "int?",
+        "PrinterDeviceIdKey": "string?",
+        "PercentageFull": "int",
+        "OverflowLocationIdKey": "string?",
+        "OverflowLocationName": "string?",
+        "AutoAssignOverflow": "bool",
+        "WeeklyDayOfWeek": "DayOfWeek?",
+        "WeeklyTimeOfDay": "TimeSpan?",
+        "CheckInStartOffsetMinutes": "int?",
+        "CheckInEndOffsetMinutes": "int?",
+        "CheckinStartTime": "DateTime?",
+        "CheckinEndTime": "DateTime?",
+        "IsPublic": "bool",
+        "Order": "int",
+        "EffectiveStartDate": "DateOnly?",
+        "EffectiveEndDate": "DateOnly?",
+        "ICalendarContent": "string?",
+        "AutoInactivateWhenComplete": "bool",
+        "CreatedDateTime": "DateTime",
+        "ModifiedDateTime": "DateTime?"
+      }
+    },
+    "CheckinLocationDto": {
+      "name": "CheckinLocationDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Description": "string?",
+        "Schedule": "ScheduleDto?",
+        "MinAgeMonths": "int?",
+        "MaxAgeMonths": "int?",
+        "MinGrade": "int?",
+        "MaxGrade": "int?",
+        "SoftCapacity": "int?",
+        "HardCapacity": "int?",
+        "PrinterDeviceIdKey": "string?",
+        "PercentageFull": "int",
+        "OverflowLocationIdKey": "string?",
+        "OverflowLocationName": "string?",
+        "AutoAssignOverflow": "bool",
+        "WeeklyDayOfWeek": "DayOfWeek?",
+        "WeeklyTimeOfDay": "TimeSpan?",
+        "CheckInStartOffsetMinutes": "int?",
+        "CheckInEndOffsetMinutes": "int?",
+        "CheckinStartTime": "DateTime?",
+        "CheckinEndTime": "DateTime?",
+        "IsPublic": "bool",
+        "Order": "int",
+        "EffectiveStartDate": "DateOnly?",
+        "EffectiveEndDate": "DateOnly?",
+        "ICalendarContent": "string?",
+        "AutoInactivateWhenComplete": "bool",
+        "CreatedDateTime": "DateTime",
+        "ModifiedDateTime": "DateTime?"
+      }
+    },
+    "ScheduleDto": {
+      "name": "ScheduleDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Description": "string?",
+        "Schedule": "ScheduleDto?",
+        "MinAgeMonths": "int?",
+        "MaxAgeMonths": "int?",
+        "MinGrade": "int?",
+        "MaxGrade": "int?",
+        "SoftCapacity": "int?",
+        "HardCapacity": "int?",
+        "PrinterDeviceIdKey": "string?",
+        "PercentageFull": "int",
+        "OverflowLocationIdKey": "string?",
+        "OverflowLocationName": "string?",
+        "AutoAssignOverflow": "bool",
+        "WeeklyDayOfWeek": "DayOfWeek?",
+        "WeeklyTimeOfDay": "TimeSpan?",
+        "CheckInStartOffsetMinutes": "int?",
+        "CheckInEndOffsetMinutes": "int?",
+        "CheckinStartTime": "DateTime?",
+        "CheckinEndTime": "DateTime?",
+        "IsPublic": "bool",
+        "Order": "int",
+        "EffectiveStartDate": "DateOnly?",
+        "EffectiveEndDate": "DateOnly?",
+        "ICalendarContent": "string?",
+        "AutoInactivateWhenComplete": "bool",
+        "CreatedDateTime": "DateTime",
+        "ModifiedDateTime": "DateTime?"
+      },
+      "linked_entity": "Schedule"
+    },
+    "CheckinFamilySearchResultDto": {
+      "name": "CheckinFamilySearchResultDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "AddressSummary": "string?",
+        "CampusName": "string?",
+        "RecentCheckInCount": "int",
+        "NickName": "string?",
+        "Age": "int?",
+        "PhotoUrl": "string?",
+        "IsChild": "bool",
+        "HasRecentCheckIn": "bool",
+        "LastCheckIn": "DateTime?",
+        "Grade": "string?",
+        "Allergies": "string?",
+        "HasCriticalAllergies": "bool",
+        "SpecialNeeds": "string?"
+      }
+    },
+    "CheckinFamilyMemberDto": {
+      "name": "CheckinFamilyMemberDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "AddressSummary": "string?",
+        "CampusName": "string?",
+        "RecentCheckInCount": "int",
+        "NickName": "string?",
+        "Age": "int?",
+        "PhotoUrl": "string?",
+        "IsChild": "bool",
+        "HasRecentCheckIn": "bool",
+        "LastCheckIn": "DateTime?",
+        "Grade": "string?",
+        "Allergies": "string?",
+        "HasCriticalAllergies": "bool",
+        "SpecialNeeds": "string?"
+      }
+    },
+    "CommunicationDto": {
+      "name": "CommunicationDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Subject": "string?",
+        "FromEmail": "string?",
+        "FromName": "string?",
+        "ReplyToEmail": "string?",
+        "SentDateTime": "DateTime?",
+        "Note": "string?",
+        "ModifiedDateTime": "DateTime?",
+        "RecipientName": "string?",
+        "DeliveredDateTime": "DateTime?",
+        "OpenedDateTime": "DateTime?",
+        "ErrorMessage": "string?",
+        "GroupIdKey": "string?",
+        "Body": "string?"
+      },
+      "linked_entity": "Communication"
+    },
+    "CommunicationSummaryDto": {
+      "name": "CommunicationSummaryDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Subject": "string?",
+        "FromEmail": "string?",
+        "FromName": "string?",
+        "ReplyToEmail": "string?",
+        "SentDateTime": "DateTime?",
+        "Note": "string?",
+        "ModifiedDateTime": "DateTime?",
+        "RecipientName": "string?",
+        "DeliveredDateTime": "DateTime?",
+        "OpenedDateTime": "DateTime?",
+        "ErrorMessage": "string?",
+        "GroupIdKey": "string?",
+        "Body": "string?"
+      },
+      "linked_entity": "Communication"
+    },
+    "CommunicationRecipientDto": {
+      "name": "CommunicationRecipientDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Subject": "string?",
+        "FromEmail": "string?",
+        "FromName": "string?",
+        "ReplyToEmail": "string?",
+        "SentDateTime": "DateTime?",
+        "Note": "string?",
+        "ModifiedDateTime": "DateTime?",
+        "RecipientName": "string?",
+        "DeliveredDateTime": "DateTime?",
+        "OpenedDateTime": "DateTime?",
+        "ErrorMessage": "string?",
+        "GroupIdKey": "string?",
+        "Body": "string?"
+      },
+      "linked_entity": "CommunicationRecipient"
+    },
+    "CreateCommunicationDto": {
+      "name": "CreateCommunicationDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Subject": "string?",
+        "FromEmail": "string?",
+        "FromName": "string?",
+        "ReplyToEmail": "string?",
+        "SentDateTime": "DateTime?",
+        "Note": "string?",
+        "ModifiedDateTime": "DateTime?",
+        "RecipientName": "string?",
+        "DeliveredDateTime": "DateTime?",
+        "OpenedDateTime": "DateTime?",
+        "ErrorMessage": "string?",
+        "GroupIdKey": "string?",
+        "Body": "string?"
+      }
+    },
+    "UpdateCommunicationDto": {
+      "name": "UpdateCommunicationDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Subject": "string?",
+        "FromEmail": "string?",
+        "FromName": "string?",
+        "ReplyToEmail": "string?",
+        "SentDateTime": "DateTime?",
+        "Note": "string?",
+        "ModifiedDateTime": "DateTime?",
+        "RecipientName": "string?",
+        "DeliveredDateTime": "DateTime?",
+        "OpenedDateTime": "DateTime?",
+        "ErrorMessage": "string?",
+        "GroupIdKey": "string?",
+        "Body": "string?"
+      }
+    },
+    "DashboardStatsDto": {
+      "name": "DashboardStatsDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {}
+    },
+    "UpcomingScheduleDto": {
+      "name": "UpcomingScheduleDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {}
+    },
+    "FamilyDto": {
+      "name": "FamilyDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Description": "string?",
+        "Campus": "CampusSummaryDto?",
+        "Address": "LocationDto?",
+        "ModifiedDateTime": "DateTime?",
+        "DateTimeAdded": "DateTime?",
+        "Street1": "string?",
+        "Street2": "string?",
+        "City": "string?",
+        "State": "string?",
+        "PostalCode": "string?",
+        "Country": "string?"
+      },
+      "linked_entity": "Family"
+    },
+    "FamilyMemberDto": {
+      "name": "FamilyMemberDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Description": "string?",
+        "Campus": "CampusSummaryDto?",
+        "Address": "LocationDto?",
+        "ModifiedDateTime": "DateTime?",
+        "DateTimeAdded": "DateTime?",
+        "Street1": "string?",
+        "Street2": "string?",
+        "City": "string?",
+        "State": "string?",
+        "PostalCode": "string?",
+        "Country": "string?"
+      },
+      "linked_entity": "FamilyMember"
+    },
+    "LocationDto": {
+      "name": "LocationDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Description": "string?",
+        "Campus": "CampusSummaryDto?",
+        "Address": "LocationDto?",
+        "ModifiedDateTime": "DateTime?",
+        "DateTimeAdded": "DateTime?",
+        "Street1": "string?",
+        "Street2": "string?",
+        "City": "string?",
+        "State": "string?",
+        "PostalCode": "string?",
+        "Country": "string?"
+      },
+      "linked_entity": "Location"
+    },
+    "GroupTypeRoleDto": {
+      "name": "GroupTypeRoleDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Description": "string?",
+        "Campus": "CampusSummaryDto?",
+        "Address": "LocationDto?",
+        "ModifiedDateTime": "DateTime?",
+        "DateTimeAdded": "DateTime?",
+        "Street1": "string?",
+        "Street2": "string?",
+        "City": "string?",
+        "State": "string?",
+        "PostalCode": "string?",
+        "Country": "string?"
+      },
+      "linked_entity": "GroupTypeRole"
+    },
+    "FirstTimeVisitorDto": {
+      "name": "FirstTimeVisitorDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Email": "string?",
+        "PhoneNumber": "string?",
+        "CampusName": "string?"
+      }
+    },
+    "FollowUpDto": {
+      "name": "FollowUpDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "AttendanceIdKey": "string?",
+        "Notes": "string?",
+        "AssignedToIdKey": "string?",
+        "AssignedToName": "string?",
+        "ContactedDateTime": "DateTime?",
+        "CompletedDateTime": "DateTime?"
+      },
+      "linked_entity": "FollowUp"
+    },
+    "GroupDto": {
+      "name": "GroupDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Description": "string?",
+        "GroupCapacity": "int?",
+        "Campus": "CampusSummaryDto?",
+        "ParentGroup": "GroupSummaryDto?",
+        "ModifiedDateTime": "DateTime?",
+        "ArchivedDateTime": "DateTime?",
+        "IsArchived": "bool",
+        "DateTimeAdded": "DateTime?",
+        "InactiveDateTime": "DateTime?",
+        "Note": "string?"
+      },
+      "linked_entity": "Group"
+    },
+    "GroupSummaryDto": {
+      "name": "GroupSummaryDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Description": "string?",
+        "GroupCapacity": "int?",
+        "Campus": "CampusSummaryDto?",
+        "ParentGroup": "GroupSummaryDto?",
+        "ModifiedDateTime": "DateTime?",
+        "ArchivedDateTime": "DateTime?",
+        "IsArchived": "bool",
+        "DateTimeAdded": "DateTime?",
+        "InactiveDateTime": "DateTime?",
+        "Note": "string?"
+      },
+      "linked_entity": "Group"
+    },
+    "GroupMemberDto": {
+      "name": "GroupMemberDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Description": "string?",
+        "GroupCapacity": "int?",
+        "Campus": "CampusSummaryDto?",
+        "ParentGroup": "GroupSummaryDto?",
+        "ModifiedDateTime": "DateTime?",
+        "ArchivedDateTime": "DateTime?",
+        "IsArchived": "bool",
+        "DateTimeAdded": "DateTime?",
+        "InactiveDateTime": "DateTime?",
+        "Note": "string?"
+      },
+      "linked_entity": "GroupMember"
+    },
+    "GroupMemberDetailDto": {
+      "name": "GroupMemberDetailDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Email": "string?",
+        "Phone": "string?",
+        "PhotoUrl": "string?",
+        "Age": "int?",
+        "DateTimeAdded": "DateTime?",
+        "InactiveDateTime": "DateTime?",
+        "Note": "string?"
+      },
+      "linked_entity": "Group"
+    },
+    "GroupMemberRequestDto": {
+      "name": "GroupMemberRequestDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "RequestNote": "string?",
+        "ResponseNote": "string?",
+        "ProcessedByPerson": "PersonSummaryDto?",
+        "ProcessedDateTime": "DateTime?",
+        "ModifiedDateTime": "DateTime?"
+      },
+      "linked_entity": "GroupMemberRequest"
+    },
+    "GroupScheduleDto": {
+      "name": "GroupScheduleDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Order": "int"
+      },
+      "linked_entity": "GroupSchedule"
+    },
+    "GroupTypeDto": {
+      "name": "GroupTypeDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Description": "string?",
+        "IconCssClass": "string?",
+        "Color": "string?",
+        "TakesAttendance": "bool",
+        "AllowSelfRegistration": "bool",
+        "RequiresMemberApproval": "bool",
+        "DefaultIsPublic": "bool",
+        "DefaultGroupCapacity": "int?",
+        "IsSystem": "bool",
+        "IsArchived": "bool",
+        "Order": "int",
+        "GroupCount": "int",
+        "ShowInGroupList": "bool",
+        "ShowInNavigation": "bool",
+        "AttendanceCountsAsWeekendService": "bool",
+        "SendAttendanceReminder": "bool",
+        "AllowMultipleLocations": "bool",
+        "EnableSpecificGroupRequirements": "bool",
+        "AllowGroupSync": "bool",
+        "AllowSpecificGroupMemberAttributes": "bool",
+        "ShowConnectionStatus": "bool",
+        "IgnorePersonInactivated": "bool",
+        "ModifiedDateTime": "DateTime?",
+        "IsFamilyGroupType": "bool"
+      },
+      "linked_entity": "GroupType"
+    },
+    "GroupTypeDetailDto": {
+      "name": "GroupTypeDetailDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Description": "string?",
+        "IconCssClass": "string?",
+        "Color": "string?",
+        "TakesAttendance": "bool",
+        "AllowSelfRegistration": "bool",
+        "RequiresMemberApproval": "bool",
+        "DefaultIsPublic": "bool",
+        "DefaultGroupCapacity": "int?",
+        "IsSystem": "bool",
+        "IsArchived": "bool",
+        "Order": "int",
+        "GroupCount": "int",
+        "ShowInGroupList": "bool",
+        "ShowInNavigation": "bool",
+        "AttendanceCountsAsWeekendService": "bool",
+        "SendAttendanceReminder": "bool",
+        "AllowMultipleLocations": "bool",
+        "EnableSpecificGroupRequirements": "bool",
+        "AllowGroupSync": "bool",
+        "AllowSpecificGroupMemberAttributes": "bool",
+        "ShowConnectionStatus": "bool",
+        "IgnorePersonInactivated": "bool",
+        "ModifiedDateTime": "DateTime?",
+        "IsFamilyGroupType": "bool"
+      },
+      "linked_entity": "Group"
+    },
+    "GroupTypeSummaryDto": {
+      "name": "GroupTypeSummaryDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Description": "string?",
+        "IconCssClass": "string?",
+        "Color": "string?",
+        "TakesAttendance": "bool",
+        "AllowSelfRegistration": "bool",
+        "RequiresMemberApproval": "bool",
+        "DefaultIsPublic": "bool",
+        "DefaultGroupCapacity": "int?",
+        "IsSystem": "bool",
+        "IsArchived": "bool",
+        "Order": "int",
+        "GroupCount": "int",
+        "ShowInGroupList": "bool",
+        "ShowInNavigation": "bool",
+        "AttendanceCountsAsWeekendService": "bool",
+        "SendAttendanceReminder": "bool",
+        "AllowMultipleLocations": "bool",
+        "EnableSpecificGroupRequirements": "bool",
+        "AllowGroupSync": "bool",
+        "AllowSpecificGroupMemberAttributes": "bool",
+        "ShowConnectionStatus": "bool",
+        "IgnorePersonInactivated": "bool",
+        "ModifiedDateTime": "DateTime?",
+        "IsFamilyGroupType": "bool"
+      },
+      "linked_entity": "Group"
+    },
+    "LabelSetDto": {
+      "name": "LabelSetDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "LabelTypes": "IReadOnlyList<LabelType>?",
+        "TemplateIdKey": "string?"
+      }
+    },
+    "LabelDto": {
+      "name": "LabelDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "LabelTypes": "IReadOnlyList<LabelType>?",
+        "TemplateIdKey": "string?"
+      }
+    },
+    "LabelTemplateDto": {
+      "name": "LabelTemplateDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "LabelTypes": "IReadOnlyList<LabelType>?",
+        "TemplateIdKey": "string?"
+      }
+    },
+    "LabelRequestDto": {
+      "name": "LabelRequestDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "LabelTypes": "IReadOnlyList<LabelType>?",
+        "TemplateIdKey": "string?"
+      }
+    },
+    "BatchLabelRequestDto": {
+      "name": "BatchLabelRequestDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "LabelTypes": "IReadOnlyList<LabelType>?",
+        "TemplateIdKey": "string?"
+      }
+    },
+    "LabelPreviewRequestDto": {
+      "name": "LabelPreviewRequestDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "LabelTypes": "IReadOnlyList<LabelType>?",
+        "TemplateIdKey": "string?"
+      }
+    },
+    "LabelPreviewDto": {
+      "name": "LabelPreviewDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "LabelTypes": "IReadOnlyList<LabelType>?",
+        "TemplateIdKey": "string?"
+      }
+    },
+    "MyFamilyMemberDto": {
+      "name": "MyFamilyMemberDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "NickName": "string?",
+        "BirthDate": "DateOnly?",
+        "Age": "int?",
+        "Email": "string?",
+        "PhotoUrl": "string?",
+        "CanEdit": "bool",
+        "Allergies": "string?",
+        "HasCriticalAllergies": "bool",
+        "SpecialNeeds": "string?"
+      }
+    },
+    "MyGroupDto": {
+      "name": "MyGroupDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Description": "string?",
+        "GroupCapacity": "int?",
+        "LastMeetingDate": "DateTime?",
+        "Campus": "CampusSummaryDto?",
+        "ModifiedDateTime": "DateTime?"
+      }
+    },
+    "MyInvolvementDto": {
+      "name": "MyInvolvementDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "RecentAttendanceCount": "int",
+        "TotalGroupsCount": "int",
+        "Description": "string?",
+        "IsLeader": "bool",
+        "LastAttendanceDate": "DateTime?",
+        "JoinedDate": "DateTime?",
+        "Campus": "CampusSummaryDto?"
+      }
+    },
+    "MyInvolvementGroupDto": {
+      "name": "MyInvolvementGroupDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "RecentAttendanceCount": "int",
+        "TotalGroupsCount": "int",
+        "Description": "string?",
+        "IsLeader": "bool",
+        "LastAttendanceDate": "DateTime?",
+        "JoinedDate": "DateTime?",
+        "Campus": "CampusSummaryDto?"
+      }
+    },
+    "MyProfileDto": {
+      "name": "MyProfileDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "NickName": "string?",
+        "MiddleName": "string?",
+        "BirthDate": "DateOnly?",
+        "Age": "int?",
+        "Email": "string?",
+        "IsEmailActive": "bool",
+        "PrimaryFamily": "FamilySummaryDto?",
+        "PrimaryCampus": "CampusSummaryDto?",
+        "PhotoUrl": "string?",
+        "ModifiedDateTime": "DateTime?"
+      }
+    },
+    "PagerAssignmentDto": {
+      "name": "PagerAssignmentDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {},
+      "linked_entity": "PagerAssignment"
+    },
+    "PagerMessageDto": {
+      "name": "PagerMessageDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {},
+      "linked_entity": "PagerMessage"
+    },
+    "PageHistoryDto": {
+      "name": "PageHistoryDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {}
+    },
+    "PersonDto": {
+      "name": "PersonDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "NickName": "string?",
+        "MiddleName": "string?",
+        "BirthDate": "DateOnly?",
+        "Age": "int?",
+        "Email": "string?",
+        "IsEmailActive": "bool",
+        "RecordStatus": "DefinedValueDto?",
+        "ConnectionStatus": "DefinedValueDto?",
+        "PrimaryFamily": "FamilySummaryDto?",
+        "PrimaryCampus": "CampusSummaryDto?",
+        "PhotoUrl": "string?",
+        "ModifiedDateTime": "DateTime?",
+        "Extension": "string?",
+        "PhoneType": "DefinedValueDto?",
+        "IsMessagingEnabled": "bool",
+        "IsUnlisted": "bool",
+        "Description": "string?",
+        "IsActive": "bool",
+        "Order": "int",
+        "MemberCount": "int",
+        "ShortCode": "string?"
+      },
+      "linked_entity": "Person"
+    },
+    "PersonSummaryDto": {
+      "name": "PersonSummaryDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "NickName": "string?",
+        "MiddleName": "string?",
+        "BirthDate": "DateOnly?",
+        "Age": "int?",
+        "Email": "string?",
+        "IsEmailActive": "bool",
+        "RecordStatus": "DefinedValueDto?",
+        "ConnectionStatus": "DefinedValueDto?",
+        "PrimaryFamily": "FamilySummaryDto?",
+        "PrimaryCampus": "CampusSummaryDto?",
+        "PhotoUrl": "string?",
+        "ModifiedDateTime": "DateTime?",
+        "Extension": "string?",
+        "PhoneType": "DefinedValueDto?",
+        "IsMessagingEnabled": "bool",
+        "IsUnlisted": "bool",
+        "Description": "string?",
+        "IsActive": "bool",
+        "Order": "int",
+        "MemberCount": "int",
+        "ShortCode": "string?"
+      },
+      "linked_entity": "Person"
+    },
+    "PhoneNumberDto": {
+      "name": "PhoneNumberDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "NickName": "string?",
+        "MiddleName": "string?",
+        "BirthDate": "DateOnly?",
+        "Age": "int?",
+        "Email": "string?",
+        "IsEmailActive": "bool",
+        "RecordStatus": "DefinedValueDto?",
+        "ConnectionStatus": "DefinedValueDto?",
+        "PrimaryFamily": "FamilySummaryDto?",
+        "PrimaryCampus": "CampusSummaryDto?",
+        "PhotoUrl": "string?",
+        "ModifiedDateTime": "DateTime?",
+        "Extension": "string?",
+        "PhoneType": "DefinedValueDto?",
+        "IsMessagingEnabled": "bool",
+        "IsUnlisted": "bool",
+        "Description": "string?",
+        "IsActive": "bool",
+        "Order": "int",
+        "MemberCount": "int",
+        "ShortCode": "string?"
+      },
+      "linked_entity": "PhoneNumber"
+    },
+    "DefinedValueDto": {
+      "name": "DefinedValueDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "NickName": "string?",
+        "MiddleName": "string?",
+        "BirthDate": "DateOnly?",
+        "Age": "int?",
+        "Email": "string?",
+        "IsEmailActive": "bool",
+        "RecordStatus": "DefinedValueDto?",
+        "ConnectionStatus": "DefinedValueDto?",
+        "PrimaryFamily": "FamilySummaryDto?",
+        "PrimaryCampus": "CampusSummaryDto?",
+        "PhotoUrl": "string?",
+        "ModifiedDateTime": "DateTime?",
+        "Extension": "string?",
+        "PhoneType": "DefinedValueDto?",
+        "IsMessagingEnabled": "bool",
+        "IsUnlisted": "bool",
+        "Description": "string?",
+        "IsActive": "bool",
+        "Order": "int",
+        "MemberCount": "int",
+        "ShortCode": "string?"
+      },
+      "linked_entity": "DefinedValue"
+    },
+    "FamilySummaryDto": {
+      "name": "FamilySummaryDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "NickName": "string?",
+        "MiddleName": "string?",
+        "BirthDate": "DateOnly?",
+        "Age": "int?",
+        "Email": "string?",
+        "IsEmailActive": "bool",
+        "RecordStatus": "DefinedValueDto?",
+        "ConnectionStatus": "DefinedValueDto?",
+        "PrimaryFamily": "FamilySummaryDto?",
+        "PrimaryCampus": "CampusSummaryDto?",
+        "PhotoUrl": "string?",
+        "ModifiedDateTime": "DateTime?",
+        "Extension": "string?",
+        "PhoneType": "DefinedValueDto?",
+        "IsMessagingEnabled": "bool",
+        "IsUnlisted": "bool",
+        "Description": "string?",
+        "IsActive": "bool",
+        "Order": "int",
+        "MemberCount": "int",
+        "ShortCode": "string?"
+      },
+      "linked_entity": "Family"
+    },
+    "CampusSummaryDto": {
+      "name": "CampusSummaryDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "NickName": "string?",
+        "MiddleName": "string?",
+        "BirthDate": "DateOnly?",
+        "Age": "int?",
+        "Email": "string?",
+        "IsEmailActive": "bool",
+        "RecordStatus": "DefinedValueDto?",
+        "ConnectionStatus": "DefinedValueDto?",
+        "PrimaryFamily": "FamilySummaryDto?",
+        "PrimaryCampus": "CampusSummaryDto?",
+        "PhotoUrl": "string?",
+        "ModifiedDateTime": "DateTime?",
+        "Extension": "string?",
+        "PhoneType": "DefinedValueDto?",
+        "IsMessagingEnabled": "bool",
+        "IsUnlisted": "bool",
+        "Description": "string?",
+        "IsActive": "bool",
+        "Order": "int",
+        "MemberCount": "int",
+        "ShortCode": "string?"
+      },
+      "linked_entity": "Campus"
+    },
+    "PersonGroupMembershipDto": {
+      "name": "PersonGroupMembershipDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "CreatedDateTime": "DateTime",
+        "ModifiedDateTime": "DateTime?"
+      },
+      "linked_entity": "Person"
+    },
+    "PickupLogDto": {
+      "name": "PickupLogDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {},
+      "linked_entity": "PickupLog"
+    },
+    "PickupVerificationResultDto": {
+      "name": "PickupVerificationResultDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {}
+    },
+    "PublicGroupDto": {
+      "name": "PublicGroupDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "PublicDescription": "string?",
+        "GroupTypeName": "string?",
+        "CampusIdKey": "string?",
+        "CampusName": "string?",
+        "MemberCount": "int",
+        "Capacity": "int?",
+        "MeetingDay": "string?",
+        "MeetingTime": "TimeOnly?",
+        "MeetingScheduleSummary": "string?"
+      }
+    },
+    "RoomCapacityDto": {
+      "name": "RoomCapacityDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "SoftCapacity": "int?",
+        "HardCapacity": "int?",
+        "PercentageFull": "int",
+        "StaffToChildRatio": "int?",
+        "CurrentStaffCount": "int",
+        "RequiredStaffCount": "int?",
+        "MeetsStaffRatio": "bool",
+        "OverflowLocationIdKey": "string?",
+        "OverflowLocationName": "string?",
+        "AutoAssignOverflow": "bool"
+      }
+    },
+    "UpdateCapacitySettingsDto": {
+      "name": "UpdateCapacitySettingsDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "SoftCapacity": "int?",
+        "HardCapacity": "int?",
+        "PercentageFull": "int",
+        "StaffToChildRatio": "int?",
+        "CurrentStaffCount": "int",
+        "RequiredStaffCount": "int?",
+        "MeetsStaffRatio": "bool",
+        "OverflowLocationIdKey": "string?",
+        "OverflowLocationName": "string?",
+        "AutoAssignOverflow": "bool"
+      }
+    },
+    "CapacityOverrideRequestDto": {
+      "name": "CapacityOverrideRequestDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "SoftCapacity": "int?",
+        "HardCapacity": "int?",
+        "PercentageFull": "int",
+        "StaffToChildRatio": "int?",
+        "CurrentStaffCount": "int",
+        "RequiredStaffCount": "int?",
+        "MeetsStaffRatio": "bool",
+        "OverflowLocationIdKey": "string?",
+        "OverflowLocationName": "string?",
+        "AutoAssignOverflow": "bool"
+      }
+    },
+    "RosterChildDto": {
+      "name": "RosterChildDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {}
+    },
+    "RoomRosterDto": {
+      "name": "RoomRosterDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {}
+    },
+    "PrintableRosterRequestDto": {
+      "name": "PrintableRosterRequestDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {}
+    },
+    "ScheduleSummaryDto": {
+      "name": "ScheduleSummaryDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Description": "string?",
+        "WeeklyDayOfWeek": "DayOfWeek?",
+        "WeeklyTimeOfDay": "TimeSpan?",
+        "CheckInWindowStart": "DateTime?",
+        "CheckInWindowEnd": "DateTime?"
+      },
+      "linked_entity": "Schedule"
+    },
+    "ScheduleOccurrenceDto": {
+      "name": "ScheduleOccurrenceDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Description": "string?",
+        "WeeklyDayOfWeek": "DayOfWeek?",
+        "WeeklyTimeOfDay": "TimeSpan?",
+        "CheckInWindowStart": "DateTime?",
+        "CheckInWindowEnd": "DateTime?"
+      },
+      "linked_entity": "Schedule"
+    },
+    "SupervisorInfoDto": {
+      "name": "SupervisorInfoDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {}
+    }
+  },
+  "services": {
+    "AttendanceAnalyticsService": {
+      "name": "AttendanceAnalyticsService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "AttendanceAnalyticsService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetSummaryAsync",
+          "return_type": "Task<AttendanceAnalyticsDto>",
+          "is_async": false
+        },
+        {
+          "name": "GetTrendsAsync",
+          "return_type": "Task<IReadOnlyList<AttendanceTrendDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetByGroupAsync",
+          "return_type": "Task<IReadOnlyList<AttendanceByGroupDto>>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "ILogger<AttendanceAnalyticsService>"
+      ]
+    },
+    "AttendanceTakerService": {
+      "name": "AttendanceTakerService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "AttendanceTakerService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "MarkAttendedAsync",
+          "return_type": "Task<MarkAttendanceResultDto>",
+          "is_async": false
+        },
+        {
+          "name": "MarkFamilyAttendedAsync",
+          "return_type": "Task<BulkMarkAttendanceResultDto>",
+          "is_async": false
+        },
+        {
+          "name": "UnmarkAttendedAsync",
+          "return_type": "Task<bool>",
+          "is_async": false
+        },
+        {
+          "name": "GetOccurrenceRosterAsync",
+          "return_type": "Task<IReadOnlyList<OccurrenceRosterEntryDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetFamilyGroupedRosterAsync",
+          "return_type": "Task<IReadOnlyList<FamilyRosterGroupDto>>",
+          "is_async": false
+        },
+        {
+          "name": "BulkMarkAttendedAsync",
+          "return_type": "Task<BulkMarkAttendanceResultDto>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "ILogger<AttendanceTakerService>"
+      ]
+    },
+    "AuthService": {
+      "name": "AuthService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "AuthService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "LoginAsync",
+          "return_type": "Task<TokenResponse?>",
+          "is_async": false
+        },
+        {
+          "name": "RefreshTokenAsync",
+          "return_type": "Task<TokenResponse?>",
+          "is_async": false
+        },
+        {
+          "name": "LogoutAsync",
+          "return_type": "Task<bool>",
+          "is_async": false
+        },
+        {
+          "name": "HashPasswordAsync",
+          "return_type": "Task<string>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IConfiguration",
+        "ILogger<AuthService>"
+      ]
+    },
+    "AuthorizedPickupService": {
+      "name": "AuthorizedPickupService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "AuthorizedPickupService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetAuthorizedPickupsAsync",
+          "return_type": "Task<List<AuthorizedPickupDto>>",
+          "is_async": false
+        },
+        {
+          "name": "AddAuthorizedPickupAsync",
+          "return_type": "Task<AuthorizedPickupDto>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateAuthorizedPickupAsync",
+          "return_type": "Task<AuthorizedPickupDto>",
+          "is_async": false
+        },
+        {
+          "name": "DeleteAuthorizedPickupAsync",
+          "return_type": "Task",
+          "is_async": false
+        },
+        {
+          "name": "VerifyPickupAsync",
+          "return_type": "Task<PickupVerificationResultDto>",
+          "is_async": false
+        },
+        {
+          "name": "RecordPickupAsync",
+          "return_type": "Task<PickupLogDto>",
+          "is_async": false
+        },
+        {
+          "name": "GetPickupHistoryAsync",
+          "return_type": "Task<List<PickupLogDto>>",
+          "is_async": false
+        },
+        {
+          "name": "AutoPopulateFamilyMembersAsync",
+          "return_type": "Task",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "ILogger<AuthorizedPickupService>"
+      ]
+    },
+    "BatchDonationEntryService": {
+      "name": "BatchDonationEntryService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "BatchDonationEntryService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "CreateBatchAsync",
+          "return_type": "Task<Result<ContributionBatchDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetBatchAsync",
+          "return_type": "Task<Result<ContributionBatchDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetBatchSummaryAsync",
+          "return_type": "Task<Result<BatchSummaryDto>>",
+          "is_async": false
+        },
+        {
+          "name": "OpenBatchAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        },
+        {
+          "name": "CloseBatchAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        },
+        {
+          "name": "AddContributionAsync",
+          "return_type": "Task<Result<ContributionDto>>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateContributionAsync",
+          "return_type": "Task<Result<ContributionDto>>",
+          "is_async": false
+        },
+        {
+          "name": "DeleteContributionAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        },
+        {
+          "name": "SearchContributorsAsync",
+          "return_type": "Task<IReadOnlyList<PersonLookupDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetActiveFundsAsync",
+          "return_type": "Task<IReadOnlyList<FundDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetFundAsync",
+          "return_type": "Task<Result<FundDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetBatchesAsync",
+          "return_type": "Task<PagedResult<ContributionBatchDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetBatchContributionsAsync",
+          "return_type": "Task<Result<IReadOnlyList<ContributionDto>>>",
+          "is_async": false
+        },
+        {
+          "name": "GetContributionAsync",
+          "return_type": "Task<Result<ContributionDto>>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IUserContext",
+        "IValidator<CreateBatchRequest>",
+        "IValidator<AddContributionRequest>",
+        "IValidator<UpdateContributionRequest>",
+        "ILogger<BatchDonationEntryService>"
+      ]
+    },
+    "CapacityService": {
+      "name": "CapacityService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "CapacityService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetLocationCapacityAsync",
+          "return_type": "Task<RoomCapacityDto?>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateCapacitySettingsAsync",
+          "return_type": "Task<bool>",
+          "is_async": false
+        },
+        {
+          "name": "CanAcceptCheckinAsync",
+          "return_type": "Task<bool>",
+          "is_async": false
+        },
+        {
+          "name": "GetOverflowLocationAsync",
+          "return_type": "Task<RoomCapacityDto?>",
+          "is_async": false
+        },
+        {
+          "name": "ValidateStaffRatioAsync",
+          "return_type": "Task<bool>",
+          "is_async": false
+        },
+        {
+          "name": "GetMultipleLocationCapacitiesAsync",
+          "return_type": "Task<IReadOnlyList<RoomCapacityDto>>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IUserContext",
+        "ILogger<CapacityService>"
+      ]
+    },
+    "CheckinAttendanceService": {
+      "name": "CheckinAttendanceService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "CheckinAttendanceService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "CheckInAsync",
+          "return_type": "Task<CheckinResultDto>",
+          "is_async": false
+        },
+        {
+          "name": "BatchCheckInAsync",
+          "return_type": "Task<BatchCheckinResultDto>",
+          "is_async": false
+        },
+        {
+          "name": "CheckOutAsync",
+          "return_type": "Task<bool>",
+          "is_async": false
+        },
+        {
+          "name": "GetCurrentAttendanceAsync",
+          "return_type": "Task<IReadOnlyList<AttendanceSummaryDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetPersonAttendanceHistoryAsync",
+          "return_type": "Task<IReadOnlyList<AttendanceSummaryDto>>",
+          "is_async": false
+        },
+        {
+          "name": "ValidateCheckinAsync",
+          "return_type": "Task<CheckinValidationResult>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IUserContext",
+        "ILogger<CheckinAttendanceService>",
+        "ConcurrentOperationHelper",
+        "IFollowUpRetryService"
+      ]
+    },
+    "CheckinConfigurationService": {
+      "name": "CheckinConfigurationService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "CheckinConfigurationService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetConfigurationByCampusAsync",
+          "return_type": "Task<CheckinConfigurationDto?>",
+          "is_async": false
+        },
+        {
+          "name": "GetConfigurationByKioskAsync",
+          "return_type": "Task<CheckinConfigurationDto?>",
+          "is_async": false
+        },
+        {
+          "name": "GetActiveAreasAsync",
+          "return_type": "Task<IReadOnlyList<CheckinAreaDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetAreaByIdKeyAsync",
+          "return_type": "Task<CheckinAreaDto?>",
+          "is_async": false
+        },
+        {
+          "name": "GetLocationCapacityAsync",
+          "return_type": "Task<CheckinLocationDto?>",
+          "is_async": false
+        },
+        {
+          "name": "GetActiveSchedulesAsync",
+          "return_type": "Task<IReadOnlyList<ScheduleDto>>",
+          "is_async": false
+        },
+        {
+          "name": "IsCheckinOpenAsync",
+          "return_type": "Task<bool>",
+          "is_async": false
+        },
+        {
+          "name": "FilterAreasByPersonEligibility",
+          "return_type": "IReadOnlyList<CheckinAreaDto>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IUserContext",
+        "IGradeCalculationService",
+        "ILogger<CheckinConfigurationService>"
+      ]
+    },
+    "CheckinSearchService": {
+      "name": "CheckinSearchService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "CheckinSearchService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "SearchByPhoneAsync",
+          "return_type": "Task<List<CheckinFamilySearchResultDto>>",
+          "is_async": false
+        },
+        {
+          "name": "SearchByNameAsync",
+          "return_type": "Task<List<CheckinFamilySearchResultDto>>",
+          "is_async": false
+        },
+        {
+          "name": "SearchByCodeAsync",
+          "return_type": "Task<CheckinFamilySearchResultDto?>",
+          "is_async": false
+        },
+        {
+          "name": "SearchAsync",
+          "return_type": "Task<List<CheckinFamilySearchResultDto>>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IUserContext",
+        "ILogger<CheckinSearchService>",
+        "CheckinDataLoader"
+      ]
+    },
+    "CommunicationService": {
+      "name": "CommunicationService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "CommunicationService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetByIdKeyAsync",
+          "return_type": "Task<CommunicationDto?>",
+          "is_async": false
+        },
+        {
+          "name": "SearchAsync",
+          "return_type": "Task<PagedResult<CommunicationSummaryDto>>",
+          "is_async": false
+        },
+        {
+          "name": "CreateAsync",
+          "return_type": "Task<Result<CommunicationDto>>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateAsync",
+          "return_type": "Task<Result<CommunicationDto>>",
+          "is_async": false
+        },
+        {
+          "name": "DeleteAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        },
+        {
+          "name": "SendAsync",
+          "return_type": "Task<Result<CommunicationDto>>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IMapper",
+        "IUserContext",
+        "ILogger<CommunicationService>"
+      ]
+    },
+    "CsvParserService": {
+      "name": "CsvParserService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "GeneratePreviewAsync",
+          "return_type": "Task<CsvPreviewDto>",
+          "is_async": false
+        },
+        {
+          "name": "ValidateFileAsync",
+          "return_type": "Task<List<CsvValidationError>>",
+          "is_async": false
+        },
+        {
+          "name": "StreamRowsAsync",
+          "return_type": "IAsyncEnumerable<Dictionary<string, string>>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "ILogger<CsvParserService>"
+      ]
+    },
+    "DashboardService": {
+      "name": "DashboardService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "DashboardService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetStatsAsync",
+          "return_type": "Task<DashboardStatsDto>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "ILogger<DashboardService>"
+      ]
+    },
+    "DataImportService": {
+      "name": "DataImportService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "DataImportService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "CreateTemplateAsync",
+          "return_type": "Task<Result<ImportTemplateDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetTemplatesAsync",
+          "return_type": "Task<IReadOnlyList<ImportTemplateDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetAllTemplatesAsync",
+          "return_type": "Task<IReadOnlyList<ImportTemplateDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetTemplateAsync",
+          "return_type": "Task<Result<ImportTemplateDto>>",
+          "is_async": false
+        },
+        {
+          "name": "DeleteTemplateAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        },
+        {
+          "name": "ValidateMappingsAsync",
+          "return_type": "Task<Result<ImportJobDto>>",
+          "is_async": false
+        },
+        {
+          "name": "StartImportAsync",
+          "return_type": "Task<Result<ImportJobDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetImportStatusAsync",
+          "return_type": "Task<Result<ImportJobDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GenerateErrorReportAsync",
+          "return_type": "Task<Result<Stream>>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "ICsvParserService",
+        "IPersonService",
+        "ILogger<DataImportService>"
+      ]
+    },
+    "DeviceValidationService": {
+      "name": "DeviceValidationService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "ValidateKioskTokenAsync",
+          "return_type": "Task<int?>",
+          "is_async": false
+        },
+        {
+          "name": "RevokeKioskTokenAsync",
+          "return_type": "Task<bool>",
+          "is_async": false
+        },
+        {
+          "name": "GenerateKioskTokenAsync",
+          "return_type": "Task<string>",
+          "is_async": false
+        }
+      ],
+      "dependencies": []
+    },
+    "FamilyService": {
+      "name": "FamilyService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "FamilyService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetByIdAsync",
+          "return_type": "Task<FamilyDto?>",
+          "is_async": false
+        },
+        {
+          "name": "GetByIdKeyAsync",
+          "return_type": "Task<FamilyDto?>",
+          "is_async": false
+        },
+        {
+          "name": "SearchAsync",
+          "return_type": "Task<PagedResult<FamilySummaryDto>>",
+          "is_async": false
+        },
+        {
+          "name": "CreateFamilyAsync",
+          "return_type": "Task<Result<FamilyDto>>",
+          "is_async": false
+        },
+        {
+          "name": "AddFamilyMemberAsync",
+          "return_type": "Task<Result<FamilyMemberDto>>",
+          "is_async": false
+        },
+        {
+          "name": "RemoveFamilyMemberAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        },
+        {
+          "name": "SetPrimaryFamilyAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateAddressAsync",
+          "return_type": "Task<Result<FamilyDto>>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IMapper",
+        "IUserContext",
+        "IValidator<CreateFamilyRequest>",
+        "IValidator<AddFamilyMemberRequest>",
+        "ILogger<FamilyService>"
+      ]
+    },
+    "FileService": {
+      "name": "FileService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "UploadFileAsync",
+          "return_type": "Task<FileMetadataDto>",
+          "is_async": false
+        },
+        {
+          "name": "GetFileMetadataAsync",
+          "return_type": "Task<FileMetadataDto?>",
+          "is_async": false
+        },
+        {
+          "name": "DownloadFileAsync",
+          "return_type": "Task<(Stream Stream, string FileName, string MimeType)?>",
+          "is_async": false
+        },
+        {
+          "name": "DeleteFileAsync",
+          "return_type": "Task<bool>",
+          "is_async": false
+        }
+      ],
+      "dependencies": []
+    },
+    "FirstTimeVisitorService": {
+      "name": "FirstTimeVisitorService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "FirstTimeVisitorService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetTodaysFirstTimersAsync",
+          "return_type": "Task<IReadOnlyList<FirstTimeVisitorDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetFirstTimersByDateRangeAsync",
+          "return_type": "Task<IReadOnlyList<FirstTimeVisitorDto>>",
+          "is_async": false
+        },
+        {
+          "name": "IsFirstTimeForGroupTypeAsync",
+          "return_type": "Task<bool>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "ILogger<FirstTimeVisitorService>"
+      ]
+    },
+    "FollowUpRetryService": {
+      "name": "FollowUpRetryService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "FollowUpRetryService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "QueueFollowUpCreation",
+          "return_type": "string",
+          "is_async": false
+        },
+        {
+          "name": "ProcessFollowUpCreationAsync",
+          "return_type": "Task",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IFollowUpService",
+        "IBackgroundJobService",
+        "ILogger<FollowUpRetryService>"
+      ]
+    },
+    "FollowUpService": {
+      "name": "FollowUpService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "FollowUpService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "CreateFollowUpAsync",
+          "return_type": "Task<FollowUp>",
+          "is_async": false
+        },
+        {
+          "name": "GetPendingFollowUpsAsync",
+          "return_type": "Task<IReadOnlyList<FollowUpDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetByIdKeyAsync",
+          "return_type": "Task<FollowUpDto?>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateStatusAsync",
+          "return_type": "Task<Result<FollowUpDto>>",
+          "is_async": false
+        },
+        {
+          "name": "AssignFollowUpAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "ILogger<FollowUpService>"
+      ]
+    },
+    "GradeCalculationService": {
+      "name": "GradeCalculationService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "CalculateGrade",
+          "return_type": "int?",
+          "is_async": false
+        },
+        {
+          "name": "CalculateAgeInMonths",
+          "return_type": "int?",
+          "is_async": false
+        }
+      ],
+      "dependencies": []
+    },
+    "GroupMemberRequestService": {
+      "name": "GroupMemberRequestService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "GroupMemberRequestService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "SubmitRequestAsync",
+          "return_type": "Task<Result<GroupMemberRequestDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetPendingRequestsAsync",
+          "return_type": "Task<Result<IReadOnlyList<GroupMemberRequestDto>>>",
+          "is_async": false
+        },
+        {
+          "name": "ProcessRequestAsync",
+          "return_type": "Task<Result<GroupMemberRequestDto>>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IUserContext",
+        "IMapper",
+        "IValidator<SubmitMembershipRequestDto>",
+        "IValidator<ProcessMembershipRequestDto>",
+        "ILogger<GroupMemberRequestService>"
+      ]
+    },
+    "GroupService": {
+      "name": "GroupService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "GroupService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetByIdAsync",
+          "return_type": "Task<GroupDto?>",
+          "is_async": false
+        },
+        {
+          "name": "GetByIdKeyAsync",
+          "return_type": "Task<GroupDto?>",
+          "is_async": false
+        },
+        {
+          "name": "SearchAsync",
+          "return_type": "Task<PagedResult<GroupSummaryDto>>",
+          "is_async": false
+        },
+        {
+          "name": "CreateAsync",
+          "return_type": "Task<Result<GroupDto>>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateAsync",
+          "return_type": "Task<Result<GroupDto>>",
+          "is_async": false
+        },
+        {
+          "name": "DeleteAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        },
+        {
+          "name": "AddMemberAsync",
+          "return_type": "Task<Result<GroupMemberDto>>",
+          "is_async": false
+        },
+        {
+          "name": "RemoveMemberAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        },
+        {
+          "name": "GetMembersAsync",
+          "return_type": "Task<IReadOnlyList<GroupMemberDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetParentGroupAsync",
+          "return_type": "Task<GroupSummaryDto?>",
+          "is_async": false
+        },
+        {
+          "name": "GetChildGroupsAsync",
+          "return_type": "Task<IReadOnlyList<GroupSummaryDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetSchedulesAsync",
+          "return_type": "Task<IReadOnlyList<GroupScheduleDto>>",
+          "is_async": false
+        },
+        {
+          "name": "AddScheduleAsync",
+          "return_type": "Task<Result<GroupScheduleDto>>",
+          "is_async": false
+        },
+        {
+          "name": "RemoveScheduleAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IMapper",
+        "IValidator<CreateGroupRequest>",
+        "IValidator<UpdateGroupRequest>",
+        "IValidator<AddGroupMemberRequest>",
+        "ILogger<GroupService>"
+      ]
+    },
+    "GroupTypeService": {
+      "name": "GroupTypeService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "GroupTypeService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetAllGroupTypesAsync",
+          "return_type": "Task<IReadOnlyList<GroupTypeDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetGroupTypeByIdKeyAsync",
+          "return_type": "Task<GroupTypeDetailDto?>",
+          "is_async": false
+        },
+        {
+          "name": "CreateGroupTypeAsync",
+          "return_type": "Task<Result<GroupTypeDto>>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateGroupTypeAsync",
+          "return_type": "Task<Result<GroupTypeDto>>",
+          "is_async": false
+        },
+        {
+          "name": "ArchiveGroupTypeAsync",
+          "return_type": "Task<Result<bool>>",
+          "is_async": false
+        },
+        {
+          "name": "GetGroupsByTypeAsync",
+          "return_type": "Task<IReadOnlyList<GroupSummaryDto>>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IValidator<CreateGroupTypeRequest>",
+        "IValidator<UpdateGroupTypeRequest>",
+        "ILogger<GroupTypeService>"
+      ]
+    },
+    "LabelGenerationService": {
+      "name": "LabelGenerationService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "LabelGenerationService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GenerateLabelsAsync",
+          "return_type": "Task<LabelSetDto>",
+          "is_async": false
+        },
+        {
+          "name": "GenerateBatchLabelsAsync",
+          "return_type": "Task<IReadOnlyList<LabelSetDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetTemplatesAsync",
+          "return_type": "Task<IReadOnlyList<LabelTemplateDto>>",
+          "is_async": false
+        },
+        {
+          "name": "PreviewLabelAsync",
+          "return_type": "Task<LabelPreviewDto>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IUserContext",
+        "ILogger<LabelGenerationService>"
+      ]
+    },
+    "MyGroupsService": {
+      "name": "MyGroupsService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "MyGroupsService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetMyGroupsAsync",
+          "return_type": "Task<IReadOnlyList<MyGroupDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetGroupMembersWithContactInfoAsync",
+          "return_type": "Task<Result<IReadOnlyList<GroupMemberDetailDto>>>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateGroupMemberAsync",
+          "return_type": "Task<Result<GroupMemberDetailDto>>",
+          "is_async": false
+        },
+        {
+          "name": "RemoveGroupMemberAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        },
+        {
+          "name": "RecordAttendanceAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IUserContext",
+        "IValidator<UpdateGroupMemberRequest>",
+        "IValidator<RecordAttendanceRequest>",
+        "ILogger<MyGroupsService>"
+      ]
+    },
+    "MyProfileService": {
+      "name": "MyProfileService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "MyProfileService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetMyProfileAsync",
+          "return_type": "Task<Result<MyProfileDto>>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateMyProfileAsync",
+          "return_type": "Task<Result<MyProfileDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetMyFamilyAsync",
+          "return_type": "Task<Result<IReadOnlyList<MyFamilyMemberDto>>>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateFamilyMemberAsync",
+          "return_type": "Task<Result<MyFamilyMemberDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetMyInvolvementAsync",
+          "return_type": "Task<Result<MyInvolvementDto>>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IUserContext",
+        "IValidator<UpdateMyProfileRequest>",
+        "IValidator<UpdateFamilyMemberRequest>",
+        "ILogger<MyProfileService>"
+      ]
+    },
+    "ParentPagingService": {
+      "name": "ParentPagingService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "ParentPagingService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "AssignPagerAsync",
+          "return_type": "Task<PagerAssignmentDto>",
+          "is_async": false
+        },
+        {
+          "name": "SendPageAsync",
+          "return_type": "Task<Result<PagerMessageDto>>",
+          "is_async": false
+        },
+        {
+          "name": "SearchPagerAsync",
+          "return_type": "Task<List<PagerAssignmentDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetPageHistoryAsync",
+          "return_type": "Task<PageHistoryDto?>",
+          "is_async": false
+        },
+        {
+          "name": "GetNextPagerNumberAsync",
+          "return_type": "Task<int>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "ISmsService",
+        "ILogger<ParentPagingService>"
+      ]
+    },
+    "PersonService": {
+      "name": "PersonService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "PersonService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetByIdAsync",
+          "return_type": "Task<PersonDto?>",
+          "is_async": false
+        },
+        {
+          "name": "GetByIdKeyAsync",
+          "return_type": "Task<PersonDto?>",
+          "is_async": false
+        },
+        {
+          "name": "SearchAsync",
+          "return_type": "Task<PagedResult<PersonSummaryDto>>",
+          "is_async": false
+        },
+        {
+          "name": "CreateAsync",
+          "return_type": "Task<Result<PersonDto>>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateAsync",
+          "return_type": "Task<Result<PersonDto>>",
+          "is_async": false
+        },
+        {
+          "name": "DeleteAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        },
+        {
+          "name": "GetFamilyAsync",
+          "return_type": "Task<Result<FamilySummaryDto?>>",
+          "is_async": false
+        },
+        {
+          "name": "UpdatePhotoAsync",
+          "return_type": "Task<Result<PersonDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetGroupsAsync",
+          "return_type": "Task<PagedResult<PersonGroupMembershipDto>>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IMapper",
+        "IValidator<CreatePersonRequest>",
+        "IValidator<UpdatePersonRequest>",
+        "IUserContext",
+        "ILogger<PersonService>"
+      ]
+    },
+    "PublicGroupService": {
+      "name": "PublicGroupService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "PublicGroupService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "SearchPublicGroupsAsync",
+          "return_type": "Task<PagedResult<PublicGroupDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetPublicGroupAsync",
+          "return_type": "Task<PublicGroupDto?>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "ILogger<PublicGroupService>"
+      ]
+    },
+    "RoomRosterService": {
+      "name": "RoomRosterService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "RoomRosterService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetRoomRosterAsync",
+          "return_type": "Task<RoomRosterDto>",
+          "is_async": false
+        },
+        {
+          "name": "GetMultipleRoomRostersAsync",
+          "return_type": "Task<IReadOnlyList<RoomRosterDto>>",
+          "is_async": false
+        },
+        {
+          "name": "CheckOutFromRosterAsync",
+          "return_type": "Task<bool>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IUserContext",
+        "ILogger<RoomRosterService>",
+        "IGradeCalculationService",
+        "ICheckinAttendanceService"
+      ]
+    },
+    "ScheduleService": {
+      "name": "ScheduleService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "ScheduleService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetByIdAsync",
+          "return_type": "Task<ScheduleDto?>",
+          "is_async": false
+        },
+        {
+          "name": "GetByIdKeyAsync",
+          "return_type": "Task<ScheduleDto?>",
+          "is_async": false
+        },
+        {
+          "name": "SearchAsync",
+          "return_type": "Task<PagedResult<ScheduleSummaryDto>>",
+          "is_async": false
+        },
+        {
+          "name": "CreateAsync",
+          "return_type": "Task<Result<ScheduleDto>>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateAsync",
+          "return_type": "Task<Result<ScheduleDto>>",
+          "is_async": false
+        },
+        {
+          "name": "DeleteAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        },
+        {
+          "name": "GetOccurrencesAsync",
+          "return_type": "Task<IReadOnlyList<ScheduleOccurrenceDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetNextOccurrenceAsync",
+          "return_type": "Task<ScheduleOccurrenceDto?>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IMapper",
+        "IValidator<CreateScheduleRequest>",
+        "IValidator<UpdateScheduleRequest>",
+        "ILogger<ScheduleService>"
+      ]
+    },
+    "SecurityClaimService": {
+      "name": "SecurityClaimService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "HasClaimAsync",
+          "return_type": "Task<bool>",
+          "is_async": false
+        },
+        {
+          "name": "HasAnyClaimAsync",
+          "return_type": "Task<bool>",
+          "is_async": false
+        },
+        {
+          "name": "HasAllClaimsAsync",
+          "return_type": "Task<bool>",
+          "is_async": false
+        },
+        {
+          "name": "GetPersonClaimsAsync",
+          "return_type": "Task<IEnumerable<string>>",
+          "is_async": false
+        },
+        {
+          "name": "GetPersonRolesAsync",
+          "return_type": "Task<IEnumerable<SecurityRoleDto>>",
+          "is_async": false
+        }
+      ],
+      "dependencies": []
+    },
+    "SupervisorModeService": {
+      "name": "SupervisorModeService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "SupervisorModeService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "LoginAsync",
+          "return_type": "Task<SupervisorLoginResponse?>",
+          "is_async": false
+        },
+        {
+          "name": "ValidateSessionAsync",
+          "return_type": "Task<SupervisorInfoDto?>",
+          "is_async": false
+        },
+        {
+          "name": "LogoutAsync",
+          "return_type": "Task<bool>",
+          "is_async": false
+        },
+        {
+          "name": "LogActionAsync",
+          "return_type": "Task",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "ILogger<SupervisorModeService>"
+      ]
+    },
+    "IAttendanceAnalyticsService": {
+      "name": "IAttendanceAnalyticsService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IAttendanceTakerService": {
+      "name": "IAttendanceTakerService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IAuthService": {
+      "name": "IAuthService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IAuthorizedPickupService": {
+      "name": "IAuthorizedPickupService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IBackgroundJobService": {
+      "name": "IBackgroundJobService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IBatchDonationEntryService": {
+      "name": "IBatchDonationEntryService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "ICapacityService": {
+      "name": "ICapacityService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "ICheckinAttendanceService": {
+      "name": "ICheckinAttendanceService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "ICheckinConfigurationService": {
+      "name": "ICheckinConfigurationService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "ICheckinSearchService": {
+      "name": "ICheckinSearchService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "ICommunicationService": {
+      "name": "ICommunicationService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "ICsvParserService": {
+      "name": "ICsvParserService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IDashboardService": {
+      "name": "IDashboardService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IDataImportService": {
+      "name": "IDataImportService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IDeviceValidationService": {
+      "name": "IDeviceValidationService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IFamilyService": {
+      "name": "IFamilyService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IFileService": {
+      "name": "IFileService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IFileStorageService": {
+      "name": "IFileStorageService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IFirstTimeVisitorService": {
+      "name": "IFirstTimeVisitorService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IFollowUpRetryService": {
+      "name": "IFollowUpRetryService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IFollowUpService": {
+      "name": "IFollowUpService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IGradeCalculationService": {
+      "name": "IGradeCalculationService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IGroupMemberRequestService": {
+      "name": "IGroupMemberRequestService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IGroupService": {
+      "name": "IGroupService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IGroupTypeService": {
+      "name": "IGroupTypeService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "ILabelGenerationService": {
+      "name": "ILabelGenerationService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IMyGroupsService": {
+      "name": "IMyGroupsService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IMyProfileService": {
+      "name": "IMyProfileService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IParentPagingService": {
+      "name": "IParentPagingService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IPersonService": {
+      "name": "IPersonService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IPublicGroupService": {
+      "name": "IPublicGroupService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IRoomRosterService": {
+      "name": "IRoomRosterService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IScheduleService": {
+      "name": "IScheduleService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "ISecurityClaimService": {
+      "name": "ISecurityClaimService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "ISmsService": {
+      "name": "ISmsService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [
+        {
+          "name": "SmsResult",
+          "return_type": "record",
+          "is_async": false
+        }
+      ],
+      "dependencies": []
+    },
+    "ISupervisorModeService": {
+      "name": "ISupervisorModeService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    }
+  },
+  "controllers": {
+    "AnalyticsController": {
+      "name": "AnalyticsController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/analytics",
+      "endpoints": [
+        {
+          "name": "GetAttendanceSummary",
+          "method": "GET",
+          "route": "attendance",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetAttendanceTrends",
+          "method": "GET",
+          "route": "attendance/trends",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetAttendanceByGroup",
+          "method": "GET",
+          "route": "attendance/by-group",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetTodaysFirstTimeVisitors",
+          "method": "GET",
+          "route": "first-time-visitors/today",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetFirstTimeVisitorsByDateRange",
+          "method": "GET",
+          "route": "first-time-visitors",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": false,
+        "problem_details": true,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "IAttendanceAnalyticsService",
+        "IFirstTimeVisitorService",
+        "ILogger<AnalyticsController>"
+      ]
+    },
+    "AuthController": {
+      "name": "AuthController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/auth",
+      "endpoints": [
+        {
+          "name": "Login",
+          "method": "POST",
+          "route": "login",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "RefreshToken",
+          "method": "POST",
+          "route": "refresh",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Logout",
+          "method": "POST",
+          "route": "logout",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": false,
+        "problem_details": true,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "IAuthService",
+        "IValidator<LoginRequest>",
+        "ILogger<AuthController>"
+      ]
+    },
+    "AuthorizedPickupController": {
+      "name": "AuthorizedPickupController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1",
+      "endpoints": [
+        {
+          "name": "GetAuthorizedPickups",
+          "method": "GET",
+          "route": "people/{childIdKey}/authorized-pickups",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "CreateAuthorizedPickup",
+          "method": "POST",
+          "route": "people/{childIdKey}/authorized-pickups",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "AutoPopulateFamilyMembers",
+          "method": "POST",
+          "route": "people/{childIdKey}/authorized-pickups/auto-populate",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "UpdateAuthorizedPickup",
+          "method": "PUT",
+          "route": "authorized-pickups/{pickupIdKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "DeleteAuthorizedPickup",
+          "method": "DELETE",
+          "route": "authorized-pickups/{pickupIdKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": false,
+        "problem_details": true,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "IAuthorizedPickupService",
+        "ILogger<AuthorizedPickupController>"
+      ]
+    },
+    "CampusesController": {
+      "name": "CampusesController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/[controller]",
+      "endpoints": [],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": false,
+        "problem_details": false,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "IApplicationDbContext",
+        "ILogger<CampusesController>"
+      ]
+    },
+    "CheckinController": {
+      "name": "CheckinController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/[controller]",
+      "endpoints": [
+        {
+          "name": "GetActiveAreas",
+          "method": "GET",
+          "route": "areas",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetConfiguration",
+          "method": "GET",
+          "route": "configuration",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "SearchFamilies",
+          "method": "GET",
+          "route": "search",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetAttendanceLabels",
+          "method": "GET",
+          "route": "labels/{attendanceIdKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetLocationAttendance",
+          "method": "GET",
+          "route": "locations/{locationIdKey}/attendance",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetRoomRoster",
+          "method": "GET",
+          "route": "roster/{locationIdKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetMultipleRoomRosters",
+          "method": "GET",
+          "route": "roster",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetLocationCapacity",
+          "method": "GET",
+          "route": "locations/{locationIdKey}/capacity",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetOverflowLocation",
+          "method": "GET",
+          "route": "locations/{locationIdKey}/overflow",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "RecordAttendance",
+          "method": "POST",
+          "route": "attendance",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "CheckOut",
+          "method": "POST",
+          "route": "checkout/{attendanceIdKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "SupervisorLogin",
+          "method": "POST",
+          "route": "supervisor/login",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "SupervisorLogout",
+          "method": "POST",
+          "route": "supervisor/logout",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "SupervisorReprint",
+          "method": "POST",
+          "route": "supervisor/reprint/{attendanceIdKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "UpdateLocationCapacity",
+          "method": "PUT",
+          "route": "locations/{locationIdKey}/capacity",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": false,
+        "problem_details": true,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "ICheckinConfigurationService",
+        "ICheckinSearchService",
+        "ICheckinAttendanceService",
+        "ILabelGenerationService",
+        "ISupervisorModeService",
+        "IRoomRosterService",
+        "ICapacityService",
+        "ILogger<CheckinController>"
+      ]
+    },
+    "CommunicationsController": {
+      "name": "CommunicationsController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/[controller]",
+      "endpoints": [
+        {
+          "name": "GetByIdKey",
+          "method": "GET",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Send",
+          "method": "POST",
+          "route": "{idKey}/send",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Update",
+          "method": "PUT",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Delete",
+          "method": "DELETE",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": true,
+        "result_pattern": true
+      },
+      "dependencies": [
+        "ICommunicationService",
+        "ILogger<CommunicationsController>"
+      ]
+    },
+    "DashboardController": {
+      "name": "DashboardController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/dashboard",
+      "endpoints": [
+        {
+          "name": "GetStats",
+          "method": "GET",
+          "route": "stats",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": false,
+        "problem_details": false,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "IDashboardService",
+        "ILogger<DashboardController>"
+      ]
+    },
+    "FamiliesController": {
+      "name": "FamiliesController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/[controller]",
+      "endpoints": [
+        {
+          "name": "GetByIdKey",
+          "method": "GET",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetMembers",
+          "method": "GET",
+          "route": "{idKey}/members",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "AddMember",
+          "method": "POST",
+          "route": "{idKey}/members",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "RemoveMember",
+          "method": "DELETE",
+          "route": "{idKey}/members/{personIdKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": true,
+        "result_pattern": true
+      },
+      "dependencies": [
+        "IFamilyService",
+        "ILogger<FamiliesController>"
+      ]
+    },
+    "FilesController": {
+      "name": "FilesController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/files",
+      "endpoints": [
+        {
+          "name": "GetMetadata",
+          "method": "GET",
+          "route": "{idKey}/metadata",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Download",
+          "method": "GET",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Delete",
+          "method": "DELETE",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": false,
+        "result_pattern": true
+      },
+      "dependencies": []
+    },
+    "FollowUpController": {
+      "name": "FollowUpController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/followups",
+      "endpoints": [
+        {
+          "name": "GetPending",
+          "method": "GET",
+          "route": "pending",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetByIdKey",
+          "method": "GET",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "UpdateStatus",
+          "method": "PUT",
+          "route": "{idKey}/status",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Assign",
+          "method": "PUT",
+          "route": "{idKey}/assign",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": true,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "IFollowUpService",
+        "ILogger<FollowUpController>"
+      ]
+    },
+    "GivingController": {
+      "name": "GivingController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/giving",
+      "endpoints": [
+        {
+          "name": "GetFundsAsync",
+          "method": "GET",
+          "route": "funds",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetFundAsync",
+          "method": "GET",
+          "route": "funds/{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetBatchesAsync",
+          "method": "GET",
+          "route": "batches",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetBatchAsync",
+          "method": "GET",
+          "route": "batches/{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetBatchSummaryAsync",
+          "method": "GET",
+          "route": "batches/{idKey}/summary",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetBatchContributionsAsync",
+          "method": "GET",
+          "route": "batches/{batchIdKey}/contributions",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetContributionAsync",
+          "method": "GET",
+          "route": "contributions/{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "CreateBatchAsync",
+          "method": "POST",
+          "route": "batches",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "OpenBatchAsync",
+          "method": "POST",
+          "route": "batches/{idKey}/open",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "CloseBatchAsync",
+          "method": "POST",
+          "route": "batches/{idKey}/close",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "AddContributionAsync",
+          "method": "POST",
+          "route": "batches/{batchIdKey}/contributions",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "UpdateContributionAsync",
+          "method": "PUT",
+          "route": "contributions/{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "DeleteContributionAsync",
+          "method": "DELETE",
+          "route": "contributions/{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": true,
+        "result_pattern": true
+      },
+      "dependencies": [
+        "IBatchDonationEntryService",
+        "ILogger<GivingController>"
+      ]
+    },
+    "GroupMembershipRequestsController": {
+      "name": "GroupMembershipRequestsController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/groups/{groupIdKey}/membership-requests",
+      "endpoints": [
+        {
+          "name": "ProcessRequest",
+          "method": "PUT",
+          "route": "{requestIdKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": false,
+        "problem_details": true,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "IGroupMemberRequestService",
+        "ILogger<GroupMembershipRequestsController>"
+      ]
+    },
+    "GroupTypesController": {
+      "name": "GroupTypesController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/admin/group-types",
+      "endpoints": [
+        {
+          "name": "GetByIdKey",
+          "method": "GET",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetGroups",
+          "method": "GET",
+          "route": "{idKey}/groups",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Update",
+          "method": "PUT",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Archive",
+          "method": "DELETE",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": true,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "IGroupTypeService",
+        "ILogger<GroupTypesController>"
+      ]
+    },
+    "GroupsController": {
+      "name": "GroupsController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/[controller]",
+      "endpoints": [
+        {
+          "name": "GetByIdKey",
+          "method": "GET",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetMembers",
+          "method": "GET",
+          "route": "{idKey}/members",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetChildren",
+          "method": "GET",
+          "route": "{idKey}/children",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetSchedules",
+          "method": "GET",
+          "route": "{idKey}/schedules",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "AddMember",
+          "method": "POST",
+          "route": "{idKey}/members",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "AddSchedule",
+          "method": "POST",
+          "route": "{idKey}/schedules",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Update",
+          "method": "PUT",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Delete",
+          "method": "DELETE",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "RemoveMember",
+          "method": "DELETE",
+          "route": "{idKey}/members/{personIdKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "RemoveSchedule",
+          "method": "DELETE",
+          "route": "{idKey}/schedules/{scheduleIdKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": true,
+        "result_pattern": true
+      },
+      "dependencies": [
+        "IGroupService",
+        "ILogger<GroupsController>"
+      ]
+    },
+    "ImportController": {
+      "name": "ImportController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/import",
+      "endpoints": [
+        {
+          "name": "GetTemplates",
+          "method": "GET",
+          "route": "templates",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetTemplate",
+          "method": "GET",
+          "route": "templates/{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetJobStatus",
+          "method": "GET",
+          "route": "jobs/{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "DownloadErrors",
+          "method": "GET",
+          "route": "jobs/{idKey}/errors",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "UploadPreview",
+          "method": "POST",
+          "route": "upload",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "CreateTemplate",
+          "method": "POST",
+          "route": "templates",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "ValidateImport",
+          "method": "POST",
+          "route": "validate",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "ExecuteImport",
+          "method": "POST",
+          "route": "execute",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "DeleteTemplate",
+          "method": "DELETE",
+          "route": "templates/{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": false,
+        "result_pattern": false
+      },
+      "dependencies": []
+    },
+    "MyGroupsController": {
+      "name": "MyGroupsController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/my-groups",
+      "endpoints": [
+        {
+          "name": "GetGroupMembersWithContactInfo",
+          "method": "GET",
+          "route": "{groupIdKey}/members",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "RecordAttendance",
+          "method": "POST",
+          "route": "{groupIdKey}/attendance",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "UpdateGroupMember",
+          "method": "PUT",
+          "route": "{groupIdKey}/members/{memberIdKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "RemoveGroupMember",
+          "method": "DELETE",
+          "route": "{groupIdKey}/members/{memberIdKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": false,
+        "problem_details": false,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "IMyGroupsService"
+      ]
+    },
+    "MyProfileController": {
+      "name": "MyProfileController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/my_profile",
+      "endpoints": [
+        {
+          "name": "GetMyProfile",
+          "method": "GET",
+          "route": "api/v1/my-profile",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetMyFamily",
+          "method": "GET",
+          "route": "api/v1/my-family",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetMyInvolvement",
+          "method": "GET",
+          "route": "api/v1/my-involvement",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "UpdateMyProfile",
+          "method": "PUT",
+          "route": "api/v1/my-profile",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "UpdateFamilyMember",
+          "method": "PUT",
+          "route": "api/v1/my-family/members/{personIdKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": false,
+        "problem_details": false,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "IMyProfileService"
+      ]
+    },
+    "PagerController": {
+      "name": "PagerController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/pager",
+      "endpoints": [
+        {
+          "name": "SearchPagers",
+          "method": "GET",
+          "route": "search",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetPageHistory",
+          "method": "GET",
+          "route": "{pagerNumber}/history",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetNextPagerNumber",
+          "method": "GET",
+          "route": "next-number",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "SendPage",
+          "method": "POST",
+          "route": "send",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": false,
+        "problem_details": true,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "IParentPagingService",
+        "ILogger<PagerController>"
+      ]
+    },
+    "PeopleController": {
+      "name": "PeopleController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/[controller]",
+      "endpoints": [
+        {
+          "name": "GetByIdKey",
+          "method": "GET",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetGroups",
+          "method": "GET",
+          "route": "{idKey}/groups",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetFamily",
+          "method": "GET",
+          "route": "{idKey}/family",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "UploadPhoto",
+          "method": "POST",
+          "route": "{idKey}/photo",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Update",
+          "method": "PUT",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Delete",
+          "method": "DELETE",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": true,
+        "result_pattern": true
+      },
+      "dependencies": [
+        "IPersonService",
+        "IFileService",
+        "ILogger<PeopleController>"
+      ]
+    },
+    "PickupController": {
+      "name": "PickupController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/checkin",
+      "endpoints": [
+        {
+          "name": "GetPickupHistory",
+          "method": "GET",
+          "route": "people/{childIdKey}/pickup-history",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "VerifyPickup",
+          "method": "POST",
+          "route": "verify-pickup",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "RecordPickup",
+          "method": "POST",
+          "route": "record-pickup",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": false,
+        "problem_details": true,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "IAuthorizedPickupService",
+        "ILogger<PickupController>"
+      ]
+    },
+    "PublicGroupsController": {
+      "name": "PublicGroupsController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/groups/public",
+      "endpoints": [
+        {
+          "name": "GetGroup",
+          "method": "GET",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": true,
+        "result_pattern": true
+      },
+      "dependencies": [
+        "IPublicGroupService",
+        "ILogger<PublicGroupsController>"
+      ]
+    },
+    "SchedulesController": {
+      "name": "SchedulesController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/[controller]",
+      "endpoints": [
+        {
+          "name": "GetByIdKey",
+          "method": "GET",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetOccurrences",
+          "method": "GET",
+          "route": "{idKey}/occurrences",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Update",
+          "method": "PUT",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Delete",
+          "method": "DELETE",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": true,
+        "result_pattern": true
+      },
+      "dependencies": [
+        "IScheduleService",
+        "ILogger<SchedulesController>"
+      ]
+    }
+  },
+  "edges": [
+    {
+      "source": "AttendanceAnalyticsDto",
+      "target": "Attendance",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "AttendanceByGroupDto",
+      "target": "Attendance",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "FamilyRosterGroupDto",
+      "target": "Family",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "AttendanceTrendDto",
+      "target": "Attendance",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "AuthorizedPickupDto",
+      "target": "AuthorizedPickup",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "AttendanceSummaryDto",
+      "target": "Attendance",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "ScheduleDto",
+      "target": "Schedule",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CommunicationDto",
+      "target": "Communication",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CommunicationSummaryDto",
+      "target": "Communication",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CommunicationRecipientDto",
+      "target": "CommunicationRecipient",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "FamilyDto",
+      "target": "Family",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "FamilyMemberDto",
+      "target": "FamilyMember",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "LocationDto",
+      "target": "Location",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "GroupTypeRoleDto",
+      "target": "GroupTypeRole",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "FollowUpDto",
+      "target": "FollowUp",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "GroupDto",
+      "target": "Group",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "GroupSummaryDto",
+      "target": "Group",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "GroupMemberDto",
+      "target": "GroupMember",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "GroupMemberDetailDto",
+      "target": "Group",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "GroupMemberRequestDto",
+      "target": "GroupMemberRequest",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "GroupScheduleDto",
+      "target": "GroupSchedule",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "GroupTypeDto",
+      "target": "GroupType",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "GroupTypeDetailDto",
+      "target": "Group",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "GroupTypeSummaryDto",
+      "target": "Group",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "PagerAssignmentDto",
+      "target": "PagerAssignment",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "PagerMessageDto",
+      "target": "PagerMessage",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "PersonDto",
+      "target": "Person",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "PersonSummaryDto",
+      "target": "Person",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "PhoneNumberDto",
+      "target": "PhoneNumber",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "DefinedValueDto",
+      "target": "DefinedValue",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "FamilySummaryDto",
+      "target": "Family",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CampusSummaryDto",
+      "target": "Campus",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "PersonGroupMembershipDto",
+      "target": "Person",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "PickupLogDto",
+      "target": "PickupLog",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "ScheduleSummaryDto",
+      "target": "Schedule",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "ScheduleOccurrenceDto",
+      "target": "Schedule",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "AnalyticsController",
+      "target": "IAttendanceAnalyticsService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "AnalyticsController",
+      "target": "IFirstTimeVisitorService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "AuthController",
+      "target": "IAuthService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "AuthorizedPickupController",
+      "target": "IAuthorizedPickupService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "CheckinController",
+      "target": "ICheckinConfigurationService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "CheckinController",
+      "target": "ICheckinSearchService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "CheckinController",
+      "target": "ICheckinAttendanceService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "CheckinController",
+      "target": "ILabelGenerationService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "CheckinController",
+      "target": "ISupervisorModeService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "CheckinController",
+      "target": "IRoomRosterService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "CheckinController",
+      "target": "ICapacityService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "CommunicationsController",
+      "target": "ICommunicationService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "DashboardController",
+      "target": "IDashboardService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "FamiliesController",
+      "target": "IFamilyService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "FollowUpController",
+      "target": "IFollowUpService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "GivingController",
+      "target": "IBatchDonationEntryService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "GroupMembershipRequestsController",
+      "target": "IGroupMemberRequestService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "GroupTypesController",
+      "target": "IGroupTypeService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "GroupsController",
+      "target": "IGroupService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "MyGroupsController",
+      "target": "IMyGroupsService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "MyProfileController",
+      "target": "IMyProfileService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "PagerController",
+      "target": "IParentPagingService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "PeopleController",
+      "target": "IPersonService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "PeopleController",
+      "target": "IFileService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "PickupController",
+      "target": "IAuthorizedPickupService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "PublicGroupsController",
+      "target": "IPublicGroupService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "SchedulesController",
+      "target": "IScheduleService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "AttendanceAnalyticsService",
+      "target": "AttendanceAnalyticsDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "AttendanceAnalyticsService",
+      "target": "AttendanceTrendDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "AttendanceAnalyticsService",
+      "target": "AttendanceByGroupDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "AttendanceTakerService",
+      "target": "MarkAttendanceResultDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "AttendanceTakerService",
+      "target": "MarkAttendanceResultDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "AttendanceTakerService",
+      "target": "OccurrenceRosterEntryDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "AttendanceTakerService",
+      "target": "FamilyRosterGroupDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "AttendanceTakerService",
+      "target": "MarkAttendanceResultDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "AuthorizedPickupService",
+      "target": "AuthorizedPickupDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "AuthorizedPickupService",
+      "target": "AuthorizedPickupDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "AuthorizedPickupService",
+      "target": "AuthorizedPickupDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "AuthorizedPickupService",
+      "target": "PickupVerificationResultDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "AuthorizedPickupService",
+      "target": "PickupLogDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "AuthorizedPickupService",
+      "target": "PickupLogDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CapacityService",
+      "target": "RoomCapacityDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CapacityService",
+      "target": "RoomCapacityDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CapacityService",
+      "target": "RoomCapacityDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CheckinAttendanceService",
+      "target": "CheckinResultDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CheckinAttendanceService",
+      "target": "CheckinResultDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CheckinAttendanceService",
+      "target": "AttendanceSummaryDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CheckinAttendanceService",
+      "target": "AttendanceSummaryDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CheckinConfigurationService",
+      "target": "CheckinConfigurationDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CheckinConfigurationService",
+      "target": "CheckinConfigurationDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CheckinConfigurationService",
+      "target": "CheckinAreaDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CheckinConfigurationService",
+      "target": "CheckinAreaDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CheckinConfigurationService",
+      "target": "CheckinLocationDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CheckinConfigurationService",
+      "target": "ScheduleDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CheckinConfigurationService",
+      "target": "CheckinAreaDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CheckinSearchService",
+      "target": "CheckinFamilySearchResultDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CheckinSearchService",
+      "target": "CheckinFamilySearchResultDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CheckinSearchService",
+      "target": "CheckinFamilySearchResultDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CheckinSearchService",
+      "target": "CheckinFamilySearchResultDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CommunicationService",
+      "target": "CommunicationDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CommunicationService",
+      "target": "CommunicationSummaryDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CommunicationService",
+      "target": "CommunicationDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CommunicationService",
+      "target": "CommunicationDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CommunicationService",
+      "target": "CommunicationDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "DashboardService",
+      "target": "DashboardStatsDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "FamilyService",
+      "target": "FamilyDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "FamilyService",
+      "target": "FamilyDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "FamilyService",
+      "target": "FamilySummaryDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "FamilyService",
+      "target": "FamilyDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "FamilyService",
+      "target": "FamilyMemberDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "FamilyService",
+      "target": "FamilyDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "FirstTimeVisitorService",
+      "target": "FirstTimeVisitorDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "FirstTimeVisitorService",
+      "target": "FirstTimeVisitorDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "FollowUpService",
+      "target": "FollowUpDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "FollowUpService",
+      "target": "FollowUpDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "FollowUpService",
+      "target": "FollowUpDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "GroupMemberRequestService",
+      "target": "GroupMemberRequestDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "GroupMemberRequestService",
+      "target": "GroupMemberRequestDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "GroupMemberRequestService",
+      "target": "GroupMemberRequestDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "GroupService",
+      "target": "GroupDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "GroupService",
+      "target": "GroupDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "GroupService",
+      "target": "GroupSummaryDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "GroupService",
+      "target": "GroupDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "GroupService",
+      "target": "GroupDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "GroupService",
+      "target": "GroupMemberDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "GroupService",
+      "target": "GroupMemberDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "GroupService",
+      "target": "GroupSummaryDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "GroupService",
+      "target": "GroupSummaryDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "GroupService",
+      "target": "ScheduleDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "GroupService",
+      "target": "ScheduleDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "GroupTypeService",
+      "target": "GroupTypeDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "GroupTypeService",
+      "target": "GroupTypeDetailDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "GroupTypeService",
+      "target": "GroupTypeDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "GroupTypeService",
+      "target": "GroupTypeDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "GroupTypeService",
+      "target": "GroupSummaryDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "LabelGenerationService",
+      "target": "LabelSetDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "LabelGenerationService",
+      "target": "LabelSetDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "LabelGenerationService",
+      "target": "LabelTemplateDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "LabelGenerationService",
+      "target": "LabelPreviewDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "MyGroupsService",
+      "target": "GroupDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "MyGroupsService",
+      "target": "GroupMemberDetailDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "MyGroupsService",
+      "target": "GroupMemberDetailDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "MyProfileService",
+      "target": "MyProfileDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "MyProfileService",
+      "target": "MyProfileDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "MyProfileService",
+      "target": "FamilyMemberDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "MyProfileService",
+      "target": "FamilyMemberDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "MyProfileService",
+      "target": "MyInvolvementDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "ParentPagingService",
+      "target": "PagerAssignmentDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "ParentPagingService",
+      "target": "PagerMessageDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "ParentPagingService",
+      "target": "PagerAssignmentDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "ParentPagingService",
+      "target": "PageHistoryDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "PersonService",
+      "target": "PersonDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "PersonService",
+      "target": "PersonDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "PersonService",
+      "target": "PersonSummaryDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "PersonService",
+      "target": "PersonDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "PersonService",
+      "target": "PersonDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "PersonService",
+      "target": "FamilySummaryDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "PersonService",
+      "target": "PersonDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "PersonService",
+      "target": "PersonGroupMembershipDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "PublicGroupService",
+      "target": "GroupDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "PublicGroupService",
+      "target": "GroupDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "RoomRosterService",
+      "target": "RoomRosterDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "RoomRosterService",
+      "target": "RoomRosterDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "ScheduleService",
+      "target": "ScheduleDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "ScheduleService",
+      "target": "ScheduleDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "ScheduleService",
+      "target": "ScheduleSummaryDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "ScheduleService",
+      "target": "ScheduleDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "ScheduleService",
+      "target": "ScheduleDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "ScheduleService",
+      "target": "ScheduleOccurrenceDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "ScheduleService",
+      "target": "ScheduleOccurrenceDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "SupervisorModeService",
+      "target": "SupervisorInfoDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "AttendanceAnalyticsService",
+      "target": "Attendance",
+      "relationship": "uses"
+    },
+    {
+      "source": "AttendanceTakerService",
+      "target": "Attendance",
+      "relationship": "uses"
+    },
+    {
+      "source": "AuthorizedPickupService",
+      "target": "AuthorizedPickup",
+      "relationship": "uses"
+    },
+    {
+      "source": "BatchDonationEntryService",
+      "target": "Contribution",
+      "relationship": "uses"
+    },
+    {
+      "source": "BatchDonationEntryService",
+      "target": "Contribution",
+      "relationship": "uses"
+    },
+    {
+      "source": "CheckinAttendanceService",
+      "target": "Attendance",
+      "relationship": "uses"
+    },
+    {
+      "source": "CheckinAttendanceService",
+      "target": "FollowUp",
+      "relationship": "uses"
+    },
+    {
+      "source": "CommunicationService",
+      "target": "Communication",
+      "relationship": "uses"
+    },
+    {
+      "source": "DataImportService",
+      "target": "Person",
+      "relationship": "uses"
+    },
+    {
+      "source": "FamilyService",
+      "target": "Family",
+      "relationship": "uses"
+    },
+    {
+      "source": "FamilyService",
+      "target": "Family",
+      "relationship": "uses"
+    },
+    {
+      "source": "FamilyService",
+      "target": "Family",
+      "relationship": "uses"
+    },
+    {
+      "source": "FollowUpRetryService",
+      "target": "FollowUp",
+      "relationship": "uses"
+    },
+    {
+      "source": "FollowUpRetryService",
+      "target": "FollowUp",
+      "relationship": "uses"
+    },
+    {
+      "source": "FollowUpService",
+      "target": "FollowUp",
+      "relationship": "uses"
+    },
+    {
+      "source": "GroupMemberRequestService",
+      "target": "Group",
+      "relationship": "uses"
+    },
+    {
+      "source": "GroupService",
+      "target": "Group",
+      "relationship": "uses"
+    },
+    {
+      "source": "GroupService",
+      "target": "Group",
+      "relationship": "uses"
+    },
+    {
+      "source": "GroupService",
+      "target": "Group",
+      "relationship": "uses"
+    },
+    {
+      "source": "GroupService",
+      "target": "Group",
+      "relationship": "uses"
+    },
+    {
+      "source": "GroupTypeService",
+      "target": "Group",
+      "relationship": "uses"
+    },
+    {
+      "source": "GroupTypeService",
+      "target": "Group",
+      "relationship": "uses"
+    },
+    {
+      "source": "GroupTypeService",
+      "target": "Group",
+      "relationship": "uses"
+    },
+    {
+      "source": "MyGroupsService",
+      "target": "Group",
+      "relationship": "uses"
+    },
+    {
+      "source": "MyGroupsService",
+      "target": "Attendance",
+      "relationship": "uses"
+    },
+    {
+      "source": "MyGroupsService",
+      "target": "Group",
+      "relationship": "uses"
+    },
+    {
+      "source": "MyProfileService",
+      "target": "Family",
+      "relationship": "uses"
+    },
+    {
+      "source": "PersonService",
+      "target": "Person",
+      "relationship": "uses"
+    },
+    {
+      "source": "PersonService",
+      "target": "Person",
+      "relationship": "uses"
+    },
+    {
+      "source": "PersonService",
+      "target": "Person",
+      "relationship": "uses"
+    },
+    {
+      "source": "PublicGroupService",
+      "target": "Group",
+      "relationship": "uses"
+    },
+    {
+      "source": "RoomRosterService",
+      "target": "Attendance",
+      "relationship": "uses"
+    },
+    {
+      "source": "ScheduleService",
+      "target": "Schedule",
+      "relationship": "uses"
+    },
+    {
+      "source": "ScheduleService",
+      "target": "Schedule",
+      "relationship": "uses"
+    },
+    {
+      "source": "ScheduleService",
+      "target": "Schedule",
+      "relationship": "uses"
+    }
+  ],
+  "summary": {
+    "total_entities": 41,
+    "total_dtos": 77,
+    "total_services": 69,
+    "total_controllers": 22,
+    "total_relationships": 202
+  }
+}

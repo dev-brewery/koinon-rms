@@ -1,0 +1,3419 @@
+{
+  "version": "1.0.0",
+  "generated_at": "2025-12-22T22:04:29.932Z",
+  "types": {
+    "PaginationMeta": {
+      "name": "PaginationMeta",
+      "kind": "interface",
+      "properties": {
+        "page": "number",
+        "pageSize": "number",
+        "totalCount": "number",
+        "totalPages": "number"
+      },
+      "path": "services/api/types.ts"
+    },
+    "ApiError": {
+      "name": "ApiError",
+      "kind": "interface",
+      "properties": {
+        "error": "{\n    code: string",
+        "message": "string",
+        "details": "Record<string, string[]>",
+        "traceId": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "ProblemDetails": {
+      "name": "ProblemDetails",
+      "kind": "interface",
+      "properties": {
+        "type": "string",
+        "title": "string",
+        "status": "number",
+        "detail": "string",
+        "instance": "string",
+        "traceId": "string",
+        "extensions": "Record<string, unknown>"
+      },
+      "path": "services/api/types.ts"
+    },
+    "PaginationParams": {
+      "name": "PaginationParams",
+      "kind": "interface",
+      "properties": {
+        "page": "number",
+        "Default": "1\n  pageSize?: number"
+      },
+      "path": "services/api/types.ts"
+    },
+    "SortParams": {
+      "name": "SortParams",
+      "kind": "interface",
+      "properties": {
+        "sortBy": "string",
+        "sortDir": "'asc' | 'desc'"
+      },
+      "path": "services/api/types.ts"
+    },
+    "LoginRequest": {
+      "name": "LoginRequest",
+      "kind": "interface",
+      "properties": {
+        "email": "string",
+        "password": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "TokenResponse": {
+      "name": "TokenResponse",
+      "kind": "interface",
+      "properties": {
+        "accessToken": "string",
+        "refreshToken": "string",
+        "expiresAt": "DateTime",
+        "user": "UserSummaryDto"
+      },
+      "path": "services/api/types.ts"
+    },
+    "UserSummaryDto": {
+      "name": "UserSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "firstName": "string",
+        "lastName": "string",
+        "email": "string",
+        "photoUrl": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "RefreshRequest": {
+      "name": "RefreshRequest",
+      "kind": "interface",
+      "properties": {
+        "refreshToken": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "RefreshResponse": {
+      "name": "RefreshResponse",
+      "kind": "interface",
+      "properties": {
+        "accessToken": "string",
+        "refreshToken": "string",
+        "expiresAt": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
+    "LogoutRequest": {
+      "name": "LogoutRequest",
+      "kind": "interface",
+      "properties": {
+        "refreshToken": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "PersonSearchParams": {
+      "name": "PersonSearchParams",
+      "kind": "interface",
+      "properties": {
+        "q": "string",
+        "firstName": "string",
+        "lastName": "string",
+        "email": "string",
+        "phone": "string",
+        "recordStatusId": "IdKey",
+        "connectionStatusId": "IdKey",
+        "campusId": "IdKey",
+        "includeInactive": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "PersonSummaryDto": {
+      "name": "PersonSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "firstName": "string",
+        "nickName": "string",
+        "lastName": "string",
+        "fullName": "string",
+        "email": "string",
+        "photoUrl": "string",
+        "age": "number",
+        "gender": "Gender",
+        "connectionStatus": "DefinedValueDto",
+        "recordStatus": "DefinedValueDto",
+        "primaryCampus": "CampusSummaryDto"
+      },
+      "path": "services/api/types.ts"
+    },
+    "PersonDetailDto": {
+      "name": "PersonDetailDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "firstName": "string",
+        "nickName": "string",
+        "middleName": "string",
+        "lastName": "string",
+        "fullName": "string",
+        "title": "DefinedValueDto",
+        "suffix": "DefinedValueDto",
+        "birthDate": "DateOnly",
+        "age": "number",
+        "gender": "Gender",
+        "maritalStatus": "DefinedValueDto",
+        "anniversaryDate": "DateOnly",
+        "email": "string",
+        "isEmailActive": "boolean",
+        "emailPreference": "EmailPreference",
+        "phoneNumbers": "PhoneNumberDto[]",
+        "recordStatus": "DefinedValueDto",
+        "connectionStatus": "DefinedValueDto",
+        "isDeceased": "boolean",
+        "photoUrl": "string",
+        "photoId": "IdKey",
+        "primaryFamily": "FamilySummaryDto",
+        "primaryCampus": "CampusSummaryDto",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
+    "PhoneNumberDto": {
+      "name": "PhoneNumberDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "number": "string",
+        "numberFormatted": "string",
+        "extension": "string",
+        "phoneType": "DefinedValueDto",
+        "isMessagingEnabled": "boolean",
+        "isUnlisted": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CreatePersonRequest": {
+      "name": "CreatePersonRequest",
+      "kind": "interface",
+      "properties": {
+        "firstName": "string",
+        "nickName": "string",
+        "middleName": "string",
+        "lastName": "string",
+        "titleValueId": "IdKey",
+        "suffixValueId": "IdKey",
+        "email": "string",
+        "gender": "Gender",
+        "birthDate": "DateOnly",
+        "maritalStatusValueId": "IdKey",
+        "connectionStatusValueId": "IdKey",
+        "Default": "Active\n\n  phoneNumbers?: CreatePhoneNumberRequest[]",
+        "familyId": "IdKey",
+        "familyRoleId": "IdKey",
+        "createFamily": "boolean",
+        "familyName": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CreatePhoneNumberRequest": {
+      "name": "CreatePhoneNumberRequest",
+      "kind": "interface",
+      "properties": {
+        "number": "string",
+        "extension": "string",
+        "phoneTypeValueId": "IdKey",
+        "Default": "Mobile\n  isMessagingEnabled?: boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "UpdatePersonRequest": {
+      "name": "UpdatePersonRequest",
+      "kind": "interface",
+      "properties": {
+        "firstName": "string",
+        "nickName": "string",
+        "middleName": "string",
+        "lastName": "string",
+        "titleValueId": "IdKey | null",
+        "suffixValueId": "IdKey | null",
+        "email": "string | null",
+        "isEmailActive": "boolean",
+        "emailPreference": "EmailPreference",
+        "gender": "Gender",
+        "birthDate": "DateOnly | null",
+        "maritalStatusValueId": "IdKey | null",
+        "anniversaryDate": "DateOnly | null",
+        "connectionStatusValueId": "IdKey",
+        "recordStatusValueId": "IdKey",
+        "primaryCampusId": "IdKey | null"
+      },
+      "path": "services/api/types.ts"
+    },
+    "FamiliesSearchParams": {
+      "name": "FamiliesSearchParams",
+      "kind": "interface",
+      "properties": {
+        "q": "string",
+        "campusId": "IdKey",
+        "includeInactive": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "FamilySummaryDto": {
+      "name": "FamilySummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "campus": "CampusSummaryDto",
+        "memberCount": "number",
+        "primaryAddress": "AddressDto"
+      },
+      "path": "services/api/types.ts"
+    },
+    "FamilyDetailDto": {
+      "name": "FamilyDetailDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "name": "string",
+        "campus": "CampusSummaryDto",
+        "members": "FamilyMemberDto[]",
+        "addresses": "FamilyAddressDto[]",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
+    "FamilyMemberDto": {
+      "name": "FamilyMemberDto",
+      "kind": "interface",
+      "properties": {
+        "person": "PersonSummaryDto",
+        "role": "GroupTypeRoleDto",
+        "isPersonPrimaryFamily": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "FamilyAddressDto": {
+      "name": "FamilyAddressDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "locationType": "DefinedValueDto",
+        "address": "AddressDto",
+        "isMailingAddress": "boolean",
+        "isMappedAddress": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "AddressDto": {
+      "name": "AddressDto",
+      "kind": "interface",
+      "properties": {
+        "street1": "string",
+        "street2": "string",
+        "city": "string",
+        "state": "string",
+        "postalCode": "string",
+        "country": "string",
+        "formattedAddress": "string",
+        "formattedHtmlAddress": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CreateFamilyRequest": {
+      "name": "CreateFamilyRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "campusId": "IdKey",
+        "members": "CreateFamilyMemberRequest[]",
+        "address": "CreateAddressRequest"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CreateFamilyMemberRequest": {
+      "name": "CreateFamilyMemberRequest",
+      "kind": "interface",
+      "properties": {
+        "personId": "IdKey",
+        "person": "CreatePersonRequest",
+        "roleId": "IdKey"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CreateAddressRequest": {
+      "name": "CreateAddressRequest",
+      "kind": "interface",
+      "properties": {
+        "street1": "string",
+        "street2": "string",
+        "city": "string",
+        "state": "string",
+        "postalCode": "string",
+        "country": "string",
+        "Default": "true\n  isMappedAddress?: boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "UpdateFamilyRequest": {
+      "name": "UpdateFamilyRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "campusId": "IdKey | null"
+      },
+      "path": "services/api/types.ts"
+    },
+    "AddFamilyMemberRequest": {
+      "name": "AddFamilyMemberRequest",
+      "kind": "interface",
+      "properties": {
+        "personId": "IdKey",
+        "person": "CreatePersonRequest",
+        "roleId": "IdKey",
+        "setAsPrimaryFamily": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "UpdateFamilyAddressRequest": {
+      "name": "UpdateFamilyAddressRequest",
+      "kind": "interface",
+      "properties": {
+        "street1": "string",
+        "street2": "string",
+        "city": "string",
+        "state": "string",
+        "postalCode": "string",
+        "country": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "RemoveFamilyMemberParams": {
+      "name": "RemoveFamilyMemberParams",
+      "kind": "interface",
+      "properties": {
+        "removeFromAllGroups": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupsSearchParams": {
+      "name": "GroupsSearchParams",
+      "kind": "interface",
+      "properties": {
+        "q": "string",
+        "groupTypeId": "IdKey",
+        "parentGroupId": "IdKey",
+        "campusId": "IdKey",
+        "includeInactive": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupSummaryDto": {
+      "name": "GroupSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "description": "string",
+        "groupType": "GroupTypeSummaryDto",
+        "campus": "CampusSummaryDto",
+        "memberCount": "number",
+        "isActive": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupDetailDto": {
+      "name": "GroupDetailDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "name": "string",
+        "description": "string",
+        "groupType": "GroupTypeSummaryDto",
+        "parentGroup": "GroupSummaryDto",
+        "campus": "CampusSummaryDto",
+        "capacity": "number",
+        "isActive": "boolean",
+        "isArchived": "boolean",
+        "schedule": "ScheduleDto",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupMembersParams": {
+      "name": "GroupMembersParams",
+      "kind": "interface",
+      "properties": {
+        "status": "'Active' | 'Inactive' | 'Pending' | 'All'",
+        "roleId": "IdKey"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupMemberDetailDto": {
+      "name": "GroupMemberDetailDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "person": "PersonSummaryDto",
+        "role": "GroupTypeRoleDto",
+        "status": "GroupMemberStatus",
+        "dateAdded": "DateTime",
+        "note": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupMembershipDto": {
+      "name": "GroupMembershipDto",
+      "kind": "interface",
+      "properties": {
+        "group": "GroupSummaryDto",
+        "role": "GroupTypeRoleDto",
+        "status": "GroupMemberStatus",
+        "dateAdded": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
+    "AddGroupMemberRequest": {
+      "name": "AddGroupMemberRequest",
+      "kind": "interface",
+      "properties": {
+        "personIdKey": "IdKey",
+        "roleIdKey": "IdKey",
+        "status": "GroupMemberStatus",
+        "Default": "Active\n  note?: string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "PersonGroupsParams": {
+      "name": "PersonGroupsParams",
+      "kind": "interface",
+      "properties": {
+        "groupTypeId": "IdKey",
+        "includeInactive": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "PersonFamilyResponse": {
+      "name": "PersonFamilyResponse",
+      "kind": "interface",
+      "properties": {
+        "family": "FamilyDetailDto",
+        "members": "FamilyMemberDto[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckinConfigParams": {
+      "name": "CheckinConfigParams",
+      "kind": "interface",
+      "properties": {
+        "kioskId": "IdKey",
+        "campusId": "IdKey"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckinConfigDto": {
+      "name": "CheckinConfigDto",
+      "kind": "interface",
+      "properties": {
+        "areas": "CheckinAreaDto[]",
+        "currentSchedules": "ScheduleDto[]",
+        "searchType": "CheckinSearchType",
+        "securityCodeLength": "number",
+        "securityCodeAlphanumeric": "boolean",
+        "autoSelectDaysBack": "number",
+        "autoSelectFamily": "boolean",
+        "preventDuplicateCheckin": "boolean",
+        "allowCheckout": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckinAreaDto": {
+      "name": "CheckinAreaDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "groups": "CheckinGroupDto[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckinGroupDto": {
+      "name": "CheckinGroupDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "locations": "CheckinLocationDto[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckinLocationDto": {
+      "name": "CheckinLocationDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "currentCount": "number",
+        "softThreshold": "number",
+        "firmThreshold": "number",
+        "isOpen": "boolean",
+        "schedules": "ScheduleDto[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "ScheduleDto": {
+      "name": "ScheduleDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "startTime": "string",
+        "09": "00\"\n  isActive: boolean",
+        "checkInWindowOpen": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckinSearchRequest": {
+      "name": "CheckinSearchRequest",
+      "kind": "interface",
+      "properties": {
+        "searchValue": "string",
+        "searchType": "'Phone' | 'Name' | 'Auto'"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckinFamilyDto": {
+      "name": "CheckinFamilyDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "members": "CheckinPersonDto[]",
+        "lastCheckIn": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckinPersonDto": {
+      "name": "CheckinPersonDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "firstName": "string",
+        "nickName": "string",
+        "lastName": "string",
+        "fullName": "string",
+        "age": "number",
+        "grade": "string",
+        "photoUrl": "string",
+        "lastCheckIn": "DateTime",
+        "allergies": "string",
+        "hasCriticalAllergies": "boolean",
+        "specialNeeds": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckinOpportunitiesParams": {
+      "name": "CheckinOpportunitiesParams",
+      "kind": "interface",
+      "properties": {
+        "scheduleId": "IdKey"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckinOpportunitiesResponse": {
+      "name": "CheckinOpportunitiesResponse",
+      "kind": "interface",
+      "properties": {
+        "family": "CheckinFamilyDto",
+        "opportunities": "PersonOpportunitiesDto[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "PersonOpportunitiesDto": {
+      "name": "PersonOpportunitiesDto",
+      "kind": "interface",
+      "properties": {
+        "person": "CheckinPersonDto",
+        "currentAttendance": "CurrentAttendanceDto[]",
+        "availableOptions": "CheckinOptionDto[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CurrentAttendanceDto": {
+      "name": "CurrentAttendanceDto",
+      "kind": "interface",
+      "properties": {
+        "attendanceIdKey": "IdKey",
+        "group": "string",
+        "location": "string",
+        "schedule": "string",
+        "securityCode": "string",
+        "checkInTime": "DateTime",
+        "canCheckOut": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckinOptionDto": {
+      "name": "CheckinOptionDto",
+      "kind": "interface",
+      "properties": {
+        "groupIdKey": "IdKey",
+        "groupName": "string",
+        "locations": "CheckinLocationOptionDto[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckinLocationOptionDto": {
+      "name": "CheckinLocationOptionDto",
+      "kind": "interface",
+      "properties": {
+        "locationIdKey": "IdKey",
+        "locationName": "string",
+        "schedules": "CheckinScheduleOptionDto[]",
+        "currentCount": "number",
+        "softThreshold": "number",
+        "firmThreshold": "number"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckinScheduleOptionDto": {
+      "name": "CheckinScheduleOptionDto",
+      "kind": "interface",
+      "properties": {
+        "scheduleIdKey": "IdKey",
+        "scheduleName": "string",
+        "startTime": "string",
+        "isSelected": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "RecordAttendanceRequest": {
+      "name": "RecordAttendanceRequest",
+      "kind": "interface",
+      "properties": {
+        "checkins": "CheckinRequestItem[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckinRequestItem": {
+      "name": "CheckinRequestItem",
+      "kind": "interface",
+      "properties": {
+        "personIdKey": "IdKey",
+        "groupIdKey": "IdKey",
+        "locationIdKey": "IdKey",
+        "scheduleIdKey": "IdKey"
+      },
+      "path": "services/api/types.ts"
+    },
+    "RecordAttendanceResponse": {
+      "name": "RecordAttendanceResponse",
+      "kind": "interface",
+      "properties": {
+        "attendances": "AttendanceResultDto[]",
+        "labels": "LabelDto[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "AttendanceResultDto": {
+      "name": "AttendanceResultDto",
+      "kind": "interface",
+      "properties": {
+        "attendanceIdKey": "IdKey",
+        "personIdKey": "IdKey",
+        "personName": "string",
+        "groupName": "string",
+        "locationName": "string",
+        "scheduleName": "string",
+        "securityCode": "string",
+        "checkInTime": "DateTime",
+        "isFirstTime": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "LabelDto": {
+      "name": "LabelDto",
+      "kind": "interface",
+      "properties": {
+        "attendanceIdKey": "IdKey",
+        "labelType": "'Child' | 'Parent' | 'NameTag'",
+        "printData": "string",
+        "printerAddress": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckoutRequest": {
+      "name": "CheckoutRequest",
+      "kind": "interface",
+      "properties": {
+        "attendanceIdKey": "IdKey"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckoutResponse": {
+      "name": "CheckoutResponse",
+      "kind": "interface",
+      "properties": {
+        "attendanceIdKey": "IdKey",
+        "checkOutTime": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
+    "LabelParams": {
+      "name": "LabelParams",
+      "kind": "interface",
+      "properties": {
+        "labelType": "'Child' | 'Parent' | 'NameTag' | 'All'",
+        "format": "'ZPL' | 'PDF'"
+      },
+      "path": "services/api/types.ts"
+    },
+    "SupervisorLoginRequest": {
+      "name": "SupervisorLoginRequest",
+      "kind": "interface",
+      "properties": {
+        "pin": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "SupervisorLoginResponse": {
+      "name": "SupervisorLoginResponse",
+      "kind": "interface",
+      "properties": {
+        "sessionToken": "string",
+        "expiresAt": "DateTime",
+        "supervisor": "SupervisorInfoDto"
+      },
+      "path": "services/api/types.ts"
+    },
+    "SupervisorInfoDto": {
+      "name": "SupervisorInfoDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "fullName": "string",
+        "firstName": "string",
+        "lastName": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "DefinedTypeDto": {
+      "name": "DefinedTypeDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "name": "string",
+        "description": "string",
+        "values": "DefinedValueDto[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "DefinedValueDto": {
+      "name": "DefinedValueDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "value": "string",
+        "description": "string",
+        "isActive": "boolean",
+        "order": "number"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CampusDto": {
+      "name": "CampusDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "name": "string",
+        "shortCode": "string",
+        "isActive": "boolean",
+        "url": "string",
+        "phoneNumber": "string",
+        "serviceTimes": "string",
+        "timeZoneId": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CampusSummaryDto": {
+      "name": "CampusSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "shortCode": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CampusesParams": {
+      "name": "CampusesParams",
+      "kind": "interface",
+      "properties": {
+        "includeInactive": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupTypeDto": {
+      "name": "GroupTypeDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "name": "string",
+        "description": "string",
+        "groupTerm": "string",
+        "groupMemberTerm": "string",
+        "iconCssClass": "string",
+        "roles": "GroupTypeRoleDto[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupTypeSummaryDto": {
+      "name": "GroupTypeSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "iconCssClass": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupTypeRoleDto": {
+      "name": "GroupTypeRoleDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "isLeader": "boolean",
+        "order": "number"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupTypeAdminDto": {
+      "name": "GroupTypeAdminDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "name": "string",
+        "description": "string",
+        "iconCssClass": "string",
+        "color": "string",
+        "groupTerm": "string",
+        "groupMemberTerm": "string",
+        "takesAttendance": "boolean",
+        "allowSelfRegistration": "boolean",
+        "requiresMemberApproval": "boolean",
+        "defaultIsPublic": "boolean",
+        "defaultGroupCapacity": "number",
+        "isSystem": "boolean",
+        "isArchived": "boolean",
+        "order": "number",
+        "groupCount": "number"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupTypeDetailAdminDto": {
+      "name": "GroupTypeDetailAdminDto",
+      "kind": "interface",
+      "properties": {
+        "showInGroupList": "boolean",
+        "showInNavigation": "boolean",
+        "attendanceCountsAsWeekendService": "boolean",
+        "sendAttendanceReminder": "boolean",
+        "allowMultipleLocations": "boolean",
+        "enableSpecificGroupRequirements": "boolean",
+        "allowGroupSync": "boolean",
+        "allowSpecificGroupMemberAttributes": "boolean",
+        "showConnectionStatus": "boolean",
+        "ignorePersonInactivated": "boolean",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CreateGroupTypeRequest": {
+      "name": "CreateGroupTypeRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "description": "string",
+        "iconCssClass": "string",
+        "color": "string",
+        "groupTerm": "string",
+        "groupMemberTerm": "string",
+        "takesAttendance": "boolean",
+        "allowSelfRegistration": "boolean",
+        "requiresMemberApproval": "boolean",
+        "defaultIsPublic": "boolean",
+        "defaultGroupCapacity": "number",
+        "showInGroupList": "boolean",
+        "showInNavigation": "boolean",
+        "order": "number"
+      },
+      "path": "services/api/types.ts"
+    },
+    "UpdateGroupTypeRequest": {
+      "name": "UpdateGroupTypeRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "description": "string",
+        "iconCssClass": "string",
+        "color": "string",
+        "groupTerm": "string",
+        "groupMemberTerm": "string",
+        "takesAttendance": "boolean",
+        "allowSelfRegistration": "boolean",
+        "requiresMemberApproval": "boolean",
+        "defaultIsPublic": "boolean",
+        "defaultGroupCapacity": "number",
+        "showInGroupList": "boolean",
+        "showInNavigation": "boolean",
+        "order": "number"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupTypeGroupDto": {
+      "name": "GroupTypeGroupDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "isActive": "boolean",
+        "isArchived": "boolean",
+        "memberCount": "number"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CreateGroupRequest": {
+      "name": "CreateGroupRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "description": "string",
+        "groupTypeId": "IdKey",
+        "parentGroupId": "IdKey",
+        "campusId": "IdKey",
+        "capacity": "number",
+        "isActive": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "UpdateGroupRequest": {
+      "name": "UpdateGroupRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "description": "string",
+        "campusId": "IdKey",
+        "capacity": "number",
+        "isActive": "boolean",
+        "order": "number"
+      },
+      "path": "services/api/types.ts"
+    },
+    "ScheduleSearchParams": {
+      "name": "ScheduleSearchParams",
+      "kind": "interface",
+      "properties": {
+        "query": "string",
+        "dayOfWeek": "number",
+        "includeInactive": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "ScheduleSummaryDto": {
+      "name": "ScheduleSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "description": "string",
+        "weeklyDayOfWeek": "number",
+        "weeklyTimeOfDay": "string",
+        "isActive": "boolean",
+        "order": "number"
+      },
+      "path": "services/api/types.ts"
+    },
+    "ScheduleDetailDto": {
+      "name": "ScheduleDetailDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "name": "string",
+        "description": "string",
+        "weeklyDayOfWeek": "number",
+        "weeklyTimeOfDay": "string",
+        "checkInStartOffsetMinutes": "number",
+        "checkInEndOffsetMinutes": "number",
+        "isActive": "boolean",
+        "isCheckinActive": "boolean",
+        "checkinStartTime": "DateTime",
+        "checkinEndTime": "DateTime",
+        "isPublic": "boolean",
+        "order": "number",
+        "effectiveStartDate": "DateOnly",
+        "effectiveEndDate": "DateOnly",
+        "iCalendarContent": "string",
+        "autoInactivateWhenComplete": "boolean",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
+    "ScheduleOccurrenceDto": {
+      "name": "ScheduleOccurrenceDto",
+      "kind": "interface",
+      "properties": {
+        "occurrenceDateTime": "DateTime",
+        "dayOfWeekName": "string",
+        "formattedTime": "string",
+        "checkInWindowStart": "DateTime",
+        "checkInWindowEnd": "DateTime",
+        "isCheckInWindowOpen": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CreateScheduleRequest": {
+      "name": "CreateScheduleRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "description": "string",
+        "weeklyDayOfWeek": "number",
+        "weeklyTimeOfDay": "string",
+        "checkInStartOffsetMinutes": "number",
+        "checkInEndOffsetMinutes": "number",
+        "isActive": "boolean",
+        "isPublic": "boolean",
+        "order": "number",
+        "effectiveStartDate": "DateOnly",
+        "effectiveEndDate": "DateOnly",
+        "autoInactivateWhenComplete": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "UpdateScheduleRequest": {
+      "name": "UpdateScheduleRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "description": "string",
+        "weeklyDayOfWeek": "number",
+        "weeklyTimeOfDay": "string",
+        "checkInStartOffsetMinutes": "number",
+        "checkInEndOffsetMinutes": "number",
+        "isActive": "boolean",
+        "isPublic": "boolean",
+        "order": "number",
+        "effectiveStartDate": "DateOnly | null",
+        "effectiveEndDate": "DateOnly | null",
+        "autoInactivateWhenComplete": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupScheduleDto": {
+      "name": "GroupScheduleDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "schedule": "ScheduleSummaryDto",
+        "order": "number"
+      },
+      "path": "services/api/types.ts"
+    },
+    "AddGroupScheduleRequest": {
+      "name": "AddGroupScheduleRequest",
+      "kind": "interface",
+      "properties": {
+        "scheduleIdKey": "IdKey",
+        "order": "number"
+      },
+      "path": "services/api/types.ts"
+    },
+    "RosterChildDto": {
+      "name": "RosterChildDto",
+      "kind": "interface",
+      "properties": {
+        "attendanceIdKey": "IdKey",
+        "personIdKey": "IdKey",
+        "fullName": "string",
+        "firstName": "string",
+        "lastName": "string",
+        "nickName": "string",
+        "photoUrl": "string",
+        "age": "number",
+        "grade": "string",
+        "allergies": "string",
+        "hasCriticalAllergies": "boolean",
+        "specialNeeds": "string",
+        "securityCode": "string",
+        "checkInTime": "DateTime",
+        "parentName": "string",
+        "parentMobilePhone": "string",
+        "isFirstTime": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "RoomRosterDto": {
+      "name": "RoomRosterDto",
+      "kind": "interface",
+      "properties": {
+        "locationIdKey": "IdKey",
+        "locationName": "string",
+        "children": "RosterChildDto[]",
+        "totalCount": "number",
+        "capacity": "number",
+        "generatedAt": "DateTime",
+        "isAtCapacity": "boolean",
+        "isNearCapacity": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "MyGroupDto": {
+      "name": "MyGroupDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "string",
+        "name": "string",
+        "description": "string",
+        "groupTypeName": "string",
+        "isActive": "boolean",
+        "memberCount": "number",
+        "groupCapacity": "number",
+        "lastMeetingDate": "DateTime",
+        "campus": "CampusSummaryDto",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
+    "MyGroupMemberDetailDto": {
+      "name": "MyGroupMemberDetailDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "personIdKey": "IdKey",
+        "firstName": "string",
+        "lastName": "string",
+        "fullName": "string",
+        "email": "string",
+        "phone": "string",
+        "photoUrl": "string",
+        "age": "number",
+        "gender": "string",
+        "role": "GroupTypeRoleDto",
+        "status": "string",
+        "dateTimeAdded": "DateTime",
+        "inactiveDateTime": "DateTime",
+        "note": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "UpdateGroupMemberRequest": {
+      "name": "UpdateGroupMemberRequest",
+      "kind": "interface",
+      "properties": {
+        "roleId": "IdKey",
+        "status": "string",
+        "note": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "RecordGroupAttendanceRequest": {
+      "name": "RecordGroupAttendanceRequest",
+      "kind": "interface",
+      "properties": {
+        "occurrenceDate": "DateOnly",
+        "attendedPersonIds": "IdKey[]",
+        "notes": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupMemberRequestDto": {
+      "name": "GroupMemberRequestDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "requester": "PersonSummaryDto",
+        "group": "GroupSummaryDto",
+        "status": "MembershipRequestStatus",
+        "requestNote": "string",
+        "responseNote": "string",
+        "processedByPerson": "PersonSummaryDto",
+        "processedDateTime": "DateTime",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
+    "SubmitMembershipRequestRequest": {
+      "name": "SubmitMembershipRequestRequest",
+      "kind": "interface",
+      "properties": {
+        "note": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "ProcessMembershipRequestRequest": {
+      "name": "ProcessMembershipRequestRequest",
+      "kind": "interface",
+      "properties": {
+        "status": "'Approved' | 'Denied'",
+        "note": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "IdKey": {
+      "name": "IdKey",
+      "kind": "type",
+      "properties": {},
+      "path": "services/api/types.ts"
+    },
+    "DateOnly": {
+      "name": "DateOnly",
+      "kind": "type",
+      "properties": {},
+      "path": "services/api/types.ts"
+    },
+    "DateTime": {
+      "name": "DateTime",
+      "kind": "type",
+      "properties": {},
+      "path": "services/api/types.ts"
+    },
+    "Guid": {
+      "name": "Guid",
+      "kind": "type",
+      "properties": {},
+      "path": "services/api/types.ts"
+    },
+    "Gender": {
+      "name": "Gender",
+      "kind": "type",
+      "properties": {},
+      "path": "services/api/types.ts"
+    },
+    "EmailPreference": {
+      "name": "EmailPreference",
+      "kind": "type",
+      "properties": {},
+      "path": "services/api/types.ts"
+    },
+    "GroupMemberStatus": {
+      "name": "GroupMemberStatus",
+      "kind": "type",
+      "properties": {},
+      "path": "services/api/types.ts"
+    },
+    "CheckinSearchType": {
+      "name": "CheckinSearchType",
+      "kind": "type",
+      "properties": {},
+      "path": "services/api/types.ts"
+    },
+    "MembershipRequestStatus": {
+      "name": "MembershipRequestStatus",
+      "kind": "type",
+      "properties": {},
+      "path": "services/api/types.ts"
+    },
+    "CapacityStatus": {
+      "name": "CapacityStatus",
+      "kind": "enum",
+      "properties": {},
+      "path": "services/api/types.ts"
+    }
+  },
+  "api_functions": {
+    "getAttendanceAnalytics": {
+      "name": "getAttendanceAnalytics",
+      "path": "services/api/analytics.ts",
+      "endpoint": "/analytics/a",
+      "method": "GET",
+      "responseType": "AttendanceAnalytics"
+    },
+    "getAttendanceTrends": {
+      "name": "getAttendanceTrends",
+      "path": "services/api/analytics.ts",
+      "endpoint": "/analytics/attendan",
+      "method": "GET",
+      "responseType": "AttendanceTrend[]"
+    },
+    "getAttendanceByGroup": {
+      "name": "getAttendanceByGroup",
+      "path": "services/api/analytics.ts",
+      "endpoint": "/analytics/att",
+      "method": "GET",
+      "responseType": "AttendanceByGroup[]"
+    },
+    "getTodaysFirstTimeVisitors": {
+      "name": "getTodaysFirstTimeVisitors",
+      "path": "services/api/analytics.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "FirstTimeVisitorDto[]"
+    },
+    "getFirstTimeVisitorsByDateRange": {
+      "name": "getFirstTimeVisitorsByDateRange",
+      "path": "services/api/analytics.ts",
+      "endpoint": "/analytics/first-time-visitors?${queryParams.toString()}",
+      "method": "GET",
+      "responseType": "FirstTimeVisitorDto[]"
+    },
+    "login": {
+      "name": "login",
+      "path": "services/api/auth.ts",
+      "endpoint": "/auth/login",
+      "method": "POST",
+      "responseType": "TokenResponse"
+    },
+    "refresh": {
+      "name": "refresh",
+      "path": "services/api/auth.ts",
+      "endpoint": "/auth/refresh",
+      "method": "POST",
+      "responseType": "RefreshResponse"
+    },
+    "logout": {
+      "name": "logout",
+      "path": "services/api/auth.ts",
+      "endpoint": "/auth/logout",
+      "method": "POST",
+      "responseType": "void"
+    },
+    "getCheckinConfiguration": {
+      "name": "getCheckinConfiguration",
+      "path": "services/api/checkin.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "CheckinConfigDto"
+    },
+    "searchFamiliesForCheckin": {
+      "name": "searchFamiliesForCheckin",
+      "path": "services/api/checkin.ts",
+      "endpoint": "/checkin/search",
+      "method": "POST",
+      "responseType": "CheckinFamilyDto[]"
+    },
+    "getCheckinOpportunities": {
+      "name": "getCheckinOpportunities",
+      "path": "services/api/checkin.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "CheckinOpportunitiesResponse"
+    },
+    "recordAttendance": {
+      "name": "recordAttendance",
+      "path": "services/api/myGroups.ts",
+      "endpoint": "/my-groups/${groupIdKey}/attendance",
+      "method": "POST",
+      "responseType": "void"
+    },
+    "checkout": {
+      "name": "checkout",
+      "path": "services/api/checkin.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "void"
+    },
+    "getLabels": {
+      "name": "getLabels",
+      "path": "services/api/checkin.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "LabelDto[]"
+    },
+    "supervisorLogin": {
+      "name": "supervisorLogin",
+      "path": "services/api/checkin.ts",
+      "endpoint": "/checkin/supervisor/login",
+      "method": "POST",
+      "responseType": "SupervisorLoginResponse"
+    },
+    "supervisorLogout": {
+      "name": "supervisorLogout",
+      "path": "services/api/checkin.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "void"
+    },
+    "supervisorReprint": {
+      "name": "supervisorReprint",
+      "path": "services/api/checkin.ts",
+      "endpoint": "/checkin/supervisor/reprint/${attendanceIdKey}",
+      "method": "POST",
+      "responseType": "LabelDto[]"
+    },
+    "getRoomRoster": {
+      "name": "getRoomRoster",
+      "path": "services/api/checkin.ts",
+      "endpoint": "/checkin/roster/${locationIdKey}",
+      "method": "GET",
+      "responseType": "RoomRosterDto"
+    },
+    "getMultipleRoomRosters": {
+      "name": "getMultipleRoomRosters",
+      "path": "services/api/checkin.ts",
+      "endpoint": "/checkin/roster?${queryParams.toString()}",
+      "method": "GET",
+      "responseType": "RoomRosterDto[]"
+    },
+    "checkoutFromRoster": {
+      "name": "checkoutFromRoster",
+      "path": "services/api/checkin.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "void"
+    },
+    "createCommunication": {
+      "name": "createCommunication",
+      "path": "services/api/communications.ts",
+      "endpoint": "/communications",
+      "method": "POST",
+      "responseType": "CommunicationDto"
+    },
+    "sendCommunication": {
+      "name": "sendCommunication",
+      "path": "services/api/communications.ts",
+      "endpoint": "/communications/${idKey}/send",
+      "method": "POST",
+      "responseType": "CommunicationDto"
+    },
+    "getCommunication": {
+      "name": "getCommunication",
+      "path": "services/api/communications.ts",
+      "endpoint": "/communications/${idKey}",
+      "method": "GET",
+      "responseType": "CommunicationDto"
+    },
+    "getDashboardStats": {
+      "name": "getDashboardStats",
+      "path": "services/api/dashboard.ts",
+      "endpoint": "/dashboard/stats",
+      "method": "GET",
+      "responseType": "DashboardStats"
+    },
+    "getFamilyByIdKey": {
+      "name": "getFamilyByIdKey",
+      "path": "services/api/families.ts",
+      "endpoint": "/families/${idKey}",
+      "method": "GET",
+      "responseType": "FamilyDetailDto"
+    },
+    "createFamily": {
+      "name": "createFamily",
+      "path": "services/api/families.ts",
+      "endpoint": "/families",
+      "method": "POST",
+      "responseType": "FamilyDetailDto"
+    },
+    "updateFamily": {
+      "name": "updateFamily",
+      "path": "services/api/families.ts",
+      "endpoint": "/families/${idKey}",
+      "method": "PUT",
+      "responseType": "FamilyDetailDto"
+    },
+    "addFamilyMember": {
+      "name": "addFamilyMember",
+      "path": "services/api/families.ts",
+      "endpoint": "/families/${familyIdKey}/members",
+      "method": "POST",
+      "responseType": "FamilyMemberDto"
+    },
+    "removeFamilyMember": {
+      "name": "removeFamilyMember",
+      "path": "services/api/families.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "void"
+    },
+    "updateFamilyAddress": {
+      "name": "updateFamilyAddress",
+      "path": "services/api/families.ts",
+      "endpoint": "/families/${familyIdKey}/address",
+      "method": "PUT",
+      "responseType": "FamilyAddressDto"
+    },
+    "getGroupTypes": {
+      "name": "getGroupTypes",
+      "path": "services/api/reference.ts",
+      "endpoint": "/group-types",
+      "method": "GET",
+      "responseType": "GroupTypeDto[]"
+    },
+    "getGroupType": {
+      "name": "getGroupType",
+      "path": "services/api/groupTypes.ts",
+      "endpoint": "${BASE_URL}/${idKey}",
+      "method": "GET",
+      "responseType": "GroupTypeDetailAdminDto"
+    },
+    "createGroupType": {
+      "name": "createGroupType",
+      "path": "services/api/groupTypes.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "GroupTypeAdminDto"
+    },
+    "updateGroupType": {
+      "name": "updateGroupType",
+      "path": "services/api/groupTypes.ts",
+      "endpoint": "${BASE_URL}/${idKey}",
+      "method": "PUT",
+      "responseType": "GroupTypeAdminDto"
+    },
+    "archiveGroupType": {
+      "name": "archiveGroupType",
+      "path": "services/api/groupTypes.ts",
+      "endpoint": "${BASE_URL}/${idKey}",
+      "method": "DELETE",
+      "responseType": "void"
+    },
+    "getGroupsByType": {
+      "name": "getGroupsByType",
+      "path": "services/api/groupTypes.ts",
+      "endpoint": "${BASE_URL}/${idKey}/groups",
+      "method": "GET",
+      "responseType": "GroupTypeGroupDto[]"
+    },
+    "getGroupByIdKey": {
+      "name": "getGroupByIdKey",
+      "path": "services/api/groups.ts",
+      "endpoint": "/groups/${idKey}",
+      "method": "GET",
+      "responseType": "GroupDetailDto"
+    },
+    "addGroupMember": {
+      "name": "addGroupMember",
+      "path": "services/api/groups.ts",
+      "endpoint": "/groups/${groupIdKey}/members",
+      "method": "POST",
+      "responseType": "GroupMemberDetailDto"
+    },
+    "removeGroupMember": {
+      "name": "removeGroupMember",
+      "path": "services/api/myGroups.ts",
+      "endpoint": "/my-groups/${groupIdKey}/members/${memberIdKey}",
+      "method": "DELETE",
+      "responseType": "void"
+    },
+    "createGroup": {
+      "name": "createGroup",
+      "path": "services/api/groups.ts",
+      "endpoint": "/groups",
+      "method": "POST",
+      "responseType": "GroupDetailDto"
+    },
+    "updateGroup": {
+      "name": "updateGroup",
+      "path": "services/api/groups.ts",
+      "endpoint": "/groups/${idKey}",
+      "method": "PUT",
+      "responseType": "GroupDetailDto"
+    },
+    "deleteGroup": {
+      "name": "deleteGroup",
+      "path": "services/api/groups.ts",
+      "endpoint": "/groups/${idKey}",
+      "method": "DELETE",
+      "responseType": "void"
+    },
+    "getGroupSchedules": {
+      "name": "getGroupSchedules",
+      "path": "services/api/groups.ts",
+      "endpoint": "/groups/${groupIdKey}/schedules",
+      "method": "GET",
+      "responseType": "GroupScheduleDto[]"
+    },
+    "addGroupSchedule": {
+      "name": "addGroupSchedule",
+      "path": "services/api/groups.ts",
+      "endpoint": "/groups/${groupIdKey}/schedules",
+      "method": "POST",
+      "responseType": "GroupScheduleDto"
+    },
+    "removeGroupSchedule": {
+      "name": "removeGroupSchedule",
+      "path": "services/api/groups.ts",
+      "endpoint": "/groups/${groupIdKey}/schedules/${scheduleIdKey}",
+      "method": "DELETE",
+      "responseType": "void"
+    },
+    "submitMembershipRequest": {
+      "name": "submitMembershipRequest",
+      "path": "services/api/membershipRequests.ts",
+      "endpoint": "/groups/${groupIdKey}/membership-requests",
+      "method": "POST",
+      "responseType": "GroupMemberRequestDto"
+    },
+    "getPendingRequests": {
+      "name": "getPendingRequests",
+      "path": "services/api/membershipRequests.ts",
+      "endpoint": "/groups/${groupIdKey}/membership-requests",
+      "method": "GET",
+      "responseType": "GroupMemberRequestDto[]"
+    },
+    "processRequest": {
+      "name": "processRequest",
+      "path": "services/api/membershipRequests.ts",
+      "endpoint": "/groups/${groupIdKey}/membership-requests/${requestIdKey}",
+      "method": "PUT",
+      "responseType": "GroupMemberRequestDto"
+    },
+    "getMyGroups": {
+      "name": "getMyGroups",
+      "path": "services/api/myGroups.ts",
+      "endpoint": "/my-groups",
+      "method": "GET",
+      "responseType": "MyGroupDto[]"
+    },
+    "getMyGroupMembers": {
+      "name": "getMyGroupMembers",
+      "path": "services/api/myGroups.ts",
+      "endpoint": "/my-groups/${groupIdKey}/members",
+      "method": "GET",
+      "responseType": "MyGroupMemberDetailDto[]"
+    },
+    "updateGroupMember": {
+      "name": "updateGroupMember",
+      "path": "services/api/myGroups.ts",
+      "endpoint": "/my-groups/${groupIdKey}/members/${memberIdKey}",
+      "method": "PUT",
+      "responseType": "MyGroupMemberDetailDto"
+    },
+    "getPersonByIdKey": {
+      "name": "getPersonByIdKey",
+      "path": "services/api/people.ts",
+      "endpoint": "/people/${idKey}",
+      "method": "GET",
+      "responseType": "PersonDetailDto"
+    },
+    "createPerson": {
+      "name": "createPerson",
+      "path": "services/api/people.ts",
+      "endpoint": "/people",
+      "method": "POST",
+      "responseType": "PersonDetailDto"
+    },
+    "updatePerson": {
+      "name": "updatePerson",
+      "path": "services/api/people.ts",
+      "endpoint": "/people/${idKey}",
+      "method": "PUT",
+      "responseType": "PersonDetailDto"
+    },
+    "deletePerson": {
+      "name": "deletePerson",
+      "path": "services/api/people.ts",
+      "endpoint": "/people/${idKey}",
+      "method": "DELETE",
+      "responseType": "void"
+    },
+    "getPersonFamily": {
+      "name": "getPersonFamily",
+      "path": "services/api/people.ts",
+      "endpoint": "/people/${idKey}/family",
+      "method": "GET",
+      "responseType": "PersonFamilyResponse"
+    },
+    "getMyProfile": {
+      "name": "getMyProfile",
+      "path": "services/api/profile.ts",
+      "endpoint": "/api/v1/my-profile",
+      "method": "GET",
+      "responseType": "MyProfileDto"
+    },
+    "updateMyProfile": {
+      "name": "updateMyProfile",
+      "path": "services/api/profile.ts",
+      "endpoint": "/api/v1/my-profile",
+      "method": "PUT",
+      "responseType": "MyProfileDto"
+    },
+    "getMyFamily": {
+      "name": "getMyFamily",
+      "path": "services/api/profile.ts",
+      "endpoint": "/api/v1/my-family",
+      "method": "GET",
+      "responseType": "FamilyMemberDto[]"
+    },
+    "updateFamilyMember": {
+      "name": "updateFamilyMember",
+      "path": "services/api/profile.ts",
+      "endpoint": "/api/v1/my-family/members/${personIdKey}",
+      "method": "PUT",
+      "responseType": "FamilyMemberDto"
+    },
+    "getMyInvolvement": {
+      "name": "getMyInvolvement",
+      "path": "services/api/profile.ts",
+      "endpoint": "/api/v1/my-involvement",
+      "method": "GET",
+      "responseType": "MyInvolvementDto"
+    },
+    "getDefinedTypes": {
+      "name": "getDefinedTypes",
+      "path": "services/api/reference.ts",
+      "endpoint": "/defined-types",
+      "method": "GET",
+      "responseType": "DefinedTypeDto[]"
+    },
+    "getDefinedTypeValues": {
+      "name": "getDefinedTypeValues",
+      "path": "services/api/reference.ts",
+      "endpoint": "/defined-types/${idKeyOrGuid}/values",
+      "method": "GET",
+      "responseType": "DefinedValueDto[]"
+    },
+    "getCampuses": {
+      "name": "getCampuses",
+      "path": "services/api/reference.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "CampusDto[]"
+    },
+    "getScheduleByIdKey": {
+      "name": "getScheduleByIdKey",
+      "path": "services/api/schedules.ts",
+      "endpoint": "/schedules/${idKey}",
+      "method": "GET",
+      "responseType": "ScheduleDetailDto"
+    },
+    "getScheduleOccurrences": {
+      "name": "getScheduleOccurrences",
+      "path": "services/api/schedules.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "ScheduleOccurrenceDto[]"
+    },
+    "createSchedule": {
+      "name": "createSchedule",
+      "path": "services/api/schedules.ts",
+      "endpoint": "/schedules",
+      "method": "POST",
+      "responseType": "ScheduleDetailDto"
+    },
+    "updateSchedule": {
+      "name": "updateSchedule",
+      "path": "services/api/schedules.ts",
+      "endpoint": "/schedules/${idKey}",
+      "method": "PUT",
+      "responseType": "ScheduleDetailDto"
+    },
+    "deleteSchedule": {
+      "name": "deleteSchedule",
+      "path": "services/api/schedules.ts",
+      "endpoint": "/schedules/${idKey}",
+      "method": "DELETE",
+      "responseType": "void"
+    }
+  },
+  "hooks": {
+    "useAttendanceAnalytics": {
+      "name": "useAttendanceAnalytics",
+      "path": "hooks/useAnalytics.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "analytics"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getAttendanceAnalytics"
+      ]
+    },
+    "useAttendanceTrends": {
+      "name": "useAttendanceTrends",
+      "path": "hooks/useAnalytics.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "analytics"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getAttendanceTrends"
+      ]
+    },
+    "useAttendanceByGroup": {
+      "name": "useAttendanceByGroup",
+      "path": "hooks/useAnalytics.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "analytics"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getAttendanceByGroup"
+      ]
+    },
+    "useTodaysFirstTimeVisitors": {
+      "name": "useTodaysFirstTimeVisitors",
+      "path": "hooks/useAnalytics.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "analytics"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getTodaysFirstTimeVisitors"
+      ]
+    },
+    "useFirstTimeVisitorsByDateRange": {
+      "name": "useFirstTimeVisitorsByDateRange",
+      "path": "hooks/useAnalytics.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "analytics"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getFirstTimeVisitorsByDateRange"
+      ]
+    },
+    "useAuth": {
+      "name": "useAuth",
+      "path": "hooks/useAuth.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "auth"
+      ],
+      "usesQuery": false,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useUser": {
+      "name": "useUser",
+      "path": "hooks/useAuth.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "user"
+      ],
+      "usesQuery": false,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useIsAuthenticated": {
+      "name": "useIsAuthenticated",
+      "path": "hooks/useAuth.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "isauthenticated"
+      ],
+      "usesQuery": false,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useCheckinConfiguration": {
+      "name": "useCheckinConfiguration",
+      "path": "hooks/useCheckin.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "checkinconfiguration"
+      ],
+      "usesQuery": false,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useCheckinSearch": {
+      "name": "useCheckinSearch",
+      "path": "hooks/useCheckin.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "checkin"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "searchFamiliesForCheckin"
+      ]
+    },
+    "useCheckinOpportunities": {
+      "name": "useCheckinOpportunities",
+      "path": "hooks/useCheckin.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "checkinopportunities"
+      ],
+      "usesQuery": false,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useRecordAttendance": {
+      "name": "useRecordAttendance",
+      "path": "hooks/useMyGroups.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "my-groups"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "recordAttendance"
+      ]
+    },
+    "useCheckout": {
+      "name": "useCheckout",
+      "path": "hooks/useCheckin.ts",
+      "apiBinding": "async",
+      "queryKey": [
+        "checkin"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "checkout"
+      ]
+    },
+    "useLabels": {
+      "name": "useLabels",
+      "path": "hooks/useCheckin.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "labels"
+      ],
+      "usesQuery": false,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useCommunication": {
+      "name": "useCommunication",
+      "path": "hooks/useCommunications.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "communications"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getCommunication"
+      ]
+    },
+    "useCommunications": {
+      "name": "useCommunications",
+      "path": "hooks/useCommunications.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "communications"
+      ],
+      "usesQuery": false,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useCreateCommunication": {
+      "name": "useCreateCommunication",
+      "path": "hooks/useCommunications.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "communications"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "createCommunication"
+      ]
+    },
+    "useSendCommunication": {
+      "name": "useSendCommunication",
+      "path": "hooks/useCommunications.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "communications"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "sendCommunication"
+      ]
+    },
+    "useDashboardStats": {
+      "name": "useDashboardStats",
+      "path": "hooks/useDashboard.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "dashboard"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getDashboardStats"
+      ]
+    },
+    "useErrorHandler": {
+      "name": "useErrorHandler",
+      "path": "hooks/useErrorHandler.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "errorhandler"
+      ],
+      "usesQuery": false,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useFamilies": {
+      "name": "useFamilies",
+      "path": "hooks/useFamilies.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "families"
+      ],
+      "usesQuery": false,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useFamily": {
+      "name": "useFamily",
+      "path": "hooks/useFamilies.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "families"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getFamilyByIdKey"
+      ]
+    },
+    "useCreateFamily": {
+      "name": "useCreateFamily",
+      "path": "hooks/useFamilies.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "families"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "createFamily"
+      ]
+    },
+    "useUpdateFamily": {
+      "name": "useUpdateFamily",
+      "path": "hooks/useFamilies.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "families"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "updateFamily"
+      ]
+    },
+    "useAddFamilyMember": {
+      "name": "useAddFamilyMember",
+      "path": "hooks/useFamilies.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "families"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "addFamilyMember"
+      ]
+    },
+    "useRemoveFamilyMember": {
+      "name": "useRemoveFamilyMember",
+      "path": "hooks/useFamilies.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "families"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "removeFamilyMember"
+      ]
+    },
+    "useGroupTypes": {
+      "name": "useGroupTypes",
+      "path": "hooks/useGroupTypes.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "group-types"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getGroupTypes"
+      ]
+    },
+    "useGroupType": {
+      "name": "useGroupType",
+      "path": "hooks/useGroupTypes.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "group-types"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getGroupType"
+      ]
+    },
+    "useCreateGroupType": {
+      "name": "useCreateGroupType",
+      "path": "hooks/useGroupTypes.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "group-types"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "createGroupType"
+      ]
+    },
+    "useUpdateGroupType": {
+      "name": "useUpdateGroupType",
+      "path": "hooks/useGroupTypes.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "group-types"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "updateGroupType"
+      ]
+    },
+    "useArchiveGroupType": {
+      "name": "useArchiveGroupType",
+      "path": "hooks/useGroupTypes.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "group-types"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "archiveGroupType"
+      ]
+    },
+    "useGroupsByType": {
+      "name": "useGroupsByType",
+      "path": "hooks/useGroupTypes.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "group-types"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getGroupsByType"
+      ]
+    },
+    "useGroups": {
+      "name": "useGroups",
+      "path": "hooks/useGroups.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "groups"
+      ],
+      "usesQuery": false,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useGroup": {
+      "name": "useGroup",
+      "path": "hooks/useGroups.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "groups"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getGroupByIdKey"
+      ]
+    },
+    "useChildGroups": {
+      "name": "useChildGroups",
+      "path": "hooks/useGroups.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "groups"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useCreateGroup": {
+      "name": "useCreateGroup",
+      "path": "hooks/useGroups.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "groups"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "createGroup"
+      ]
+    },
+    "useUpdateGroup": {
+      "name": "useUpdateGroup",
+      "path": "hooks/useGroups.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "groups"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "updateGroup"
+      ]
+    },
+    "useDeleteGroup": {
+      "name": "useDeleteGroup",
+      "path": "hooks/useGroups.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "groups"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "deleteGroup"
+      ]
+    },
+    "useGroupSchedules": {
+      "name": "useGroupSchedules",
+      "path": "hooks/useGroups.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "groups"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getGroupSchedules"
+      ]
+    },
+    "useAddGroupSchedule": {
+      "name": "useAddGroupSchedule",
+      "path": "hooks/useGroups.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "groups"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "addGroupSchedule"
+      ]
+    },
+    "useRemoveGroupSchedule": {
+      "name": "useRemoveGroupSchedule",
+      "path": "hooks/useGroups.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "groups"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "removeGroupSchedule"
+      ]
+    },
+    "usePendingRequests": {
+      "name": "usePendingRequests",
+      "path": "hooks/useMembershipRequests.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "groups"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getPendingRequests"
+      ]
+    },
+    "useSubmitMembershipRequest": {
+      "name": "useSubmitMembershipRequest",
+      "path": "hooks/useMembershipRequests.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "groups"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "submitMembershipRequest"
+      ]
+    },
+    "useProcessRequest": {
+      "name": "useProcessRequest",
+      "path": "hooks/useMembershipRequests.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "groups"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "processRequest"
+      ]
+    },
+    "useMyGroups": {
+      "name": "useMyGroups",
+      "path": "hooks/useMyGroups.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "my-groups"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getMyGroups"
+      ]
+    },
+    "useMyGroupMembers": {
+      "name": "useMyGroupMembers",
+      "path": "hooks/useMyGroups.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "my-groups"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getMyGroupMembers"
+      ]
+    },
+    "useUpdateGroupMember": {
+      "name": "useUpdateGroupMember",
+      "path": "hooks/useMyGroups.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "updategroupmember"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "updateGroupMember"
+      ]
+    },
+    "useRemoveGroupMember": {
+      "name": "useRemoveGroupMember",
+      "path": "hooks/useMyGroups.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "my-groups"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "removeGroupMember"
+      ]
+    },
+    "usePeople": {
+      "name": "usePeople",
+      "path": "hooks/usePeople.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "people"
+      ],
+      "usesQuery": false,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "usePerson": {
+      "name": "usePerson",
+      "path": "hooks/usePeople.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "people"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getPersonByIdKey"
+      ]
+    },
+    "useCreatePerson": {
+      "name": "useCreatePerson",
+      "path": "hooks/usePeople.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "people"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "createPerson"
+      ]
+    },
+    "useUpdatePerson": {
+      "name": "useUpdatePerson",
+      "path": "hooks/usePeople.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "people"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "updatePerson"
+      ]
+    },
+    "useDeletePerson": {
+      "name": "useDeletePerson",
+      "path": "hooks/usePeople.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "people"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "deletePerson"
+      ]
+    },
+    "usePersonFamily": {
+      "name": "usePersonFamily",
+      "path": "hooks/usePeople.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "people"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getPersonFamily"
+      ]
+    },
+    "usePersonGroups": {
+      "name": "usePersonGroups",
+      "path": "hooks/usePeople.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "people"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useMyProfile": {
+      "name": "useMyProfile",
+      "path": "hooks/useProfile.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "profile"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getMyProfile"
+      ]
+    },
+    "useUpdateMyProfile": {
+      "name": "useUpdateMyProfile",
+      "path": "hooks/useProfile.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "profile"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "updateMyProfile"
+      ]
+    },
+    "useMyFamily": {
+      "name": "useMyFamily",
+      "path": "hooks/useProfile.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "profile"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getMyFamily"
+      ]
+    },
+    "useUpdateFamilyMember": {
+      "name": "useUpdateFamilyMember",
+      "path": "hooks/useProfile.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "profile"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "updateFamilyMember"
+      ]
+    },
+    "useMyInvolvement": {
+      "name": "useMyInvolvement",
+      "path": "hooks/useProfile.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "profile"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getMyInvolvement"
+      ]
+    },
+    "usePublicGroups": {
+      "name": "usePublicGroups",
+      "path": "hooks/usePublicGroups.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "publicgroups"
+      ],
+      "usesQuery": false,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useRoomRoster": {
+      "name": "useRoomRoster",
+      "path": "hooks/useRoomRoster.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "checkin"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getRoomRoster"
+      ]
+    },
+    "useMultipleRoomRosters": {
+      "name": "useMultipleRoomRosters",
+      "path": "hooks/useRoomRoster.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "checkin"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getMultipleRoomRosters"
+      ]
+    },
+    "useCheckOutFromRoster": {
+      "name": "useCheckOutFromRoster",
+      "path": "hooks/useRoomRoster.ts",
+      "apiBinding": "async",
+      "queryKey": [
+        "checkin"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "checkoutFromRoster"
+      ]
+    },
+    "useSchedules": {
+      "name": "useSchedules",
+      "path": "hooks/useSchedules.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "schedules"
+      ],
+      "usesQuery": false,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useSchedule": {
+      "name": "useSchedule",
+      "path": "hooks/useSchedules.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "schedules"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getScheduleByIdKey"
+      ]
+    },
+    "useScheduleOccurrences": {
+      "name": "useScheduleOccurrences",
+      "path": "hooks/useSchedules.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "schedules"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getScheduleOccurrences"
+      ]
+    },
+    "useCreateSchedule": {
+      "name": "useCreateSchedule",
+      "path": "hooks/useSchedules.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "schedules"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "createSchedule"
+      ]
+    },
+    "useUpdateSchedule": {
+      "name": "useUpdateSchedule",
+      "path": "hooks/useSchedules.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "schedules"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "updateSchedule"
+      ]
+    },
+    "useDeleteSchedule": {
+      "name": "useDeleteSchedule",
+      "path": "hooks/useSchedules.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "schedules"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "deleteSchedule"
+      ]
+    },
+    "useSupervisorAttendance": {
+      "name": "useSupervisorAttendance",
+      "path": "hooks/useSupervisorAttendance.ts",
+      "apiBinding": "async",
+      "queryKey": [
+        "supervisor"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getMultipleRoomRosters"
+      ]
+    }
+  },
+  "components": {
+    "ErrorBoundary": {
+      "name": "ErrorBoundary",
+      "path": "components/ErrorBoundary.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "LocationPicker": {
+      "name": "LocationPicker",
+      "path": "components/LocationPicker.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "RouteErrorBoundary": {
+      "name": "RouteErrorBoundary",
+      "path": "components/RouteErrorBoundary.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "Breadcrumb": {
+      "name": "Breadcrumb",
+      "path": "components/admin/Breadcrumb.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "GroupTypeCard": {
+      "name": "GroupTypeCard",
+      "path": "components/admin/GroupTypeCard.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "GroupTypeEditorModal": {
+      "name": "GroupTypeEditorModal",
+      "path": "components/admin/GroupTypeEditorModal.tsx",
+      "hooksUsed": [
+        "useGroupType",
+        "useCreateGroupType",
+        "useUpdateGroupType"
+      ],
+      "apiCallsDirectly": false
+    },
+    "GroupTypeGroupsModal": {
+      "name": "GroupTypeGroupsModal",
+      "path": "components/admin/GroupTypeGroupsModal.tsx",
+      "hooksUsed": [
+        "useGroupsByType"
+      ],
+      "apiCallsDirectly": false
+    },
+    "Header": {
+      "name": "Header",
+      "path": "components/admin/Header.tsx",
+      "hooksUsed": [
+        "useAuth"
+      ],
+      "apiCallsDirectly": false
+    },
+    "Sidebar": {
+      "name": "Sidebar",
+      "path": "components/admin/Sidebar.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "AnalyticsSummaryCards": {
+      "name": "AnalyticsSummaryCards",
+      "path": "components/admin/analytics/AnalyticsSummaryCards.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "AttendanceByGroupTable": {
+      "name": "AttendanceByGroupTable",
+      "path": "components/admin/analytics/AttendanceByGroupTable.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "AttendanceTrendChart": {
+      "name": "AttendanceTrendChart",
+      "path": "components/admin/analytics/AttendanceTrendChart.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "DateRangePicker": {
+      "name": "DateRangePicker",
+      "path": "components/admin/analytics/DateRangePicker.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "FirstTimeVisitorList": {
+      "name": "FirstTimeVisitorList",
+      "path": "components/admin/analytics/FirstTimeVisitorList.tsx",
+      "hooksUsed": [
+        "useFirstTimeVisitorsByDateRange"
+      ],
+      "apiCallsDirectly": false
+    },
+    "FirstTimeVisitorWidget": {
+      "name": "FirstTimeVisitorWidget",
+      "path": "components/admin/analytics/FirstTimeVisitorWidget.tsx",
+      "hooksUsed": [
+        "useTodaysFirstTimeVisitors"
+      ],
+      "apiCallsDirectly": false
+    },
+    "QuickActions": {
+      "name": "QuickActions",
+      "path": "components/admin/dashboard/QuickActions.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "StatCard": {
+      "name": "StatCard",
+      "path": "components/admin/dashboard/StatCard.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "UpcomingSchedules": {
+      "name": "UpcomingSchedules",
+      "path": "components/admin/dashboard/UpcomingSchedules.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "AddMemberModal": {
+      "name": "AddMemberModal",
+      "path": "components/admin/families/AddMemberModal.tsx",
+      "hooksUsed": [
+        "usePeople"
+      ],
+      "apiCallsDirectly": false
+    },
+    "FamilyMemberCard": {
+      "name": "FamilyMemberCard",
+      "path": "components/profile/FamilyMemberCard.tsx",
+      "hooksUsed": [
+        "useUpdateFamilyMember"
+      ],
+      "apiCallsDirectly": false
+    },
+    "GroupCard": {
+      "name": "GroupCard",
+      "path": "components/groups/GroupCard.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "GroupSchedulesSection": {
+      "name": "GroupSchedulesSection",
+      "path": "components/admin/groups/GroupSchedulesSection.tsx",
+      "hooksUsed": [
+        "useGroupSchedules",
+        "useAddGroupSchedule",
+        "useRemoveGroupSchedule",
+        "useSchedules"
+      ],
+      "apiCallsDirectly": false
+    },
+    "GroupTree": {
+      "name": "GroupTree",
+      "path": "components/admin/groups/GroupTree.tsx",
+      "hooksUsed": [
+        "useChildGroups"
+      ],
+      "apiCallsDirectly": false
+    },
+    "PersonCard": {
+      "name": "PersonCard",
+      "path": "components/admin/people/PersonCard.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "PersonSearchBar": {
+      "name": "PersonSearchBar",
+      "path": "components/admin/people/PersonSearchBar.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "ChildCard": {
+      "name": "ChildCard",
+      "path": "components/admin/roster/ChildCard.tsx",
+      "hooksUsed": [
+        "useCheckOutFromRoster"
+      ],
+      "apiCallsDirectly": false
+    },
+    "RosterList": {
+      "name": "RosterList",
+      "path": "components/admin/roster/RosterList.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "CheckinWindowPreview": {
+      "name": "CheckinWindowPreview",
+      "path": "components/admin/schedules/CheckinWindowPreview.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "WeeklySchedulePicker": {
+      "name": "WeeklySchedulePicker",
+      "path": "components/admin/schedules/WeeklySchedulePicker.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "LoginForm": {
+      "name": "LoginForm",
+      "path": "components/auth/LoginForm.tsx",
+      "hooksUsed": [
+        "useAuth",
+        "useErrorHandler"
+      ],
+      "apiCallsDirectly": false
+    },
+    "ProtectedRoute": {
+      "name": "ProtectedRoute",
+      "path": "components/auth/ProtectedRoute.tsx",
+      "hooksUsed": [
+        "useAuth"
+      ],
+      "apiCallsDirectly": false
+    },
+    "CheckinConfirmation": {
+      "name": "CheckinConfirmation",
+      "path": "components/checkin/CheckinConfirmation.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "CheckoutFlow": {
+      "name": "CheckoutFlow",
+      "path": "components/checkin/CheckoutFlow.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "FamilyMemberList": {
+      "name": "FamilyMemberList",
+      "path": "components/checkin/FamilyMemberList.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "FamilyQrCard": {
+      "name": "FamilyQrCard",
+      "path": "components/checkin/FamilyQrCard.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "FamilySearch": {
+      "name": "FamilySearch",
+      "path": "components/checkin/FamilySearch.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "IdleWarningModal": {
+      "name": "IdleWarningModal",
+      "path": "components/checkin/IdleWarningModal.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "KioskLayout": {
+      "name": "KioskLayout",
+      "path": "components/checkin/KioskLayout.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "OfflineQueueIndicator": {
+      "name": "OfflineQueueIndicator",
+      "path": "components/checkin/OfflineQueueIndicator.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "PhoneSearch": {
+      "name": "PhoneSearch",
+      "path": "components/checkin/PhoneSearch.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "PinEntry": {
+      "name": "PinEntry",
+      "path": "components/checkin/PinEntry.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "PrintStatus": {
+      "name": "PrintStatus",
+      "path": "components/checkin/PrintStatus.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "QrScanner": {
+      "name": "QrScanner",
+      "path": "components/checkin/QrScanner.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "RoomCapacityIndicator": {
+      "name": "RoomCapacityIndicator",
+      "path": "components/checkin/RoomCapacityIndicator.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "SecurityCodeVerify": {
+      "name": "SecurityCodeVerify",
+      "path": "components/checkin/SecurityCodeVerify.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "SupervisorMode": {
+      "name": "SupervisorMode",
+      "path": "components/checkin/SupervisorMode.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "CheckinConfirmation.test": {
+      "name": "CheckinConfirmation.test",
+      "path": "components/checkin/__tests__/CheckinConfirmation.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "FamilyMemberList.test": {
+      "name": "FamilyMemberList.test",
+      "path": "components/checkin/__tests__/FamilyMemberList.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "IdleWarningModal.test": {
+      "name": "IdleWarningModal.test",
+      "path": "components/checkin/__tests__/IdleWarningModal.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "PhoneSearch.test": {
+      "name": "PhoneSearch.test",
+      "path": "components/checkin/__tests__/PhoneSearch.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "CommunicationComposer": {
+      "name": "CommunicationComposer",
+      "path": "components/communication/CommunicationComposer.tsx",
+      "hooksUsed": [
+        "useCreateCommunication",
+        "useSendCommunication"
+      ],
+      "apiCallsDirectly": false
+    },
+    "EmailComposer": {
+      "name": "EmailComposer",
+      "path": "components/communication/EmailComposer.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "MessageTypeToggle": {
+      "name": "MessageTypeToggle",
+      "path": "components/communication/MessageTypeToggle.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "SmsComposer": {
+      "name": "SmsComposer",
+      "path": "components/communication/SmsComposer.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "GroupFilters": {
+      "name": "GroupFilters",
+      "path": "components/groups/GroupFilters.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "PendingRequestsBadge": {
+      "name": "PendingRequestsBadge",
+      "path": "components/groups/PendingRequestsBadge.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "PendingRequestsList": {
+      "name": "PendingRequestsList",
+      "path": "components/groups/PendingRequestsList.tsx",
+      "hooksUsed": [
+        "usePendingRequests",
+        "useProcessRequest"
+      ],
+      "apiCallsDirectly": false
+    },
+    "RequestReviewModal": {
+      "name": "RequestReviewModal",
+      "path": "components/groups/RequestReviewModal.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "RequestToJoinModal": {
+      "name": "RequestToJoinModal",
+      "path": "components/groups/RequestToJoinModal.tsx",
+      "hooksUsed": [
+        "useSubmitMembershipRequest"
+      ],
+      "apiCallsDirectly": false
+    },
+    "CsvUploader": {
+      "name": "CsvUploader",
+      "path": "components/import/CsvUploader.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "FieldMappingEditor": {
+      "name": "FieldMappingEditor",
+      "path": "components/import/FieldMappingEditor.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "ImportProgress": {
+      "name": "ImportProgress",
+      "path": "components/import/ImportProgress.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "SaveTemplateDialog": {
+      "name": "SaveTemplateDialog",
+      "path": "components/import/SaveTemplateDialog.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "TemplateManager": {
+      "name": "TemplateManager",
+      "path": "components/import/TemplateManager.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "TemplateSelector": {
+      "name": "TemplateSelector",
+      "path": "components/import/TemplateSelector.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "ValidationPreview": {
+      "name": "ValidationPreview",
+      "path": "components/import/ValidationPreview.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "EditMemberModal": {
+      "name": "EditMemberModal",
+      "path": "components/mygroups/EditMemberModal.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "GroupCardWithRequests": {
+      "name": "GroupCardWithRequests",
+      "path": "components/mygroups/GroupCardWithRequests.tsx",
+      "hooksUsed": [
+        "usePendingRequests"
+      ],
+      "apiCallsDirectly": false
+    },
+    "GroupMemberList": {
+      "name": "GroupMemberList",
+      "path": "components/mygroups/GroupMemberList.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "TakeAttendanceModal": {
+      "name": "TakeAttendanceModal",
+      "path": "components/mygroups/TakeAttendanceModal.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "FamilySection": {
+      "name": "FamilySection",
+      "path": "components/profile/FamilySection.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "InvolvementSummary": {
+      "name": "InvolvementSummary",
+      "path": "components/profile/InvolvementSummary.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "PhoneNumberEditor": {
+      "name": "PhoneNumberEditor",
+      "path": "components/profile/PhoneNumberEditor.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "ProfileEditor": {
+      "name": "ProfileEditor",
+      "path": "components/profile/ProfileEditor.tsx",
+      "hooksUsed": [
+        "useUpdateMyProfile"
+      ],
+      "apiCallsDirectly": false
+    },
+    "InstallPrompt": {
+      "name": "InstallPrompt",
+      "path": "components/pwa/InstallPrompt.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "OfflineIndicator": {
+      "name": "OfflineIndicator",
+      "path": "components/pwa/OfflineIndicator.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "PWAUpdatePrompt": {
+      "name": "PWAUpdatePrompt",
+      "path": "components/pwa/PWAUpdatePrompt.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "Button": {
+      "name": "Button",
+      "path": "components/ui/Button.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "Card": {
+      "name": "Card",
+      "path": "components/ui/Card.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "ConfirmDialog": {
+      "name": "ConfirmDialog",
+      "path": "components/ui/ConfirmDialog.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "EmptyState": {
+      "name": "EmptyState",
+      "path": "components/ui/EmptyState.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "ErrorState": {
+      "name": "ErrorState",
+      "path": "components/ui/ErrorState.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": true
+    },
+    "Input": {
+      "name": "Input",
+      "path": "components/ui/Input.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "Loading": {
+      "name": "Loading",
+      "path": "components/ui/Loading.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "PhoneInput": {
+      "name": "PhoneInput",
+      "path": "components/ui/PhoneInput.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "Skeleton": {
+      "name": "Skeleton",
+      "path": "components/ui/Skeleton.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "ToastContainer": {
+      "name": "ToastContainer",
+      "path": "components/ui/Toast.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    }
+  },
+  "edges": [
+    {
+      "from": "GroupTypeEditorModal",
+      "to": "useGroupType",
+      "type": "uses_hook"
+    },
+    {
+      "from": "GroupTypeEditorModal",
+      "to": "useCreateGroupType",
+      "type": "uses_hook"
+    },
+    {
+      "from": "GroupTypeEditorModal",
+      "to": "useUpdateGroupType",
+      "type": "uses_hook"
+    },
+    {
+      "from": "GroupTypeGroupsModal",
+      "to": "useGroupsByType",
+      "type": "uses_hook"
+    },
+    {
+      "from": "Header",
+      "to": "useAuth",
+      "type": "uses_hook"
+    },
+    {
+      "from": "FirstTimeVisitorList",
+      "to": "useFirstTimeVisitorsByDateRange",
+      "type": "uses_hook"
+    },
+    {
+      "from": "FirstTimeVisitorWidget",
+      "to": "useTodaysFirstTimeVisitors",
+      "type": "uses_hook"
+    },
+    {
+      "from": "AddMemberModal",
+      "to": "usePeople",
+      "type": "uses_hook"
+    },
+    {
+      "from": "FamilyMemberCard",
+      "to": "useUpdateFamilyMember",
+      "type": "uses_hook"
+    },
+    {
+      "from": "GroupSchedulesSection",
+      "to": "useGroupSchedules",
+      "type": "uses_hook"
+    },
+    {
+      "from": "GroupSchedulesSection",
+      "to": "useAddGroupSchedule",
+      "type": "uses_hook"
+    },
+    {
+      "from": "GroupSchedulesSection",
+      "to": "useRemoveGroupSchedule",
+      "type": "uses_hook"
+    },
+    {
+      "from": "GroupSchedulesSection",
+      "to": "useSchedules",
+      "type": "uses_hook"
+    },
+    {
+      "from": "GroupTree",
+      "to": "useChildGroups",
+      "type": "uses_hook"
+    },
+    {
+      "from": "ChildCard",
+      "to": "useCheckOutFromRoster",
+      "type": "uses_hook"
+    },
+    {
+      "from": "LoginForm",
+      "to": "useAuth",
+      "type": "uses_hook"
+    },
+    {
+      "from": "LoginForm",
+      "to": "useErrorHandler",
+      "type": "uses_hook"
+    },
+    {
+      "from": "ProtectedRoute",
+      "to": "useAuth",
+      "type": "uses_hook"
+    },
+    {
+      "from": "CommunicationComposer",
+      "to": "useCreateCommunication",
+      "type": "uses_hook"
+    },
+    {
+      "from": "CommunicationComposer",
+      "to": "useSendCommunication",
+      "type": "uses_hook"
+    },
+    {
+      "from": "PendingRequestsList",
+      "to": "usePendingRequests",
+      "type": "uses_hook"
+    },
+    {
+      "from": "PendingRequestsList",
+      "to": "useProcessRequest",
+      "type": "uses_hook"
+    },
+    {
+      "from": "RequestToJoinModal",
+      "to": "useSubmitMembershipRequest",
+      "type": "uses_hook"
+    },
+    {
+      "from": "GroupCardWithRequests",
+      "to": "usePendingRequests",
+      "type": "uses_hook"
+    },
+    {
+      "from": "ProfileEditor",
+      "to": "useUpdateMyProfile",
+      "type": "uses_hook"
+    }
+  ]
+}
