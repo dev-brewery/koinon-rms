@@ -4,6 +4,7 @@
 
 import { useMutation, type UseMutationOptions } from '@tanstack/react-query';
 import { useToast } from '@/contexts/ToastContext';
+import { ApiClientError } from '@/services/api/client';
 
 // ============================================================================
 // Types
@@ -74,7 +75,16 @@ export function useMutationWithToast<TData, TError = Error, TVariables = void, T
       }
 
       // Log full error details to console for debugging
-      console.error('Mutation error:', err);
+      // Include traceId if available from ProblemDetails
+      if (err instanceof ApiClientError && err.traceId) {
+        console.error('Mutation error:', {
+          error: err,
+          traceId: err.traceId,
+          format: err.format,
+        });
+      } else {
+        console.error('Mutation error:', err);
+      }
 
       // Call custom onError callback
       customOnError?.(err, variables, context);

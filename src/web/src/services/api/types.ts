@@ -33,6 +33,9 @@ export interface PagedResult<T> {
   meta: PaginationMeta;
 }
 
+/**
+ * @deprecated Use ProblemDetails instead. Legacy format for backwards compatibility.
+ */
 export interface ApiError {
   error: {
     code: string;
@@ -40,6 +43,20 @@ export interface ApiError {
     details?: Record<string, string[]>;
     traceId?: string;
   };
+}
+
+/**
+ * RFC 7807 Problem Details for HTTP APIs
+ * Standard format for API error responses
+ */
+export interface ProblemDetails {
+  type?: string;                        // URI reference identifying the problem type
+  title?: string;                       // Short, human-readable summary
+  status?: number;                      // HTTP status code
+  detail?: string;                      // Human-readable explanation
+  instance?: string;                    // URI reference to specific occurrence
+  traceId?: string;                     // Correlation ID for debugging (extension)
+  extensions?: Record<string, unknown>; // Additional problem-specific data (e.g., validation errors)
 }
 
 // ============================================================================

@@ -18,6 +18,16 @@ export const ApiErrorSchema = z.object({
   }),
 });
 
+export const ProblemDetailsSchema = z.object({
+  type: z.string().optional(),
+  title: z.string().optional(),
+  status: z.number().optional(),
+  detail: z.string().optional(),
+  instance: z.string().optional(),
+  traceId: z.string().optional(),
+  extensions: z.record(z.string(), z.unknown()).optional(),
+});
+
 export const PaginationMetaSchema = z.object({
   page: z.number(),
   pageSize: z.number(),
@@ -95,6 +105,68 @@ export function parseWithSchema<T>(
     }
     throw error;
   }
+}
+
+/**
+ * Type guard to check if an object is a ProblemDetails error
+ */
+export function isProblemDetails(data: unknown): data is z.infer<typeof ProblemDetailsSchema> {
+  if (typeof data !== 'object' || data === null) {
+    return false;
+  }
+  
+  // Check for required ProblemDetails fields
+  return (
+    'type' in data &&
+    'title' in data &&
+    'status' in data &&
+    'detail' in data
+  );
+}
+
+/**
+ * Discriminated union type for error response parsing
+ */
+export type ParsedErrorResponse =
+  | { format: 'problemDetails'; error: z.infer<typeof ProblemDetailsSchema> }
+  | { format: 'legacy'; error: z.infer<typeof ApiErrorSchema>['error'] };
+
+/**
+ * Parse error response supporting both ProblemDetails and legacy ApiError formats
+ */
+export function parseErrorResponse(data: unknown): ParsedErrorResponse {
+  // Check if it's ProblemDetails format (has 'type' field)
+  if (typeof data === 'object' && data !== null && 'type' in data) {
+    try {
+      const problemDetails = ProblemDetailsSchema.parse(data);
+      return { format: 'problemDetails', error: problemDetails };
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.warn('Invalid ProblemDetails format:', error);
+      }
+    }
+  }
+
+  // Check if it's legacy ApiError format (has 'error' field)
+  if (typeof data === 'object' && data !== null && 'error' in data) {
+    try {
+      const apiError = ApiErrorSchema.parse(data);
+      return { format: 'legacy', error: apiError.error };
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.warn('Invalid ApiError format:', error);
+      }
+    }
+  }
+
+  // Unknown format - return as-is wrapped in legacy format
+  return {
+    format: 'legacy',
+    error: {
+      code: 'UNKNOWN_ERROR',
+      message: 'An unknown error occurred',
+    },
+  };
 }
 
 /**

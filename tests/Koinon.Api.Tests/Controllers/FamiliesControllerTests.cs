@@ -70,8 +70,8 @@ public class FamiliesControllerTests
 
         // Act
         var result = await _controller.Search(
-            searchTerm: null,
-            campusIdKey: null,
+            query: null,
+            campusId: null,
             includeInactive: false,
             page: 1,
             pageSize: 25);
@@ -135,8 +135,8 @@ public class FamiliesControllerTests
 
         // Act
         await _controller.Search(
-            searchTerm: "Smith",
-            campusIdKey: _campusIdKey,
+            query: "Smith",
+            campusId: _campusIdKey,
             includeInactive: true,
             page: 2,
             pageSize: 50);
