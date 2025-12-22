@@ -128,6 +128,43 @@ When running as PM (`/pm` command):
 - Run code-critic after implementations
 - Complete session verification before starting *(MAXIMUS: skip)*
 
+### Agent Architecture
+
+```
+PM (Haiku) - Long-running dispatcher
+ │
+ ├── spawns Plan (Opus) → analyzes issue, returns structured JSON plan → terminates
+ │
+ ├── spawns entity (Sonnet) → implements domain entities → terminates
+ ├── spawns data-layer (Sonnet) → implements EF Core/repos → terminates
+ ├── spawns core-services (Sonnet) → implements services → terminates
+ ├── spawns api-controllers (Sonnet) → implements REST endpoints → terminates
+ ├── spawns ui-components (Sonnet) → implements React components → terminates
+ │
+ └── spawns code-critic (Sonnet) → reviews staged changes → terminates
+```
+
+| Agent | Model | Why |
+|-------|-------|-----|
+| PM | Haiku | Dispatcher role, follows instructions literally, 1/10th cost |
+| Plan | Opus | Critical analysis requires highest quality reasoning |
+| Dev agents | Sonnet | Good balance of capability and cost for implementation |
+| code-critic | Sonnet | Needs intelligence for thorough review |
+
+### PM Workflow
+
+1. Pick highest priority issue from sprint
+2. Create feature branch
+3. Spawn Plan agent → receive structured JSON implementation plan
+4. For each step in plan, spawn appropriate dev agent
+5. Stage changes: `git add .`
+6. Spawn code-critic → receive APPROVED or CHANGES REQUESTED
+7. If changes requested: spawn dev agent to fix, re-stage, re-review
+8. Commit (after code-critic approval)
+9. Push, create PR, monitor CI
+10. If CI fails: spawn dev agent to fix, push, wait
+11. Merge PR, loop to next issue
+
 ### CRITICAL: Infinite Development Lifecycle
 
 When in `/pm` mode, you execute the FULL development cycle forever:
@@ -209,3 +246,76 @@ Web: localhost:5173
 | `docs/reference/work-breakdown.md` | Work unit specs |
 | `.claude/GUARDRAILS.md` | Safety rules *(MAXIMUS agents: skip)* |
 | `.claude/HOOKS.md` | Hook reference *(MAXIMUS agents: skip)* |
+
+## Graph Baseline System
+
+The API graph is a contract between architectural layers that validates type safety and design consistency across:
+- Domain Entities (C#)
+- Application DTOs (C#)
+- API Endpoints (C#)
+- Frontend Components (TypeScript/React)
+
+### Overview
+
+The graph baseline (`tools/graph/graph-baseline.json`) tracks your architecture's structure. When code changes, agents must validate that the graph still matches reality.
+
+### Commands
+
+```bash
+# Validate current code against baseline
+npm run graph:validate
+
+# Regenerate baseline after structural changes
+npm run graph:update
+```
+
+### When Agents Should Update Baseline
+
+Update `tools/graph/graph-baseline.json` when:
+- Adding new entity types
+- Adding new DTOs
+- Adding API endpoints
+- Renaming entity/DTO fields
+- Adding new components
+- Reorganizing component structure
+
+Do NOT update for implementation details (method bodies, comments, tests).
+
+### MCP Query for Baseline Check
+
+Before updating baseline, agents should verify current state:
+
+```bash
+# Check if graph file exists
+[ -f tools/graph/graph-baseline.json ] && echo "Baseline exists" || echo "No baseline yet"
+
+# View baseline structure
+jq '.entities | keys' tools/graph/graph-baseline.json
+jq '.endpoints | keys' tools/graph/graph-baseline.json
+```
+
+### Workflow for Adding New Entity
+
+1. Create entity: `src/Koinon.Domain/Entities/YourEntity.cs`
+2. Create DTO: `src/Koinon.Application/DTOs/YourDto.cs`
+3. Create controller: `src/Koinon.Api/Controllers/YourController.cs`
+4. Update baseline: `npm run graph:update`
+5. Commit both code and `tools/graph/graph-baseline.json`
+
+### CI Validation
+
+CI automatically detects when graph baseline needs updating:
+- Monitors changes in `src/Koinon.Domain/Entities/`
+- Monitors changes in `src/Koinon.Application/DTOs/`
+- Monitors changes in `src/Koinon.Api/Controllers/`
+- Monitors changes in `src/web/**`
+
+If structural changes are detected without baseline update, CI labels PR with `baseline-update-required`.
+
+### Documentation
+
+- **Full guide:** `tools/graph/README.md`
+- **Contributing guidelines:** `CONTRIBUTING.md` section "Graph Baseline Updates"
+- **CI workflow:** `.github/workflows/graph-validate.yml`
+
+
