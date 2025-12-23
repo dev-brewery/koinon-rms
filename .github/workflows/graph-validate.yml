@@ -49,7 +49,7 @@ jobs:
     - name: Check for graph drift
       run: |
         # Check for structural drift (ignore timestamp changes)
-        if git diff tools/graph/graph-baseline.json | grep -v '"generated_at"' | grep -q '^[+-]'; then
+        if git diff tools/graph/graph-baseline.json | grep -v '"generated_at"' | grep -v '^---' | grep -v '^+++' | grep -q '^[+-]'; then
           echo "::error::Graph baseline has drifted. Run 'npm run graph:update' locally and commit the updated baseline."
           git diff tools/graph/graph-baseline.json
           exit 1
