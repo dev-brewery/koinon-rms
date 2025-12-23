@@ -205,3 +205,4 @@ test-results/.last-run.json
 .maximus/
 docs/EMERGENCY-SECURITY-FIXES.md
 docs/security-fixes/README.md
+tools/graph/__pycache__/verify-contracts.cpython-312.pyc
