@@ -203,3 +203,5 @@ test-results/.last-run.json
 
 # MAXIMUS orchestrator - local backup and session files
 .maximus/
+docs/EMERGENCY-SECURITY-FIXES.md
+docs/security-fixes/README.md
