@@ -302,7 +302,7 @@ function parseComponents(hooks) {
       if (componentName) {
         const relPath = path.relative(WEB_SRC_DIR, filePath).replace(/\\/g, '/');
         const hooksUsed = extractHooksUsedInComponent(content, Object.keys(hooks));
-        const apiCallsDirectly = /fetch\s*\(|apiClient\s*\(|get\s*</.test(content);
+        const apiCallsDirectly = /\bfetch\s*\(|apiClient\s*\(|\bget\s*</.test(content);
 
         components[componentName] = {
           name: componentName,
