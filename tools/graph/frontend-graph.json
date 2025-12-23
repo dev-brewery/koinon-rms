@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2025-12-22T22:04:29.932Z",
+  "generated_at": "2025-12-23T11:37:02.228Z",
   "types": {
     "PaginationMeta": {
       "name": "PaginationMeta",
@@ -3256,7 +3256,7 @@
       "name": "ErrorState",
       "path": "components/ui/ErrorState.tsx",
       "hooksUsed": [],
-      "apiCallsDirectly": true
+      "apiCallsDirectly": false
     },
     "Input": {
       "name": "Input",

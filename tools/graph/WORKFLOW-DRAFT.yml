@@ -1,0 +1,57 @@
+# This file should be copied to .github/workflows/graph-validate.yml
+# Agents cannot write to .github/workflows/ (protected by rule 10)
+# User must manually copy this file to enable CI graph validation
+
+name: Graph Validation
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  NODE_VERSION: '20.x'
+
+jobs:
+  graph-validate:
+    name: Graph Validation
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install root dependencies
+      run: npm ci
+
+    - name: Install frontend dependencies
+      run: npm ci
+      working-directory: src/web
+
+    - name: Regenerate graph baseline
+      run: npm run graph:update
+
+    - name: Verify contracts
+      run: npm run graph:verify
+
+    - name: Check for graph drift
+      run: |
+        # Check for structural drift (ignore timestamp changes)
+        if git diff tools/graph/graph-baseline.json | grep -v '"generated_at"' | grep -q '^[+-]'; then
+          echo "::error::Graph baseline has drifted. Run 'npm run graph:update' locally and commit the updated baseline."
+          git diff tools/graph/graph-baseline.json
+          exit 1
+        fi
+        echo "Graph baseline is up to date (timestamp-only changes are ignored)"

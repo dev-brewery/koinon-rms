@@ -74,13 +74,30 @@ else
     exit 1
 fi
 
-# Step 6: Graph validation (graceful handling for Sprint 18)
+# Step 6: Graph validation (preserve timestamps to prevent drift)
 echo_step "Validating API graph baseline"
+
+# Save current timestamps before validation regenerates them
+SAVED_TS_BACKEND=$(grep -o '"generated_at": "[^"]*"' tools/graph/backend-graph.json 2>/dev/null || true)
+SAVED_TS_FRONTEND=$(grep -o '"generated_at": "[^"]*"' tools/graph/frontend-graph.json 2>/dev/null || true)
+SAVED_TS_MERGED=$(grep -o '"generated_at": "[^"]*"' tools/graph/graph-baseline.json 2>/dev/null || true)
+
 if npm run graph:validate 2>/dev/null; then
     echo_success "Graph validation passed"
 else
     echo "ℹ Graph validation tools not yet available (Sprint 18 implementation pending)"
     echo "See tools/graph/README.md for manual baseline update guidance"
+fi
+
+# Restore original timestamps to prevent drift (validation passed, no structural changes)
+if [ -n "$SAVED_TS_BACKEND" ]; then
+    sed -i "s|\"generated_at\": \"[^\"]*\"|$SAVED_TS_BACKEND|" tools/graph/backend-graph.json 2>/dev/null || true
+fi
+if [ -n "$SAVED_TS_FRONTEND" ]; then
+    sed -i "s|\"generated_at\": \"[^\"]*\"|$SAVED_TS_FRONTEND|" tools/graph/frontend-graph.json 2>/dev/null || true
+fi
+if [ -n "$SAVED_TS_MERGED" ]; then
+    sed -i "s|\"generated_at\": \"[^\"]*\"|$SAVED_TS_MERGED|" tools/graph/graph-baseline.json 2>/dev/null || true
 fi
 
 END_TIME=$(date +%s)

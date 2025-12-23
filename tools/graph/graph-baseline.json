@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2025-12-22T22:04:30.078310+00:00",
+  "generated_at": "2025-12-23T11:37:02.359644+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -6780,7 +6780,7 @@
       "name": "ErrorState",
       "path": "components/ui/ErrorState.tsx",
       "hooksUsed": [],
-      "apiCallsDirectly": true
+      "apiCallsDirectly": false
     },
     "Input": {
       "name": "Input",
