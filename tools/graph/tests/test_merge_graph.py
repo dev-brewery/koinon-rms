@@ -811,3 +811,333 @@ class TestIntegration:
         assert "hooks" in merged
         assert "cross_layer_mappings" in merged
         assert "stats" in merged
+
+class TestCLIArguments:
+    """Test CLI argument parsing in main() function."""
+
+    def test_main_with_backend_argument(self, tmp_path, sample_backend_graph, sample_frontend_graph):
+        """Test main() with --backend pointing to fixture file."""
+        backend_file = tmp_path / "backend.json"
+        frontend_file = tmp_path / "frontend.json"
+        output_file = tmp_path / "output.json"
+
+        backend_file.write_text(json.dumps(sample_backend_graph))
+        frontend_file.write_text(json.dumps(sample_frontend_graph))
+
+        # Mock sys.argv to pass CLI arguments
+        original_argv = sys.argv
+        try:
+            sys.argv = [
+                'merge-graph.py',
+                '--backend', str(backend_file),
+                '--frontend', str(frontend_file),
+                '--output', str(output_file)
+            ]
+            exit_code = merge_graph.main()
+
+            assert exit_code == 0
+            assert output_file.exists()
+        finally:
+            sys.argv = original_argv
+
+    def test_main_with_frontend_argument(self, tmp_path, sample_backend_graph, sample_frontend_graph):
+        """Test main() with --frontend pointing to fixture file."""
+        backend_file = tmp_path / "backend.json"
+        frontend_file = tmp_path / "frontend.json"
+        output_file = tmp_path / "output.json"
+
+        backend_file.write_text(json.dumps(sample_backend_graph))
+        frontend_file.write_text(json.dumps(sample_frontend_graph))
+
+        original_argv = sys.argv
+        try:
+            sys.argv = [
+                'merge-graph.py',
+                '--backend', str(backend_file),
+                '--frontend', str(frontend_file),
+                '--output', str(output_file)
+            ]
+            exit_code = merge_graph.main()
+
+            assert exit_code == 0
+            assert output_file.exists()
+        finally:
+            sys.argv = original_argv
+
+    def test_main_with_both_backend_and_frontend_arguments(self, tmp_path, sample_backend_graph, sample_frontend_graph):
+        """Test main() with both --backend and --frontend arguments."""
+        backend_file = tmp_path / "backend.json"
+        frontend_file = tmp_path / "frontend.json"
+        output_file = tmp_path / "output.json"
+
+        backend_file.write_text(json.dumps(sample_backend_graph))
+        frontend_file.write_text(json.dumps(sample_frontend_graph))
+
+        original_argv = sys.argv
+        try:
+            sys.argv = [
+                'merge-graph.py',
+                '--backend', str(backend_file),
+                '--frontend', str(frontend_file),
+                '--output', str(output_file)
+            ]
+            exit_code = merge_graph.main()
+
+            assert exit_code == 0
+            assert output_file.exists()
+
+            # Verify the output contains expected structure
+            with open(output_file) as f:
+                merged = json.load(f)
+
+            assert "entities" in merged
+            assert "dtos" in merged
+            assert "components" in merged
+            assert "hooks" in merged
+        finally:
+            sys.argv = original_argv
+
+    def test_main_with_short_argument_flags(self, tmp_path, sample_backend_graph, sample_frontend_graph):
+        """Test main() with short argument flags (-b, -f, -o)."""
+        backend_file = tmp_path / "backend.json"
+        frontend_file = tmp_path / "frontend.json"
+        output_file = tmp_path / "output.json"
+
+        backend_file.write_text(json.dumps(sample_backend_graph))
+        frontend_file.write_text(json.dumps(sample_frontend_graph))
+
+        original_argv = sys.argv
+        try:
+            sys.argv = [
+                'merge-graph.py',
+                '-b', str(backend_file),
+                '-f', str(frontend_file),
+                '-o', str(output_file)
+            ]
+            exit_code = merge_graph.main()
+
+            assert exit_code == 0
+            assert output_file.exists()
+        finally:
+            sys.argv = original_argv
+
+    def test_main_with_nonexistent_backend_file(self, tmp_path, sample_frontend_graph):
+        """Test main() error handling for non-existent backend file."""
+        backend_file = tmp_path / "nonexistent_backend.json"
+        frontend_file = tmp_path / "frontend.json"
+        output_file = tmp_path / "output.json"
+
+        frontend_file.write_text(json.dumps(sample_frontend_graph))
+
+        original_argv = sys.argv
+        try:
+            sys.argv = [
+                'merge-graph.py',
+                '--backend', str(backend_file),
+                '--frontend', str(frontend_file),
+                '--output', str(output_file)
+            ]
+            exit_code = merge_graph.main()
+
+            assert exit_code == 1
+            assert not output_file.exists()
+        finally:
+            sys.argv = original_argv
+
+    def test_main_with_nonexistent_frontend_file(self, tmp_path, sample_backend_graph):
+        """Test main() error handling for non-existent frontend file."""
+        backend_file = tmp_path / "backend.json"
+        frontend_file = tmp_path / "nonexistent_frontend.json"
+        output_file = tmp_path / "output.json"
+
+        backend_file.write_text(json.dumps(sample_backend_graph))
+
+        original_argv = sys.argv
+        try:
+            sys.argv = [
+                'merge-graph.py',
+                '--backend', str(backend_file),
+                '--frontend', str(frontend_file),
+                '--output', str(output_file)
+            ]
+            exit_code = merge_graph.main()
+
+            assert exit_code == 1
+            assert not output_file.exists()
+        finally:
+            sys.argv = original_argv
+
+    def test_main_with_invalid_backend_json(self, tmp_path, sample_frontend_graph):
+        """Test main() error handling for invalid backend JSON."""
+        backend_file = tmp_path / "backend.json"
+        frontend_file = tmp_path / "frontend.json"
+        output_file = tmp_path / "output.json"
+
+        backend_file.write_text("{invalid json content")
+        frontend_file.write_text(json.dumps(sample_frontend_graph))
+
+        original_argv = sys.argv
+        try:
+            sys.argv = [
+                'merge-graph.py',
+                '--backend', str(backend_file),
+                '--frontend', str(frontend_file),
+                '--output', str(output_file)
+            ]
+            exit_code = merge_graph.main()
+
+            assert exit_code == 1
+            assert not output_file.exists()
+        finally:
+            sys.argv = original_argv
+
+    def test_main_with_invalid_frontend_json(self, tmp_path, sample_backend_graph):
+        """Test main() error handling for invalid frontend JSON."""
+        backend_file = tmp_path / "backend.json"
+        frontend_file = tmp_path / "frontend.json"
+        output_file = tmp_path / "output.json"
+
+        backend_file.write_text(json.dumps(sample_backend_graph))
+        frontend_file.write_text("{invalid json content")
+
+        original_argv = sys.argv
+        try:
+            sys.argv = [
+                'merge-graph.py',
+                '--backend', str(backend_file),
+                '--frontend', str(frontend_file),
+                '--output', str(output_file)
+            ]
+            exit_code = merge_graph.main()
+
+            assert exit_code == 1
+            assert not output_file.exists()
+        finally:
+            sys.argv = original_argv
+
+    def test_main_output_contains_fixture_data(self, tmp_path, sample_backend_graph, sample_frontend_graph):
+        """Test that main() output contains data from fixture files."""
+        backend_file = tmp_path / "backend.json"
+        frontend_file = tmp_path / "frontend.json"
+        output_file = tmp_path / "output.json"
+
+        backend_file.write_text(json.dumps(sample_backend_graph))
+        frontend_file.write_text(json.dumps(sample_frontend_graph))
+
+        original_argv = sys.argv
+        try:
+            sys.argv = [
+                'merge-graph.py',
+                '--backend', str(backend_file),
+                '--frontend', str(frontend_file),
+                '--output', str(output_file)
+            ]
+            exit_code = merge_graph.main()
+
+            assert exit_code == 0
+
+            # Verify output contains data from fixture files
+            with open(output_file) as f:
+                merged = json.load(f)
+
+            # Backend data should be present
+            assert "Person" in merged.get("entities", {})
+            assert "PersonDto" in merged.get("dtos", {})
+            assert "PeopleController" in merged.get("controllers", {})
+
+            # Frontend data should be present (note: types are not in merged graph structure)
+            assert "PersonCard" in merged.get("components", {})
+            assert "usePerson" in merged.get("hooks", {})
+            assert "getPerson" in merged.get("api_functions", {})
+
+            # Verify cross-layer mappings created
+            assert "dto:PersonDto" in merged.get("cross_layer_mappings", {})
+        finally:
+            sys.argv = original_argv
+
+    def test_main_with_output_to_nested_directory(self, tmp_path, sample_backend_graph, sample_frontend_graph):
+        """Test main() creates nested directories for output file."""
+        backend_file = tmp_path / "backend.json"
+        frontend_file = tmp_path / "frontend.json"
+        output_file = tmp_path / "nested" / "deep" / "dir" / "output.json"
+
+        backend_file.write_text(json.dumps(sample_backend_graph))
+        frontend_file.write_text(json.dumps(sample_frontend_graph))
+
+        original_argv = sys.argv
+        try:
+            sys.argv = [
+                'merge-graph.py',
+                '--backend', str(backend_file),
+                '--frontend', str(frontend_file),
+                '--output', str(output_file)
+            ]
+            exit_code = merge_graph.main()
+
+            assert exit_code == 0
+            assert output_file.exists()
+            assert output_file.parent.exists()
+        finally:
+            sys.argv = original_argv
+
+    def test_main_cli_enables_test_isolation_with_fixtures(self, tmp_path, sample_backend_graph, sample_frontend_graph):
+        """Test that CLI arguments enable test isolation using fixture files.
+        
+        This test demonstrates that by using --backend and --frontend arguments,
+        each test can provide isolated fixture data without affecting others.
+        """
+        # Create multiple isolated graph files
+        backend_file_1 = tmp_path / "backend_1.json"
+        frontend_file_1 = tmp_path / "frontend_1.json"
+        output_file_1 = tmp_path / "output_1.json"
+
+        backend_file_1.write_text(json.dumps(sample_backend_graph))
+        frontend_file_1.write_text(json.dumps(sample_frontend_graph))
+
+        original_argv = sys.argv
+        try:
+            # First test run with fixture set 1
+            sys.argv = [
+                'merge-graph.py',
+                '--backend', str(backend_file_1),
+                '--frontend', str(frontend_file_1),
+                '--output', str(output_file_1)
+            ]
+            exit_code = merge_graph.main()
+
+            assert exit_code == 0
+            assert output_file_1.exists()
+
+            # Create a second isolated set for parallel test execution
+            backend_file_2 = tmp_path / "backend_2.json"
+            frontend_file_2 = tmp_path / "frontend_2.json"
+            output_file_2 = tmp_path / "output_2.json"
+
+            backend_file_2.write_text(json.dumps(sample_backend_graph))
+            frontend_file_2.write_text(json.dumps(sample_frontend_graph))
+
+            # Second test run with fixture set 2
+            sys.argv = [
+                'merge-graph.py',
+                '--backend', str(backend_file_2),
+                '--frontend', str(frontend_file_2),
+                '--output', str(output_file_2)
+            ]
+            exit_code = merge_graph.main()
+
+            assert exit_code == 0
+            assert output_file_2.exists()
+
+            # Verify both outputs exist independently
+            assert output_file_1.exists()
+            assert output_file_2.exists()
+
+            # Verify both have correct data
+            with open(output_file_1) as f:
+                merged_1 = json.load(f)
+            with open(output_file_2) as f:
+                merged_2 = json.load(f)
+
+            assert merged_1["stats"]["dtos"] == merged_2["stats"]["dtos"]
+        finally:
+            sys.argv = original_argv
