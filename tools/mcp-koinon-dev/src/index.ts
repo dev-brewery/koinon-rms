@@ -13,6 +13,8 @@
  * - Detects legacy anti-patterns
  * - Provides work unit validation
  * - Offers architectural guidance
+ * - Queries API graph baseline for architectural patterns
+ * - Generates implementation templates for entities, DTOs, services, controllers
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
@@ -32,6 +34,31 @@ import * as path from 'path';
 // Configuration
 const PROJECT_ROOT = process.env.KOINON_PROJECT_ROOT || '/home/mbrewer/projects/koinon-rms';
 
+// Type definitions for graph baseline
+interface GraphBaseline {
+  version: string;
+  generated_at: string;
+  entities: Record<string, any>;
+  controllers: Record<string, any>;
+  dtos: Record<string, any>;
+  services: Record<string, any>;
+  [key: string]: any;
+}
+
+// Cached graph baseline
+let cachedGraphBaseline: GraphBaseline | undefined;
+
+// Load and cache graph baseline
+function loadGraphBaseline(): GraphBaseline {
+  if (cachedGraphBaseline) {
+    return cachedGraphBaseline;
+  }
+
+  const graphPath = path.join(PROJECT_ROOT, 'tools/graph/graph-baseline.json');
+  const graphContent = fs.readFileSync(graphPath, 'utf-8');
+  cachedGraphBaseline = JSON.parse(graphContent);
+  return cachedGraphBaseline as GraphBaseline;
+}
 // Validation schemas
 const NamingConventionSchema = z.object({
   type: z.enum(['database', 'csharp', 'typescript', 'route']),
@@ -56,6 +83,52 @@ const WorkUnitSchema = z.object({
   workUnitId: z.string(),
   completedItems: z.array(z.string())
 });
+
+const QueryApiGraphSchema = z.object({
+  query: z.enum(['get_controller_pattern', 'get_entity_chain', 'list_inconsistencies', 'validate_new_controller']),
+  entityName: z.string().optional()
+});
+
+const ImplementationTemplateSchema = z.object({
+  type: z.enum(['entity', 'dto', 'service', 'controller']),
+  entityName: z.string()
+});
+
+const ImpactAnalysisSchema = z.object({
+  file_path: z.string()
+});
+
+// Type definitions for impact analysis
+interface ImpactAnalysisResult {
+  affected_files: {
+    path: string;
+    layer: string;
+    relationship: string;
+  }[];
+  affected_work_units: {
+    id: string;
+    name: string;
+    reason: string;
+  }[];
+  impact_summary: {
+    total_files: number;
+    high_impact: boolean;
+    layers_affected: string[];
+  };
+}
+
+interface FileAnalysis {
+  path: string;
+  layer: string;
+  entityName?: string;
+  dtoName?: string;
+  serviceName?: string;
+  controllerName?: string;
+  componentName?: string;
+  hookName?: string;
+  apiFunctionName?: string;
+}
+
 
 // Validation functions
 function validateDatabaseNaming(names: string[]): { valid: boolean; issues: string[] } {
@@ -240,6 +313,753 @@ Clean Architecture Rules:
   return guidance[topic] || 'Topic not found. Available topics: entity, api, database, frontend, clean-architecture';
 }
 
+// API Graph query functions
+function getControllerPattern(entityName: string): any {
+  const baseline = loadGraphBaseline();
+  
+  // Find controller that handles this entity
+  const controllerName = entityName + 'Controller';
+  const controller = baseline.controllers[controllerName];
+  
+  if (!controller) {
+    return {
+      found: false,
+      entity: entityName,
+      message: `Controller not found for entity ${entityName}`
+    };
+  }
+
+  return {
+    found: true,
+    entity: entityName,
+    controller_name: controller.name,
+    route: controller.route,
+    patterns: controller.patterns,
+    endpoints: controller.endpoints,
+    dependencies: controller.dependencies
+  };
+}
+
+function getEntityChain(entityName: string): any {
+  const baseline = loadGraphBaseline();
+  
+  // Find entity
+  const entity = baseline.entities[entityName];
+  if (!entity) {
+    return {
+      found: false,
+      entity: entityName,
+      message: `Entity ${entityName} not found`
+    };
+  }
+
+  // Find DTOs linked to this entity
+  const linkedDtos: any[] = [];
+  for (const [dtoName, dto] of Object.entries(baseline.dtos)) {
+    if (dto.linked_entity === entityName) {
+      linkedDtos.push({
+        name: dtoName,
+        namespace: dto.namespace,
+        properties: Object.keys(dto.properties || {})
+      });
+    }
+  }
+
+  // Find service that handles this entity (heuristic: service name matches entity)
+  const serviceName = entityName + 'Service';
+  const service = baseline.services[serviceName];
+
+  // Find controller
+  const controllerName = entityName + 'Controller';
+  const controller = baseline.controllers[controllerName];
+
+  return {
+    found: true,
+    entity: {
+      name: entity.name,
+      namespace: entity.namespace,
+      table: entity.table
+    },
+    dtos: linkedDtos,
+    service: service ? {
+      name: service.name,
+      namespace: service.namespace,
+      methods: service.methods.map((m: any) => ({ name: m.name, return_type: m.return_type }))
+    } : null,
+    controller: controller ? {
+      name: controller.name,
+      route: controller.route,
+      endpoints: controller.endpoints.length
+    } : null
+  };
+}
+
+function listInconsistencies(): any {
+  const baseline = loadGraphBaseline();
+  const inconsistencies: any[] = [];
+
+  // Check controllers with idkey_routes=false when they should use idKey
+  for (const [controllerName, controller] of Object.entries(baseline.controllers)) {
+    if (!controller.patterns?.idkey_routes) {
+      inconsistencies.push({
+        type: 'IDKEY_NOT_ENFORCED',
+        controller: controllerName,
+        route: controller.route,
+        issue: 'Controller should enforce IdKey routes for all endpoints'
+      });
+    }
+  }
+
+  // Check DTOs with integer Id properties
+  for (const [dtoName, dto] of Object.entries(baseline.dtos)) {
+    if (dto.properties && typeof dto.properties === 'object') {
+      for (const [propName, propType] of Object.entries(dto.properties)) {
+        if (propName === 'Id' && propType === 'int') {
+          inconsistencies.push({
+            type: 'EXPOSED_INTEGER_ID',
+            dto: dtoName,
+            property: propName,
+            issue: 'DTOs should never expose integer IDs - use IdKey instead'
+          });
+        }
+      }
+    }
+  }
+
+  // Check for orphaned DTOs without linked_entity
+  for (const [dtoName, dto] of Object.entries(baseline.dtos)) {
+    if (!dto.linked_entity) {
+      inconsistencies.push({
+        type: 'ORPHANED_DTO',
+        dto: dtoName,
+        issue: 'DTO has no linked_entity specified'
+      });
+    }
+  }
+
+  return {
+    total_inconsistencies: inconsistencies.length,
+    inconsistencies
+  };
+}
+
+function validateNewController(name: string): any {
+  const issues: string[] = [];
+  const warnings: string[] = [];
+
+  // Check PascalCase ending in Controller
+  const pascalCaseRegex = /^[A-Z][a-zA-Z0-9]*Controller$/;
+  if (!pascalCaseRegex.test(name)) {
+    issues.push(`Controller name "${name}" must be PascalCase ending with "Controller" (e.g., PersonController)`);
+  }
+
+  // Extract resource name from controller
+  const resourceMatch = name.match(/^([A-Z][a-zA-Z0-9]*)Controller$/);
+  if (resourceMatch) {
+    const resourceName = resourceMatch[1];
+    
+    // Suggest route pattern
+    const suggestedRoute = `api/v1/${resourceName.toLowerCase()}s`;
+    
+    return {
+      valid: issues.length === 0,
+      name,
+      issues,
+      warnings,
+      resource_name: resourceName,
+      suggested_route: suggestedRoute,
+      expected_patterns: {
+        response_envelope: true,
+        idkey_routes: true,
+        problem_details: true,
+        result_pattern: false
+      }
+    };
+  }
+
+  return {
+    valid: false,
+    name,
+    issues,
+    message: 'Could not parse controller name'
+  };
+}
+
+function getImplementationTemplate(type: string, entityName: string): any {
+  const pascalCase = entityName.charAt(0).toUpperCase() + entityName.slice(1);
+  const conventions = [
+    'Never expose integer IDs in DTOs or routes',
+    'Use IdKey for URL routes',
+    'All async operations must use async/await',
+    'Use CancellationToken for long-running operations',
+    'Database tables and columns use snake_case',
+    'C# classes and properties use PascalCase',
+    'Private fields must be _camelCase',
+    'Implement proper error handling',
+    'Use required modifier for non-nullable properties'
+  ];
+
+  switch (type) {
+    case 'entity': {
+      const template = `namespace Koinon.Domain.Entities;
+
+public class ${pascalCase} : Entity
+{
+    // TODO: Add properties here
+    // Remember: Use 'required' modifier for non-nullable properties
+    // Example: public required string FirstName { get; set; }
+}`;
+      
+      return {
+        type: 'entity',
+        entityName: pascalCase,
+        template,
+        filePath: `src/Koinon.Domain/Entities/${pascalCase}.cs`,
+        conventions: [
+          ...conventions,
+          'Inherit from Entity base class',
+          'Implement all properties with appropriate types',
+          'Use navigation properties as virtual for lazy loading',
+          'Include audit fields (CreatedDateTime, ModifiedDateTime)'
+        ]
+      };
+    }
+
+    case 'dto': {
+      const template = `namespace Koinon.Application.DTOs;
+
+public record ${pascalCase}Dto
+{
+    public required string IdKey { get; init; }
+    
+    // TODO: Add properties here
+    // Remember: Use 'init' for record properties (immutability)
+    // Example: public required string FirstName { get; init; }
+}`;
+      
+      return {
+        type: 'dto',
+        entityName: pascalCase,
+        dtoName: `${pascalCase}Dto`,
+        template,
+        filePath: `src/Koinon.Application/DTOs/${pascalCase}Dto.cs`,
+        conventions: [
+          ...conventions,
+          'Use record type for DTOs (immutability)',
+          'Always include IdKey property',
+          'Never expose integer Id property',
+          'Use init-only setters for immutability',
+          'Mark required properties with required modifier'
+        ]
+      };
+    }
+
+    case 'service': {
+      const templateInterface = `namespace Koinon.Application.Services;
+
+public interface I${pascalCase}Service
+{
+    Task<${pascalCase}Dto?> GetByIdKeyAsync(string idKey, CancellationToken ct = default);
+    Task<IEnumerable<${pascalCase}Dto>> GetAllAsync(CancellationToken ct = default);
+    Task<${pascalCase}Dto> CreateAsync(${pascalCase}Dto dto, CancellationToken ct = default);
+    Task<${pascalCase}Dto?> UpdateAsync(string idKey, ${pascalCase}Dto dto, CancellationToken ct = default);
+    Task<bool> DeleteAsync(string idKey, CancellationToken ct = default);
+}`;
+
+      const templateImplementation = `namespace Koinon.Application.Services;
+
+public class ${pascalCase}Service : I${pascalCase}Service
+{
+    private readonly I${pascalCase}Repository _repository;
+    
+    public ${pascalCase}Service(I${pascalCase}Repository repository)
+    {
+        _repository = repository;
+    }
+    
+    public async Task<${pascalCase}Dto?> GetByIdKeyAsync(string idKey, CancellationToken ct = default)
+    {
+        // TODO: Implement
+        throw new NotImplementedException();
+    }
+    
+    public async Task<IEnumerable<${pascalCase}Dto>> GetAllAsync(CancellationToken ct = default)
+    {
+        // TODO: Implement
+        throw new NotImplementedException();
+    }
+    
+    public async Task<${pascalCase}Dto> CreateAsync(${pascalCase}Dto dto, CancellationToken ct = default)
+    {
+        // TODO: Implement
+        throw new NotImplementedException();
+    }
+    
+    public async Task<${pascalCase}Dto?> UpdateAsync(string idKey, ${pascalCase}Dto dto, CancellationToken ct = default)
+    {
+        // TODO: Implement
+        throw new NotImplementedException();
+    }
+    
+    public async Task<bool> DeleteAsync(string idKey, CancellationToken ct = default)
+    {
+        // TODO: Implement
+        throw new NotImplementedException();
+    }
+}`;
+      
+      return {
+        type: 'service',
+        entityName: pascalCase,
+        serviceName: `I${pascalCase}Service`,
+        templates: {
+          interface: templateInterface,
+          implementation: templateImplementation
+        },
+        filePaths: {
+          interface: `src/Koinon.Application/Services/I${pascalCase}Service.cs`,
+          implementation: `src/Koinon.Application/Services/${pascalCase}Service.cs`
+        },
+        conventions: [
+          ...conventions,
+          'Service should depend on repository interface',
+          'All methods must be async',
+          'Use CancellationToken for all async operations',
+          'Return DTOs, not entities',
+          'Map entities to DTOs in service',
+          'Implement validation in service layer',
+          'Never expose repository directly to controllers'
+        ]
+      };
+    }
+
+    case 'controller': {
+      const resourcePlural = pascalCase.toLowerCase() + 's';
+      const template = `namespace Koinon.Api.Controllers;
+
+using Microsoft.AspNetCore.Mvc;
+using Koinon.Application.DTOs;
+using Koinon.Application.Services;
+
+[ApiController]
+[Route("api/v1/${resourcePlural}")]
+public class ${pascalCase}Controller : ControllerBase
+{
+    private readonly I${pascalCase}Service _service;
+    
+    public ${pascalCase}Controller(I${pascalCase}Service service)
+    {
+        _service = service;
+    }
+    
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<${pascalCase}Dto>>> GetAll(CancellationToken ct)
+    {
+        var result = await _service.GetAllAsync(ct);
+        return Ok(result);
+    }
+    
+    [HttpGet("{idKey}")]
+    public async Task<ActionResult<${pascalCase}Dto>> GetByIdKey(string idKey, CancellationToken ct)
+    {
+        var result = await _service.GetByIdKeyAsync(idKey, ct);
+        if (result is null) 
+            return NotFound();
+        return Ok(result);
+    }
+    
+    [HttpPost]
+    public async Task<ActionResult<${pascalCase}Dto>> Create([FromBody] ${pascalCase}Dto dto, CancellationToken ct)
+    {
+        var result = await _service.CreateAsync(dto, ct);
+        return CreatedAtAction(nameof(GetByIdKey), new { idKey = result.IdKey }, result);
+    }
+    
+    [HttpPut("{idKey}")]
+    public async Task<ActionResult<${pascalCase}Dto>> Update(string idKey, [FromBody] ${pascalCase}Dto dto, CancellationToken ct)
+    {
+        var result = await _service.UpdateAsync(idKey, dto, ct);
+        if (result is null)
+            return NotFound();
+        return Ok(result);
+    }
+    
+    [HttpDelete("{idKey}")]
+    public async Task<IActionResult> Delete(string idKey, CancellationToken ct)
+    {
+        var success = await _service.DeleteAsync(idKey, ct);
+        if (!success)
+            return NotFound();
+        return NoContent();
+    }
+}`;
+      
+      return {
+        type: 'controller',
+        entityName: pascalCase,
+        controllerName: `${pascalCase}Controller`,
+        template,
+        filePath: `src/Koinon.Api/Controllers/${pascalCase}Controller.cs`,
+        resourcePlural,
+        conventions: [
+          ...conventions,
+          'Controller depends on service interface, not implementation',
+          'Use attribute routing with [Route(...)]',
+          'Follow REST conventions (GET, POST, PUT, DELETE)',
+          'Use IdKey in URL parameters, never integer IDs',
+          'Return appropriate HTTP status codes',
+          'Include CancellationToken in all async methods',
+          'Use [FromBody] for request body parameters',
+          'No business logic in controller - delegate to service',
+          'Use CreatedAtAction for POST responses'
+        ]
+      };
+    }
+
+    default:
+      throw new Error(`Unknown template type: ${type}`);
+  }
+}
+
+
+// Impact Analysis Tool Implementation
+function analyzeFileImpact(filePath: string): ImpactAnalysisResult {
+  const baseline = loadGraphBaseline();
+  const affected: FileAnalysis[] = [];
+  const workUnits: Map<string, { id: string; name: string; reason: string }> = new Map();
+
+  const fileAnalysis = parseFilePath(filePath);
+  
+  if (!fileAnalysis) {
+    return {
+      affected_files: [],
+      affected_work_units: [],
+      impact_summary: { total_files: 0, high_impact: false, layers_affected: [] }
+    };
+  }
+
+  affected.push(fileAnalysis);
+
+  if (fileAnalysis.layer === 'Domain' && fileAnalysis.entityName) {
+    const entityName = fileAnalysis.entityName;
+    
+    const linkedDtos = Object.entries(baseline.dtos).filter(
+      ([_, dto]: [string, any]) => dto.linked_entity === entityName
+    );
+    
+    for (const [dtoName] of linkedDtos) {
+      affected.push({
+        path: `src/Koinon.Application/DTOs/${dtoName}.cs`,
+        layer: 'Application',
+        dtoName: dtoName,
+        entityName: entityName
+      });
+    }
+
+    const linkedServices = Object.entries(baseline.services).filter(
+      ([_, service]: [string, any]) => {
+        const methods = service.methods || [];
+        return methods.some((m: any) => 
+          m.return_type?.includes(entityName) || 
+          m.parameters?.some((p: any) => p.type?.includes(entityName))
+        );
+      }
+    );
+
+    for (const [serviceName] of linkedServices) {
+      affected.push({
+        path: `src/Koinon.Application/Services/${serviceName}.cs`,
+        layer: 'Application',
+        serviceName: serviceName,
+        entityName: entityName
+      });
+
+      workUnits.set(`WU-2.${serviceName}`, {
+        id: `WU-2.${serviceName}`,
+        name: `Service: ${serviceName}`,
+        reason: `Service references ${entityName} entity`
+      });
+    }
+
+    const linkedControllers = Object.entries(baseline.controllers).filter(
+      ([_, controller]: [string, any]) => {
+        const endpoints = controller.endpoints || [];
+        return endpoints.some((e: any) => 
+          linkedDtos.some(([dtoName]) => e.response_type?.includes(dtoName))
+        );
+      }
+    );
+
+    for (const [controllerName] of linkedControllers) {
+      affected.push({
+        path: `src/Koinon.Api/Controllers/${controllerName}.cs`,
+        layer: 'Api',
+        controllerName: controllerName,
+        entityName: entityName
+      });
+
+      workUnits.set(`WU-3.${controllerName}`, {
+        id: `WU-3.${controllerName}`,
+        name: `Controller: ${controllerName}`,
+        reason: `Controller exposes ${entityName} through API endpoints`
+      });
+    }
+
+    const frontendConnections = findFrontendConnections(baseline, entityName, linkedDtos);
+    for (const component of frontendConnections) {
+      affected.push(component);
+      const componentName = component.componentName || component.hookName || component.apiFunctionName || 'unknown';
+      workUnits.set(`WU-4.${componentName}`, {
+        id: `WU-4.${componentName}`,
+        name: `Frontend: ${componentName}`,
+        reason: `Component/hook uses API connected to ${entityName}`
+      });
+    }
+  } else if (fileAnalysis.layer === 'Application' && fileAnalysis.dtoName) {
+    const dtoName = fileAnalysis.dtoName;
+    
+    const linkedControllers = Object.entries(baseline.controllers).filter(
+      ([_, controller]: [string, any]) => {
+        const endpoints = controller.endpoints || [];
+        return endpoints.some((e: any) => 
+          e.response_type?.includes(dtoName) || e.request_type?.includes(dtoName)
+        );
+      }
+    );
+
+    for (const [controllerName] of linkedControllers) {
+      if (!affected.some(f => f.path.includes(controllerName))) {
+        affected.push({
+          path: `src/Koinon.Api/Controllers/${controllerName}.cs`,
+          layer: 'Api',
+          controllerName: controllerName,
+          dtoName: dtoName
+        });
+
+        workUnits.set(`WU-3.${controllerName}`, {
+          id: `WU-3.${controllerName}`,
+          name: `Controller: ${controllerName}`,
+          reason: `Controller uses ${dtoName} in endpoints`
+        });
+      }
+    }
+
+    const frontendConnections = findFrontendConnectionsForDto(baseline, dtoName);
+    for (const component of frontendConnections) {
+      affected.push(component);
+      const componentName = component.componentName || component.hookName || component.apiFunctionName || 'unknown';
+      workUnits.set(`WU-4.${componentName}`, {
+        id: `WU-4.${componentName}`,
+        name: `Frontend: ${componentName}`,
+        reason: `Component uses API function that returns ${dtoName}`
+      });
+    }
+  } else if (fileAnalysis.layer === 'Api' && fileAnalysis.controllerName) {
+    const controllerName = fileAnalysis.controllerName;
+    const frontendConnections = findFrontendConnectionsForController(baseline, controllerName);
+    for (const component of frontendConnections) {
+      affected.push(component);
+      const componentName = component.componentName || component.hookName || component.apiFunctionName || 'unknown';
+      workUnits.set(`WU-4.${componentName}`, {
+        id: `WU-4.${componentName}`,
+        name: `Frontend: ${componentName}`,
+        reason: `Component calls API endpoint from ${controllerName}`
+      });
+    }
+  }
+
+  const layersAffected = [...new Set(affected.map(f => f.layer))];
+  const highImpact = affected.length > 5 || layersAffected.length > 2;
+
+  if (fileAnalysis.entityName) {
+    workUnits.set(`WU-1.2.${fileAnalysis.entityName}`, {
+      id: `WU-1.2.${fileAnalysis.entityName}`,
+      name: `Entity: ${fileAnalysis.entityName}`,
+      reason: 'Domain entity definition'
+    });
+  }
+
+  return {
+    affected_files: affected.map(f => ({
+      path: f.path,
+      layer: f.layer,
+      relationship: f.entityName ? `dependent_on_${f.entityName}` : 
+                   f.dtoName ? `uses_${f.dtoName}` :
+                   f.serviceName ? `implements_${f.serviceName}` :
+                   f.controllerName ? `serves_${f.controllerName}` : 'related'
+    })),
+    affected_work_units: Array.from(workUnits.values()),
+    impact_summary: { total_files: affected.length, high_impact: highImpact, layers_affected: layersAffected }
+  };
+}
+
+function parseFilePath(filePath: string): FileAnalysis | null {
+  const domainEntityMatch = filePath.match(/src\/Koinon\.Domain\/Entities\/(.+?)\.cs$/);
+  if (domainEntityMatch) {
+    return { path: filePath, layer: 'Domain', entityName: domainEntityMatch[1] };
+  }
+
+  const dtoMatch = filePath.match(/src\/Koinon\.Application\/DTOs\/(.+?)\.cs$/);
+  if (dtoMatch) {
+    return { path: filePath, layer: 'Application', dtoName: dtoMatch[1] };
+  }
+
+  const serviceMatch = filePath.match(/src\/Koinon\.Application\/Services\/(.+?)(?:Service)?\.cs$/);
+  if (serviceMatch) {
+    return { path: filePath, layer: 'Application', serviceName: serviceMatch[1] + 'Service' };
+  }
+
+  const controllerMatch = filePath.match(/src\/Koinon\.Api\/Controllers\/(.+?)\.cs$/);
+  if (controllerMatch) {
+    return { path: filePath, layer: 'Api', controllerName: controllerMatch[1] };
+  }
+
+  const apiMatch = filePath.match(/src\/web\/src\/services\/api\/(.+?)\.ts$/);
+  if (apiMatch) {
+    return { path: filePath, layer: 'Frontend', apiFunctionName: apiMatch[1] };
+  }
+
+  const hookMatch = filePath.match(/src\/web\/src\/hooks\/(use.+?)\.ts$/);
+  if (hookMatch) {
+    return { path: filePath, layer: 'Frontend', hookName: hookMatch[1] };
+  }
+
+  const componentMatch = filePath.match(/src\/web\/src\/components\/(.+?)\.tsx$/);
+  if (componentMatch) {
+    return { path: filePath, layer: 'Frontend', componentName: componentMatch[1] };
+  }
+
+  return null;
+}
+
+function findFrontendConnections(baseline: GraphBaseline, entityName: string, linkedDtos: [string, any][]): FileAnalysis[] {
+  const connections: FileAnalysis[] = [];
+  const dtoNames = linkedDtos.map(([name]) => name);
+
+  const relevantApiFunctions = (baseline.api_functions || []).filter(
+    (fn: any) => dtoNames.some(dto => fn.return_type?.includes(dto))
+  );
+
+  for (const fn of relevantApiFunctions) {
+    connections.push({
+      path: `src/web/src/services/api/${fn.name}.ts`,
+      layer: 'Frontend',
+      apiFunctionName: fn.name
+    });
+
+    const hookEdges = (baseline.edges || []).filter(
+      (e: any) => e.target === fn.name && baseline.hooks?.[e.source]
+    );
+
+    for (const edge of hookEdges) {
+      connections.push({
+        path: `src/web/src/hooks/${edge.source}.ts`,
+        layer: 'Frontend',
+        hookName: edge.source
+      });
+
+      const componentEdges = (baseline.edges || []).filter(
+        (e: any) => e.target === edge.source && baseline.components?.[e.source]
+      );
+
+      for (const cEdge of componentEdges) {
+        connections.push({
+          path: `src/web/src/components/${cEdge.source}.tsx`,
+          layer: 'Frontend',
+          componentName: cEdge.source
+        });
+      }
+    }
+  }
+
+  return connections;
+}
+
+function findFrontendConnectionsForDto(baseline: GraphBaseline, dtoName: string): FileAnalysis[] {
+  const connections: FileAnalysis[] = [];
+
+  const relevantApiFunctions = (baseline.api_functions || []).filter(
+    (fn: any) => fn.return_type?.includes(dtoName)
+  );
+
+  for (const fn of relevantApiFunctions) {
+    connections.push({
+      path: `src/web/src/services/api/${fn.name}.ts`,
+      layer: 'Frontend',
+      apiFunctionName: fn.name
+    });
+
+    const hookEdges = (baseline.edges || []).filter(
+      (e: any) => e.target === fn.name && baseline.hooks?.[e.source]
+    );
+
+    for (const edge of hookEdges) {
+      connections.push({
+        path: `src/web/src/hooks/${edge.source}.ts`,
+        layer: 'Frontend',
+        hookName: edge.source
+      });
+
+      const componentEdges = (baseline.edges || []).filter(
+        (e: any) => e.target === edge.source
+      );
+
+      for (const cEdge of componentEdges) {
+        connections.push({
+          path: `src/web/src/components/${cEdge.source}.tsx`,
+          layer: 'Frontend',
+          componentName: cEdge.source
+        });
+      }
+    }
+  }
+
+  return connections;
+}
+
+function findFrontendConnectionsForController(baseline: GraphBaseline, controllerName: string): FileAnalysis[] {
+  const connections: FileAnalysis[] = [];
+  const resourceName = controllerName.replace('Controller', '');
+
+  const relevantApiFunctions = (baseline.api_functions || []).filter(
+    (fn: any) => fn.endpoint?.includes(resourceName.toLowerCase())
+  );
+
+  for (const fn of relevantApiFunctions) {
+    connections.push({
+      path: `src/web/src/services/api/${fn.name}.ts`,
+      layer: 'Frontend',
+      apiFunctionName: fn.name
+    });
+
+    const hookEdges = (baseline.edges || []).filter(
+      (e: any) => e.target === fn.name && baseline.hooks?.[e.source]
+    );
+
+    for (const edge of hookEdges) {
+      connections.push({
+        path: `src/web/src/hooks/${edge.source}.ts`,
+        layer: 'Frontend',
+        hookName: edge.source
+      });
+
+      const componentEdges = (baseline.edges || []).filter(
+        (e: any) => e.target === edge.source
+      );
+
+      for (const cEdge of componentEdges) {
+        connections.push({
+          path: `src/web/src/components/${cEdge.source}.tsx`,
+          layer: 'Frontend',
+          componentName: cEdge.source
+        });
+      }
+    }
+  }
+
+  return connections;
+}
+
 // Create the MCP server
 const server = new Server(
   {
@@ -347,8 +1167,60 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           },
           required: ['topic']
         }
+      },
+      {
+        name: 'query_api_graph',
+        description: 'Queries the API graph baseline for architectural patterns, entity chains, and consistency checks',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            query: {
+              type: 'string',
+              enum: ['get_controller_pattern', 'get_entity_chain', 'list_inconsistencies', 'validate_new_controller'],
+              description: 'Type of query to execute'
+            },
+            entityName: {
+              type: 'string',
+              description: 'Entity name (required for get_controller_pattern, get_entity_chain, validate_new_controller)'
+            }
+          },
+          required: ['query']
+        }
+      },
+      {
+        name: 'get_implementation_template',
+        description: 'Generates implementation templates for entities, DTOs, services, and controllers following Koinon RMS conventions',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            type: {
+              type: 'string',
+              enum: ['entity', 'dto', 'service', 'controller'],
+              description: 'Type of template to generate'
+            },
+            entityName: {
+              type: 'string',
+              description: 'Entity name (will be converted to PascalCase)'
+            }
+          },
+          required: ['type', 'entityName']
+        }
       }
-    ]
+         ,{
+        name: 'get_impact_analysis',
+        description: 'Analyzes the impact of changes to a file across layers and work units, showing dependent files and affected functionality',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            file_path: {
+              type: 'string',
+              description: 'The file path to analyze (e.g., src/Koinon.Domain/Entities/Person.cs)'
+            }
+          },
+          required: ['file_path']
+        }
+      }
+         ]
   };
 });
 
@@ -442,6 +1314,79 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           ]
         };
       }
+
+      case 'query_api_graph': {
+        const { query, entityName } = QueryApiGraphSchema.parse(args);
+        let result;
+
+        switch (query) {
+          case 'get_controller_pattern':
+            if (!entityName) {
+              throw new Error('entityName is required for get_controller_pattern query');
+            }
+            result = getControllerPattern(entityName);
+            break;
+
+          case 'get_entity_chain':
+            if (!entityName) {
+              throw new Error('entityName is required for get_entity_chain query');
+            }
+            result = getEntityChain(entityName);
+            break;
+
+          case 'list_inconsistencies':
+            result = listInconsistencies();
+            break;
+
+          case 'validate_new_controller':
+            if (!entityName) {
+              throw new Error('entityName is required for validate_new_controller query');
+            }
+            result = validateNewController(entityName);
+            break;
+
+          default:
+            throw new Error(`Unknown graph query: ${query}`);
+        }
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(result, null, 2)
+            }
+          ]
+        };
+      }
+
+      case 'get_implementation_template': {
+        const { type, entityName } = ImplementationTemplateSchema.parse(args);
+        const result = getImplementationTemplate(type, entityName);
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(result, null, 2)
+            }
+          ]
+        };
+      }
+      case 'get_impact_analysis': {
+        const { file_path } = ImpactAnalysisSchema.parse(args);
+        const result = analyzeFileImpact(file_path);
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(result, null, 2)
+            }
+          ]
+        };
+      }
+
+
 
       default:
         throw new Error(`Unknown tool: ${name}`);
