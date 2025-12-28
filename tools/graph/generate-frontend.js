@@ -498,4 +498,24 @@ async function main() {
   }
 }
 
-main();
+// Only run main if called directly (not when required for testing)
+if (require.main === module) {
+  main();
+}
+
+// Export functions for testing
+module.exports = {
+  parseTypes,
+  parseProperties,
+  parseApiFunctions,
+  extractHttpDetails,
+  extractFunctionBody,
+  parseHooks,
+  extractHookDetails,
+  extractDependencies,
+  parseComponents,
+  findComponentFiles,
+  extractComponentName,
+  extractHooksUsedInComponent,
+  buildEdges,
+};

@@ -1,0 +1,24 @@
+{
+  "name": "koinon-graph-tools",
+  "version": "1.0.0",
+  "description": "Graph generation and validation tools for Koinon RMS",
+  "private": true,
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:verbose": "jest --verbose"
+  },
+  "keywords": [
+    "graph",
+    "validation",
+    "typescript",
+    "contract"
+  ],
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

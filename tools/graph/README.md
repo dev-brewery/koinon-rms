@@ -194,6 +194,50 @@ The CI workflow (`graph-validate.yml`) automatically:
 2. Validates graph consistency
 3. Allows baseline skipping via label
 
+## Running Tests
+
+The backend graph generator includes comprehensive unit tests using pytest.
+
+### Setup Test Environment
+
+```bash
+# Install test dependencies
+pip3 install -r tools/graph/requirements-test.txt
+```
+
+### Run Tests
+
+```bash
+# Run all tests
+pytest tools/graph/tests/
+
+# Run with verbose output
+pytest tools/graph/tests/ -v
+
+# Run with coverage report
+pytest tools/graph/tests/ --cov=tools/graph --cov-report=html
+
+# Run specific test class
+pytest tools/graph/tests/test_generate_backend.py::TestCSharpParserExtractProperties -v
+
+# Run specific test method
+pytest tools/graph/tests/test_generate_backend.py::TestCSharpParserExtractProperties::test_extract_properties_simple -v
+```
+
+### Test Structure
+
+```
+tools/graph/tests/
+├── __init__.py             # Package init
+├── conftest.py             # Pytest fixtures
+└── test_generate_backend.py # CSharpParser and BackendGraphGenerator tests
+```
+
+Tests use fixtures from `tools/graph/fixtures/`:
+- `valid/` - Valid C# files following project conventions
+- `invalid/` - Files violating conventions (for negative testing)
+- `edge-cases/` - Unusual but valid formatting
+
 ## Related Documentation
 
 - **Architecture:** See `CLAUDE.md` section "Graph Baseline"
