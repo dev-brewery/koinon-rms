@@ -13,15 +13,41 @@ const fs = require('fs');
 const path = require('path');
 
 // ============================================================================
+// Argument Parsing
+// ============================================================================
+
+/**
+ * Parse command-line arguments
+ * Returns { srcDir, outputDir } with defaults
+ */
+function parseArgs() {
+  const args = process.argv.slice(2);
+  let srcDir = path.join(process.cwd(), 'src/web/src');
+  let outputDir = path.join(process.cwd(), 'tools/graph');
+
+  // Parse arguments
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--src-dir' && i + 1 < args.length) {
+      srcDir = path.resolve(args[i + 1]);
+      i++; // Skip next arg since we processed it
+    } else if (args[i] === '--output-dir' && i + 1 < args.length) {
+      outputDir = path.resolve(args[i + 1]);
+      i++; // Skip next arg since we processed it
+    }
+  }
+
+  return { srcDir, outputDir };
+}
+// ============================================================================
 // Configuration
 // ============================================================================
 
-const WEB_SRC_DIR = path.join(process.cwd(), 'src/web/src');
+const { srcDir: WEB_SRC_DIR, outputDir: OUTPUT_DIR_BASE } = parseArgs();
 const TYPES_FILE = path.join(WEB_SRC_DIR, 'services/api/types.ts');
 const SERVICES_API_DIR = path.join(WEB_SRC_DIR, 'services/api');
 const HOOKS_DIR = path.join(WEB_SRC_DIR, 'hooks');
 const COMPONENTS_DIR = path.join(WEB_SRC_DIR, 'components');
-const OUTPUT_DIR = path.join(process.cwd(), 'tools/graph');
+const OUTPUT_DIR = OUTPUT_DIR_BASE;
 const OUTPUT_FILE = path.join(OUTPUT_DIR, 'frontend-graph.json');
 
 // ============================================================================
@@ -435,6 +461,7 @@ async function main() {
   try {
     console.log('Frontend Graph Generator');
     console.log('========================\n');
+    console.log(`Source directory: ${WEB_SRC_DIR}\n`);
 
     // 1. Parse types
     console.log('Reading types.ts...');
@@ -505,6 +532,7 @@ if (require.main === module) {
 
 // Export functions for testing
 module.exports = {
+  parseArgs,
   parseTypes,
   parseProperties,
   parseApiFunctions,

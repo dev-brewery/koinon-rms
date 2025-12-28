@@ -131,11 +131,94 @@ class TestFrontendGeneratorIntegration:
     """Test the frontend generator against fixture directory."""
 
     def test_frontend_generator_on_fixtures(self, frontend_generator, fixtures_dir, temp_output_dir):
-        """Run frontend generator against fixtures directory."""
-        # Note: Frontend generator currently hardcoded to look for src/web/src structure
-        # relative to cwd, not configurable via CLI arguments.
-        # TODO(#301): Make frontend generator accept --src-dir argument for better testability
-        pytest.skip("Frontend generator requires specific directory structure")
+        """Run frontend generator against fixtures directory using --src-dir argument."""
+        # Create a mock source directory structure in temp_output_dir
+        mock_src = temp_output_dir / "mock_src"
+        services_api_dir = mock_src / "services" / "api"
+        hooks_dir = mock_src / "hooks"
+        
+        services_api_dir.mkdir(parents=True)
+        hooks_dir.mkdir(parents=True)
+        
+        # Copy fixture files to appropriate subdirectories
+        import shutil
+        valid_fixtures = fixtures_dir / "valid"
+        
+        # Copy types.ts to services/api/
+        types_src = valid_fixtures / "types.ts"
+        if types_src.exists():
+            shutil.copy(types_src, services_api_dir / "types.ts")
+        
+        # Copy people.ts (API service) to services/api/
+        people_src = valid_fixtures / "people.ts"
+        if people_src.exists():
+            shutil.copy(people_src, services_api_dir / "people.ts")
+        
+        # Copy usePeople.ts to hooks/
+        use_people_src = valid_fixtures / "usePeople.ts"
+        if use_people_src.exists():
+            shutil.copy(use_people_src, hooks_dir / "usePeople.ts")
+        
+        # Determine output directory (where frontend-graph.json will be written)
+        output_file = temp_output_dir / "frontend-graph.json"
+        
+        # Run frontend generator with --src-dir and --output-dir arguments
+        result = subprocess.run(
+            ["node", str(frontend_generator),
+             "--src-dir", str(mock_src),
+             "--output-dir", str(temp_output_dir)],
+            cwd=str(temp_output_dir),
+            capture_output=True,
+            text=True
+        )
+        
+        # Should succeed (exit code 0)
+        assert result.returncode == 0, f"Frontend generator failed: {result.stderr}"
+        
+        # Output file should exist
+        assert output_file.exists(), f"Frontend graph file not created at {output_file}"
+        
+        # Load and validate structure
+        with open(output_file) as f:
+            graph = json.load(f)
+        
+        # Verify top-level structure
+        assert "version" in graph
+        assert "generated_at" in graph
+        assert "types" in graph
+        assert "api_functions" in graph
+        assert "hooks" in graph
+        assert "components" in graph
+        assert "edges" in graph
+        
+        # Verify types were parsed from types.ts
+        assert len(graph["types"]) > 0, "No types found in generated graph"
+        
+        # Verify expected types from fixture
+        type_names = list(graph["types"].keys())
+        assert any("Person" in name for name in type_names), \
+            f"Expected Person-related type in {type_names}"
+        
+        # Verify hooks were parsed
+        assert len(graph["hooks"]) > 0, "No hooks found in generated graph"
+        hook_names = list(graph["hooks"].keys())
+        assert "usePeople" in hook_names or "usePerson" in hook_names, \
+            f"Expected use* hooks in {hook_names}"
+        
+        # Verify API functions were parsed
+        assert len(graph["api_functions"]) > 0, "No API functions found"
+        api_names = list(graph["api_functions"].keys())
+        assert any("search" in name.lower() or "get" in name.lower() for name in api_names), \
+            f"Expected searchPeople or getPersonByIdKey in {api_names}"
+        
+        # Verify edges structure exists (may be empty if no components or api bindings detected)
+        assert "edges" in graph
+        assert isinstance(graph["edges"], list)
+        # Note: Edges require either:
+        # 1. Components that use hooks
+        # 2. Hooks with detectible apiBinding references (not namespace-imported)
+        # The fixture uses namespace imports (peopleApi.func()) so edges may be 0
+        # This is acceptable - the structure is correct even if parsing is incomplete
 
 
 class TestGraphMergerIntegration:
