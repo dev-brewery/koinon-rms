@@ -228,6 +228,66 @@ Check availability: `.claude/scripts/check-token-optimizer.sh` *(MAXIMUS agents:
 
 **Session stats**: `mcp__token-optimizer__get_session_stats` shows savings breakdown
 
+## Graph Query Tools
+
+The graph query tools enable agents to query the architecture graph for patterns, templates, and impact analysis. These tools help maintain consistency across the codebase by providing canonical patterns and analyzing change impact before implementation.
+
+### query_api_graph
+
+Queries the architecture graph for patterns and entity chains.
+
+**Operations:**
+
+| Operation | Description | Required Args |
+|-----------|-------------|---------------|
+| `get_controller_pattern` | Returns canonical pattern for controller | entityName |
+| `get_entity_chain` | Returns Entity->DTO->Service->Controller chain | entityName |
+| `list_inconsistencies` | Returns all pattern violations | none |
+| `validate_new_controller` | Validates proposed controller name | entityName |
+
+**Example:**
+```typescript
+mcp__koinon-dev__query_api_graph({
+  query: "get_entity_chain",
+  entityName: "Person"
+})
+// Returns: full chain with file paths
+```
+
+### get_implementation_template
+
+Returns code templates following project conventions.
+
+**Types:** entity, dto, service, controller
+
+**Example:**
+```typescript
+mcp__koinon-dev__get_implementation_template({
+  type: "controller",
+  entityName: "Event"
+})
+// Returns: template code, file path, conventions to follow
+```
+
+### get_impact_analysis
+
+Analyzes what files and work units would be affected by changes to a file.
+
+**Example:**
+```typescript
+mcp__koinon-dev__get_impact_analysis({
+  file_path: "src/Koinon.Domain/Entities/Person.cs"
+})
+// Returns: affected files, affected work units, impact summary
+```
+
+### When to Use Graph Queries
+
+- **Before creating new features:** Use `get_entity_chain` to see the complete pattern for similar entities
+- **Before modifying entities:** Use `get_impact_analysis` to understand the scope of changes
+- **During code review:** Use `list_inconsistencies` to find pattern violations
+- **When scaffolding:** Use `get_implementation_template` for the correct starting point
+
 ## Quick Reference
 
 ```
