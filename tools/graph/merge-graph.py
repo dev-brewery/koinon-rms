@@ -6,7 +6,7 @@ Combines backend-graph.json and frontend-graph.json into a unified graph-baselin
 detecting inconsistencies between backend and frontend layers.
 
 Usage:
-    python3 merge-graph.py [--output path/to/output.json]
+    python3 merge-graph.py [--backend path/to/backend.json] [--frontend path/to/frontend.json] [--output path/to/output.json]
 
 Exit codes:
     0: Success
@@ -345,19 +345,34 @@ class GraphMerger:
 
 def main() -> int:
     """Main entry point."""
-    # Determine paths
+    import argparse
+
+    # Determine script directory for defaults
     script_dir = Path(__file__).parent
-    backend_path = script_dir / "backend-graph.json"
-    frontend_path = script_dir / "frontend-graph.json"
-    output_path = script_dir / "graph-baseline.json"
 
-    # Parse arguments
-    for i, arg in enumerate(sys.argv[1:], 1):
-        if arg == "--output" and i < len(sys.argv) - 1:
-            output_path = sys.argv[i + 1]
+    parser = argparse.ArgumentParser(
+        description='Merge backend and frontend architecture graphs into unified baseline'
+    )
+    parser.add_argument(
+        '--backend', '-b',
+        default=str(script_dir / 'backend-graph.json'),
+        help='Backend graph input file path (default: tools/graph/backend-graph.json)'
+    )
+    parser.add_argument(
+        '--frontend', '-f',
+        default=str(script_dir / 'frontend-graph.json'),
+        help='Frontend graph input file path (default: tools/graph/frontend-graph.json)'
+    )
+    parser.add_argument(
+        '--output', '-o',
+        default=str(script_dir / 'graph-baseline.json'),
+        help='Output merged graph file path (default: tools/graph/graph-baseline.json)'
+    )
 
-    # Create merger
-    merger = GraphMerger(str(backend_path), str(frontend_path))
+    args = parser.parse_args()
+
+    # Create merger with parsed arguments
+    merger = GraphMerger(args.backend, args.frontend)
 
     # Load graphs
     if not merger.load_graphs():
@@ -371,13 +386,13 @@ def main() -> int:
         return 1
 
     # Save merged graph
-    if not merger.save(str(output_path)):
+    if not merger.save(args.output):
         return 1
 
     # Print report
     merger.print_inconsistency_report()
 
-    print(f"Merged graph saved to: {output_path}")
+    print(f"Merged graph saved to: {args.output}")
     stats = merger.merged_graph.get("stats", {})
     print(
         f"Summary: {stats.get('entities', 0)} entities, "
