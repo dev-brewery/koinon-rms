@@ -74,6 +74,15 @@ tools/gemini-context/.env
 tools/gemini-context/venv_gemini/
 venv_gemini/
 
+# Python testing
+.venv/
+venv/
+*.pyc
+__pycache__/
+.pytest_cache/
+htmlcov/
+.coverage
+
 # Vite
 *.local
 
