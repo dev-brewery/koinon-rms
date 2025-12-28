@@ -66,6 +66,119 @@ npm run graph:update
 4. Reorganizing component structure
 5. Major structural refactoring
 
+## CLI Arguments
+
+Both `generate-frontend.js` and `merge-graph.py` support custom path arguments for advanced usage (especially useful for testing with fixture directories).
+
+### generate-frontend.js
+
+Parses TypeScript/React source files from a custom directory and outputs to a custom location.
+
+**Arguments:**
+- `--src-dir <path>` - Source directory containing `src/web/src` structure (default: `src/web/src`)
+- `--output-dir <path>` - Output directory for generated `frontend-graph.json` (default: `tools/graph`)
+
+**Examples:**
+
+Default behavior (no arguments):
+```bash
+node tools/graph/generate-frontend.js
+# Reads from: src/web/src/
+# Writes to: tools/graph/frontend-graph.json
+```
+
+Custom source directory for testing:
+```bash
+node tools/graph/generate-frontend.js --src-dir tests/fixtures/web
+# Reads from: tests/fixtures/web/
+# Writes to: tools/graph/frontend-graph.json
+```
+
+Custom output directory:
+```bash
+node tools/graph/generate-frontend.js --output-dir tests/output
+# Reads from: src/web/src/
+# Writes to: tests/output/frontend-graph.json
+```
+
+Both arguments together:
+```bash
+node tools/graph/generate-frontend.js --src-dir tests/fixtures/web --output-dir tests/output
+# Reads from: tests/fixtures/web/
+# Writes to: tests/output/frontend-graph.json
+```
+
+### merge-graph.py
+
+Combines backend and frontend graphs, detecting cross-layer inconsistencies.
+
+**Arguments:**
+- `--backend <path>` or `-b <path>` - Backend graph input file (default: `tools/graph/backend-graph.json`)
+- `--frontend <path>` or `-f <path>` - Frontend graph input file (default: `tools/graph/frontend-graph.json`)
+- `--output <path>` or `-o <path>` - Output file path (default: `tools/graph/graph-baseline.json`)
+
+**Examples:**
+
+Default behavior (no arguments):
+```bash
+python3 tools/graph/merge-graph.py
+# Reads: tools/graph/backend-graph.json + tools/graph/frontend-graph.json
+# Writes: tools/graph/graph-baseline.json
+```
+
+Custom backend and frontend for testing:
+```bash
+python3 tools/graph/merge-graph.py \
+  --backend tests/fixtures/backend-graph.json \
+  --frontend tests/fixtures/frontend-graph.json
+# Reads: tests/fixtures/backend-graph.json + tests/fixtures/frontend-graph.json
+# Writes: tools/graph/graph-baseline.json
+```
+
+Custom output path:
+```bash
+python3 tools/graph/merge-graph.py --output tests/output/merged-graph.json
+# Reads: tools/graph/backend-graph.json + tools/graph/frontend-graph.json
+# Writes: tests/output/merged-graph.json
+```
+
+All arguments together (full test isolation):
+```bash
+python3 tools/graph/merge-graph.py \
+  --backend tests/fixtures/backend-graph.json \
+  --frontend tests/fixtures/frontend-graph.json \
+  --output tests/output/graph-baseline.json
+# Reads: tests/fixtures/backend-graph.json + tests/fixtures/frontend-graph.json
+# Writes: tests/output/graph-baseline.json
+```
+
+### Test Isolation Pattern
+
+These arguments enable test isolation with fixture directories:
+
+```bash
+# Setup fixture directories
+mkdir -p tests/fixtures tests/output
+
+# Copy fixture files
+cp tools/graph/backend-graph.json tests/fixtures/
+
+# Run generator with fixtures
+node tools/graph/generate-frontend.js --src-dir tests/fixtures/web --output-dir tests/output
+python3 tools/graph/merge-graph.py \
+  --backend tests/fixtures/backend-graph.json \
+  --frontend tests/output/frontend-graph.json \
+  --output tests/output/graph-baseline.json
+
+# Cleanup
+rm -rf tests/output
+```
+
+This pattern ensures:
+- No modification of production files
+- Repeatable test runs
+- Safe experimentation with new graph structures
+
 ## Common Scenarios
 
 ### Scenario 1: Adding a New Entity Type
