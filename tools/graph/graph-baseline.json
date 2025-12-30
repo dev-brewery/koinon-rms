@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2025-12-30T10:30:23.558712+00:00",
+  "generated_at": "2025-12-30T13:24:14.445842+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -5819,6 +5819,41 @@
       "method": "POST",
       "responseType": "void"
     },
+    "getAuthorizedPickups": {
+      "name": "getAuthorizedPickups",
+      "path": "services/api/authorizedPickup.ts",
+      "endpoint": "/people/${childIdKey}/authorized-pickups",
+      "method": "GET",
+      "responseType": "AuthorizedPickupDto[]"
+    },
+    "createAuthorizedPickup": {
+      "name": "createAuthorizedPickup",
+      "path": "services/api/authorizedPickup.ts",
+      "endpoint": "/people/${childIdKey}/authorized-pickups",
+      "method": "POST",
+      "responseType": "AuthorizedPickupDto"
+    },
+    "updateAuthorizedPickup": {
+      "name": "updateAuthorizedPickup",
+      "path": "services/api/authorizedPickup.ts",
+      "endpoint": "/authorized-pickups/${pickupIdKey}",
+      "method": "PUT",
+      "responseType": "AuthorizedPickupDto"
+    },
+    "deleteAuthorizedPickup": {
+      "name": "deleteAuthorizedPickup",
+      "path": "services/api/authorizedPickup.ts",
+      "endpoint": "/authorized-pickups/${pickupIdKey}",
+      "method": "DELETE",
+      "responseType": "void"
+    },
+    "autoPopulateFamilyMembers": {
+      "name": "autoPopulateFamilyMembers",
+      "path": "services/api/authorizedPickup.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "{ message: string; count: number; pickups: AuthorizedPickupDto[] }"
+    },
     "getCheckinConfiguration": {
       "name": "getCheckinConfiguration",
       "path": "services/api/checkin.ts",
@@ -7981,7 +8016,7 @@
     "services": 69,
     "controllers": 22,
     "types": 109,
-    "api_functions": 69,
+    "api_functions": 74,
     "hooks": 71,
     "components": 87,
     "total_edges": 227
