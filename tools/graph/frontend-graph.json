@@ -1589,6 +1589,34 @@
       "method": "PUT",
       "responseType": "FamilyAddressDto"
     },
+    "uploadFile": {
+      "name": "uploadFile",
+      "path": "services/api/files.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "FileMetadataDto"
+    },
+    "getFileMetadata": {
+      "name": "getFileMetadata",
+      "path": "services/api/files.ts",
+      "endpoint": "/files/${idKey}/metadata",
+      "method": "GET",
+      "responseType": "FileMetadataDto"
+    },
+    "downloadFile": {
+      "name": "downloadFile",
+      "path": "services/api/files.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "Blob"
+    },
+    "deleteFile": {
+      "name": "deleteFile",
+      "path": "services/api/files.ts",
+      "endpoint": "/files/${idKey}",
+      "method": "DELETE",
+      "responseType": "void"
+    },
     "getGroupTypes": {
       "name": "getGroupTypes",
       "path": "services/api/reference.ts",
