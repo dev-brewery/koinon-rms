@@ -31,3 +31,4 @@ export * as referenceApi from './reference';
 export * as profileApi from './profile';
 export * as authorizedPickupApi from './authorizedPickup';
 export * as filesApi from './files';
+export * as followupsApi from './followups';
