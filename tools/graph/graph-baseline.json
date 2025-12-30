@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2025-12-30T15:19:21.776747+00:00",
+  "generated_at": "2025-12-30T15:35:28.555847+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -6428,6 +6428,27 @@
       "method": "GET",
       "responseType": "PersonFamilyResponse"
     },
+    "verifyPickup": {
+      "name": "verifyPickup",
+      "path": "services/api/pickup.ts",
+      "endpoint": "/checkin/verify-pickup",
+      "method": "POST",
+      "responseType": "PickupVerificationResultDto"
+    },
+    "recordPickup": {
+      "name": "recordPickup",
+      "path": "services/api/pickup.ts",
+      "endpoint": "/checkin/record-pickup",
+      "method": "POST",
+      "responseType": "PickupLogDto"
+    },
+    "getPickupHistory": {
+      "name": "getPickupHistory",
+      "path": "services/api/pickup.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "PickupLogDto[]"
+    },
     "getMyProfile": {
       "name": "getMyProfile",
       "path": "services/api/profile.ts",
@@ -8254,7 +8275,7 @@
     "services": 69,
     "controllers": 22,
     "types": 109,
-    "api_functions": 108,
+    "api_functions": 111,
     "hooks": 71,
     "components": 87,
     "total_edges": 227
