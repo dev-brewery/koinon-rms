@@ -22,17 +22,25 @@ export {
 export * from './types';
 
 // Export services
+export * as analyticsApi from './analytics';
 export * as authApi from './auth';
-export * as peopleApi from './people';
-export * as familiesApi from './families';
-export * as groupsApi from './groups';
-export * as checkinApi from './checkin';
-export * as referenceApi from './reference';
-export * as profileApi from './profile';
 export * as authorizedPickupApi from './authorizedPickup';
+export * as checkinApi from './checkin';
+export * as communicationsApi from './communications';
+export * as dashboardApi from './dashboard';
+export * as familiesApi from './families';
 export * as filesApi from './files';
 export * as followupsApi from './followups';
 export * as givingApi from './giving';
+export * as groupsApi from './groups';
+export * as groupTypesApi from './groupTypes';
 export * as importApi from './import';
+export * as membershipRequestsApi from './membershipRequests';
+export * as myGroupsApi from './myGroups';
 export * as pagerApi from './pager';
+export * as peopleApi from './people';
 export * as pickupApi from './pickup';
+export * as profileApi from './profile';
+export * as publicGroupsApi from './publicGroups';
+export * as referenceApi from './reference';
+export * as schedulesApi from './schedules';
