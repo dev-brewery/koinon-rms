@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2025-12-30T15:19:21.623Z",
+  "generated_at": "2025-12-30T15:35:28.399Z",
   "types": {
     "PaginationMeta": {
       "name": "PaginationMeta",
@@ -2008,6 +2008,27 @@
       "endpoint": "/people/${idKey}/family",
       "method": "GET",
       "responseType": "PersonFamilyResponse"
+    },
+    "verifyPickup": {
+      "name": "verifyPickup",
+      "path": "services/api/pickup.ts",
+      "endpoint": "/checkin/verify-pickup",
+      "method": "POST",
+      "responseType": "PickupVerificationResultDto"
+    },
+    "recordPickup": {
+      "name": "recordPickup",
+      "path": "services/api/pickup.ts",
+      "endpoint": "/checkin/record-pickup",
+      "method": "POST",
+      "responseType": "PickupLogDto"
+    },
+    "getPickupHistory": {
+      "name": "getPickupHistory",
+      "path": "services/api/pickup.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "PickupLogDto[]"
     },
     "getMyProfile": {
       "name": "getMyProfile",
