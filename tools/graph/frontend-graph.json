@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2025-12-23T11:37:02.228Z",
+  "generated_at": "2025-12-30T09:29:58.005Z",
   "types": {
     "PaginationMeta": {
       "name": "PaginationMeta",
@@ -1739,35 +1739,35 @@
     "getMyProfile": {
       "name": "getMyProfile",
       "path": "services/api/profile.ts",
-      "endpoint": "/api/v1/my-profile",
+      "endpoint": "/my-profile",
       "method": "GET",
       "responseType": "MyProfileDto"
     },
     "updateMyProfile": {
       "name": "updateMyProfile",
       "path": "services/api/profile.ts",
-      "endpoint": "/api/v1/my-profile",
+      "endpoint": "/my-profile",
       "method": "PUT",
       "responseType": "MyProfileDto"
     },
     "getMyFamily": {
       "name": "getMyFamily",
       "path": "services/api/profile.ts",
-      "endpoint": "/api/v1/my-family",
+      "endpoint": "/my-family",
       "method": "GET",
       "responseType": "FamilyMemberDto[]"
     },
     "updateFamilyMember": {
       "name": "updateFamilyMember",
       "path": "services/api/profile.ts",
-      "endpoint": "/api/v1/my-family/members/${personIdKey}",
+      "endpoint": "/my-family/members/${personIdKey}",
       "method": "PUT",
       "responseType": "FamilyMemberDto"
     },
     "getMyInvolvement": {
       "name": "getMyInvolvement",
       "path": "services/api/profile.ts",
-      "endpoint": "/api/v1/my-involvement",
+      "endpoint": "/my-involvement",
       "method": "GET",
       "responseType": "MyInvolvementDto"
     },
