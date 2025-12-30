@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2025-12-30T14:17:06.387Z",
+  "generated_at": "2025-12-30T14:45:37.088Z",
   "types": {
     "PaginationMeta": {
       "name": "PaginationMeta",
@@ -1643,6 +1643,97 @@
       "path": "services/api/followups.ts",
       "endpoint": "/followups/${idKey}/assign",
       "method": "PUT",
+      "responseType": "void"
+    },
+    "getActiveFunds": {
+      "name": "getActiveFunds",
+      "path": "services/api/giving.ts",
+      "endpoint": "/giving/funds",
+      "method": "GET",
+      "responseType": "FundDto[]"
+    },
+    "getFund": {
+      "name": "getFund",
+      "path": "services/api/giving.ts",
+      "endpoint": "/giving/funds/${idKey}",
+      "method": "GET",
+      "responseType": "FundDto"
+    },
+    "getBatches": {
+      "name": "getBatches",
+      "path": "services/api/giving.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "BatchListResponse"
+    },
+    "getBatch": {
+      "name": "getBatch",
+      "path": "services/api/giving.ts",
+      "endpoint": "/giving/batches/${idKey}",
+      "method": "GET",
+      "responseType": "ContributionBatchDto"
+    },
+    "getBatchSummary": {
+      "name": "getBatchSummary",
+      "path": "services/api/giving.ts",
+      "endpoint": "/giving/batches/${idKey}/summary",
+      "method": "GET",
+      "responseType": "BatchSummaryDto"
+    },
+    "createBatch": {
+      "name": "createBatch",
+      "path": "services/api/giving.ts",
+      "endpoint": "/giving/batches",
+      "method": "POST",
+      "responseType": "ContributionBatchDto"
+    },
+    "openBatch": {
+      "name": "openBatch",
+      "path": "services/api/giving.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "{ message: string }"
+    },
+    "closeBatch": {
+      "name": "closeBatch",
+      "path": "services/api/giving.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "{ message: string }"
+    },
+    "getBatchContributions": {
+      "name": "getBatchContributions",
+      "path": "services/api/giving.ts",
+      "endpoint": "/giving/batches/${batchIdKey}/contributions",
+      "method": "GET",
+      "responseType": "ContributionDto[]"
+    },
+    "addContribution": {
+      "name": "addContribution",
+      "path": "services/api/giving.ts",
+      "endpoint": "/giving/batches/${batchIdKey}/contributions",
+      "method": "POST",
+      "responseType": "ContributionDto"
+    },
+    "getContribution": {
+      "name": "getContribution",
+      "path": "services/api/giving.ts",
+      "endpoint": "/giving/contributions/${idKey}",
+      "method": "GET",
+      "responseType": "ContributionDto"
+    },
+    "updateContribution": {
+      "name": "updateContribution",
+      "path": "services/api/giving.ts",
+      "endpoint": "/giving/contributions/${idKey}",
+      "method": "PUT",
+      "responseType": "ContributionDto"
+    },
+    "deleteContribution": {
+      "name": "deleteContribution",
+      "path": "services/api/giving.ts",
+      "endpoint": "/giving/contributions/${idKey}",
+      "method": "DELETE",
       "responseType": "void"
     },
     "getGroupTypes": {
