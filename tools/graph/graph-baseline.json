@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2025-12-30T09:29:58.138505+00:00",
+  "generated_at": "2025-12-28T13:00:33.464077+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -6158,35 +6158,35 @@
     "getMyProfile": {
       "name": "getMyProfile",
       "path": "services/api/profile.ts",
-      "endpoint": "/my-profile",
+      "endpoint": "/api/v1/my-profile",
       "method": "GET",
       "responseType": "MyProfileDto"
     },
     "updateMyProfile": {
       "name": "updateMyProfile",
       "path": "services/api/profile.ts",
-      "endpoint": "/my-profile",
+      "endpoint": "/api/v1/my-profile",
       "method": "PUT",
       "responseType": "MyProfileDto"
     },
     "getMyFamily": {
       "name": "getMyFamily",
       "path": "services/api/profile.ts",
-      "endpoint": "/my-family",
+      "endpoint": "/api/v1/my-family",
       "method": "GET",
       "responseType": "FamilyMemberDto[]"
     },
     "updateFamilyMember": {
       "name": "updateFamilyMember",
       "path": "services/api/profile.ts",
-      "endpoint": "/my-family/members/${personIdKey}",
+      "endpoint": "/api/v1/my-family/members/${personIdKey}",
       "method": "PUT",
       "responseType": "FamilyMemberDto"
     },
     "getMyInvolvement": {
       "name": "getMyInvolvement",
       "path": "services/api/profile.ts",
-      "endpoint": "/my-involvement",
+      "endpoint": "/api/v1/my-involvement",
       "method": "GET",
       "responseType": "MyInvolvementDto"
     },

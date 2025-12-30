@@ -19,7 +19,7 @@ import type {
  * Get the current user's profile
  */
 export async function getMyProfile(): Promise<MyProfileDto> {
-  const response = await get<{ data: MyProfileDto }>('/my-profile');
+  const response = await get<{ data: MyProfileDto }>('/api/v1/my-profile');
   return response.data;
 }
 
@@ -29,7 +29,7 @@ export async function getMyProfile(): Promise<MyProfileDto> {
 export async function updateMyProfile(
   data: UpdateMyProfileRequest
 ): Promise<MyProfileDto> {
-  const response = await put<{ data: MyProfileDto }>('/my-profile', data);
+  const response = await put<{ data: MyProfileDto }>('/api/v1/my-profile', data);
   return response.data;
 }
 
@@ -37,7 +37,7 @@ export async function updateMyProfile(
  * Get the current user's family members
  */
 export async function getMyFamily(): Promise<FamilyMemberDto[]> {
-  const response = await get<{ data: FamilyMemberDto[] }>('/my-family');
+  const response = await get<{ data: FamilyMemberDto[] }>('/api/v1/my-family');
   return response.data;
 }
 
@@ -49,7 +49,7 @@ export async function updateFamilyMember(
   data: UpdateFamilyMemberRequest
 ): Promise<FamilyMemberDto> {
   const response = await put<{ data: FamilyMemberDto }>(
-    `/my-family/members/${personIdKey}`,
+    `/api/v1/my-family/members/${personIdKey}`,
     data
   );
   return response.data;
@@ -59,6 +59,6 @@ export async function updateFamilyMember(
  * Get the current user's group involvement and attendance summary
  */
 export async function getMyInvolvement(): Promise<MyInvolvementDto> {
-  const response = await get<{ data: MyInvolvementDto }>('/my-involvement');
+  const response = await get<{ data: MyInvolvementDto }>('/api/v1/my-involvement');
   return response.data;
 }
