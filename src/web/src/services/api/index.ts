@@ -32,3 +32,4 @@ export * as profileApi from './profile';
 export * as authorizedPickupApi from './authorizedPickup';
 export * as filesApi from './files';
 export * as followupsApi from './followups';
+export * as givingApi from './giving';
