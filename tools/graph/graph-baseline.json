@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2025-12-30T14:45:37.241089+00:00",
+  "generated_at": "2025-12-30T15:08:14.851901+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -6260,6 +6260,69 @@
       "method": "DELETE",
       "responseType": "void"
     },
+    "uploadCsvPreview": {
+      "name": "uploadCsvPreview",
+      "path": "services/api/import.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "CsvPreviewDto"
+    },
+    "getImportTemplates": {
+      "name": "getImportTemplates",
+      "path": "services/api/import.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "ImportTemplateDto[]"
+    },
+    "getImportTemplate": {
+      "name": "getImportTemplate",
+      "path": "services/api/import.ts",
+      "endpoint": "/import/templates/${idKey}",
+      "method": "GET",
+      "responseType": "ImportTemplateDto"
+    },
+    "createImportTemplate": {
+      "name": "createImportTemplate",
+      "path": "services/api/import.ts",
+      "endpoint": "/import/templates",
+      "method": "POST",
+      "responseType": "ImportTemplateDto"
+    },
+    "deleteImportTemplate": {
+      "name": "deleteImportTemplate",
+      "path": "services/api/import.ts",
+      "endpoint": "/import/templates/${idKey}",
+      "method": "DELETE",
+      "responseType": "void"
+    },
+    "validateImport": {
+      "name": "validateImport",
+      "path": "services/api/import.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "ImportJobDto"
+    },
+    "executeImport": {
+      "name": "executeImport",
+      "path": "services/api/import.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "ImportJobDto"
+    },
+    "getImportJobStatus": {
+      "name": "getImportJobStatus",
+      "path": "services/api/import.ts",
+      "endpoint": "/import/jobs/${idKey}",
+      "method": "GET",
+      "responseType": "ImportJobDto"
+    },
+    "downloadImportErrors": {
+      "name": "downloadImportErrors",
+      "path": "services/api/import.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "Blob"
+    },
     "submitMembershipRequest": {
       "name": "submitMembershipRequest",
       "path": "services/api/membershipRequests.ts",
@@ -8163,7 +8226,7 @@
     "services": 69,
     "controllers": 22,
     "types": 109,
-    "api_functions": 95,
+    "api_functions": 104,
     "hooks": 71,
     "components": 87,
     "total_edges": 227
