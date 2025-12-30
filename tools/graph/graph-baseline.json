@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2025-12-30T15:08:14.851901+00:00",
+  "generated_at": "2025-12-30T15:19:21.776747+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -6365,6 +6365,34 @@
       "method": "PUT",
       "responseType": "MyGroupMemberDetailDto"
     },
+    "sendPage": {
+      "name": "sendPage",
+      "path": "services/api/pager.ts",
+      "endpoint": "/pager/send",
+      "method": "POST",
+      "responseType": "PagerMessageDto"
+    },
+    "searchPagers": {
+      "name": "searchPagers",
+      "path": "services/api/pager.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "PagerAssignmentDto[]"
+    },
+    "getPagerHistory": {
+      "name": "getPagerHistory",
+      "path": "services/api/pager.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "PageHistoryDto"
+    },
+    "getNextPagerNumber": {
+      "name": "getNextPagerNumber",
+      "path": "services/api/pager.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "number"
+    },
     "getPersonByIdKey": {
       "name": "getPersonByIdKey",
       "path": "services/api/people.ts",
@@ -8226,7 +8254,7 @@
     "services": 69,
     "controllers": 22,
     "types": 109,
-    "api_functions": 104,
+    "api_functions": 108,
     "hooks": 71,
     "components": 87,
     "total_edges": 227
