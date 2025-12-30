@@ -4,41 +4,16 @@
 
 import { get, put } from '@/services/api/client';
 import type { IdKey } from '@/services/api/types';
+import {
+  FollowUpStatus,
+  type FollowUpDto,
+  type UpdateFollowUpStatusRequest,
+  type AssignFollowUpRequest,
+} from '@/types/followup';
 
-// ============================================================================
-// Types
-// ============================================================================
-
-export enum FollowUpStatus {
-  Pending = 0,
-  Contacted = 1,
-  NoResponse = 2,
-  Connected = 3,
-  Declined = 4,
-}
-
-export interface FollowUpDto {
-  idKey: IdKey;
-  personIdKey: IdKey;
-  personName: string;
-  attendanceIdKey?: IdKey;
-  status: FollowUpStatus;
-  notes?: string;
-  assignedToIdKey?: IdKey;
-  assignedToName?: string;
-  contactedDateTime?: string;
-  completedDateTime?: string;
-  createdDateTime: string;
-}
-
-export interface UpdateFollowUpStatusRequest {
-  status: FollowUpStatus;
-  notes?: string;
-}
-
-export interface AssignFollowUpRequest {
-  assignedToIdKey: IdKey;
-}
+// Re-export types for backward compatibility
+export type { FollowUpDto, UpdateFollowUpStatusRequest, AssignFollowUpRequest };
+export { FollowUpStatus };
 
 // ============================================================================
 // API Functions
