@@ -35,3 +35,4 @@ export * as followupsApi from './followups';
 export * as givingApi from './giving';
 export * as importApi from './import';
 export * as pagerApi from './pager';
+export * as pickupApi from './pickup';
