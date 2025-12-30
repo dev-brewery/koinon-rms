@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2025-12-30T13:24:14.445842+00:00",
+  "generated_at": "2025-12-30T14:17:06.539886+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -6036,6 +6036,34 @@
       "method": "DELETE",
       "responseType": "void"
     },
+    "getPendingFollowUps": {
+      "name": "getPendingFollowUps",
+      "path": "services/api/followups.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "FollowUpDto[]"
+    },
+    "getFollowUp": {
+      "name": "getFollowUp",
+      "path": "services/api/followups.ts",
+      "endpoint": "/followups/${idKey}",
+      "method": "GET",
+      "responseType": "FollowUpDto"
+    },
+    "updateFollowUpStatus": {
+      "name": "updateFollowUpStatus",
+      "path": "services/api/followups.ts",
+      "endpoint": "/followups/${idKey}/status",
+      "method": "PUT",
+      "responseType": "FollowUpDto"
+    },
+    "assignFollowUp": {
+      "name": "assignFollowUp",
+      "path": "services/api/followups.ts",
+      "endpoint": "/followups/${idKey}/assign",
+      "method": "PUT",
+      "responseType": "void"
+    },
     "getGroupTypes": {
       "name": "getGroupTypes",
       "path": "services/api/reference.ts",
@@ -8044,7 +8072,7 @@
     "services": 69,
     "controllers": 22,
     "types": 109,
-    "api_functions": 78,
+    "api_functions": 82,
     "hooks": 71,
     "components": 87,
     "total_edges": 227

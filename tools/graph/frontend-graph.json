@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2025-12-30T13:24:14.299Z",
+  "generated_at": "2025-12-30T14:17:06.387Z",
   "types": {
     "PaginationMeta": {
       "name": "PaginationMeta",
@@ -1615,6 +1615,34 @@
       "path": "services/api/files.ts",
       "endpoint": "/files/${idKey}",
       "method": "DELETE",
+      "responseType": "void"
+    },
+    "getPendingFollowUps": {
+      "name": "getPendingFollowUps",
+      "path": "services/api/followups.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "FollowUpDto[]"
+    },
+    "getFollowUp": {
+      "name": "getFollowUp",
+      "path": "services/api/followups.ts",
+      "endpoint": "/followups/${idKey}",
+      "method": "GET",
+      "responseType": "FollowUpDto"
+    },
+    "updateFollowUpStatus": {
+      "name": "updateFollowUpStatus",
+      "path": "services/api/followups.ts",
+      "endpoint": "/followups/${idKey}/status",
+      "method": "PUT",
+      "responseType": "FollowUpDto"
+    },
+    "assignFollowUp": {
+      "name": "assignFollowUp",
+      "path": "services/api/followups.ts",
+      "endpoint": "/followups/${idKey}/assign",
+      "method": "PUT",
       "responseType": "void"
     },
     "getGroupTypes": {
