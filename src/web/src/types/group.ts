@@ -200,3 +200,41 @@ export interface GroupMemberDetailDto {
   inactiveDateTime?: DateTime;
   note?: string;
 }
+
+// ============================================================================
+// Public Group Types
+// ============================================================================
+
+/**
+ * Public group DTO for public-facing group finder.
+ * Contains only information safe to display to unauthenticated users.
+ */
+export interface PublicGroupDto {
+  idKey: string;
+  name: string;
+  publicDescription?: string;
+  groupTypeName?: string;
+  campusIdKey?: string;
+  campusName?: string;
+  memberCount: number;
+  capacity?: number;
+  hasOpenings: boolean;
+  meetingDay?: string;
+  meetingTime?: string;
+  meetingScheduleSummary?: string;
+}
+
+/**
+ * Search parameters for public group finder.
+ * All parameters are optional filters.
+ */
+export interface PublicGroupSearchParams {
+  searchTerm?: string;
+  groupTypeIdKey?: string;
+  campusIdKey?: string;
+  dayOfWeek?: number;
+  timeOfDay?: 0 | 1 | 2;
+  hasOpenings?: boolean;
+  pageNumber?: number;
+  pageSize?: number;
+}

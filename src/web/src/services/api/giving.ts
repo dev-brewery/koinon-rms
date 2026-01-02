@@ -12,33 +12,12 @@ import type {
   ContributionDto,
   AddContributionRequest,
   UpdateContributionRequest,
+  BatchFilterParams,
+  BatchListResponse,
 } from '@/types/giving';
 
-/**
- * Filter parameters for batch search
- */
-export interface BatchFilterParams {
-  /** Filter by status (Open, Closed, Posted) */
-  status?: string;
-  /** Filter by campus IdKey */
-  campusIdKey?: string;
-  /** Filter by start date (inclusive) */
-  startDate?: string;
-  /** Filter by end date (inclusive) */
-  endDate?: string;
-  /** Page number (1-based) */
-  page?: number;
-  /** Items per page */
-  pageSize?: number;
-}
-
-/**
- * Response envelope for paginated batch results
- */
-export interface BatchListResponse {
-  data: ContributionBatchDto[];
-  meta: PaginationMeta;
-}
+// Re-export for backward compatibility
+export type { BatchFilterParams, BatchListResponse };
 
 // ============================================================================
 // Funds

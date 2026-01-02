@@ -57,3 +57,14 @@ export interface UploadFileRequest {
   /** Optional file type category IdKey (from DefinedValue) */
   binaryFileTypeIdKey?: string;
 }
+
+/**
+ * Upload options for file upload
+ * Simplified options interface for frontend upload function
+ */
+export interface UploadFileOptions {
+  /** Optional description or alt text */
+  description?: string;
+  /** Optional file type category IdKey (from DefinedValue) */
+  binaryFileTypeIdKey?: string;
+}

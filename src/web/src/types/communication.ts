@@ -141,3 +141,16 @@ export interface UpdateCommunicationDto {
   replyToEmail?: string;
   note?: string;
 }
+
+// ============================================================================
+// Query Parameters
+// ============================================================================
+
+/**
+ * Query parameters for listing communications
+ */
+export interface CommunicationsParams {
+  page?: number;
+  pageSize?: number;
+  status?: string;
+}
