@@ -43,6 +43,7 @@ import { MyGroupsPage } from './pages/MyGroupsPage';
 import { CommunicationsPage } from './pages/communications/CommunicationsPage';
 import { MyProfilePage } from './pages/profile';
 import { RosterPage } from './pages/admin/RosterPage';
+import { BatchListPage } from './pages/admin/giving';
 
 function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -235,6 +236,9 @@ function App() {
           <Route path="analytics" element={<AnalyticsPage />} />
           <Route path="communications" element={<CommunicationsPage />} />
           <Route path="roster" element={<RosterPage />} />
+          <Route path="giving" element={<BatchListPage />} />
+          <Route path="giving/new" element={<div className="p-8 text-center"><h1 className="text-xl font-semibold">Create Batch</h1><p className="text-gray-500 mt-2">Coming in issue #354</p></div>} />
+          <Route path="giving/:idKey" element={<div className="p-8 text-center"><h1 className="text-xl font-semibold">Batch Details</h1><p className="text-gray-500 mt-2">Coming in issue #353</p></div>} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="settings/group-types" element={<GroupTypesPage />} />
           <Route path="settings/import" element={<ImportSettingsPage />} />
