@@ -47,6 +47,30 @@ export async function sendCommunication(idKey: string): Promise<CommunicationDto
 }
 
 /**
+ * Schedule a communication for future delivery
+ */
+export async function scheduleCommunication(
+  idKey: string,
+  scheduledDateTime: string
+): Promise<CommunicationDto> {
+  const response = await post<{ data: CommunicationDto }>(
+    `/communications/${idKey}/schedule`,
+    { scheduledDateTime }
+  );
+  return response.data;
+}
+
+/**
+ * Cancel a scheduled communication
+ */
+export async function cancelSchedule(idKey: string): Promise<CommunicationDto> {
+  const response = await post<{ data: CommunicationDto }>(
+    `/communications/${idKey}/cancel-schedule`
+  );
+  return response.data;
+}
+
+/**
  * Get a single communication by IdKey
  */
 export async function getCommunication(idKey: string): Promise<CommunicationDto> {

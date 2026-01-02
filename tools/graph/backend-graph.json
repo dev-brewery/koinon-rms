@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-02T21:38:15.094752+00:00",
+  "generated_at": "2026-01-02T23:24:17.869539+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -132,6 +132,7 @@
       "table": "communication",
       "properties": {
         "Status": "CommunicationStatus",
+        "ScheduledDateTime": "DateTime?",
         "Subject": "string?",
         "FromEmail": "string?",
         "FromName": "string?",
@@ -141,7 +142,8 @@
         "DeliveredCount": "int",
         "FailedCount": "int",
         "OpenedCount": "int",
-        "Note": "string?"
+        "Note": "string?",
+        "RowVersion": "byte[]?"
       },
       "navigations": [
         {
@@ -170,6 +172,17 @@
           "type": "one"
         }
       ]
+    },
+    "CommunicationTemplate": {
+      "name": "CommunicationTemplate",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "communication_template",
+      "properties": {
+        "Subject": "string?",
+        "Description": "string?",
+        "IsActive": "bool"
+      },
+      "navigations": []
     },
     "Contribution": {
       "name": "Contribution",
@@ -1089,6 +1102,7 @@
         "FromEmail": "string?",
         "FromName": "string?",
         "ReplyToEmail": "string?",
+        "ScheduledDateTime": "DateTime?",
         "SentDateTime": "DateTime?",
         "Note": "string?",
         "ModifiedDateTime": "DateTime?",
@@ -1109,6 +1123,7 @@
         "FromEmail": "string?",
         "FromName": "string?",
         "ReplyToEmail": "string?",
+        "ScheduledDateTime": "DateTime?",
         "SentDateTime": "DateTime?",
         "Note": "string?",
         "ModifiedDateTime": "DateTime?",
@@ -1129,6 +1144,7 @@
         "FromEmail": "string?",
         "FromName": "string?",
         "ReplyToEmail": "string?",
+        "ScheduledDateTime": "DateTime?",
         "SentDateTime": "DateTime?",
         "Note": "string?",
         "ModifiedDateTime": "DateTime?",
@@ -1149,6 +1165,7 @@
         "FromEmail": "string?",
         "FromName": "string?",
         "ReplyToEmail": "string?",
+        "ScheduledDateTime": "DateTime?",
         "SentDateTime": "DateTime?",
         "Note": "string?",
         "ModifiedDateTime": "DateTime?",
@@ -1168,6 +1185,7 @@
         "FromEmail": "string?",
         "FromName": "string?",
         "ReplyToEmail": "string?",
+        "ScheduledDateTime": "DateTime?",
         "SentDateTime": "DateTime?",
         "Note": "string?",
         "ModifiedDateTime": "DateTime?",
@@ -1176,6 +1194,60 @@
         "OpenedDateTime": "DateTime?",
         "ErrorMessage": "string?",
         "GroupIdKey": "string?",
+        "Body": "string?"
+      }
+    },
+    "CommunicationTemplateDto": {
+      "name": "CommunicationTemplateDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Subject": "string?",
+        "Description": "string?",
+        "ModifiedDateTime": "DateTime?",
+        "IsActive": "bool?",
+        "Name": "string?",
+        "CommunicationType": "string?",
+        "Body": "string?"
+      },
+      "linked_entity": "CommunicationTemplate"
+    },
+    "CommunicationTemplateSummaryDto": {
+      "name": "CommunicationTemplateSummaryDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Subject": "string?",
+        "Description": "string?",
+        "ModifiedDateTime": "DateTime?",
+        "IsActive": "bool?",
+        "Name": "string?",
+        "CommunicationType": "string?",
+        "Body": "string?"
+      },
+      "linked_entity": "Communication"
+    },
+    "CreateCommunicationTemplateDto": {
+      "name": "CreateCommunicationTemplateDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Subject": "string?",
+        "Description": "string?",
+        "ModifiedDateTime": "DateTime?",
+        "IsActive": "bool?",
+        "Name": "string?",
+        "CommunicationType": "string?",
+        "Body": "string?"
+      }
+    },
+    "UpdateCommunicationTemplateDto": {
+      "name": "UpdateCommunicationTemplateDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Subject": "string?",
+        "Description": "string?",
+        "ModifiedDateTime": "DateTime?",
+        "IsActive": "bool?",
+        "Name": "string?",
+        "CommunicationType": "string?",
         "Body": "string?"
       }
     },
@@ -2380,6 +2452,16 @@
           "name": "SendAsync",
           "return_type": "Task<Result<CommunicationDto>>",
           "is_async": false
+        },
+        {
+          "name": "ScheduleAsync",
+          "return_type": "Task<Result<CommunicationDto>>",
+          "is_async": false
+        },
+        {
+          "name": "CancelScheduleAsync",
+          "return_type": "Task<Result<CommunicationDto>>",
+          "is_async": false
         }
       ],
       "dependencies": [
@@ -2387,6 +2469,47 @@
         "IMapper",
         "IUserContext",
         "ILogger<CommunicationService>"
+      ]
+    },
+    "CommunicationTemplateService": {
+      "name": "CommunicationTemplateService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "CommunicationTemplateService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetByIdKeyAsync",
+          "return_type": "Task<CommunicationTemplateDto?>",
+          "is_async": false
+        },
+        {
+          "name": "SearchAsync",
+          "return_type": "Task<PagedResult<CommunicationTemplateSummaryDto>>",
+          "is_async": false
+        },
+        {
+          "name": "CreateAsync",
+          "return_type": "Task<Result<CommunicationTemplateDto>>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateAsync",
+          "return_type": "Task<Result<CommunicationTemplateDto>>",
+          "is_async": false
+        },
+        {
+          "name": "DeleteAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IMapper",
+        "ILogger<CommunicationTemplateService>"
       ]
     },
     "CsvParserService": {
@@ -3362,6 +3485,12 @@
       "methods": [],
       "dependencies": []
     },
+    "ICommunicationTemplateService": {
+      "name": "ICommunicationTemplateService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
     "ICsvParserService": {
       "name": "ICsvParserService",
       "namespace": "Koinon.Application.Interfaces",
@@ -3864,6 +3993,50 @@
         "ILogger<CheckinController>"
       ]
     },
+    "CommunicationTemplatesController": {
+      "name": "CommunicationTemplatesController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/communication-templates",
+      "endpoints": [
+        {
+          "name": "GetByIdKey",
+          "method": "GET",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Update",
+          "method": "PUT",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Delete",
+          "method": "DELETE",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": true,
+        "result_pattern": true
+      },
+      "dependencies": [
+        "ICommunicationTemplateService",
+        "ILogger<CommunicationTemplatesController>"
+      ]
+    },
     "CommunicationsController": {
       "name": "CommunicationsController",
       "namespace": "Koinon.Api.Controllers",
@@ -3882,6 +4055,24 @@
           "name": "Send",
           "method": "POST",
           "route": "{idKey}/send",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Schedule",
+          "method": "POST",
+          "route": "{idKey}/schedule",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "CancelSchedule",
+          "method": "POST",
+          "route": "{idKey}/cancel-schedule",
           "request_type": null,
           "response_type": null,
           "requires_auth": true,
@@ -4919,6 +5110,16 @@
       "relationship": "maps_to"
     },
     {
+      "source": "CommunicationTemplateDto",
+      "target": "CommunicationTemplate",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CommunicationTemplateSummaryDto",
+      "target": "Communication",
+      "relationship": "maps_to"
+    },
+    {
       "source": "FamilyDto",
       "target": "Family",
       "relationship": "maps_to"
@@ -5101,6 +5302,11 @@
     {
       "source": "CheckinController",
       "target": "ICapacityService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "CommunicationTemplatesController",
+      "target": "ICommunicationTemplateService",
       "relationship": "depends_on"
     },
     {
@@ -5366,6 +5572,36 @@
     {
       "source": "CommunicationService",
       "target": "CommunicationDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CommunicationService",
+      "target": "CommunicationDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CommunicationService",
+      "target": "CommunicationDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CommunicationTemplateService",
+      "target": "CommunicationTemplateDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CommunicationTemplateService",
+      "target": "CommunicationTemplateSummaryDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CommunicationTemplateService",
+      "target": "CommunicationTemplateDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CommunicationTemplateService",
+      "target": "CommunicationTemplateDto",
       "relationship": "returns"
     },
     {
@@ -5744,6 +5980,11 @@
       "relationship": "uses"
     },
     {
+      "source": "CommunicationTemplateService",
+      "target": "Communication",
+      "relationship": "uses"
+    },
+    {
       "source": "DataImportService",
       "target": "Person",
       "relationship": "uses"
@@ -5880,10 +6121,10 @@
     }
   ],
   "summary": {
-    "total_entities": 41,
-    "total_dtos": 77,
-    "total_services": 69,
-    "total_controllers": 22,
-    "total_relationships": 202
+    "total_entities": 42,
+    "total_dtos": 81,
+    "total_services": 71,
+    "total_controllers": 23,
+    "total_relationships": 212
   }
 }

@@ -317,4 +317,125 @@ public class CommunicationsController(
 
         return Ok(new { data = result.Value });
     }
+
+    /// <summary>
+    /// Schedules a communication to be sent at a future date and time.
+    /// </summary>
+    /// <param name="idKey">The communication's IdKey</param>
+    /// <param name="request">Schedule request containing the scheduled date and time</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Updated communication details</returns>
+    /// <response code="200">Communication scheduled successfully</response>
+    /// <response code="400">Invalid scheduled date/time</response>
+    /// <response code="404">Communication not found</response>
+    /// <response code="422">Cannot schedule non-draft communication</response>
+    [HttpPost("{idKey}/schedule")]
+    [ProducesResponseType(typeof(CommunicationDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
+    public async Task<IActionResult> Schedule(
+        string idKey,
+        [FromBody] ScheduleCommunicationRequest request,
+        CancellationToken ct = default)
+    {
+        var result = await communicationService.ScheduleAsync(idKey, request.ScheduledDateTime, ct);
+
+        if (result.IsFailure)
+        {
+            logger.LogWarning(
+                "Failed to schedule communication {IdKey}: Code={Code}, Message={Message}",
+                idKey,
+                result.Error!.Code,
+                result.Error.Message);
+
+            return result.Error.Code switch
+            {
+                "NOT_FOUND" => NotFound(new ProblemDetails
+                {
+                    Title = "Communication not found",
+                    Detail = result.Error.Message,
+                    Status = StatusCodes.Status404NotFound,
+                    Instance = HttpContext.Request.Path
+                }),
+                "VALIDATION_ERROR" => BadRequest(new ProblemDetails
+                {
+                    Title = "Invalid scheduled date/time",
+                    Detail = result.Error.Message,
+                    Status = StatusCodes.Status400BadRequest,
+                    Instance = HttpContext.Request.Path
+                }),
+                _ => UnprocessableEntity(new ProblemDetails
+                {
+                    Title = result.Error.Code,
+                    Detail = result.Error.Message,
+                    Status = StatusCodes.Status422UnprocessableEntity,
+                    Instance = HttpContext.Request.Path
+                })
+            };
+        }
+
+        logger.LogInformation(
+            "Communication scheduled: IdKey={IdKey}, ScheduledDateTime={ScheduledDateTime}",
+            idKey,
+            result.Value!.ScheduledDateTime);
+
+        return Ok(new { data = result.Value });
+    }
+
+    /// <summary>
+    /// Cancels a scheduled communication and reverts it to Draft status.
+    /// </summary>
+    /// <param name="idKey">The communication's IdKey</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Updated communication details</returns>
+    /// <response code="200">Schedule cancelled successfully</response>
+    /// <response code="404">Communication not found</response>
+    /// <response code="422">Cannot cancel schedule for non-scheduled communication</response>
+    [HttpPost("{idKey}/cancel-schedule")]
+    [ProducesResponseType(typeof(CommunicationDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
+    public async Task<IActionResult> CancelSchedule(string idKey, CancellationToken ct = default)
+    {
+        var result = await communicationService.CancelScheduleAsync(idKey, ct);
+
+        if (result.IsFailure)
+        {
+            logger.LogWarning(
+                "Failed to cancel schedule for communication {IdKey}: Code={Code}, Message={Message}",
+                idKey,
+                result.Error!.Code,
+                result.Error.Message);
+
+            return result.Error.Code switch
+            {
+                "NOT_FOUND" => NotFound(new ProblemDetails
+                {
+                    Title = "Communication not found",
+                    Detail = result.Error.Message,
+                    Status = StatusCodes.Status404NotFound,
+                    Instance = HttpContext.Request.Path
+                }),
+                _ => UnprocessableEntity(new ProblemDetails
+                {
+                    Title = result.Error.Code,
+                    Detail = result.Error.Message,
+                    Status = StatusCodes.Status422UnprocessableEntity,
+                    Instance = HttpContext.Request.Path
+                })
+            };
+        }
+
+        logger.LogInformation(
+            "Communication schedule cancelled: IdKey={IdKey}",
+            idKey);
+
+        return Ok(new { data = result.Value });
+    }
 }
+
+/// <summary>
+/// Request DTO for scheduling a communication.
+/// </summary>
+public record ScheduleCommunicationRequest(DateTime ScheduledDateTime);

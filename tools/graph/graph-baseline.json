@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-02T22:24:51.847721+00:00",
+  "generated_at": "2026-01-02T23:24:18.298465+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -132,6 +132,7 @@
       "table": "communication",
       "properties": {
         "Status": "CommunicationStatus",
+        "ScheduledDateTime": "DateTime?",
         "Subject": "string?",
         "FromEmail": "string?",
         "FromName": "string?",
@@ -141,7 +142,8 @@
         "DeliveredCount": "int",
         "FailedCount": "int",
         "OpenedCount": "int",
-        "Note": "string?"
+        "Note": "string?",
+        "RowVersion": "byte[]?"
       },
       "navigations": [
         {
@@ -1100,6 +1102,7 @@
         "FromEmail": "string?",
         "FromName": "string?",
         "ReplyToEmail": "string?",
+        "ScheduledDateTime": "DateTime?",
         "SentDateTime": "DateTime?",
         "Note": "string?",
         "ModifiedDateTime": "DateTime?",
@@ -1120,6 +1123,7 @@
         "FromEmail": "string?",
         "FromName": "string?",
         "ReplyToEmail": "string?",
+        "ScheduledDateTime": "DateTime?",
         "SentDateTime": "DateTime?",
         "Note": "string?",
         "ModifiedDateTime": "DateTime?",
@@ -1140,6 +1144,7 @@
         "FromEmail": "string?",
         "FromName": "string?",
         "ReplyToEmail": "string?",
+        "ScheduledDateTime": "DateTime?",
         "SentDateTime": "DateTime?",
         "Note": "string?",
         "ModifiedDateTime": "DateTime?",
@@ -1160,6 +1165,7 @@
         "FromEmail": "string?",
         "FromName": "string?",
         "ReplyToEmail": "string?",
+        "ScheduledDateTime": "DateTime?",
         "SentDateTime": "DateTime?",
         "Note": "string?",
         "ModifiedDateTime": "DateTime?",
@@ -1179,6 +1185,7 @@
         "FromEmail": "string?",
         "FromName": "string?",
         "ReplyToEmail": "string?",
+        "ScheduledDateTime": "DateTime?",
         "SentDateTime": "DateTime?",
         "Note": "string?",
         "ModifiedDateTime": "DateTime?",
@@ -2443,6 +2450,16 @@
         },
         {
           "name": "SendAsync",
+          "return_type": "Task<Result<CommunicationDto>>",
+          "is_async": false
+        },
+        {
+          "name": "ScheduleAsync",
+          "return_type": "Task<Result<CommunicationDto>>",
+          "is_async": false
+        },
+        {
+          "name": "CancelScheduleAsync",
           "return_type": "Task<Result<CommunicationDto>>",
           "is_async": false
         }
@@ -4044,6 +4061,24 @@
           "required_roles": []
         },
         {
+          "name": "Schedule",
+          "method": "POST",
+          "route": "{idKey}/schedule",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "CancelSchedule",
+          "method": "POST",
+          "route": "{idKey}/cancel-schedule",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "Update",
           "method": "PUT",
           "route": "{idKey}",
@@ -5307,6 +5342,32 @@
         "sendCommunication"
       ]
     },
+    "useScheduleCommunication": {
+      "name": "useScheduleCommunication",
+      "path": "hooks/useCommunications.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "communications"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "scheduleCommunication"
+      ]
+    },
+    "useCancelSchedule": {
+      "name": "useCancelSchedule",
+      "path": "hooks/useCommunications.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "communications"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "cancelSchedule"
+      ]
+    },
     "useDashboardStats": {
       "name": "useDashboardStats",
       "path": "hooks/useDashboard.ts",
@@ -6350,6 +6411,20 @@
       "name": "sendCommunication",
       "path": "services/api/communications.ts",
       "endpoint": "/communications/${idKey}/send",
+      "method": "POST",
+      "responseType": "CommunicationDto"
+    },
+    "scheduleCommunication": {
+      "name": "scheduleCommunication",
+      "path": "services/api/communications.ts",
+      "endpoint": "/communications/${idKey}/schedule",
+      "method": "POST",
+      "responseType": "CommunicationDto"
+    },
+    "cancelSchedule": {
+      "name": "cancelSchedule",
+      "path": "services/api/communications.ts",
+      "endpoint": "/communications/${idKey}/cancel-schedule",
       "method": "POST",
       "responseType": "CommunicationDto"
     },
@@ -8095,6 +8170,16 @@
       "relationship": "returns"
     },
     {
+      "source": "CommunicationService",
+      "target": "CommunicationDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CommunicationService",
+      "target": "CommunicationDto",
+      "relationship": "returns"
+    },
+    {
       "source": "CommunicationTemplateService",
       "target": "CommunicationTemplateDto",
       "relationship": "returns"
@@ -8854,10 +8939,10 @@
     "dtos": 81,
     "services": 71,
     "controllers": 23,
-    "types": 236,
-    "api_functions": 115,
-    "hooks": 88,
+    "types": 237,
+    "api_functions": 117,
+    "hooks": 90,
     "components": 98,
-    "total_edges": 238
+    "total_edges": 240
   }
 }

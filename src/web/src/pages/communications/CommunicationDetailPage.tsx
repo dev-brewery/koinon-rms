@@ -4,13 +4,15 @@
  */
 
 import { useParams, Link } from 'react-router-dom';
-import { useCommunication } from '@/hooks/useCommunications';
+import { useState } from 'react';
+import { useCommunication, useCancelSchedule, useScheduleCommunication } from '@/hooks/useCommunications';
 import { CommunicationStatisticsCard, RecipientTable } from '@/components/communication';
 
 function CommunicationStatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
     Draft: 'bg-gray-100 text-gray-800',
     Pending: 'bg-blue-100 text-blue-800',
+    Scheduled: 'bg-purple-100 text-purple-800',
     Sent: 'bg-green-100 text-green-800',
     Failed: 'bg-red-100 text-red-800',
   };
@@ -61,6 +63,34 @@ function CommunicationTypeBadge({ type }: { type: string }) {
 export function CommunicationDetailPage() {
   const { idKey } = useParams<{ idKey: string }>();
   const { data: communication, isLoading, error } = useCommunication(idKey);
+  const [isRescheduleOpen, setIsRescheduleOpen] = useState(false);
+  const [newScheduledDateTime, setNewScheduledDateTime] = useState('');
+  const cancelScheduleMutation = useCancelSchedule();
+  const scheduleMutation = useScheduleCommunication();
+
+  const handleCancelSchedule = async () => {
+    if (!idKey) return;
+    try {
+      await cancelScheduleMutation.mutateAsync(idKey);
+      // Communication will update via query invalidation
+    } catch (error) {
+      console.error('Failed to cancel schedule:', error);
+    }
+  };
+
+  const handleReschedule = async () => {
+    if (!newScheduledDateTime || !idKey) return;
+    try {
+      await scheduleMutation.mutateAsync({
+        idKey,
+        scheduledDateTime: new Date(newScheduledDateTime).toISOString()
+      });
+      setIsRescheduleOpen(false);
+      setNewScheduledDateTime('');
+    } catch (error) {
+      console.error('Failed to reschedule:', error);
+    }
+  };
 
   // Loading state
   if (isLoading) {
@@ -111,6 +141,21 @@ export function CommunicationDetailPage() {
 
   return (
     <div className="space-y-6">
+      {/* Scheduled Time Banner */}
+      {communication.status === 'Scheduled' && communication.scheduledDateTime && (
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+          <div className="flex items-center gap-2 text-purple-800">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="font-medium">
+              Scheduled to send: {new Date(communication.scheduledDateTime).toLocaleString()}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-start gap-4">
         <Link
@@ -138,6 +183,24 @@ export function CommunicationDetailPage() {
               {sentDate.toLocaleDateString()} at {sentDate.toLocaleTimeString()}
             </span>
           </div>
+          {/* Action Buttons for Scheduled */}
+          {communication.status === 'Scheduled' && (
+            <div className="flex gap-3 mt-4">
+              <button
+                onClick={handleCancelSchedule}
+                disabled={cancelScheduleMutation.isPending}
+                className="px-4 py-2 text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 disabled:opacity-50"
+              >
+                {cancelScheduleMutation.isPending ? 'Canceling...' : 'Cancel Schedule'}
+              </button>
+              <button
+                onClick={() => setIsRescheduleOpen(true)}
+                className="px-4 py-2 text-purple-700 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100"
+              >
+                Reschedule
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -234,6 +297,43 @@ export function CommunicationDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Reschedule Modal */}
+      {isRescheduleOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
+            <h3 className="text-lg font-medium mb-4">Reschedule Communication</h3>
+            <div className="mb-4">
+              <label htmlFor="rescheduleDateTime" className="block text-sm font-medium text-gray-700 mb-1">
+                New Date & Time
+              </label>
+              <input
+                id="rescheduleDateTime"
+                type="datetime-local"
+                value={newScheduledDateTime}
+                onChange={(e) => setNewScheduledDateTime(e.target.value)}
+                min={new Date(Date.now() + 5 * 60000).toISOString().slice(0, 16)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+              />
+            </div>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setIsRescheduleOpen(false)}
+                className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleReschedule}
+                disabled={!newScheduledDateTime || scheduleMutation.isPending}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
+              >
+                {scheduleMutation.isPending ? 'Saving...' : 'Reschedule'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

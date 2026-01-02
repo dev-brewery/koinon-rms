@@ -63,3 +63,34 @@ export function useSendCommunication() {
     },
   });
 }
+
+/**
+ * Schedule a communication for future delivery
+ */
+export function useScheduleCommunication() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ idKey, scheduledDateTime }: { idKey: string; scheduledDateTime: string }) =>
+      communicationsApi.scheduleCommunication(idKey, scheduledDateTime),
+    onSuccess: (_, { idKey }) => {
+      queryClient.invalidateQueries({ queryKey: ['communications', idKey] });
+      queryClient.invalidateQueries({ queryKey: ['communications'] });
+    },
+  });
+}
+
+/**
+ * Cancel a scheduled communication
+ */
+export function useCancelSchedule() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (idKey: string) => communicationsApi.cancelSchedule(idKey),
+    onSuccess: (_, idKey) => {
+      queryClient.invalidateQueries({ queryKey: ['communications', idKey] });
+      queryClient.invalidateQueries({ queryKey: ['communications'] });
+    },
+  });
+}

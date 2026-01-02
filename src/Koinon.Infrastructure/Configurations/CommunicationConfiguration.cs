@@ -43,6 +43,11 @@ public class CommunicationConfiguration : IEntityTypeConfiguration<Communication
         builder.Property(e => e.ModifiedByPersonAliasId)
             .HasColumnName("modified_by_person_alias_id");
 
+        // Concurrency token
+        builder.Property(e => e.RowVersion)
+            .IsRowVersion()
+            .HasColumnName("row_version");
+
         // Regular properties
         builder.Property(e => e.CommunicationType)
             .HasColumnName("communication_type")
@@ -77,6 +82,9 @@ public class CommunicationConfiguration : IEntityTypeConfiguration<Communication
 
         builder.Property(e => e.SentDateTime)
             .HasColumnName("sent_date_time");
+
+        builder.Property(e => e.ScheduledDateTime)
+            .HasColumnName("scheduled_date_time");
 
         builder.Property(e => e.RecipientCount)
             .HasColumnName("recipient_count")
@@ -114,6 +122,9 @@ public class CommunicationConfiguration : IEntityTypeConfiguration<Communication
 
         builder.HasIndex(e => e.SentDateTime)
             .HasDatabaseName("ix_communication_sent_date_time");
+
+        builder.HasIndex(e => e.ScheduledDateTime)
+            .HasDatabaseName("ix_communication_scheduled_date_time");
 
         builder.HasIndex(e => e.CreatedByPersonAliasId)
             .HasDatabaseName("ix_communication_created_by_person_alias_id");

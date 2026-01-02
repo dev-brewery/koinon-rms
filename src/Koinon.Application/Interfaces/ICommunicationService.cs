@@ -46,4 +46,21 @@ public interface ICommunicationService
     /// Queues a communication for sending (changes status from Draft to Pending).
     /// </summary>
     Task<Result<CommunicationDto>> SendAsync(string idKey, CancellationToken ct = default);
+
+    /// <summary>
+    /// Schedules a communication to be sent at a future date and time.
+    /// Only allowed if status is Draft.
+    /// </summary>
+    Task<Result<CommunicationDto>> ScheduleAsync(
+        string idKey,
+        DateTime scheduledDateTime,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Cancels a scheduled communication (reverts to Draft status).
+    /// Only allowed if status is Scheduled.
+    /// </summary>
+    Task<Result<CommunicationDto>> CancelScheduleAsync(
+        string idKey,
+        CancellationToken ct = default);
 }

@@ -140,16 +140,45 @@ public class CommunicationService(
         // Get PersonAliasId for audit trail
         var personAliasId = await GetCurrentPersonAliasIdAsync(ct);
 
+        // Determine initial status based on ScheduledDateTime
+        var status = CommunicationStatus.Draft;
+        DateTime? scheduledDateTime = null;
+
+        if (dto.ScheduledDateTime.HasValue)
+        {
+            // Validate scheduled time is in the future (minimum 5 minutes)
+            var minScheduledTime = DateTime.UtcNow.AddMinutes(5);
+            if (dto.ScheduledDateTime.Value <= minScheduledTime)
+            {
+                return Result<CommunicationDto>.Failure(
+                    Error.UnprocessableEntity(
+                        $"ScheduledDateTime must be at least 5 minutes in the future (minimum: {minScheduledTime:O})"));
+            }
+
+            // Validate scheduled time is not too far in the future (maximum 1 year)
+            var maxScheduledTime = DateTime.UtcNow.AddYears(1);
+            if (dto.ScheduledDateTime.Value > maxScheduledTime)
+            {
+                return Result<CommunicationDto>.Failure(
+                    Error.UnprocessableEntity(
+                        $"ScheduledDateTime cannot be more than 1 year in the future (maximum: {maxScheduledTime:O})"));
+            }
+
+            status = CommunicationStatus.Scheduled;
+            scheduledDateTime = dto.ScheduledDateTime.Value;
+        }
+
         // Create communication
         var communication = new Communication
         {
             CommunicationType = communicationType,
-            Status = CommunicationStatus.Draft,
+            Status = status,
             Subject = dto.Subject,
             Body = dto.Body,
             FromEmail = dto.FromEmail,
             FromName = dto.FromName,
             ReplyToEmail = dto.ReplyToEmail,
+            ScheduledDateTime = scheduledDateTime,
             Note = dto.Note,
             CreatedDateTime = DateTime.UtcNow,
             CreatedByPersonAliasId = personAliasId,
@@ -351,6 +380,142 @@ public class CommunicationService(
             "Queued communication {CommunicationId} for sending to {RecipientCount} recipients",
             communication.IdKey,
             communication.RecipientCount);
+
+        return Result<CommunicationDto>.Success(mapper.Map<CommunicationDto>(communication));
+    }
+
+    public async Task<Result<CommunicationDto>> ScheduleAsync(
+        string idKey,
+        DateTime scheduledDateTime,
+        CancellationToken ct = default)
+    {
+        if (!IdKeyHelper.TryDecode(idKey, out int id))
+        {
+            return Result<CommunicationDto>.Failure(Error.NotFound("Communication", idKey));
+        }
+
+        var communication = await context.Communications
+            .Include(c => c.Recipients)
+            .FirstOrDefaultAsync(c => c.Id == id, ct);
+
+        if (communication is null)
+        {
+            return Result<CommunicationDto>.Failure(Error.NotFound("Communication", idKey));
+        }
+
+        // AUTHORIZATION: Verify user owns the communication OR is Staff/Admin
+        if (!await UserCanAccessCommunicationAsync(communication, ct))
+        {
+            return Result<CommunicationDto>.Failure(
+                Error.Forbidden("User does not have permission to schedule this communication"));
+        }
+
+        // Only allow scheduling if status is Draft
+        if (communication.Status != CommunicationStatus.Draft)
+        {
+            return Result<CommunicationDto>.Failure(
+                Error.UnprocessableEntity("Only draft communications can be scheduled"));
+        }
+
+        if (communication.RecipientCount == 0)
+        {
+            return Result<CommunicationDto>.Failure(
+                Error.UnprocessableEntity("Cannot schedule communication with no recipients"));
+        }
+
+        // Validate scheduled time is in the future (minimum 5 minutes)
+        var minScheduledTime = DateTime.UtcNow.AddMinutes(5);
+        if (scheduledDateTime <= minScheduledTime)
+        {
+            return Result<CommunicationDto>.Failure(
+                Error.UnprocessableEntity(
+                    $"ScheduledDateTime must be at least 5 minutes in the future (minimum: {minScheduledTime:O})"));
+        }
+
+        // Validate scheduled time is not too far in the future (maximum 1 year)
+        var maxScheduledTime = DateTime.UtcNow.AddYears(1);
+        if (scheduledDateTime > maxScheduledTime)
+        {
+            return Result<CommunicationDto>.Failure(
+                Error.UnprocessableEntity(
+                    $"ScheduledDateTime cannot be more than 1 year in the future (maximum: {maxScheduledTime:O})"));
+        }
+
+        // Re-authorize group access before scheduling
+        var groupIds = communication.Recipients
+            .Where(r => r.GroupId.HasValue)
+            .Select(r => r.GroupId!.Value)
+            .Distinct()
+            .ToList();
+
+        if (groupIds.Any())
+        {
+            var authResult = await AuthorizeGroupAccessAsync(groupIds, ct);
+            if (!authResult.IsSuccess)
+            {
+                return Result<CommunicationDto>.Failure(authResult.Error!);
+            }
+        }
+
+        // Update status and scheduled time
+        communication.Status = CommunicationStatus.Scheduled;
+        communication.ScheduledDateTime = scheduledDateTime;
+        communication.ModifiedDateTime = DateTime.UtcNow;
+        communication.ModifiedByPersonAliasId = await GetCurrentPersonAliasIdAsync(ct);
+
+        await context.SaveChangesAsync(ct);
+
+        logger.LogInformation(
+            "Scheduled communication {CommunicationId} for {ScheduledDateTime}",
+            communication.IdKey,
+            scheduledDateTime);
+
+        return Result<CommunicationDto>.Success(mapper.Map<CommunicationDto>(communication));
+    }
+
+    public async Task<Result<CommunicationDto>> CancelScheduleAsync(
+        string idKey,
+        CancellationToken ct = default)
+    {
+        if (!IdKeyHelper.TryDecode(idKey, out int id))
+        {
+            return Result<CommunicationDto>.Failure(Error.NotFound("Communication", idKey));
+        }
+
+        var communication = await context.Communications
+            .Include(c => c.Recipients)
+            .FirstOrDefaultAsync(c => c.Id == id, ct);
+
+        if (communication is null)
+        {
+            return Result<CommunicationDto>.Failure(Error.NotFound("Communication", idKey));
+        }
+
+        // AUTHORIZATION: Verify user owns the communication OR is Staff/Admin
+        if (!await UserCanAccessCommunicationAsync(communication, ct))
+        {
+            return Result<CommunicationDto>.Failure(
+                Error.Forbidden("User does not have permission to cancel this scheduled communication"));
+        }
+
+        // Only allow canceling if status is Scheduled
+        if (communication.Status != CommunicationStatus.Scheduled)
+        {
+            return Result<CommunicationDto>.Failure(
+                Error.UnprocessableEntity("Only scheduled communications can be canceled"));
+        }
+
+        // Revert to Draft status and clear scheduled time
+        communication.Status = CommunicationStatus.Draft;
+        communication.ScheduledDateTime = null;
+        communication.ModifiedDateTime = DateTime.UtcNow;
+        communication.ModifiedByPersonAliasId = await GetCurrentPersonAliasIdAsync(ct);
+
+        await context.SaveChangesAsync(ct);
+
+        logger.LogInformation(
+            "Canceled scheduled communication {CommunicationId}",
+            communication.IdKey);
 
         return Result<CommunicationDto>.Success(mapper.Map<CommunicationDto>(communication));
     }

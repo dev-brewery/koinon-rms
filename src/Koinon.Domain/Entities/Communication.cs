@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Koinon.Domain.Enums;
 
 namespace Koinon.Domain.Entities;
@@ -16,6 +17,12 @@ public class Communication : Entity
     /// The overall status of the communication.
     /// </summary>
     public CommunicationStatus Status { get; set; } = CommunicationStatus.Draft;
+
+    /// <summary>
+    /// The scheduled date and time (UTC) for sending this communication.
+    /// Null if the communication should be sent immediately.
+    /// </summary>
+    public DateTime? ScheduledDateTime { get; set; }
 
     /// <summary>
     /// The subject line for email communications.
@@ -71,6 +78,12 @@ public class Communication : Entity
     /// Optional notes about this communication.
     /// </summary>
     public string? Note { get; set; }
+
+    /// <summary>
+    /// Concurrency token for optimistic locking.
+    /// </summary>
+    [Timestamp]
+    public byte[]? RowVersion { get; set; }
 
     // Navigation Properties
 
