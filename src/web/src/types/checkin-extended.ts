@@ -2,10 +2,30 @@
  * Extended TypeScript types for Koinon RMS Check-in API
  * Provides types for roster management and extended check-in operations
  *
+ * Note: Core check-in configuration types are now in './checkin.ts'
  * Note: Attendance analytics types are now in './analytics.ts'
  */
 
-import type { IdKey, DateTime, DateOnly, Guid, CapacityStatus } from '@/services/api/types';
+import type { IdKey, DateTime } from '@/services/api/types';
+
+// Re-export core checkin types for backwards compatibility
+export type {
+  CapacityStatusDto,
+  CheckinCampusSummaryDto,
+  CheckinGroupTypeSummaryDto,
+  CheckinGroupTypeRoleDto,
+  CheckinScheduleDto,
+  CheckinLocationDto,
+  CheckinAreaDto,
+  CheckinConfigurationDto,
+  CheckinRequestDto,
+  BatchCheckinRequestDto,
+  CheckinResultDto,
+  BatchCheckinResultDto,
+  CheckinPersonSummaryDto,
+  CheckinLocationSummaryDto,
+  CheckinValidationResultDto,
+} from './checkin';
 
 // Re-export analytics types for backwards compatibility
 export type {
@@ -107,60 +127,48 @@ export interface CheckinFamilyMemberDto {
 }
 
 // ============================================================================
-// Extended Check-in Request/Result Types
+// Extended Check-in Request/Result Types (Legacy Aliases)
 // ============================================================================
 
-/**
- * Request to check in a person to a location
- */
-export interface ExtendedCheckinRequestDto {
-  personIdKey: IdKey;
-  locationIdKey: IdKey;
-  scheduleIdKey?: IdKey;
-  occurrenceDate?: DateOnly;
-  deviceIdKey?: IdKey;
-  generateSecurityCode: boolean;
-  note?: string;
-}
+// Legacy aliases for backwards compatibility
+// These match the original names in this file
+import type {
+  CheckinRequestDto,
+  BatchCheckinRequestDto as BatchCheckinRequestDtoCore,
+  CheckinResultDto,
+  BatchCheckinResultDto as BatchCheckinResultDtoCore,
+  CheckinPersonSummaryDto as CheckinPersonSummaryDtoCore,
+  CheckinLocationSummaryDto as CheckinLocationSummaryDtoCore,
+  CheckinValidationResultDto,
+} from './checkin';
 
 /**
- * Request to check in multiple people
+ * @deprecated Use CheckinRequestDto from './checkin' instead
  */
-export interface BatchCheckinRequestDto {
-  checkIns: ExtendedCheckinRequestDto[];
-  deviceIdKey?: IdKey;
-}
+export type ExtendedCheckinRequestDto = CheckinRequestDto;
 
 /**
- * Result of a single check-in operation
+ * @deprecated Use BatchCheckinRequestDto from './checkin' instead
  */
-export interface ExtendedCheckinResultDto {
-  success: boolean;
-  errorMessage?: string;
-  attendanceIdKey?: IdKey;
-  securityCode?: string;
-  checkInTime?: DateTime;
-  person?: CheckinPersonSummaryDto;
-  location?: CheckinLocationSummaryDto;
-}
+export type ExtendedBatchCheckinRequestDto = BatchCheckinRequestDtoCore;
 
 /**
- * Result of batch check-in operation
+ * @deprecated Use CheckinResultDto from './checkin' instead
  */
-export interface BatchCheckinResultDto {
-  results: ExtendedCheckinResultDto[];
-  successCount: number;
-  failureCount: number;
-  allSucceeded: boolean;
-}
+export type ExtendedCheckinResultDto = CheckinResultDto;
+
+/**
+ * @deprecated Use BatchCheckinResultDto from './checkin' instead
+ */
+export type ExtendedBatchCheckinResultDto = BatchCheckinResultDtoCore;
 
 /**
  * Summary of an attendance record
  */
 export interface AttendanceSummaryDto {
   idKey: IdKey;
-  person: CheckinPersonSummaryDto;
-  location: CheckinLocationSummaryDto;
+  person: CheckinPersonSummaryDtoCore;
+  location: CheckinLocationSummaryDtoCore;
   startDateTime: DateTime;
   endDateTime?: DateTime;
   securityCode?: string;
@@ -169,143 +177,56 @@ export interface AttendanceSummaryDto {
 }
 
 /**
- * Minimal person info for check-in results
+ * @deprecated Use CheckinValidationResultDto from './checkin' instead
  */
-export interface CheckinPersonSummaryDto {
-  idKey: IdKey;
-  fullName: string;
-  firstName: string;
-  lastName: string;
-  nickName?: string;
-  age?: number;
-  photoUrl?: string;
-}
-
-/**
- * Minimal location info for check-in results
- */
-export interface CheckinLocationSummaryDto {
-  idKey: IdKey;
-  name: string;
-  fullPath: string;
-}
-
-/**
- * Validation result for check-in eligibility
- */
-export interface CheckinValidationResult {
-  isAllowed: boolean;
-  reason?: string;
-  isAlreadyCheckedIn: boolean;
-  isAtCapacity: boolean;
-  isOutsideSchedule: boolean;
-}
+export type CheckinValidationResult = CheckinValidationResultDto;
 
 // ============================================================================
-// Extended Configuration Types
+// Extended Configuration Types (Legacy Aliases)
 // ============================================================================
 
-/**
- * Extended check-in configuration with full detail
- */
-export interface ExtendedCheckinConfigurationDto {
-  campus: ExtendedCampusSummaryDto;
-  areas: ExtendedCheckinAreaDto[];
-  activeSchedules: ExtendedScheduleDto[];
-  serverTime: DateTime;
-}
+import type {
+  CheckinConfigurationDto,
+  CheckinCampusSummaryDto,
+  CheckinAreaDto as CheckinAreaDtoCore,
+  CheckinLocationDto as CheckinLocationDtoCore,
+  CheckinScheduleDto,
+  CheckinGroupTypeSummaryDto,
+  CheckinGroupTypeRoleDto,
+} from './checkin';
 
 /**
- * Campus summary for extended check-in
+ * @deprecated Use CheckinConfigurationDto from './checkin' instead
  */
-export interface ExtendedCampusSummaryDto {
-  idKey: IdKey;
-  name: string;
-  shortCode?: string;
-}
+export type ExtendedCheckinConfigurationDto = CheckinConfigurationDto;
 
 /**
- * Check-in area with full configuration
+ * @deprecated Use CheckinCampusSummaryDto from './checkin' instead
  */
-export interface ExtendedCheckinAreaDto {
-  idKey: IdKey;
-  guid: Guid;
-  name: string;
-  description?: string;
-  groupType: ExtendedGroupTypeSummaryDto;
-  locations: ExtendedCheckinLocationDto[];
-  schedule?: ExtendedScheduleDto;
-  isActive: boolean;
-  capacityStatus: CapacityStatus;
-  minAgeMonths?: number;
-  maxAgeMonths?: number;
-  minGrade?: number;
-  maxGrade?: number;
-}
+export type ExtendedCampusSummaryDto = CheckinCampusSummaryDto;
 
 /**
- * Check-in location with capacity and overflow
+ * @deprecated Use CheckinAreaDto from './checkin' instead
  */
-export interface ExtendedCheckinLocationDto {
-  idKey: IdKey;
-  name: string;
-  fullPath: string;
-  softCapacity?: number;
-  hardCapacity?: number;
-  currentCount: number;
-  capacityStatus: CapacityStatus;
-  isActive: boolean;
-  printerDeviceIdKey?: string;
-  percentageFull: number;
-  overflowLocationIdKey?: string;
-  overflowLocationName?: string;
-  autoAssignOverflow: boolean;
-}
+export type ExtendedCheckinAreaDto = CheckinAreaDtoCore;
 
 /**
- * Schedule with full check-in window details
+ * @deprecated Use CheckinLocationDto from './checkin' instead
  */
-export interface ExtendedScheduleDto {
-  idKey: IdKey;
-  guid: Guid;
-  name: string;
-  description?: string;
-  weeklyDayOfWeek?: number;
-  weeklyTimeOfDay?: string;
-  checkInStartOffsetMinutes?: number;
-  checkInEndOffsetMinutes?: number;
-  isActive: boolean;
-  isCheckinActive: boolean;
-  checkinStartTime?: DateTime;
-  checkinEndTime?: DateTime;
-  isPublic: boolean;
-  order: number;
-  effectiveStartDate?: DateOnly;
-  effectiveEndDate?: DateOnly;
-  iCalendarContent?: string;
-  autoInactivateWhenComplete: boolean;
-  createdDateTime: DateTime;
-  modifiedDateTime?: DateTime;
-}
+export type ExtendedCheckinLocationDto = CheckinLocationDtoCore;
 
 /**
- * Group type summary with roles
+ * @deprecated Use CheckinScheduleDto from './checkin' instead
  */
-export interface ExtendedGroupTypeSummaryDto {
-  idKey: IdKey;
-  guid: Guid;
-  name: string;
-  description?: string;
-  isFamilyGroupType: boolean;
-  allowMultipleLocations: boolean;
-  roles: GroupTypeRoleDto[];
-}
+export type ExtendedScheduleDto = CheckinScheduleDto;
 
 /**
- * Group type role definition
+ * @deprecated Use CheckinGroupTypeSummaryDto from './checkin' instead
  */
-export interface GroupTypeRoleDto {
-  idKey: IdKey;
-  name: string;
-  isLeader: boolean;
-}
+export type ExtendedGroupTypeSummaryDto = CheckinGroupTypeSummaryDto;
+
+/**
+ * @deprecated Use CheckinGroupTypeRoleDto from './checkin' instead
+ * Note: This type already exists in services/api/types.ts as GroupTypeRoleDto
+ */
+export type GroupTypeRoleDto = CheckinGroupTypeRoleDto;
