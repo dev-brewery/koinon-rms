@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as givingApi from '@/services/api/giving';
 import { getCampuses } from '@/services/api/reference';
 import type { BatchFilterParams } from '@/services/api/giving';
-import type { AddContributionRequest } from '@/types/giving';
+import type { AddContributionRequest, CreateBatchRequest } from '@/types/giving';
 
 /**
  * Get financial batches with filters
@@ -91,6 +91,20 @@ export function useActiveFunds() {
     queryKey: ['funds', 'active'],
     queryFn: () => givingApi.getActiveFunds(),
     staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+/**
+ * Create a new financial batch
+ */
+export function useCreateBatch() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (request: CreateBatchRequest) => givingApi.createBatch(request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['batches'] });
+    },
   });
 }
 
