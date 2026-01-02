@@ -23,5 +23,10 @@ public enum CommunicationStatus
     /// <summary>
     /// Communication failed to send.
     /// </summary>
-    Failed = 3
+    Failed = 3,
+
+    /// <summary>
+    /// Communication is scheduled to be sent at a future date and time.
+    /// </summary>
+    Scheduled = 4
 }

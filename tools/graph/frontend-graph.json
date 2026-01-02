@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-01-02T21:38:15.283Z",
+  "generated_at": "2026-01-02T23:24:18.060Z",
   "types": {
     "AttendanceAnalyticsDto": {
       "name": "AttendanceAnalyticsDto",
@@ -563,6 +563,7 @@
         "fromName": "string",
         "replyToEmail": "string",
         "sentDateTime": "DateTime",
+        "scheduledDateTime": "DateTime",
         "recipientCount": "number",
         "deliveredCount": "number",
         "failedCount": "number",
@@ -586,7 +587,8 @@
         "deliveredCount": "number",
         "failedCount": "number",
         "createdDateTime": "DateTime",
-        "sentDateTime": "DateTime"
+        "sentDateTime": "DateTime",
+        "scheduledDateTime": "DateTime"
       },
       "path": "types/communication.ts"
     },
@@ -601,7 +603,8 @@
         "fromName": "string",
         "replyToEmail": "string",
         "note": "string",
-        "groupIdKeys": "string[]"
+        "groupIdKeys": "string[]",
+        "scheduledDateTime": "string"
       },
       "path": "types/communication.ts"
     },
@@ -618,6 +621,14 @@
       },
       "path": "types/communication.ts"
     },
+    "ScheduleCommunicationRequest": {
+      "name": "ScheduleCommunicationRequest",
+      "kind": "interface",
+      "properties": {
+        "scheduledDateTime": "string"
+      },
+      "path": "types/communication.ts"
+    },
     "CommunicationsParams": {
       "name": "CommunicationsParams",
       "kind": "interface",
@@ -625,6 +636,69 @@
         "page": "number",
         "pageSize": "number",
         "status": "string"
+      },
+      "path": "types/communication.ts"
+    },
+    "CommunicationTemplateDto": {
+      "name": "CommunicationTemplateDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "communicationType": "string",
+        "subject": "string",
+        "body": "string",
+        "description": "string",
+        "isActive": "boolean",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "types/communication.ts"
+    },
+    "CommunicationTemplateSummaryDto": {
+      "name": "CommunicationTemplateSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "communicationType": "string",
+        "isActive": "boolean"
+      },
+      "path": "types/communication.ts"
+    },
+    "CreateCommunicationTemplateDto": {
+      "name": "CreateCommunicationTemplateDto",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "communicationType": "string",
+        "subject": "string",
+        "body": "string",
+        "description": "string",
+        "isActive": "boolean"
+      },
+      "path": "types/communication.ts"
+    },
+    "UpdateCommunicationTemplateDto": {
+      "name": "UpdateCommunicationTemplateDto",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "subject": "string",
+        "body": "string",
+        "description": "string",
+        "isActive": "boolean"
+      },
+      "path": "types/communication.ts"
+    },
+    "CommunicationTemplatesParams": {
+      "name": "CommunicationTemplatesParams",
+      "kind": "interface",
+      "properties": {
+        "page": "number",
+        "pageSize": "number",
+        "type": "string",
+        "isActive": "boolean"
       },
       "path": "types/communication.ts"
     },
@@ -3007,6 +3081,34 @@
       "method": "GET",
       "responseType": "void"
     },
+    "getCommunicationTemplate": {
+      "name": "getCommunicationTemplate",
+      "path": "services/api/communicationTemplates.ts",
+      "endpoint": "/communication-templates/${idKey}",
+      "method": "GET",
+      "responseType": "CommunicationTemplateDto"
+    },
+    "createCommunicationTemplate": {
+      "name": "createCommunicationTemplate",
+      "path": "services/api/communicationTemplates.ts",
+      "endpoint": "/communication-templates",
+      "method": "POST",
+      "responseType": "CommunicationTemplateDto"
+    },
+    "updateCommunicationTemplate": {
+      "name": "updateCommunicationTemplate",
+      "path": "services/api/communicationTemplates.ts",
+      "endpoint": "/communication-templates/${idKey}",
+      "method": "PUT",
+      "responseType": "CommunicationTemplateDto"
+    },
+    "deleteCommunicationTemplate": {
+      "name": "deleteCommunicationTemplate",
+      "path": "services/api/communicationTemplates.ts",
+      "endpoint": "/communication-templates/${idKey}",
+      "method": "DELETE",
+      "responseType": "void"
+    },
     "createCommunication": {
       "name": "createCommunication",
       "path": "services/api/communications.ts",
@@ -3018,6 +3120,20 @@
       "name": "sendCommunication",
       "path": "services/api/communications.ts",
       "endpoint": "/communications/${idKey}/send",
+      "method": "POST",
+      "responseType": "CommunicationDto"
+    },
+    "scheduleCommunication": {
+      "name": "scheduleCommunication",
+      "path": "services/api/communications.ts",
+      "endpoint": "/communications/${idKey}/schedule",
+      "method": "POST",
+      "responseType": "CommunicationDto"
+    },
+    "cancelSchedule": {
+      "name": "cancelSchedule",
+      "path": "services/api/communications.ts",
+      "endpoint": "/communications/${idKey}/cancel-schedule",
       "method": "POST",
       "responseType": "CommunicationDto"
     },
@@ -3781,6 +3897,69 @@
       "usesMutation": false,
       "dependencies": []
     },
+    "useCommunicationTemplates": {
+      "name": "useCommunicationTemplates",
+      "path": "hooks/useCommunicationTemplates.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "communicationtemplates"
+      ],
+      "usesQuery": false,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useCommunicationTemplate": {
+      "name": "useCommunicationTemplate",
+      "path": "hooks/useCommunicationTemplates.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "communication-templates"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getCommunicationTemplate"
+      ]
+    },
+    "useCreateCommunicationTemplate": {
+      "name": "useCreateCommunicationTemplate",
+      "path": "hooks/useCommunicationTemplates.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "communication-templates"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "createCommunicationTemplate"
+      ]
+    },
+    "useUpdateCommunicationTemplate": {
+      "name": "useUpdateCommunicationTemplate",
+      "path": "hooks/useCommunicationTemplates.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "communication-templates"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "updateCommunicationTemplate"
+      ]
+    },
+    "useDeleteCommunicationTemplate": {
+      "name": "useDeleteCommunicationTemplate",
+      "path": "hooks/useCommunicationTemplates.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "communication-templates"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "deleteCommunicationTemplate"
+      ]
+    },
     "useCommunication": {
       "name": "useCommunication",
       "path": "hooks/useCommunications.ts",
@@ -3829,6 +4008,32 @@
       "usesMutation": true,
       "dependencies": [
         "sendCommunication"
+      ]
+    },
+    "useScheduleCommunication": {
+      "name": "useScheduleCommunication",
+      "path": "hooks/useCommunications.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "communications"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "scheduleCommunication"
+      ]
+    },
+    "useCancelSchedule": {
+      "name": "useCancelSchedule",
+      "path": "hooks/useCommunications.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "communications"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "cancelSchedule"
       ]
     },
     "useDashboardStats": {
@@ -5035,9 +5240,23 @@
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
+    "SaveAsTemplateModal": {
+      "name": "SaveAsTemplateModal",
+      "path": "components/communication/SaveAsTemplateModal.tsx",
+      "hooksUsed": [
+        "useCreateCommunicationTemplate"
+      ],
+      "apiCallsDirectly": false
+    },
     "SmsComposer": {
       "name": "SmsComposer",
       "path": "components/communication/SmsComposer.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "TemplateSelector": {
+      "name": "TemplateSelector",
+      "path": "components/import/TemplateSelector.tsx",
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
@@ -5141,12 +5360,6 @@
     "TemplateManager": {
       "name": "TemplateManager",
       "path": "components/import/TemplateManager.tsx",
-      "hooksUsed": [],
-      "apiCallsDirectly": false
-    },
-    "TemplateSelector": {
-      "name": "TemplateSelector",
-      "path": "components/import/TemplateSelector.tsx",
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
@@ -5391,6 +5604,11 @@
     {
       "from": "CommunicationComposer",
       "to": "useSendCommunication",
+      "type": "uses_hook"
+    },
+    {
+      "from": "SaveAsTemplateModal",
+      "to": "useCreateCommunicationTemplate",
       "type": "uses_hook"
     },
     {

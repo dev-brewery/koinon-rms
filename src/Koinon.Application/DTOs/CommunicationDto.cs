@@ -14,6 +14,7 @@ public record CommunicationDto
     public string? FromEmail { get; init; }
     public string? FromName { get; init; }
     public string? ReplyToEmail { get; init; }
+    public DateTime? ScheduledDateTime { get; init; }
     public DateTime? SentDateTime { get; init; }
     public required int RecipientCount { get; init; }
     public required int DeliveredCount { get; init; }
@@ -37,6 +38,7 @@ public record CommunicationSummaryDto
     public required int RecipientCount { get; init; }
     public required int DeliveredCount { get; init; }
     public required int FailedCount { get; init; }
+    public DateTime? ScheduledDateTime { get; init; }
     public required DateTime CreatedDateTime { get; init; }
     public DateTime? SentDateTime { get; init; }
 }
@@ -68,6 +70,7 @@ public record CreateCommunicationDto
     public string? FromEmail { get; init; }
     public string? FromName { get; init; }
     public string? ReplyToEmail { get; init; }
+    public DateTime? ScheduledDateTime { get; init; }
     public string? Note { get; init; }
     public required IReadOnlyList<string> GroupIdKeys { get; init; }
 }

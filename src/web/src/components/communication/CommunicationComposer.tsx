@@ -30,9 +30,18 @@ export function CommunicationComposer({ groups, onSend, onClose }: Communication
   const [selectedGroupIdKeys, setSelectedGroupIdKeys] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSaveTemplateModalOpen, setIsSaveTemplateModalOpen] = useState(false);
+  const [sendMode, setSendMode] = useState<'now' | 'schedule'>('now');
+  const [scheduledDateTime, setScheduledDateTime] = useState('');
 
   const createMutation = useCreateCommunication();
   const sendMutation = useSendCommunication();
+
+  // Helper function to get minimum datetime (current time + 5 minutes)
+  const getMinDateTime = () => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + 5);
+    return now.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:mm
+  };
 
   // Calculate recipient count (simplified - just sum of group members)
   const recipientCount = useMemo(
@@ -65,9 +74,22 @@ export function CommunicationComposer({ groups, onSend, onClose }: Communication
       newErrors.body = 'SMS message is too long (max 1600 characters)';
     }
 
+    if (sendMode === 'schedule') {
+      if (!scheduledDateTime) {
+        newErrors.scheduledDateTime = 'Scheduled date and time is required';
+      } else {
+        const scheduled = new Date(scheduledDateTime);
+        const minTime = new Date();
+        minTime.setMinutes(minTime.getMinutes() + 5);
+        if (scheduled < minTime) {
+          newErrors.scheduledDateTime = 'Scheduled time must be at least 5 minutes in the future';
+        }
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [communicationType, subject, body, selectedGroupIdKeys]);
+  }, [communicationType, subject, body, selectedGroupIdKeys, sendMode, scheduledDateTime]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,10 +108,15 @@ export function CommunicationComposer({ groups, onSend, onClose }: Communication
         replyToEmail: communicationType === 'Email' && replyToEmail ? replyToEmail : undefined,
         note: note || undefined,
         groupIdKeys: selectedGroupIdKeys,
+        scheduledDateTime: sendMode === 'schedule' ? new Date(scheduledDateTime).toISOString() : undefined,
       };
 
       const communication = await createMutation.mutateAsync(request);
-      await sendMutation.mutateAsync(communication.idKey);
+
+      // Only send immediately if not scheduled
+      if (sendMode === 'now') {
+        await sendMutation.mutateAsync(communication.idKey);
+      }
 
       onSend();
     } catch {
@@ -223,6 +250,57 @@ export function CommunicationComposer({ groups, onSend, onClose }: Communication
             <SmsComposer value={body} onChange={setBody} error={errors.body} />
           )}
 
+          {/* Send Mode Toggle */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              When to Send
+            </label>
+            <div className="flex gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="sendMode"
+                  value="now"
+                  checked={sendMode === 'now'}
+                  onChange={() => setSendMode('now')}
+                  className="w-4 h-4 text-primary-600"
+                />
+                <span>Send Now</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="sendMode"
+                  value="schedule"
+                  checked={sendMode === 'schedule'}
+                  onChange={() => setSendMode('schedule')}
+                  className="w-4 h-4 text-primary-600"
+                />
+                <span>Schedule for Later</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Date/Time Picker (show only when schedule mode is selected) */}
+          {sendMode === 'schedule' && (
+            <div>
+              <label htmlFor="scheduledDateTime" className="block text-sm font-medium text-gray-700 mb-1">
+                Scheduled Date & Time <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="scheduledDateTime"
+                type="datetime-local"
+                value={scheduledDateTime}
+                onChange={(e) => setScheduledDateTime(e.target.value)}
+                min={getMinDateTime()}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              />
+              {errors.scheduledDateTime && (
+                <p className="mt-1 text-sm text-red-600">{errors.scheduledDateTime}</p>
+              )}
+            </div>
+          )}
+
           {/* Note */}
           <div>
             <label htmlFor="note" className="block text-sm font-medium text-gray-700 mb-1">
@@ -286,7 +364,7 @@ export function CommunicationComposer({ groups, onSend, onClose }: Communication
                 disabled={isPending}
                 className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
               >
-                {isPending ? 'Sending...' : 'Send'}
+                {isPending ? 'Processing...' : sendMode === 'schedule' ? 'Schedule' : 'Send'}
               </button>
             </div>
           </div>

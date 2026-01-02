@@ -14,6 +14,8 @@ const STATUS_OPTIONS = [
   { value: '', label: 'All' },
   { value: 'Draft', label: 'Draft' },
   { value: 'Pending', label: 'Pending' },
+  { value: 'Scheduled', label: 'Scheduled' },
+  { value: 'Sending', label: 'Sending' },
   { value: 'Sent', label: 'Sent' },
   { value: 'Failed', label: 'Failed' },
 ];
@@ -21,7 +23,9 @@ const STATUS_OPTIONS = [
 function CommunicationStatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
     Draft: 'bg-gray-100 text-gray-800',
-    Pending: 'bg-blue-100 text-blue-800',
+    Pending: 'bg-yellow-100 text-yellow-800',
+    Scheduled: 'bg-purple-100 text-purple-800',
+    Sending: 'bg-blue-100 text-blue-800',
     Sent: 'bg-green-100 text-green-800',
     Failed: 'bg-red-100 text-red-800',
   };
@@ -116,6 +120,16 @@ function CommunicationRow({ communication }: { communication: CommunicationSumma
               </>
             )}
           </div>
+
+          {communication.status === 'Scheduled' && communication.scheduledDateTime && (
+            <div className="text-sm text-purple-600 mt-1">
+              <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Scheduled for {new Date(communication.scheduledDateTime).toLocaleString()}
+            </div>
+          )}
         </div>
 
         <div className="text-right text-sm text-gray-600">

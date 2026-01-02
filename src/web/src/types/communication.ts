@@ -33,6 +33,8 @@ export enum CommunicationStatus {
   Sent = 2,
   /** Communication failed to send */
   Failed = 3,
+  /** Communication is scheduled to be sent at a future time */
+  Scheduled = 4,
 }
 
 /**
@@ -87,6 +89,7 @@ export interface CommunicationDto {
   fromName?: string;
   replyToEmail?: string;
   sentDateTime?: DateTime;
+  scheduledDateTime?: DateTime;
   recipientCount: number;
   deliveredCount: number;
   failedCount: number;
@@ -110,6 +113,7 @@ export interface CommunicationSummaryDto {
   failedCount: number;
   createdDateTime: DateTime;
   sentDateTime?: DateTime;
+  scheduledDateTime?: DateTime;
 }
 
 // ============================================================================
@@ -128,6 +132,7 @@ export interface CreateCommunicationDto {
   replyToEmail?: string;
   note?: string;
   groupIdKeys: string[];
+  scheduledDateTime?: string;
 }
 
 /**
@@ -140,6 +145,13 @@ export interface UpdateCommunicationDto {
   fromName?: string;
   replyToEmail?: string;
   note?: string;
+}
+
+/**
+ * Request to schedule a communication for future delivery
+ */
+export interface ScheduleCommunicationRequest {
+  scheduledDateTime: string;
 }
 
 // ============================================================================
