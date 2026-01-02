@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-01-02T19:42:27.299Z",
+  "generated_at": "2026-01-02T20:38:19.829Z",
   "types": {
     "AttendanceAnalyticsDto": {
       "name": "AttendanceAnalyticsDto",
@@ -3940,6 +3940,19 @@
       "usesMutation": false,
       "dependencies": [
         "getActiveFunds"
+      ]
+    },
+    "useCreateBatch": {
+      "name": "useCreateBatch",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "batches"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "createBatch"
       ]
     },
     "useAddContribution": {

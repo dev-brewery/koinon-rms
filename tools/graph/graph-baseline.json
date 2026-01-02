@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-02T19:42:27.461592+00:00",
+  "generated_at": "2026-01-02T20:38:19.991602+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -5277,6 +5277,19 @@
         "getActiveFunds"
       ]
     },
+    "useCreateBatch": {
+      "name": "useCreateBatch",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "batches"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "createBatch"
+      ]
+    },
     "useAddContribution": {
       "name": "useAddContribution",
       "path": "hooks/useGiving.ts",
@@ -8514,7 +8527,7 @@
     "controllers": 22,
     "types": 225,
     "api_functions": 111,
-    "hooks": 82,
+    "hooks": 83,
     "components": 93,
     "total_edges": 229
   }
