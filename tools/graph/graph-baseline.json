@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2025-12-30T16:01:08.135862+00:00",
+  "generated_at": "2026-01-02T13:53:56.637844+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -5787,7 +5787,7 @@
     "getTodaysFirstTimeVisitors": {
       "name": "getTodaysFirstTimeVisitors",
       "path": "services/api/analytics.ts",
-      "endpoint": "/unknown",
+      "endpoint": "campusIdKey",
       "method": "GET",
       "responseType": "FirstTimeVisitorDto[]"
     },
@@ -6039,7 +6039,7 @@
     "getPendingFollowUps": {
       "name": "getPendingFollowUps",
       "path": "services/api/followups.ts",
-      "endpoint": "/unknown",
+      "endpoint": "/followups/pending${queryString ",
       "method": "GET",
       "responseType": "FollowUpDto[]"
     },
@@ -6173,7 +6173,7 @@
       "name": "createGroupType",
       "path": "services/api/groupTypes.ts",
       "endpoint": "/unknown",
-      "method": "GET",
+      "method": "POST",
       "responseType": "GroupTypeAdminDto"
     },
     "updateGroupType": {
@@ -6270,7 +6270,7 @@
     "getImportTemplates": {
       "name": "getImportTemplates",
       "path": "services/api/import.ts",
-      "endpoint": "/unknown",
+      "endpoint": "/import/templates${queryString ",
       "method": "GET",
       "responseType": "ImportTemplateDto[]"
     },
@@ -6375,21 +6375,21 @@
     "searchPagers": {
       "name": "searchPagers",
       "path": "services/api/pager.ts",
-      "endpoint": "/unknown",
+      "endpoint": "/pager/search${queryString ",
       "method": "GET",
       "responseType": "PagerAssignmentDto[]"
     },
     "getPagerHistory": {
       "name": "getPagerHistory",
       "path": "services/api/pager.ts",
-      "endpoint": "/unknown",
+      "endpoint": "/pager/${pagerNumber}/history${queryString ",
       "method": "GET",
       "responseType": "PageHistoryDto"
     },
     "getNextPagerNumber": {
       "name": "getNextPagerNumber",
       "path": "services/api/pager.ts",
-      "endpoint": "/unknown",
+      "endpoint": "/pager/next-number${queryString ",
       "method": "GET",
       "responseType": "number"
     },
@@ -6445,7 +6445,7 @@
     "getPickupHistory": {
       "name": "getPickupHistory",
       "path": "services/api/pickup.ts",
-      "endpoint": "/unknown",
+      "endpoint": "/checkin/people/${childIdKey}/pickup-history${queryString ",
       "method": "GET",
       "responseType": "PickupLogDto[]"
     },
@@ -6515,7 +6515,7 @@
     "getScheduleOccurrences": {
       "name": "getScheduleOccurrences",
       "path": "services/api/schedules.ts",
-      "endpoint": "/unknown",
+      "endpoint": "startDate",
       "method": "GET",
       "responseType": "ScheduleOccurrenceDto[]"
     },
@@ -8245,24 +8245,61 @@
     }
   ],
   "cross_layer_mappings": {
+    "dto:AttendanceAnalyticsDto": "type:AttendanceAnalyticsDto",
+    "dto:AttendanceByGroupDto": "type:AttendanceByGroupDto",
+    "dto:MarkAttendanceResultDto": "type:MarkAttendanceResultDto",
+    "dto:BulkMarkAttendanceResultDto": "type:BulkMarkAttendanceResultDto",
+    "dto:OccurrenceRosterEntryDto": "type:OccurrenceRosterEntryDto",
+    "dto:FamilyRosterGroupDto": "type:FamilyRosterGroupDto",
+    "dto:AttendanceTrendDto": "type:AttendanceTrendDto",
+    "dto:AuthorizedPickupDto": "type:AuthorizedPickupDto",
+    "dto:BatchCheckinRequestDto": "type:BatchCheckinRequestDto",
+    "dto:BatchCheckinResultDto": "type:BatchCheckinResultDto",
+    "dto:AttendanceSummaryDto": "type:AttendanceSummaryDto",
+    "dto:CheckinPersonSummaryDto": "type:CheckinPersonSummaryDto",
+    "dto:CheckinLocationSummaryDto": "type:CheckinLocationSummaryDto",
     "dto:CheckinAreaDto": "type:CheckinAreaDto",
     "dto:CheckinLocationDto": "type:CheckinLocationDto",
     "dto:ScheduleDto": "type:ScheduleDto",
+    "dto:CheckinFamilySearchResultDto": "type:CheckinFamilySearchResultDto",
+    "dto:CheckinFamilyMemberDto": "type:CheckinFamilyMemberDto",
+    "dto:CommunicationDto": "type:CommunicationDto",
+    "dto:CommunicationSummaryDto": "type:CommunicationSummaryDto",
+    "dto:CommunicationRecipientDto": "type:CommunicationRecipientDto",
+    "dto:CreateCommunicationDto": "type:CreateCommunicationDto",
+    "dto:UpdateCommunicationDto": "type:UpdateCommunicationDto",
     "dto:FamilyMemberDto": "type:FamilyMemberDto",
     "dto:GroupTypeRoleDto": "type:GroupTypeRoleDto",
+    "dto:FollowUpDto": "type:FollowUpDto",
     "dto:GroupSummaryDto": "type:GroupSummaryDto",
     "dto:GroupMemberDetailDto": "type:GroupMemberDetailDto",
     "dto:GroupMemberRequestDto": "type:GroupMemberRequestDto",
     "dto:GroupScheduleDto": "type:GroupScheduleDto",
     "dto:GroupTypeDto": "type:GroupTypeDto",
     "dto:GroupTypeSummaryDto": "type:GroupTypeSummaryDto",
+    "dto:LabelSetDto": "type:LabelSetDto",
     "dto:LabelDto": "type:LabelDto",
+    "dto:LabelTemplateDto": "type:LabelTemplateDto",
+    "dto:LabelRequestDto": "type:LabelRequestDto",
+    "dto:BatchLabelRequestDto": "type:BatchLabelRequestDto",
+    "dto:LabelPreviewRequestDto": "type:LabelPreviewRequestDto",
+    "dto:LabelPreviewDto": "type:LabelPreviewDto",
     "dto:MyGroupDto": "type:MyGroupDto",
+    "dto:MyInvolvementDto": "type:MyInvolvementDto",
+    "dto:MyProfileDto": "type:MyProfileDto",
+    "dto:PagerAssignmentDto": "type:PagerAssignmentDto",
+    "dto:PagerMessageDto": "type:PagerMessageDto",
+    "dto:PageHistoryDto": "type:PageHistoryDto",
     "dto:PersonSummaryDto": "type:PersonSummaryDto",
     "dto:PhoneNumberDto": "type:PhoneNumberDto",
     "dto:DefinedValueDto": "type:DefinedValueDto",
     "dto:FamilySummaryDto": "type:FamilySummaryDto",
     "dto:CampusSummaryDto": "type:CampusSummaryDto",
+    "dto:PickupLogDto": "type:PickupLogDto",
+    "dto:PickupVerificationResultDto": "type:PickupVerificationResultDto",
+    "dto:RoomCapacityDto": "type:RoomCapacityDto",
+    "dto:UpdateCapacitySettingsDto": "type:UpdateCapacitySettingsDto",
+    "dto:CapacityOverrideRequestDto": "type:CapacityOverrideRequestDto",
     "dto:RosterChildDto": "type:RosterChildDto",
     "dto:RoomRosterDto": "type:RoomRosterDto",
     "dto:ScheduleSummaryDto": "type:ScheduleSummaryDto",
@@ -8274,7 +8311,7 @@
     "dtos": 77,
     "services": 69,
     "controllers": 22,
-    "types": 109,
+    "types": 203,
     "api_functions": 111,
     "hooks": 71,
     "components": 87,

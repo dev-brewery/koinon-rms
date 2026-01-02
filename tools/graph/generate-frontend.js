@@ -44,6 +44,7 @@ function parseArgs() {
 
 const { srcDir: WEB_SRC_DIR, outputDir: OUTPUT_DIR_BASE } = parseArgs();
 const TYPES_FILE = path.join(WEB_SRC_DIR, 'services/api/types.ts');
+const TYPES_DIR = path.join(WEB_SRC_DIR, 'types');
 const SERVICES_API_DIR = path.join(WEB_SRC_DIR, 'services/api');
 const HOOKS_DIR = path.join(WEB_SRC_DIR, 'hooks');
 const COMPONENTS_DIR = path.join(WEB_SRC_DIR, 'components');
@@ -55,9 +56,11 @@ const OUTPUT_FILE = path.join(OUTPUT_DIR, 'frontend-graph.json');
 // ============================================================================
 
 /**
- * Extract interface/type definitions from types.ts
+ * Extract interface/type definitions from a TypeScript file
+ * @param {string} content - File content
+ * @param {string} filePath - Relative path for tracking
  */
-function parseTypes(content) {
+function parseTypes(content, filePath = 'services/api/types.ts') {
   const types = {};
 
   // Match: export interface Name { properties }
@@ -67,12 +70,12 @@ function parseTypes(content) {
   while ((match = interfaceRegex.exec(content)) !== null) {
     const [, name, body] = match;
     const properties = parseProperties(body);
-    
+
     types[name] = {
       name,
       kind: 'interface',
       properties,
-      path: 'services/api/types.ts',
+      path: filePath,
     };
   }
 
@@ -84,7 +87,7 @@ function parseTypes(content) {
       name,
       kind: 'type',
       properties: {}, // Type aliases don't have properties
-      path: 'services/api/types.ts',
+      path: filePath,
     };
   }
 
@@ -96,11 +99,50 @@ function parseTypes(content) {
       name,
       kind: 'enum',
       properties: {},
-      path: 'services/api/types.ts',
+      path: filePath,
     };
   }
 
   return types;
+}
+
+/**
+ * Scan types directory and parse all .ts files
+ * @param {string} dir - Directory to scan
+ * @returns {Object} Combined types from all files
+ */
+function parseTypesFromDirectory(dir) {
+  const allTypes = {};
+
+  if (!fs.existsSync(dir)) {
+    return allTypes;
+  }
+
+  // Skip index.ts (barrel export) and template.ts (local storage utilities)
+  const skipFiles = new Set(['index.ts', 'template.ts']);
+
+  const files = fs.readdirSync(dir)
+    .filter(f => f.endsWith('.ts') && !skipFiles.has(f));
+
+  for (const file of files) {
+    const filePath = path.join(dir, file);
+    try {
+      const content = fs.readFileSync(filePath, 'utf-8');
+      const relativePath = `types/${file}`;
+      const fileTypes = parseTypes(content, relativePath);
+
+      // Merge types, avoiding duplicates
+      for (const [name, type] of Object.entries(fileTypes)) {
+        if (!allTypes[name]) {
+          allTypes[name] = type;
+        }
+      }
+    } catch (err) {
+      console.log(`  Warning: Could not read ${file}: ${err.message}`);
+    }
+  }
+
+  return allTypes;
 }
 
 /**
@@ -176,23 +218,68 @@ function parseApiFunctions(typesMap) {
  * Extract HTTP method and endpoint from function body
  */
 function extractHttpDetails(funcBody) {
-  // Look for get(...), post(...), put(...), del(...), patch(...)
-  const callRegex = /\b(get|post|put|patch|del)\s*<[^>]*>\s*\(\s*['"`]([^'">`]+)/;
-  const match = funcBody.match(callRegex);
+  const methodMap = {
+    get: 'GET',
+    post: 'POST',
+    put: 'PUT',
+    patch: 'PATCH',
+    del: 'DELETE',
+  };
 
-  if (match) {
-    const [, methodName, endpoint] = match;
-    const methodMap = {
-      get: 'GET',
-      post: 'POST',
-      put: 'PUT',
-      patch: 'PATCH',
-      del: 'DELETE',
-    };
+  // Pattern 1: Direct call with string literal: get<T>('/endpoint')
+  const directCallRegex = /\b(get|post|put|patch|del)\s*<[^>]*>\s*\(\s*['"`]([^'">`]+)/;
+  const directMatch = funcBody.match(directCallRegex);
 
+  if (directMatch) {
+    const [, methodName, endpoint] = directMatch;
     return {
       method: methodMap[methodName] || 'GET',
       endpoint: endpoint || null,
+    };
+  }
+
+  // Pattern 2: Call with template literal: get<T>(`/endpoint/${id}`)
+  const templateCallRegex = /\b(get|post|put|patch|del)\s*<[^>]*>\s*\(\s*`([^`]+)`/;
+  const templateMatch = funcBody.match(templateCallRegex);
+
+  if (templateMatch) {
+    const [, methodName, endpoint] = templateMatch;
+    return {
+      method: methodMap[methodName] || 'GET',
+      endpoint: endpoint || null,
+    };
+  }
+
+  // Pattern 3: URL variable with template literal: const url = `/endpoint...`; get<T>(url)
+  const urlVarRegex = /const\s+url\s*=\s*`([^`]+)`/;
+  const urlVarMatch = funcBody.match(urlVarRegex);
+  const methodCallRegex = /\b(get|post|put|patch|del)\s*<[^>]*>\s*\(\s*url/;
+  const methodCallMatch = funcBody.match(methodCallRegex);
+
+  if (urlVarMatch && methodCallMatch) {
+    // Extract base path from template, removing query string parts
+    let endpoint = urlVarMatch[1];
+    // Remove ${...} interpolations that are query params
+    endpoint = endpoint.replace(/\$\{[^}]*queryString[^}]*\}/, '');
+    endpoint = endpoint.replace(/\?.*$/, ''); // Remove anything after ?
+    return {
+      method: methodMap[methodCallMatch[1]] || 'GET',
+      endpoint: endpoint || null,
+    };
+  }
+
+  // Pattern 4: Just find the HTTP method being called
+  const anyMethodRegex = /\b(get|post|put|patch|del)\s*<[^>]*>\s*\(/;
+  const anyMethodMatch = funcBody.match(anyMethodRegex);
+
+  if (anyMethodMatch) {
+    // Try to find any URL-like string in the function
+    const urlPatternRegex = /['"`](\/?[\w-]+(?:\/[\w-${}\[\]]+)*)/;
+    const urlPatternMatch = funcBody.match(urlPatternRegex);
+
+    return {
+      method: methodMap[anyMethodMatch[1]] || 'GET',
+      endpoint: urlPatternMatch ? urlPatternMatch[1] : null,
     };
   }
 
@@ -463,36 +550,49 @@ async function main() {
     console.log('========================\n');
     console.log(`Source directory: ${WEB_SRC_DIR}\n`);
 
-    // 1. Parse types
-    console.log('Reading types.ts...');
-    if (!fs.existsSync(TYPES_FILE)) {
-      throw new Error(`types.ts not found at ${TYPES_FILE}`);
+    // 1. Parse types from services/api/types.ts
+    console.log('Reading services/api/types.ts...');
+    let types = {};
+    if (fs.existsSync(TYPES_FILE)) {
+      const typesContent = fs.readFileSync(TYPES_FILE, 'utf-8');
+      types = parseTypes(typesContent, 'services/api/types.ts');
+      console.log(`  Found ${Object.keys(types).length} types/interfaces/enums\n`);
+    } else {
+      console.log('  Warning: services/api/types.ts not found\n');
     }
-    const typesContent = fs.readFileSync(TYPES_FILE, 'utf-8');
-    const types = parseTypes(typesContent);
-    console.log(`  Found ${Object.keys(types).length} types/interfaces/enums\n`);
 
-    // 2. Parse API functions
+    // 2. Parse types from types/ directory
+    console.log('Reading types/ directory...');
+    const typesFromDir = parseTypesFromDirectory(TYPES_DIR);
+    const typesFromDirCount = Object.keys(typesFromDir).length;
+    console.log(`  Found ${typesFromDirCount} types/interfaces/enums\n`);
+
+    // 3. Merge types (types.ts takes precedence for duplicates)
+    const mergedTypes = { ...typesFromDir, ...types };
+    console.log(`  Total merged: ${Object.keys(mergedTypes).length} types\n`);
+    types = mergedTypes;
+
+    // 4. Parse API functions
     console.log('Reading API service files...');
     const apiFunctions = parseApiFunctions(types);
     console.log(`  Found ${Object.keys(apiFunctions).length} API functions\n`);
 
-    // 3. Parse hooks
+    // 5. Parse hooks
     console.log('Reading hook files...');
     const hooks = parseHooks(apiFunctions);
     console.log(`  Found ${Object.keys(hooks).length} hooks\n`);
 
-    // 4. Parse components (optional)
+    // 6. Parse components (optional)
     console.log('Reading component files...');
     const components = parseComponents(hooks);
     console.log(`  Found ${Object.keys(components).length} components\n`);
 
-    // 5. Build edges
+    // 7. Build edges
     console.log('Building relationship graph...');
     const edges = buildEdges(apiFunctions, hooks, components);
     console.log(`  Found ${edges.length} edges\n`);
 
-    // 6. Create graph
+    // 8. Create graph
     const graph = {
       version: '1.0.0',
       generated_at: new Date().toISOString(),
@@ -503,17 +603,17 @@ async function main() {
       edges,
     };
 
-    // 7. Validate minimal structure
+    // 9. Validate minimal structure
     if (Object.keys(types).length === 0) {
-      throw new Error('No types found - check TYPES_FILE path');
+      throw new Error('No types found - check TYPES_FILE and TYPES_DIR paths');
     }
 
-    // 8. Ensure output directory exists
+    // 10. Ensure output directory exists
     if (!fs.existsSync(OUTPUT_DIR)) {
       fs.mkdirSync(OUTPUT_DIR, { recursive: true });
     }
 
-    // 9. Write output
+    // 11. Write output
     fs.writeFileSync(OUTPUT_FILE, JSON.stringify(graph, null, 2));
     console.log(`Written to: ${OUTPUT_FILE}`);
     console.log(`Total nodes: ${Object.keys(types).length + Object.keys(apiFunctions).length + Object.keys(hooks).length + Object.keys(components).length}`);
@@ -534,6 +634,7 @@ if (require.main === module) {
 module.exports = {
   parseArgs,
   parseTypes,
+  parseTypesFromDirectory,
   parseProperties,
   parseApiFunctions,
   extractHttpDetails,
