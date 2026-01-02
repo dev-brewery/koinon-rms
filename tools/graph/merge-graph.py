@@ -163,18 +163,27 @@ class GraphMerger:
     @staticmethod
     def _routes_match(backend_route: str, frontend_route: str) -> bool:
         """Check if backend and frontend routes match."""
-        # Normalize: {idKey} in backend == {idKey} in frontend
+        import re
+
+        # Normalize slashes
         backend_normalized = backend_route.replace("//", "/").strip("/")
         frontend_normalized = frontend_route.replace("//", "/").strip("/")
+
+        # Remove api/v1/ prefix from backend (frontend doesn't include it)
+        api_prefix_pattern = r"^api/v\d+/"
+        backend_normalized = re.sub(api_prefix_pattern, "", backend_normalized)
+
+        # Remove leading slash from frontend if present
+        frontend_normalized = frontend_normalized.lstrip("/")
+
+        # Handle template literals: ${var} -> {param}
+        frontend_normalized = re.sub(r"\$\{[^}]+\}", "{param}", frontend_normalized)
 
         # Exact match
         if backend_normalized == frontend_normalized:
             return True
 
-        # Handle parameter variations
-        import re
-
-        # Convert routes to regex patterns
+        # Convert route parameters to generic pattern for comparison
         def route_to_pattern(route: str) -> str:
             # Match {idKey}, {id}, {param}, etc.
             return re.sub(r"\{[^}]+\}", "{param}", route)
