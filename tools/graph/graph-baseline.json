@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-02T19:05:07.621862+00:00",
+  "generated_at": "2026-01-02T19:42:27.461592+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -5225,6 +5225,97 @@
         "closeBatch"
       ]
     },
+    "useBatch": {
+      "name": "useBatch",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "batches"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getBatch"
+      ]
+    },
+    "useBatchSummary": {
+      "name": "useBatchSummary",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "batches"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getBatchSummary"
+      ]
+    },
+    "useBatchContributions": {
+      "name": "useBatchContributions",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "batches"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getBatchContributions"
+      ]
+    },
+    "useActiveFunds": {
+      "name": "useActiveFunds",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "funds"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getActiveFunds"
+      ]
+    },
+    "useAddContribution": {
+      "name": "useAddContribution",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "batches"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "addContribution"
+      ]
+    },
+    "useUpdateContribution": {
+      "name": "useUpdateContribution",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "batches"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "updateContribution"
+      ]
+    },
+    "useDeleteContribution": {
+      "name": "useDeleteContribution",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "batches"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "deleteContribution"
+      ]
+    },
     "useCampuses": {
       "name": "useCampuses",
       "path": "hooks/useGiving.ts",
@@ -6955,6 +7046,38 @@
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
+    "BatchSummaryCard": {
+      "name": "BatchSummaryCard",
+      "path": "components/giving/BatchSummaryCard.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "ContributionForm": {
+      "name": "ContributionForm",
+      "path": "components/giving/ContributionForm.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "ContributionTable": {
+      "name": "ContributionTable",
+      "path": "components/giving/ContributionTable.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "FundSplitEditor": {
+      "name": "FundSplitEditor",
+      "path": "components/giving/FundSplitEditor.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "PersonLookup": {
+      "name": "PersonLookup",
+      "path": "components/giving/PersonLookup.tsx",
+      "hooksUsed": [
+        "usePeople"
+      ],
+      "apiCallsDirectly": false
+    },
     "GroupFilters": {
       "name": "GroupFilters",
       "path": "components/groups/GroupFilters.tsx",
@@ -8280,6 +8403,11 @@
       "type": "uses_hook"
     },
     {
+      "from": "PersonLookup",
+      "to": "usePeople",
+      "type": "uses_hook"
+    },
+    {
       "from": "PendingRequestsList",
       "to": "usePendingRequests",
       "type": "uses_hook"
@@ -8386,8 +8514,8 @@
     "controllers": 22,
     "types": 225,
     "api_functions": 111,
-    "hooks": 75,
-    "components": 88,
-    "total_edges": 228
+    "hooks": 82,
+    "components": 93,
+    "total_edges": 229
   }
 }
