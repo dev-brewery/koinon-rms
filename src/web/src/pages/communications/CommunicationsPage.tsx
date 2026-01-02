@@ -4,6 +4,7 @@
  */
 
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useCommunications } from '@/hooks/useCommunications';
 import { useGroups } from '@/hooks/useGroups';
 import { CommunicationComposer } from '@/components/communication/CommunicationComposer';
@@ -73,7 +74,10 @@ function CommunicationRow({ communication }: { communication: CommunicationSumma
   const sentDate = communication.sentDateTime ? new Date(communication.sentDateTime) : null;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:border-primary-300 transition-colors">
+    <Link
+      to={`/admin/communications/${communication.idKey}`}
+      className="block bg-white border border-gray-200 rounded-lg p-4 hover:border-primary-300 transition-colors cursor-pointer"
+    >
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 mb-2">
@@ -121,7 +125,7 @@ function CommunicationRow({ communication }: { communication: CommunicationSumma
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
