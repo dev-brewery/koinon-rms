@@ -266,61 +266,13 @@
       },
       "path": "types/checkin-extended.ts"
     },
-    "ExtendedCheckinRequestDto": {
-      "name": "ExtendedCheckinRequestDto",
-      "kind": "interface",
-      "properties": {
-        "personIdKey": "IdKey",
-        "locationIdKey": "IdKey",
-        "scheduleIdKey": "IdKey",
-        "occurrenceDate": "DateOnly",
-        "deviceIdKey": "IdKey",
-        "generateSecurityCode": "boolean",
-        "note": "string"
-      },
-      "path": "types/checkin-extended.ts"
-    },
-    "BatchCheckinRequestDto": {
-      "name": "BatchCheckinRequestDto",
-      "kind": "interface",
-      "properties": {
-        "checkIns": "ExtendedCheckinRequestDto[]",
-        "deviceIdKey": "IdKey"
-      },
-      "path": "types/checkin-extended.ts"
-    },
-    "ExtendedCheckinResultDto": {
-      "name": "ExtendedCheckinResultDto",
-      "kind": "interface",
-      "properties": {
-        "success": "boolean",
-        "errorMessage": "string",
-        "attendanceIdKey": "IdKey",
-        "securityCode": "string",
-        "checkInTime": "DateTime",
-        "person": "CheckinPersonSummaryDto",
-        "location": "CheckinLocationSummaryDto"
-      },
-      "path": "types/checkin-extended.ts"
-    },
-    "BatchCheckinResultDto": {
-      "name": "BatchCheckinResultDto",
-      "kind": "interface",
-      "properties": {
-        "results": "ExtendedCheckinResultDto[]",
-        "successCount": "number",
-        "failureCount": "number",
-        "allSucceeded": "boolean"
-      },
-      "path": "types/checkin-extended.ts"
-    },
     "AttendanceSummaryDto": {
       "name": "AttendanceSummaryDto",
       "kind": "interface",
       "properties": {
         "idKey": "IdKey",
-        "person": "CheckinPersonSummaryDto",
-        "location": "CheckinLocationSummaryDto",
+        "person": "CheckinPersonSummaryDtoCore",
+        "location": "CheckinLocationSummaryDtoCore",
         "startDateTime": "DateTime",
         "endDateTime": "DateTime",
         "securityCode": "string",
@@ -329,105 +281,119 @@
       },
       "path": "types/checkin-extended.ts"
     },
-    "CheckinPersonSummaryDto": {
-      "name": "CheckinPersonSummaryDto",
-      "kind": "interface",
-      "properties": {
-        "idKey": "IdKey",
-        "fullName": "string",
-        "firstName": "string",
-        "lastName": "string",
-        "nickName": "string",
-        "age": "number",
-        "photoUrl": "string"
-      },
+    "ExtendedCheckinRequestDto": {
+      "name": "ExtendedCheckinRequestDto",
+      "kind": "type",
+      "properties": {},
       "path": "types/checkin-extended.ts"
     },
-    "CheckinLocationSummaryDto": {
-      "name": "CheckinLocationSummaryDto",
-      "kind": "interface",
-      "properties": {
-        "idKey": "IdKey",
-        "name": "string",
-        "fullPath": "string"
-      },
+    "ExtendedBatchCheckinRequestDto": {
+      "name": "ExtendedBatchCheckinRequestDto",
+      "kind": "type",
+      "properties": {},
+      "path": "types/checkin-extended.ts"
+    },
+    "ExtendedCheckinResultDto": {
+      "name": "ExtendedCheckinResultDto",
+      "kind": "type",
+      "properties": {},
+      "path": "types/checkin-extended.ts"
+    },
+    "ExtendedBatchCheckinResultDto": {
+      "name": "ExtendedBatchCheckinResultDto",
+      "kind": "type",
+      "properties": {},
       "path": "types/checkin-extended.ts"
     },
     "CheckinValidationResult": {
       "name": "CheckinValidationResult",
-      "kind": "interface",
-      "properties": {
-        "isAllowed": "boolean",
-        "reason": "string",
-        "isAlreadyCheckedIn": "boolean",
-        "isAtCapacity": "boolean",
-        "isOutsideSchedule": "boolean"
-      },
+      "kind": "type",
+      "properties": {},
       "path": "types/checkin-extended.ts"
     },
     "ExtendedCheckinConfigurationDto": {
       "name": "ExtendedCheckinConfigurationDto",
-      "kind": "interface",
-      "properties": {
-        "campus": "ExtendedCampusSummaryDto",
-        "areas": "ExtendedCheckinAreaDto[]",
-        "activeSchedules": "ExtendedScheduleDto[]",
-        "serverTime": "DateTime"
-      },
+      "kind": "type",
+      "properties": {},
       "path": "types/checkin-extended.ts"
     },
     "ExtendedCampusSummaryDto": {
       "name": "ExtendedCampusSummaryDto",
+      "kind": "type",
+      "properties": {},
+      "path": "types/checkin-extended.ts"
+    },
+    "ExtendedCheckinAreaDto": {
+      "name": "ExtendedCheckinAreaDto",
+      "kind": "type",
+      "properties": {},
+      "path": "types/checkin-extended.ts"
+    },
+    "ExtendedCheckinLocationDto": {
+      "name": "ExtendedCheckinLocationDto",
+      "kind": "type",
+      "properties": {},
+      "path": "types/checkin-extended.ts"
+    },
+    "ExtendedScheduleDto": {
+      "name": "ExtendedScheduleDto",
+      "kind": "type",
+      "properties": {},
+      "path": "types/checkin-extended.ts"
+    },
+    "ExtendedGroupTypeSummaryDto": {
+      "name": "ExtendedGroupTypeSummaryDto",
+      "kind": "type",
+      "properties": {},
+      "path": "types/checkin-extended.ts"
+    },
+    "GroupTypeRoleDto": {
+      "name": "GroupTypeRoleDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "isLeader": "boolean",
+        "order": "number"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckinCampusSummaryDto": {
+      "name": "CheckinCampusSummaryDto",
       "kind": "interface",
       "properties": {
         "idKey": "IdKey",
         "name": "string",
         "shortCode": "string"
       },
-      "path": "types/checkin-extended.ts"
+      "path": "types/checkin.ts"
     },
-    "ExtendedCheckinAreaDto": {
-      "name": "ExtendedCheckinAreaDto",
+    "CheckinGroupTypeSummaryDto": {
+      "name": "CheckinGroupTypeSummaryDto",
       "kind": "interface",
       "properties": {
         "idKey": "IdKey",
         "guid": "Guid",
         "name": "string",
         "description": "string",
-        "groupType": "ExtendedGroupTypeSummaryDto",
-        "locations": "ExtendedCheckinLocationDto[]",
-        "schedule": "ExtendedScheduleDto",
-        "isActive": "boolean",
-        "capacityStatus": "CapacityStatus",
-        "minAgeMonths": "number",
-        "maxAgeMonths": "number",
-        "minGrade": "number",
-        "maxGrade": "number"
+        "isFamilyGroupType": "boolean",
+        "allowMultipleLocations": "boolean",
+        "roles": "CheckinGroupTypeRoleDto[]"
       },
-      "path": "types/checkin-extended.ts"
+      "path": "types/checkin.ts"
     },
-    "ExtendedCheckinLocationDto": {
-      "name": "ExtendedCheckinLocationDto",
+    "CheckinGroupTypeRoleDto": {
+      "name": "CheckinGroupTypeRoleDto",
       "kind": "interface",
       "properties": {
         "idKey": "IdKey",
         "name": "string",
-        "fullPath": "string",
-        "softCapacity": "number",
-        "hardCapacity": "number",
-        "currentCount": "number",
-        "capacityStatus": "CapacityStatus",
-        "isActive": "boolean",
-        "printerDeviceIdKey": "string",
-        "percentageFull": "number",
-        "overflowLocationIdKey": "string",
-        "overflowLocationName": "string",
-        "autoAssignOverflow": "boolean"
+        "isLeader": "boolean"
       },
-      "path": "types/checkin-extended.ts"
+      "path": "types/checkin.ts"
     },
-    "ExtendedScheduleDto": {
-      "name": "ExtendedScheduleDto",
+    "CheckinScheduleDto": {
+      "name": "CheckinScheduleDto",
       "kind": "interface",
       "properties": {
         "idKey": "IdKey",
@@ -435,7 +401,7 @@
         "name": "string",
         "description": "string",
         "weeklyDayOfWeek": "number",
-        "weeklyTimeOfDay": "string",
+        "09": "00:00\") for simple weekly schedules */\n  weeklyTimeOfDay?: string",
         "checkInStartOffsetMinutes": "number",
         "checkInEndOffsetMinutes": "number",
         "isActive": "boolean",
@@ -451,32 +417,132 @@
         "createdDateTime": "DateTime",
         "modifiedDateTime": "DateTime"
       },
-      "path": "types/checkin-extended.ts"
+      "path": "types/checkin.ts"
     },
-    "ExtendedGroupTypeSummaryDto": {
-      "name": "ExtendedGroupTypeSummaryDto",
-      "kind": "interface",
-      "properties": {
-        "idKey": "IdKey",
-        "guid": "Guid",
-        "name": "string",
-        "description": "string",
-        "isFamilyGroupType": "boolean",
-        "allowMultipleLocations": "boolean",
-        "roles": "GroupTypeRoleDto[]"
-      },
-      "path": "types/checkin-extended.ts"
-    },
-    "GroupTypeRoleDto": {
-      "name": "GroupTypeRoleDto",
+    "CheckinLocationDto": {
+      "name": "CheckinLocationDto",
       "kind": "interface",
       "properties": {
         "idKey": "IdKey",
         "name": "string",
-        "isLeader": "boolean",
-        "order": "number"
+        "currentCount": "number",
+        "softThreshold": "number",
+        "firmThreshold": "number",
+        "isOpen": "boolean",
+        "schedules": "ScheduleDto[]"
       },
       "path": "services/api/types.ts"
+    },
+    "CheckinAreaDto": {
+      "name": "CheckinAreaDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "groups": "CheckinGroupDto[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckinConfigurationDto": {
+      "name": "CheckinConfigurationDto",
+      "kind": "interface",
+      "properties": {
+        "campus": "CheckinCampusSummaryDto",
+        "areas": "CheckinAreaDto[]",
+        "activeSchedules": "CheckinScheduleDto[]",
+        "serverTime": "DateTime"
+      },
+      "path": "types/checkin.ts"
+    },
+    "CheckinRequestDto": {
+      "name": "CheckinRequestDto",
+      "kind": "interface",
+      "properties": {
+        "personIdKey": "IdKey",
+        "locationIdKey": "IdKey",
+        "scheduleIdKey": "IdKey",
+        "occurrenceDate": "DateOnly",
+        "deviceIdKey": "IdKey",
+        "generateSecurityCode": "boolean",
+        "note": "string"
+      },
+      "path": "types/checkin.ts"
+    },
+    "BatchCheckinRequestDto": {
+      "name": "BatchCheckinRequestDto",
+      "kind": "interface",
+      "properties": {
+        "checkIns": "CheckinRequestDto[]",
+        "deviceIdKey": "IdKey"
+      },
+      "path": "types/checkin.ts"
+    },
+    "CheckinResultDto": {
+      "name": "CheckinResultDto",
+      "kind": "interface",
+      "properties": {
+        "success": "boolean",
+        "errorMessage": "string",
+        "attendanceIdKey": "IdKey",
+        "securityCode": "string",
+        "checkInTime": "DateTime",
+        "person": "CheckinPersonSummaryDto",
+        "location": "CheckinLocationSummaryDto"
+      },
+      "path": "types/checkin.ts"
+    },
+    "BatchCheckinResultDto": {
+      "name": "BatchCheckinResultDto",
+      "kind": "interface",
+      "properties": {
+        "results": "CheckinResultDto[]",
+        "successCount": "number",
+        "failureCount": "number",
+        "allSucceeded": "boolean"
+      },
+      "path": "types/checkin.ts"
+    },
+    "CheckinPersonSummaryDto": {
+      "name": "CheckinPersonSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "fullName": "string",
+        "firstName": "string",
+        "lastName": "string",
+        "nickName": "string",
+        "age": "number",
+        "photoUrl": "string"
+      },
+      "path": "types/checkin.ts"
+    },
+    "CheckinLocationSummaryDto": {
+      "name": "CheckinLocationSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "fullPath": "string"
+      },
+      "path": "types/checkin.ts"
+    },
+    "CheckinValidationResultDto": {
+      "name": "CheckinValidationResultDto",
+      "kind": "interface",
+      "properties": {
+        "isAllowed": "boolean",
+        "reason": "string",
+        "isAlreadyCheckedIn": "boolean",
+        "isAtCapacity": "boolean",
+        "isOutsideSchedule": "boolean"
+      },
+      "path": "types/checkin.ts"
+    },
+    "CapacityStatusDto": {
+      "name": "CapacityStatusDto",
+      "kind": "enum",
+      "properties": {},
+      "path": "types/checkin.ts"
     },
     "CommunicationRecipientDto": {
       "name": "CommunicationRecipientDto",
@@ -1789,16 +1855,6 @@
       },
       "path": "services/api/types.ts"
     },
-    "CheckinAreaDto": {
-      "name": "CheckinAreaDto",
-      "kind": "interface",
-      "properties": {
-        "idKey": "IdKey",
-        "name": "string",
-        "groups": "CheckinGroupDto[]"
-      },
-      "path": "services/api/types.ts"
-    },
     "CheckinGroupDto": {
       "name": "CheckinGroupDto",
       "kind": "interface",
@@ -1806,20 +1862,6 @@
         "idKey": "IdKey",
         "name": "string",
         "locations": "CheckinLocationDto[]"
-      },
-      "path": "services/api/types.ts"
-    },
-    "CheckinLocationDto": {
-      "name": "CheckinLocationDto",
-      "kind": "interface",
-      "properties": {
-        "idKey": "IdKey",
-        "name": "string",
-        "currentCount": "number",
-        "softThreshold": "number",
-        "firmThreshold": "number",
-        "isOpen": "boolean",
-        "schedules": "ScheduleDto[]"
       },
       "path": "services/api/types.ts"
     },
