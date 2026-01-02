@@ -3,54 +3,26 @@
  */
 
 import { get } from './client';
+import type {
+  AttendanceAnalyticsDto,
+  AttendanceAnalyticsParams,
+  AttendanceByGroupDto,
+  AttendanceTrendDto,
+  FirstTimeVisitorDto,
+} from '@/types';
 
-export interface AttendanceAnalytics {
-  totalAttendance: number;
-  uniqueAttendees: number;
-  firstTimeVisitors: number;
-  returningVisitors: number;
-  averageAttendance: number;
-  startDate: string;
-  endDate: string;
-}
-
-export interface AttendanceTrend {
-  date: string;
-  count: number;
-  firstTime: number;
-  returning: number;
-}
-
-export interface AttendanceByGroup {
-  groupIdKey: string;
-  groupName: string;
-  groupTypeName: string;
-  totalAttendance: number;
-  uniqueAttendees: number;
-}
-
-export interface FirstTimeVisitorDto {
-  personIdKey: string;
-  personName: string;
-  email?: string;
-  phoneNumber?: string;
-  checkInDateTime: string;
-  groupName: string;
-  groupTypeName: string;
-  campusName?: string;
-  hasFollowUp: boolean;
-}
-
-export interface AttendanceAnalyticsParams {
-  startDate: string;
-  endDate: string;
-  campusIdKey?: string;
-  groupTypeIdKey?: string;
-}
+// Re-export types for backwards compatibility
+export type {
+  AttendanceAnalyticsDto,
+  AttendanceAnalyticsParams,
+  AttendanceByGroupDto,
+  AttendanceTrendDto,
+  FirstTimeVisitorDto,
+};
 
 export async function getAttendanceAnalytics(
   params: AttendanceAnalyticsParams
-): Promise<AttendanceAnalytics> {
+): Promise<AttendanceAnalyticsDto> {
   const queryParams = new URLSearchParams({
     startDate: params.startDate,
     endDate: params.endDate,
@@ -64,7 +36,7 @@ export async function getAttendanceAnalytics(
     queryParams.append('groupTypeIdKey', params.groupTypeIdKey);
   }
 
-  const response = await get<{ data: AttendanceAnalytics }>(
+  const response = await get<{ data: AttendanceAnalyticsDto }>(
     `/analytics/attendance?${queryParams.toString()}`
   );
   if (!response.data) {
@@ -75,7 +47,7 @@ export async function getAttendanceAnalytics(
 
 export async function getAttendanceTrends(
   params: AttendanceAnalyticsParams
-): Promise<AttendanceTrend[]> {
+): Promise<AttendanceTrendDto[]> {
   const queryParams = new URLSearchParams({
     startDate: params.startDate,
     endDate: params.endDate,
@@ -89,7 +61,7 @@ export async function getAttendanceTrends(
     queryParams.append('groupTypeIdKey', params.groupTypeIdKey);
   }
 
-  const response = await get<{ data: AttendanceTrend[] }>(
+  const response = await get<{ data: AttendanceTrendDto[] }>(
     `/analytics/attendance/trends?${queryParams.toString()}`
   );
   if (!response.data) {
@@ -100,7 +72,7 @@ export async function getAttendanceTrends(
 
 export async function getAttendanceByGroup(
   params: AttendanceAnalyticsParams
-): Promise<AttendanceByGroup[]> {
+): Promise<AttendanceByGroupDto[]> {
   const queryParams = new URLSearchParams({
     startDate: params.startDate,
     endDate: params.endDate,
@@ -114,7 +86,7 @@ export async function getAttendanceByGroup(
     queryParams.append('groupTypeIdKey', params.groupTypeIdKey);
   }
 
-  const response = await get<{ data: AttendanceByGroup[] }>(
+  const response = await get<{ data: AttendanceByGroupDto[] }>(
     `/analytics/attendance/by-group?${queryParams.toString()}`
   );
   if (!response.data) {

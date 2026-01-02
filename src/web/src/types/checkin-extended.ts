@@ -1,47 +1,18 @@
 /**
  * Extended TypeScript types for Koinon RMS Check-in API
- * Provides types for attendance analytics, roster management, and extended check-in operations
+ * Provides types for roster management and extended check-in operations
+ *
+ * Note: Attendance analytics types are now in './analytics.ts'
  */
 
 import type { IdKey, DateTime, DateOnly, Guid, CapacityStatus } from '@/services/api/types';
 
-// ============================================================================
-// Attendance Analytics Types
-// ============================================================================
-
-/**
- * Aggregate attendance statistics for a date range
- */
-export interface AttendanceAnalyticsDto {
-  totalAttendance: number;
-  uniqueAttendees: number;
-  firstTimeVisitors: number;
-  returningVisitors: number;
-  averageAttendance: number;
-  startDate: DateOnly;
-  endDate: DateOnly;
-}
-
-/**
- * Daily attendance trend data point
- */
-export interface AttendanceTrendDto {
-  date: DateOnly;
-  count: number;
-  firstTime: number;
-  returning: number;
-}
-
-/**
- * Attendance statistics grouped by group
- */
-export interface AttendanceByGroupDto {
-  groupIdKey: IdKey;
-  groupName: string;
-  groupTypeName: string;
-  totalAttendance: number;
-  uniqueAttendees: number;
-}
+// Re-export analytics types for backwards compatibility
+export type {
+  AttendanceAnalyticsDto,
+  AttendanceTrendDto,
+  AttendanceByGroupDto,
+} from './analytics';
 
 // ============================================================================
 // Attendance Taker / Roster Types

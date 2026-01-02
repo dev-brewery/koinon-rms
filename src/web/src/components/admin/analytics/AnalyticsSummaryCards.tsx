@@ -3,10 +3,10 @@
  * Displays key attendance metrics in card format
  */
 
-import type { AttendanceAnalytics } from '@/services/api/analytics';
+import type { AttendanceAnalyticsDto } from '@/types';
 
 export interface AnalyticsSummaryCardsProps {
-  analytics: AttendanceAnalytics | undefined;
+  analytics: AttendanceAnalyticsDto | undefined;
   isLoading: boolean;
 }
 

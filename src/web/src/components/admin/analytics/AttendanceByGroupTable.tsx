@@ -4,10 +4,10 @@
  */
 
 import { useState } from 'react';
-import type { AttendanceByGroup } from '@/services/api/analytics';
+import type { AttendanceByGroupDto } from '@/types';
 
 export interface AttendanceByGroupTableProps {
-  groups: AttendanceByGroup[] | undefined;
+  groups: AttendanceByGroupDto[] | undefined;
   isLoading: boolean;
 }
 
