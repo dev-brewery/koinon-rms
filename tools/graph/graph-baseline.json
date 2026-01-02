@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-02T15:03:10.096535+00:00",
+  "generated_at": "2026-01-02T19:05:07.621862+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -5188,6 +5188,56 @@
         "removeFamilyMember"
       ]
     },
+    "useBatches": {
+      "name": "useBatches",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "batches"
+      ],
+      "usesQuery": false,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useOpenBatch": {
+      "name": "useOpenBatch",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "batches"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "openBatch"
+      ]
+    },
+    "useCloseBatch": {
+      "name": "useCloseBatch",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "batches"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "closeBatch"
+      ]
+    },
+    "useCampuses": {
+      "name": "useCampuses",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "getCampuses",
+      "queryKey": [
+        "campuses"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getCampuses"
+      ]
+    },
     "useGroupTypes": {
       "name": "useGroupTypes",
       "path": "hooks/useGroupTypes.ts",
@@ -6899,6 +6949,12 @@
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
+    "BatchStatusBadge": {
+      "name": "BatchStatusBadge",
+      "path": "components/giving/BatchStatusBadge.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
     "GroupFilters": {
       "name": "GroupFilters",
       "path": "components/groups/GroupFilters.tsx",
@@ -8119,6 +8175,11 @@
       "relationship": "uses"
     },
     {
+      "from": "useCampuses",
+      "to": "getCampuses",
+      "type": "api_binding"
+    },
+    {
       "from": "GroupTypeEditorModal",
       "to": "useGroupType",
       "type": "uses_hook"
@@ -8325,8 +8386,8 @@
     "controllers": 22,
     "types": 225,
     "api_functions": 111,
-    "hooks": 71,
-    "components": 87,
-    "total_edges": 227
+    "hooks": 75,
+    "components": 88,
+    "total_edges": 228
   }
 }

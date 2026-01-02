@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-01-02T15:03:06.327Z",
+  "generated_at": "2026-01-02T19:05:07.468Z",
   "types": {
     "AttendanceAnalyticsDto": {
       "name": "AttendanceAnalyticsDto",
@@ -3853,6 +3853,56 @@
         "removeFamilyMember"
       ]
     },
+    "useBatches": {
+      "name": "useBatches",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "batches"
+      ],
+      "usesQuery": false,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useOpenBatch": {
+      "name": "useOpenBatch",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "batches"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "openBatch"
+      ]
+    },
+    "useCloseBatch": {
+      "name": "useCloseBatch",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "batches"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "closeBatch"
+      ]
+    },
+    "useCampuses": {
+      "name": "useCampuses",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "getCampuses",
+      "queryKey": [
+        "campuses"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getCampuses"
+      ]
+    },
     "useGroupTypes": {
       "name": "useGroupTypes",
       "path": "hooks/useGroupTypes.ts",
@@ -4785,6 +4835,12 @@
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
+    "BatchStatusBadge": {
+      "name": "BatchStatusBadge",
+      "path": "components/giving/BatchStatusBadge.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
     "GroupFilters": {
       "name": "GroupFilters",
       "path": "components/groups/GroupFilters.tsx",
@@ -4994,6 +5050,11 @@
     }
   },
   "edges": [
+    {
+      "from": "useCampuses",
+      "to": "getCampuses",
+      "type": "api_binding"
+    },
     {
       "from": "GroupTypeEditorModal",
       "to": "useGroupType",
