@@ -192,7 +192,6 @@ import type {
   CheckinLocationDto as CheckinLocationDtoCore,
   CheckinScheduleDto,
   CheckinGroupTypeSummaryDto,
-  CheckinGroupTypeRoleDto,
 } from './checkin';
 
 /**
@@ -225,8 +224,5 @@ export type ExtendedScheduleDto = CheckinScheduleDto;
  */
 export type ExtendedGroupTypeSummaryDto = CheckinGroupTypeSummaryDto;
 
-/**
- * @deprecated Use CheckinGroupTypeRoleDto from './checkin' instead
- * Note: This type already exists in services/api/types.ts as GroupTypeRoleDto
- */
-export type GroupTypeRoleDto = CheckinGroupTypeRoleDto;
+// Note: GroupTypeRoleDto is now exported from './group'
+// For check-in specific role types, use CheckinGroupTypeRoleDto from './checkin'
