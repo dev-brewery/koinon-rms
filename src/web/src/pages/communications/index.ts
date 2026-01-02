@@ -4,3 +4,4 @@
  */
 
 export { CommunicationsPage } from './CommunicationsPage';
+export { CommunicationDetailPage } from './CommunicationDetailPage';

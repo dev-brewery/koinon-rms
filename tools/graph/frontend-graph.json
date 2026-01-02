@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-01-02T20:57:03.288Z",
+  "generated_at": "2026-01-02T21:38:15.283Z",
   "types": {
     "AttendanceAnalyticsDto": {
       "name": "AttendanceAnalyticsDto",
@@ -4999,6 +4999,18 @@
       ],
       "apiCallsDirectly": false
     },
+    "CommunicationStatisticsExample": {
+      "name": "CommunicationStatisticsExample",
+      "path": "components/communication/CommunicationStatisticsCard.example.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "CommunicationStatisticsCard": {
+      "name": "CommunicationStatisticsCard",
+      "path": "components/communication/CommunicationStatisticsCard.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
     "EmailComposer": {
       "name": "EmailComposer",
       "path": "components/communication/EmailComposer.tsx",
@@ -5008,6 +5020,18 @@
     "MessageTypeToggle": {
       "name": "MessageTypeToggle",
       "path": "components/communication/MessageTypeToggle.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "RecipientStatusBadge": {
+      "name": "RecipientStatusBadge",
+      "path": "components/communication/RecipientStatusBadge.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "RecipientTable": {
+      "name": "RecipientTable",
+      "path": "components/communication/RecipientTable.tsx",
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
