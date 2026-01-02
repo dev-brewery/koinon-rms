@@ -4,10 +4,10 @@
  */
 
 import { Link } from 'react-router-dom';
-import type { UpcomingSchedule } from '@/services/api/dashboard';
+import type { UpcomingScheduleDto } from '@/types';
 
 export interface UpcomingSchedulesProps {
-  schedules: UpcomingSchedule[];
+  schedules: UpcomingScheduleDto[];
   isLoading: boolean;
 }
 
@@ -71,7 +71,7 @@ export function UpcomingSchedules({ schedules, isLoading }: UpcomingSchedulesPro
 }
 
 interface ScheduleItemProps {
-  schedule: UpcomingSchedule;
+  schedule: UpcomingScheduleDto;
 }
 
 function ScheduleItem({ schedule }: ScheduleItemProps) {

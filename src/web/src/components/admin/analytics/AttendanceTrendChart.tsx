@@ -13,10 +13,10 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import type { AttendanceTrend } from '@/services/api/analytics';
+import type { AttendanceTrendDto } from '@/types';
 
 export interface AttendanceTrendChartProps {
-  trends: AttendanceTrend[] | undefined;
+  trends: AttendanceTrendDto[] | undefined;
   isLoading: boolean;
 }
 

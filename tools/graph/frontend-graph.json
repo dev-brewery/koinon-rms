@@ -1,7 +1,71 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-01-02T13:53:56.492Z",
+  "generated_at": "2026-01-02T14:22:57.921Z",
   "types": {
+    "AttendanceAnalyticsDto": {
+      "name": "AttendanceAnalyticsDto",
+      "kind": "interface",
+      "properties": {
+        "totalAttendance": "number",
+        "uniqueAttendees": "number",
+        "firstTimeVisitors": "number",
+        "returningVisitors": "number",
+        "averageAttendance": "number",
+        "startDate": "string",
+        "endDate": "string"
+      },
+      "path": "types/analytics.ts"
+    },
+    "AttendanceTrendDto": {
+      "name": "AttendanceTrendDto",
+      "kind": "interface",
+      "properties": {
+        "date": "string",
+        "count": "number",
+        "firstTime": "number",
+        "returning": "number"
+      },
+      "path": "types/analytics.ts"
+    },
+    "AttendanceByGroupDto": {
+      "name": "AttendanceByGroupDto",
+      "kind": "interface",
+      "properties": {
+        "groupIdKey": "string",
+        "groupName": "string",
+        "groupTypeName": "string",
+        "totalAttendance": "number",
+        "uniqueAttendees": "number"
+      },
+      "path": "types/analytics.ts"
+    },
+    "FirstTimeVisitorDto": {
+      "name": "FirstTimeVisitorDto",
+      "kind": "interface",
+      "properties": {
+        "personIdKey": "string",
+        "personName": "string",
+        "email": "string",
+        "phoneNumber": "string",
+        "checkInDateTime": "string",
+        "groupName": "string",
+        "groupTypeName": "string",
+        "campusName": "string",
+        "hasFollowUp": "boolean"
+      },
+      "path": "types/analytics.ts"
+    },
+    "AttendanceAnalyticsParams": {
+      "name": "AttendanceAnalyticsParams",
+      "kind": "interface",
+      "properties": {
+        "startDate": "string",
+        "endDate": "string",
+        "campusIdKey": "string",
+        "groupTypeIdKey": "string"
+      },
+      "path": "types/analytics.ts"
+    },
     "AuthorizedPickupDto": {
       "name": "AuthorizedPickupDto",
       "kind": "interface",
@@ -111,43 +175,6 @@
       "kind": "enum",
       "properties": {},
       "path": "types/authorized-pickup.ts"
-    },
-    "AttendanceAnalyticsDto": {
-      "name": "AttendanceAnalyticsDto",
-      "kind": "interface",
-      "properties": {
-        "totalAttendance": "number",
-        "uniqueAttendees": "number",
-        "firstTimeVisitors": "number",
-        "returningVisitors": "number",
-        "averageAttendance": "number",
-        "startDate": "DateOnly",
-        "endDate": "DateOnly"
-      },
-      "path": "types/checkin-extended.ts"
-    },
-    "AttendanceTrendDto": {
-      "name": "AttendanceTrendDto",
-      "kind": "interface",
-      "properties": {
-        "date": "DateOnly",
-        "count": "number",
-        "firstTime": "number",
-        "returning": "number"
-      },
-      "path": "types/checkin-extended.ts"
-    },
-    "AttendanceByGroupDto": {
-      "name": "AttendanceByGroupDto",
-      "kind": "interface",
-      "properties": {
-        "groupIdKey": "IdKey",
-        "groupName": "string",
-        "groupTypeName": "string",
-        "totalAttendance": "number",
-        "uniqueAttendees": "number"
-      },
-      "path": "types/checkin-extended.ts"
     },
     "MarkAttendanceResultDto": {
       "name": "MarkAttendanceResultDto",
@@ -553,6 +580,31 @@
       "kind": "enum",
       "properties": {},
       "path": "types/communication.ts"
+    },
+    "UpcomingScheduleDto": {
+      "name": "UpcomingScheduleDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "string",
+        "name": "string",
+        "nextOccurrence": "string",
+        "minutesUntilCheckIn": "number"
+      },
+      "path": "types/dashboard.ts"
+    },
+    "DashboardStatsDto": {
+      "name": "DashboardStatsDto",
+      "kind": "interface",
+      "properties": {
+        "totalPeople": "number",
+        "totalFamilies": "number",
+        "activeGroups": "number",
+        "todayCheckIns": "number",
+        "lastWeekCheckIns": "number",
+        "activeSchedules": "number",
+        "upcomingSchedules": "UpcomingScheduleDto[]"
+      },
+      "path": "types/dashboard.ts"
     },
     "FileMetadataDto": {
       "name": "FileMetadataDto",
@@ -2515,23 +2567,23 @@
     "getAttendanceAnalytics": {
       "name": "getAttendanceAnalytics",
       "path": "services/api/analytics.ts",
-      "endpoint": "/analytics/a",
+      "endpoint": "/analy",
       "method": "GET",
-      "responseType": "AttendanceAnalytics"
+      "responseType": "AttendanceAnalyticsDto"
     },
     "getAttendanceTrends": {
       "name": "getAttendanceTrends",
       "path": "services/api/analytics.ts",
-      "endpoint": "/analytics/attendan",
+      "endpoint": "/analytics/at",
       "method": "GET",
-      "responseType": "AttendanceTrend[]"
+      "responseType": "AttendanceTrendDto[]"
     },
     "getAttendanceByGroup": {
       "name": "getAttendanceByGroup",
       "path": "services/api/analytics.ts",
-      "endpoint": "/analytics/att",
+      "endpoint": "/analyti",
       "method": "GET",
-      "responseType": "AttendanceByGroup[]"
+      "responseType": "AttendanceByGroupDto[]"
     },
     "getTodaysFirstTimeVisitors": {
       "name": "getTodaysFirstTimeVisitors",
@@ -2713,7 +2765,7 @@
       "path": "services/api/dashboard.ts",
       "endpoint": "/dashboard/stats",
       "method": "GET",
-      "responseType": "DashboardStats"
+      "responseType": "DashboardStatsDto"
     },
     "getFamilyByIdKey": {
       "name": "getFamilyByIdKey",

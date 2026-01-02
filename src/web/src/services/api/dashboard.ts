@@ -3,25 +3,12 @@
  */
 
 import { get } from './client';
+import type { DashboardStatsDto, UpcomingScheduleDto } from '@/types';
 
-export interface DashboardStats {
-  totalPeople: number;
-  totalFamilies: number;
-  activeGroups: number;
-  todayCheckIns: number;
-  lastWeekCheckIns: number;
-  activeSchedules: number;
-  upcomingSchedules: UpcomingSchedule[];
-}
+// Re-export types for backwards compatibility
+export type { DashboardStatsDto, UpcomingScheduleDto };
 
-export interface UpcomingSchedule {
-  idKey: string;
-  name: string;
-  nextOccurrence: string;
-  minutesUntilCheckIn: number;
-}
-
-export async function getDashboardStats(): Promise<DashboardStats> {
-  const response = await get<{ data: DashboardStats }>('/dashboard/stats');
+export async function getDashboardStats(): Promise<DashboardStatsDto> {
+  const response = await get<{ data: DashboardStatsDto }>('/dashboard/stats');
   return response.data;
 }

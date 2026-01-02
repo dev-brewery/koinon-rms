@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-02T13:53:56.637844+00:00",
+  "generated_at": "2026-01-02T14:22:58.069830+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -5766,23 +5766,23 @@
     "getAttendanceAnalytics": {
       "name": "getAttendanceAnalytics",
       "path": "services/api/analytics.ts",
-      "endpoint": "/analytics/a",
+      "endpoint": "/analy",
       "method": "GET",
-      "responseType": "AttendanceAnalytics"
+      "responseType": "AttendanceAnalyticsDto"
     },
     "getAttendanceTrends": {
       "name": "getAttendanceTrends",
       "path": "services/api/analytics.ts",
-      "endpoint": "/analytics/attendan",
+      "endpoint": "/analytics/at",
       "method": "GET",
-      "responseType": "AttendanceTrend[]"
+      "responseType": "AttendanceTrendDto[]"
     },
     "getAttendanceByGroup": {
       "name": "getAttendanceByGroup",
       "path": "services/api/analytics.ts",
-      "endpoint": "/analytics/att",
+      "endpoint": "/analyti",
       "method": "GET",
-      "responseType": "AttendanceByGroup[]"
+      "responseType": "AttendanceByGroupDto[]"
     },
     "getTodaysFirstTimeVisitors": {
       "name": "getTodaysFirstTimeVisitors",
@@ -5964,7 +5964,7 @@
       "path": "services/api/dashboard.ts",
       "endpoint": "/dashboard/stats",
       "method": "GET",
-      "responseType": "DashboardStats"
+      "responseType": "DashboardStatsDto"
     },
     "getFamilyByIdKey": {
       "name": "getFamilyByIdKey",
@@ -8268,8 +8268,11 @@
     "dto:CommunicationRecipientDto": "type:CommunicationRecipientDto",
     "dto:CreateCommunicationDto": "type:CreateCommunicationDto",
     "dto:UpdateCommunicationDto": "type:UpdateCommunicationDto",
+    "dto:DashboardStatsDto": "type:DashboardStatsDto",
+    "dto:UpcomingScheduleDto": "type:UpcomingScheduleDto",
     "dto:FamilyMemberDto": "type:FamilyMemberDto",
     "dto:GroupTypeRoleDto": "type:GroupTypeRoleDto",
+    "dto:FirstTimeVisitorDto": "type:FirstTimeVisitorDto",
     "dto:FollowUpDto": "type:FollowUpDto",
     "dto:GroupSummaryDto": "type:GroupSummaryDto",
     "dto:GroupMemberDetailDto": "type:GroupMemberDetailDto",
@@ -8311,7 +8314,7 @@
     "dtos": 77,
     "services": 69,
     "controllers": 22,
-    "types": 203,
+    "types": 207,
     "api_functions": 111,
     "hooks": 71,
     "components": 87,
