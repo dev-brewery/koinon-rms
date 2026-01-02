@@ -41,6 +41,7 @@ public interface IApplicationDbContext
     DbSet<PickupLog> PickupLogs { get; }
     DbSet<Communication> Communications { get; }
     DbSet<CommunicationRecipient> CommunicationRecipients { get; }
+    DbSet<CommunicationTemplate> CommunicationTemplates { get; }
     DbSet<BinaryFile> BinaryFiles { get; }
     DbSet<ImportTemplate> ImportTemplates { get; }
     DbSet<ImportJob> ImportJobs { get; }

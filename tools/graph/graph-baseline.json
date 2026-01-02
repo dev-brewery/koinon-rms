@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-02T21:38:15.453326+00:00",
+  "generated_at": "2026-01-02T22:24:51.847721+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -170,6 +170,17 @@
           "type": "one"
         }
       ]
+    },
+    "CommunicationTemplate": {
+      "name": "CommunicationTemplate",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "communication_template",
+      "properties": {
+        "Subject": "string?",
+        "Description": "string?",
+        "IsActive": "bool"
+      },
+      "navigations": []
     },
     "Contribution": {
       "name": "Contribution",
@@ -1176,6 +1187,60 @@
         "OpenedDateTime": "DateTime?",
         "ErrorMessage": "string?",
         "GroupIdKey": "string?",
+        "Body": "string?"
+      }
+    },
+    "CommunicationTemplateDto": {
+      "name": "CommunicationTemplateDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Subject": "string?",
+        "Description": "string?",
+        "ModifiedDateTime": "DateTime?",
+        "IsActive": "bool?",
+        "Name": "string?",
+        "CommunicationType": "string?",
+        "Body": "string?"
+      },
+      "linked_entity": "CommunicationTemplate"
+    },
+    "CommunicationTemplateSummaryDto": {
+      "name": "CommunicationTemplateSummaryDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Subject": "string?",
+        "Description": "string?",
+        "ModifiedDateTime": "DateTime?",
+        "IsActive": "bool?",
+        "Name": "string?",
+        "CommunicationType": "string?",
+        "Body": "string?"
+      },
+      "linked_entity": "Communication"
+    },
+    "CreateCommunicationTemplateDto": {
+      "name": "CreateCommunicationTemplateDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Subject": "string?",
+        "Description": "string?",
+        "ModifiedDateTime": "DateTime?",
+        "IsActive": "bool?",
+        "Name": "string?",
+        "CommunicationType": "string?",
+        "Body": "string?"
+      }
+    },
+    "UpdateCommunicationTemplateDto": {
+      "name": "UpdateCommunicationTemplateDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Subject": "string?",
+        "Description": "string?",
+        "ModifiedDateTime": "DateTime?",
+        "IsActive": "bool?",
+        "Name": "string?",
+        "CommunicationType": "string?",
         "Body": "string?"
       }
     },
@@ -2389,6 +2454,47 @@
         "ILogger<CommunicationService>"
       ]
     },
+    "CommunicationTemplateService": {
+      "name": "CommunicationTemplateService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "CommunicationTemplateService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetByIdKeyAsync",
+          "return_type": "Task<CommunicationTemplateDto?>",
+          "is_async": false
+        },
+        {
+          "name": "SearchAsync",
+          "return_type": "Task<PagedResult<CommunicationTemplateSummaryDto>>",
+          "is_async": false
+        },
+        {
+          "name": "CreateAsync",
+          "return_type": "Task<Result<CommunicationTemplateDto>>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateAsync",
+          "return_type": "Task<Result<CommunicationTemplateDto>>",
+          "is_async": false
+        },
+        {
+          "name": "DeleteAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IMapper",
+        "ILogger<CommunicationTemplateService>"
+      ]
+    },
     "CsvParserService": {
       "name": "CsvParserService",
       "namespace": "Koinon.Application.Services",
@@ -3362,6 +3468,12 @@
       "methods": [],
       "dependencies": []
     },
+    "ICommunicationTemplateService": {
+      "name": "ICommunicationTemplateService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
     "ICsvParserService": {
       "name": "ICsvParserService",
       "namespace": "Koinon.Application.Interfaces",
@@ -3862,6 +3974,50 @@
         "IRoomRosterService",
         "ICapacityService",
         "ILogger<CheckinController>"
+      ]
+    },
+    "CommunicationTemplatesController": {
+      "name": "CommunicationTemplatesController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/communication-templates",
+      "endpoints": [
+        {
+          "name": "GetByIdKey",
+          "method": "GET",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Update",
+          "method": "PUT",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Delete",
+          "method": "DELETE",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": true,
+        "result_pattern": true
+      },
+      "dependencies": [
+        "ICommunicationTemplateService",
+        "ILogger<CommunicationTemplatesController>"
       ]
     },
     "CommunicationsController": {
@@ -5038,6 +5194,69 @@
       "usesMutation": false,
       "dependencies": []
     },
+    "useCommunicationTemplates": {
+      "name": "useCommunicationTemplates",
+      "path": "hooks/useCommunicationTemplates.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "communicationtemplates"
+      ],
+      "usesQuery": false,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useCommunicationTemplate": {
+      "name": "useCommunicationTemplate",
+      "path": "hooks/useCommunicationTemplates.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "communication-templates"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getCommunicationTemplate"
+      ]
+    },
+    "useCreateCommunicationTemplate": {
+      "name": "useCreateCommunicationTemplate",
+      "path": "hooks/useCommunicationTemplates.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "communication-templates"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "createCommunicationTemplate"
+      ]
+    },
+    "useUpdateCommunicationTemplate": {
+      "name": "useUpdateCommunicationTemplate",
+      "path": "hooks/useCommunicationTemplates.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "communication-templates"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "updateCommunicationTemplate"
+      ]
+    },
+    "useDeleteCommunicationTemplate": {
+      "name": "useDeleteCommunicationTemplate",
+      "path": "hooks/useCommunicationTemplates.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "communication-templates"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "deleteCommunicationTemplate"
+      ]
+    },
     "useCommunication": {
       "name": "useCommunication",
       "path": "hooks/useCommunications.ts",
@@ -6092,6 +6311,34 @@
       "method": "GET",
       "responseType": "void"
     },
+    "getCommunicationTemplate": {
+      "name": "getCommunicationTemplate",
+      "path": "services/api/communicationTemplates.ts",
+      "endpoint": "/communication-templates/${idKey}",
+      "method": "GET",
+      "responseType": "CommunicationTemplateDto"
+    },
+    "createCommunicationTemplate": {
+      "name": "createCommunicationTemplate",
+      "path": "services/api/communicationTemplates.ts",
+      "endpoint": "/communication-templates",
+      "method": "POST",
+      "responseType": "CommunicationTemplateDto"
+    },
+    "updateCommunicationTemplate": {
+      "name": "updateCommunicationTemplate",
+      "path": "services/api/communicationTemplates.ts",
+      "endpoint": "/communication-templates/${idKey}",
+      "method": "PUT",
+      "responseType": "CommunicationTemplateDto"
+    },
+    "deleteCommunicationTemplate": {
+      "name": "deleteCommunicationTemplate",
+      "path": "services/api/communicationTemplates.ts",
+      "endpoint": "/communication-templates/${idKey}",
+      "method": "DELETE",
+      "responseType": "void"
+    },
     "createCommunication": {
       "name": "createCommunication",
       "path": "services/api/communications.ts",
@@ -7071,9 +7318,23 @@
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
+    "SaveAsTemplateModal": {
+      "name": "SaveAsTemplateModal",
+      "path": "components/communication/SaveAsTemplateModal.tsx",
+      "hooksUsed": [
+        "useCreateCommunicationTemplate"
+      ],
+      "apiCallsDirectly": false
+    },
     "SmsComposer": {
       "name": "SmsComposer",
       "path": "components/communication/SmsComposer.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "TemplateSelector": {
+      "name": "TemplateSelector",
+      "path": "components/import/TemplateSelector.tsx",
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
@@ -7177,12 +7438,6 @@
     "TemplateManager": {
       "name": "TemplateManager",
       "path": "components/import/TemplateManager.tsx",
-      "hooksUsed": [],
-      "apiCallsDirectly": false
-    },
-    "TemplateSelector": {
-      "name": "TemplateSelector",
-      "path": "components/import/TemplateSelector.tsx",
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
@@ -7375,6 +7630,16 @@
       "relationship": "maps_to"
     },
     {
+      "source": "CommunicationTemplateDto",
+      "target": "CommunicationTemplate",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CommunicationTemplateSummaryDto",
+      "target": "Communication",
+      "relationship": "maps_to"
+    },
+    {
       "source": "FamilyDto",
       "target": "Family",
       "relationship": "maps_to"
@@ -7557,6 +7822,11 @@
     {
       "source": "CheckinController",
       "target": "ICapacityService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "CommunicationTemplatesController",
+      "target": "ICommunicationTemplateService",
       "relationship": "depends_on"
     },
     {
@@ -7822,6 +8092,26 @@
     {
       "source": "CommunicationService",
       "target": "CommunicationDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CommunicationTemplateService",
+      "target": "CommunicationTemplateDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CommunicationTemplateService",
+      "target": "CommunicationTemplateSummaryDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CommunicationTemplateService",
+      "target": "CommunicationTemplateDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CommunicationTemplateService",
+      "target": "CommunicationTemplateDto",
       "relationship": "returns"
     },
     {
@@ -8200,6 +8490,11 @@
       "relationship": "uses"
     },
     {
+      "source": "CommunicationTemplateService",
+      "target": "Communication",
+      "relationship": "uses"
+    },
+    {
       "source": "DataImportService",
       "target": "Person",
       "relationship": "uses"
@@ -8440,6 +8735,11 @@
       "type": "uses_hook"
     },
     {
+      "from": "SaveAsTemplateModal",
+      "to": "useCreateCommunicationTemplate",
+      "type": "uses_hook"
+    },
+    {
       "from": "PersonLookup",
       "to": "usePeople",
       "type": "uses_hook"
@@ -8497,6 +8797,10 @@
     "dto:CommunicationRecipientDto": "type:CommunicationRecipientDto",
     "dto:CreateCommunicationDto": "type:CreateCommunicationDto",
     "dto:UpdateCommunicationDto": "type:UpdateCommunicationDto",
+    "dto:CommunicationTemplateDto": "type:CommunicationTemplateDto",
+    "dto:CommunicationTemplateSummaryDto": "type:CommunicationTemplateSummaryDto",
+    "dto:CreateCommunicationTemplateDto": "type:CreateCommunicationTemplateDto",
+    "dto:UpdateCommunicationTemplateDto": "type:UpdateCommunicationTemplateDto",
     "dto:DashboardStatsDto": "type:DashboardStatsDto",
     "dto:UpcomingScheduleDto": "type:UpcomingScheduleDto",
     "dto:FamilyDto": "type:FamilyDto",
@@ -8546,14 +8850,14 @@
     "dto:SupervisorInfoDto": "type:SupervisorInfoDto"
   },
   "stats": {
-    "entities": 41,
-    "dtos": 77,
-    "services": 69,
-    "controllers": 22,
-    "types": 231,
-    "api_functions": 111,
-    "hooks": 83,
-    "components": 97,
-    "total_edges": 229
+    "entities": 42,
+    "dtos": 81,
+    "services": 71,
+    "controllers": 23,
+    "types": 236,
+    "api_functions": 115,
+    "hooks": 88,
+    "components": 98,
+    "total_edges": 238
   }
 }

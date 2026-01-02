@@ -73,6 +73,7 @@ public class KoinonDbContext : DbContext, IApplicationDbContext
     // Communication entities
     public DbSet<Communication> Communications { get; set; } = null!;
     public DbSet<CommunicationRecipient> CommunicationRecipients { get; set; } = null!;
+    public DbSet<CommunicationTemplate> CommunicationTemplates { get; set; } = null!;
 
     // File storage entities
     public DbSet<BinaryFile> BinaryFiles { get; set; } = null!;

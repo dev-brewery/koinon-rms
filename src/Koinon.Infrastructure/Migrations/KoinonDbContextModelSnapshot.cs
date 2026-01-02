@@ -838,6 +838,81 @@ namespace Koinon.Infrastructure.Migrations
                     b.ToTable("communication_recipient", (string)null);
                 });
 
+            modelBuilder.Entity("Koinon.Domain.Entities.CommunicationTemplate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("body");
+
+                    b.Property<int>("CommunicationType")
+                        .HasColumnType("integer")
+                        .HasColumnName("communication_type");
+
+                    b.Property<int?>("CreatedByPersonAliasId")
+                        .HasColumnType("integer")
+                        .HasColumnName("created_by_person_alias_id");
+
+                    b.Property<DateTime>("CreatedDateTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_date_time");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("description");
+
+                    b.Property<Guid>("Guid")
+                        .HasColumnType("uuid")
+                        .HasColumnName("guid");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<int?>("ModifiedByPersonAliasId")
+                        .HasColumnType("integer")
+                        .HasColumnName("modified_by_person_alias_id");
+
+                    b.Property<DateTime?>("ModifiedDateTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("modified_date_time");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Subject")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("subject");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CommunicationType")
+                        .HasDatabaseName("ix_communication_template_communication_type");
+
+                    b.HasIndex("Guid")
+                        .IsUnique()
+                        .HasDatabaseName("uix_communication_template_guid");
+
+                    b.HasIndex("IsActive")
+                        .HasDatabaseName("ix_communication_template_is_active");
+
+                    b.ToTable("communication_template", (string)null);
+                });
+
             modelBuilder.Entity("Koinon.Domain.Entities.Contribution", b =>
                 {
                     b.Property<int>("Id")
@@ -948,6 +1023,10 @@ namespace Koinon.Infrastructure.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("control_amount");
+
+                    b.Property<int?>("ControlItemCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("control_item_count");
 
                     b.Property<int?>("CreatedByPersonAliasId")
                         .HasColumnType("integer")

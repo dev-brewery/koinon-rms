@@ -158,13 +158,21 @@ export function CommunicationsPage() {
           <h1 className="text-3xl font-bold text-gray-900">Communications</h1>
           <p className="mt-2 text-gray-600">Send and manage email and SMS communications</p>
         </div>
-        <button
-          onClick={() => setIsComposerOpen(true)}
-          disabled={isLoadingGroups}
-          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
-        >
-          New Communication
-        </button>
+        <div className="flex items-center gap-3">
+          <Link
+            to="/admin/communications/templates"
+            className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Manage Templates
+          </Link>
+          <button
+            onClick={() => setIsComposerOpen(true)}
+            disabled={isLoadingGroups}
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
+          >
+            New Communication
+          </button>
+        </div>
       </div>
 
       {/* Filters */}

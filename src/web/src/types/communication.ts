@@ -154,3 +154,65 @@ export interface CommunicationsParams {
   pageSize?: number;
   status?: string;
 }
+
+// ============================================================================
+// Communication Template Types
+// ============================================================================
+
+/**
+ * Full communication template details
+ */
+export interface CommunicationTemplateDto {
+  idKey: IdKey;
+  name: string;
+  communicationType: string; // 'Email' | 'Sms'
+  subject?: string;
+  body: string;
+  description?: string;
+  isActive: boolean;
+  createdDateTime: DateTime;
+  modifiedDateTime?: DateTime;
+}
+
+/**
+ * Summary template for lists
+ */
+export interface CommunicationTemplateSummaryDto {
+  idKey: IdKey;
+  name: string;
+  communicationType: string; // 'Email' | 'Sms'
+  isActive: boolean;
+}
+
+/**
+ * Request to create a new communication template
+ */
+export interface CreateCommunicationTemplateDto {
+  name: string;
+  communicationType: string; // 'Email' | 'Sms'
+  subject?: string;
+  body: string;
+  description?: string;
+  isActive?: boolean;
+}
+
+/**
+ * Request to update a communication template
+ */
+export interface UpdateCommunicationTemplateDto {
+  name?: string;
+  subject?: string;
+  body?: string;
+  description?: string;
+  isActive?: boolean;
+}
+
+/**
+ * Query parameters for listing communication templates
+ */
+export interface CommunicationTemplatesParams {
+  page?: number;
+  pageSize?: number;
+  type?: string; // Filter by communication type
+  isActive?: boolean; // Filter by active status
+}
