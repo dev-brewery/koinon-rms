@@ -42,6 +42,8 @@ import { GroupFinderPage } from './pages/public/GroupFinderPage';
 import { MyGroupsPage } from './pages/MyGroupsPage';
 import { CommunicationsPage } from './pages/communications/CommunicationsPage';
 import { CommunicationDetailPage } from './pages/communications/CommunicationDetailPage';
+import { TemplatesPage } from './pages/communications/TemplatesPage';
+import { TemplateFormPage } from './pages/communications/TemplateFormPage';
 import { MyProfilePage } from './pages/profile';
 import { RosterPage } from './pages/admin/RosterPage';
 import { BatchListPage, BatchDetailPage, BatchFormPage } from './pages/admin/giving';
@@ -237,6 +239,9 @@ function App() {
           <Route path="analytics" element={<AnalyticsPage />} />
           <Route path="communications" element={<CommunicationsPage />} />
           <Route path="communications/:idKey" element={<CommunicationDetailPage />} />
+          <Route path="communications/templates" element={<TemplatesPage />} />
+          <Route path="communications/templates/new" element={<TemplateFormPage />} />
+          <Route path="communications/templates/:idKey/edit" element={<TemplateFormPage />} />
           <Route path="roster" element={<RosterPage />} />
           <Route path="giving" element={<BatchListPage />} />
           <Route path="giving/new" element={<BatchFormPage />} />

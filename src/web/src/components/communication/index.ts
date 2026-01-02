@@ -10,3 +10,5 @@ export { CommunicationComposer } from './CommunicationComposer';
 export { CommunicationStatisticsCard } from './CommunicationStatisticsCard';
 export { RecipientStatusBadge } from './RecipientStatusBadge';
 export { RecipientTable } from './RecipientTable';
+export { TemplateSelector } from './TemplateSelector';
+export { SaveAsTemplateModal } from './SaveAsTemplateModal';

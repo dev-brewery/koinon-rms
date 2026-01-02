@@ -5,3 +5,5 @@
 
 export { CommunicationsPage } from './CommunicationsPage';
 export { CommunicationDetailPage } from './CommunicationDetailPage';
+export { TemplatesPage } from './TemplatesPage';
+export { TemplateFormPage } from './TemplateFormPage';

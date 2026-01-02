@@ -7,6 +7,8 @@ import { useState, useCallback, useMemo } from 'react';
 import { MessageTypeToggle } from './MessageTypeToggle';
 import { EmailComposer } from './EmailComposer';
 import { SmsComposer } from './SmsComposer';
+import { TemplateSelector } from './TemplateSelector';
+import { SaveAsTemplateModal } from './SaveAsTemplateModal';
 import { useCreateCommunication, useSendCommunication } from '@/hooks/useCommunications';
 import type { GroupSummaryDto } from '@/services/api/types';
 import type { CreateCommunicationRequest } from '@/services/api/communications';
@@ -27,6 +29,7 @@ export function CommunicationComposer({ groups, onSend, onClose }: Communication
   const [note, setNote] = useState('');
   const [selectedGroupIdKeys, setSelectedGroupIdKeys] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSaveTemplateModalOpen, setIsSaveTemplateModalOpen] = useState(false);
 
   const createMutation = useCreateCommunication();
   const sendMutation = useSendCommunication();
@@ -100,6 +103,13 @@ export function CommunicationComposer({ groups, onSend, onClose }: Communication
     );
   };
 
+  const handleTemplateSelect = (template: { subject?: string; body: string }) => {
+    if (template.subject !== undefined) {
+      setSubject(template.subject);
+    }
+    setBody(template.body);
+  };
+
   const isPending = createMutation.isPending || sendMutation.isPending;
   const error = createMutation.error || sendMutation.error;
 
@@ -134,6 +144,13 @@ export function CommunicationComposer({ groups, onSend, onClose }: Communication
             </label>
             <MessageTypeToggle value={communicationType} onChange={setCommunicationType} />
           </div>
+
+          {/* Template Selector */}
+          <TemplateSelector
+            communicationType={communicationType}
+            onSelect={handleTemplateSelect}
+            disabled={isPending}
+          />
 
           {/* Group Selection */}
           <div>
@@ -246,25 +263,44 @@ export function CommunicationComposer({ groups, onSend, onClose }: Communication
           )}
 
           {/* Actions */}
-          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+          <div className="flex justify-between items-center gap-3 pt-4 border-t border-gray-200">
             <button
               type="button"
-              onClick={onClose}
-              disabled={isPending}
+              onClick={() => setIsSaveTemplateModalOpen(true)}
+              disabled={isPending || !body.trim()}
               className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
             >
-              Cancel
+              Save as Template
             </button>
-            <button
-              type="submit"
-              disabled={isPending}
-              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
-            >
-              {isPending ? 'Sending...' : 'Send'}
-            </button>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={isPending}
+                className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isPending}
+                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
+              >
+                {isPending ? 'Sending...' : 'Send'}
+              </button>
+            </div>
           </div>
         </form>
       </div>
+
+      {/* Save As Template Modal */}
+      <SaveAsTemplateModal
+        isOpen={isSaveTemplateModalOpen}
+        onClose={() => setIsSaveTemplateModalOpen(false)}
+        communicationType={communicationType}
+        subject={subject}
+        body={body}
+      />
     </div>
   );
 }
