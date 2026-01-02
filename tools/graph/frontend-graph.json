@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-01-02T14:22:57.921Z",
+  "generated_at": "2026-01-02T15:03:06.327Z",
   "types": {
     "AttendanceAnalyticsDto": {
       "name": "AttendanceAnalyticsDto",
@@ -347,17 +347,6 @@
       "properties": {},
       "path": "types/checkin-extended.ts"
     },
-    "GroupTypeRoleDto": {
-      "name": "GroupTypeRoleDto",
-      "kind": "interface",
-      "properties": {
-        "idKey": "IdKey",
-        "name": "string",
-        "isLeader": "boolean",
-        "order": "number"
-      },
-      "path": "services/api/types.ts"
-    },
     "CheckinCampusSummaryDto": {
       "name": "CheckinCampusSummaryDto",
       "kind": "interface",
@@ -672,6 +661,50 @@
       },
       "path": "types/dashboard.ts"
     },
+    "LocationDto": {
+      "name": "LocationDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "street1": "string",
+        "street2": "string",
+        "city": "string",
+        "state": "string",
+        "postalCode": "string",
+        "country": "string",
+        "formattedAddress": "string"
+      },
+      "path": "types/family.ts"
+    },
+    "FamilyMembershipDto": {
+      "name": "FamilyMembershipDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "person": "PersonSummaryDto",
+        "role": "GroupTypeRoleDto",
+        "status": "string",
+        "dateTimeAdded": "DateTime"
+      },
+      "path": "types/family.ts"
+    },
+    "FamilyDto": {
+      "name": "FamilyDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "name": "string",
+        "description": "string",
+        "isActive": "boolean",
+        "campus": "CampusSummaryDto",
+        "address": "LocationDto",
+        "members": "FamilyMembershipDto[]",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "types/family.ts"
+    },
     "FileMetadataDto": {
       "name": "FileMetadataDto",
       "kind": "interface",
@@ -883,6 +916,145 @@
       "kind": "enum",
       "properties": {},
       "path": "types/giving.ts"
+    },
+    "GroupTypeRoleDto": {
+      "name": "GroupTypeRoleDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "isLeader": "boolean",
+        "order": "number"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupTypeSummaryDto": {
+      "name": "GroupTypeSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "iconCssClass": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupTypeDto": {
+      "name": "GroupTypeDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "name": "string",
+        "description": "string",
+        "groupTerm": "string",
+        "groupMemberTerm": "string",
+        "iconCssClass": "string",
+        "roles": "GroupTypeRoleDto[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupTypeDetailDto": {
+      "name": "GroupTypeDetailDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "name": "string",
+        "description": "string",
+        "iconCssClass": "string",
+        "color": "string",
+        "groupTerm": "string",
+        "groupMemberTerm": "string",
+        "takesAttendance": "boolean",
+        "allowSelfRegistration": "boolean",
+        "requiresMemberApproval": "boolean",
+        "defaultIsPublic": "boolean",
+        "defaultGroupCapacity": "number",
+        "showInGroupList": "boolean",
+        "showInNavigation": "boolean",
+        "attendanceCountsAsWeekendService": "boolean",
+        "sendAttendanceReminder": "boolean",
+        "allowMultipleLocations": "boolean",
+        "enableSpecificGroupRequirements": "boolean",
+        "allowGroupSync": "boolean",
+        "allowSpecificGroupMemberAttributes": "boolean",
+        "showConnectionStatus": "boolean",
+        "ignorePersonInactivated": "boolean",
+        "isSystem": "boolean",
+        "isArchived": "boolean",
+        "order": "number",
+        "groupCount": "number",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "types/group.ts"
+    },
+    "GroupSummaryDto": {
+      "name": "GroupSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "description": "string",
+        "groupType": "GroupTypeSummaryDto",
+        "campus": "CampusSummaryDto",
+        "memberCount": "number",
+        "isActive": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupDto": {
+      "name": "GroupDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "name": "string",
+        "description": "string",
+        "isActive": "boolean",
+        "isArchived": "boolean",
+        "isSecurityRole": "boolean",
+        "isPublic": "boolean",
+        "allowGuests": "boolean",
+        "groupCapacity": "number",
+        "order": "number",
+        "groupType": "GroupTypeSummaryDto",
+        "campus": "CampusSummaryDto",
+        "parentGroup": "GroupSummaryDto",
+        "members": "GroupMemberDto[]",
+        "childGroups": "GroupSummaryDto[]",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime",
+        "archivedDateTime": "DateTime"
+      },
+      "path": "types/group.ts"
+    },
+    "GroupMemberDto": {
+      "name": "GroupMemberDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "person": "PersonSummaryDto",
+        "role": "GroupTypeRoleDto",
+        "status": "string",
+        "dateTimeAdded": "DateTime",
+        "inactiveDateTime": "DateTime",
+        "note": "string"
+      },
+      "path": "types/group.ts"
+    },
+    "GroupMemberDetailDto": {
+      "name": "GroupMemberDetailDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "person": "PersonSummaryDto",
+        "role": "GroupTypeRoleDto",
+        "status": "GroupMemberStatus",
+        "dateAdded": "DateTime",
+        "note": "string"
+      },
+      "path": "services/api/types.ts"
     },
     "ValidationError": {
       "name": "ValidationError",
@@ -1199,6 +1371,82 @@
       "properties": {},
       "path": "types/pager.ts"
     },
+    "DefinedValueDto": {
+      "name": "DefinedValueDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "value": "string",
+        "description": "string",
+        "isActive": "boolean",
+        "order": "number"
+      },
+      "path": "services/api/types.ts"
+    },
+    "PersonSummaryDto": {
+      "name": "PersonSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "firstName": "string",
+        "nickName": "string",
+        "lastName": "string",
+        "fullName": "string",
+        "email": "string",
+        "photoUrl": "string",
+        "age": "number",
+        "gender": "Gender",
+        "connectionStatus": "DefinedValueDto",
+        "recordStatus": "DefinedValueDto",
+        "primaryCampus": "CampusSummaryDto"
+      },
+      "path": "services/api/types.ts"
+    },
+    "PersonDto": {
+      "name": "PersonDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "firstName": "string",
+        "nickName": "string",
+        "middleName": "string",
+        "lastName": "string",
+        "fullName": "string",
+        "birthDate": "DateOnly",
+        "age": "number",
+        "gender": "string",
+        "email": "string",
+        "isEmailActive": "boolean",
+        "emailPreference": "string",
+        "phoneNumbers": "import('./profile').PhoneNumberDto[]",
+        "recordStatus": "DefinedValueDto",
+        "connectionStatus": "DefinedValueDto",
+        "primaryFamily": "import('./profile').FamilySummaryDto",
+        "primaryCampus": "import('./profile').CampusSummaryDto",
+        "photoUrl": "string",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "types/person.ts"
+    },
+    "PersonSearchParams": {
+      "name": "PersonSearchParams",
+      "kind": "interface",
+      "properties": {
+        "q": "string",
+        "firstName": "string",
+        "lastName": "string",
+        "email": "string",
+        "phone": "string",
+        "recordStatusId": "IdKey",
+        "connectionStatusId": "IdKey",
+        "campusId": "IdKey",
+        "includeInactive": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
     "PhoneNumberDto": {
       "name": "PhoneNumberDto",
       "kind": "interface",
@@ -1479,41 +1727,6 @@
       },
       "path": "services/api/types.ts"
     },
-    "PersonSearchParams": {
-      "name": "PersonSearchParams",
-      "kind": "interface",
-      "properties": {
-        "q": "string",
-        "firstName": "string",
-        "lastName": "string",
-        "email": "string",
-        "phone": "string",
-        "recordStatusId": "IdKey",
-        "connectionStatusId": "IdKey",
-        "campusId": "IdKey",
-        "includeInactive": "boolean"
-      },
-      "path": "services/api/types.ts"
-    },
-    "PersonSummaryDto": {
-      "name": "PersonSummaryDto",
-      "kind": "interface",
-      "properties": {
-        "idKey": "IdKey",
-        "firstName": "string",
-        "nickName": "string",
-        "lastName": "string",
-        "fullName": "string",
-        "email": "string",
-        "photoUrl": "string",
-        "age": "number",
-        "gender": "Gender",
-        "connectionStatus": "DefinedValueDto",
-        "recordStatus": "DefinedValueDto",
-        "primaryCampus": "CampusSummaryDto"
-      },
-      "path": "services/api/types.ts"
-    },
     "PersonDetailDto": {
       "name": "PersonDetailDto",
       "kind": "interface",
@@ -1745,20 +1958,6 @@
       },
       "path": "services/api/types.ts"
     },
-    "GroupSummaryDto": {
-      "name": "GroupSummaryDto",
-      "kind": "interface",
-      "properties": {
-        "idKey": "IdKey",
-        "name": "string",
-        "description": "string",
-        "groupType": "GroupTypeSummaryDto",
-        "campus": "CampusSummaryDto",
-        "memberCount": "number",
-        "isActive": "boolean"
-      },
-      "path": "services/api/types.ts"
-    },
     "GroupDetailDto": {
       "name": "GroupDetailDto",
       "kind": "interface",
@@ -1785,19 +1984,6 @@
       "properties": {
         "status": "'Active' | 'Inactive' | 'Pending' | 'All'",
         "roleId": "IdKey"
-      },
-      "path": "services/api/types.ts"
-    },
-    "GroupMemberDetailDto": {
-      "name": "GroupMemberDetailDto",
-      "kind": "interface",
-      "properties": {
-        "idKey": "IdKey",
-        "person": "PersonSummaryDto",
-        "role": "GroupTypeRoleDto",
-        "status": "GroupMemberStatus",
-        "dateAdded": "DateTime",
-        "note": "string"
       },
       "path": "services/api/types.ts"
     },
@@ -2102,19 +2288,6 @@
       },
       "path": "services/api/types.ts"
     },
-    "DefinedValueDto": {
-      "name": "DefinedValueDto",
-      "kind": "interface",
-      "properties": {
-        "idKey": "IdKey",
-        "guid": "Guid",
-        "value": "string",
-        "description": "string",
-        "isActive": "boolean",
-        "order": "number"
-      },
-      "path": "services/api/types.ts"
-    },
     "CampusDto": {
       "name": "CampusDto",
       "kind": "interface",
@@ -2136,31 +2309,6 @@
       "kind": "interface",
       "properties": {
         "includeInactive": "boolean"
-      },
-      "path": "services/api/types.ts"
-    },
-    "GroupTypeDto": {
-      "name": "GroupTypeDto",
-      "kind": "interface",
-      "properties": {
-        "idKey": "IdKey",
-        "guid": "Guid",
-        "name": "string",
-        "description": "string",
-        "groupTerm": "string",
-        "groupMemberTerm": "string",
-        "iconCssClass": "string",
-        "roles": "GroupTypeRoleDto[]"
-      },
-      "path": "services/api/types.ts"
-    },
-    "GroupTypeSummaryDto": {
-      "name": "GroupTypeSummaryDto",
-      "kind": "interface",
-      "properties": {
-        "idKey": "IdKey",
-        "name": "string",
-        "iconCssClass": "string"
       },
       "path": "services/api/types.ts"
     },
