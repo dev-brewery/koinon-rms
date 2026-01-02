@@ -5,32 +5,10 @@
 
 import { get } from './client';
 import type { PagedResult } from './types';
+import type { PublicGroupDto, PublicGroupSearchParams } from '@/types/group';
 
-export interface PublicGroupDto {
-  idKey: string;
-  name: string;
-  publicDescription?: string;
-  groupTypeName?: string;
-  campusIdKey?: string;
-  campusName?: string;
-  memberCount: number;
-  capacity?: number;
-  hasOpenings: boolean;
-  meetingDay?: string;
-  meetingTime?: string;
-  meetingScheduleSummary?: string;
-}
-
-export interface PublicGroupSearchParams {
-  searchTerm?: string;
-  groupTypeIdKey?: string;
-  campusIdKey?: string;
-  dayOfWeek?: number;
-  timeOfDay?: 0 | 1 | 2;
-  hasOpenings?: boolean;
-  pageNumber?: number;
-  pageSize?: number;
-}
+// Re-export types for backward compatibility
+export type { PublicGroupDto, PublicGroupSearchParams };
 
 /**
  * Search for public groups with filters

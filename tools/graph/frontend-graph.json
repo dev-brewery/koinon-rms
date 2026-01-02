@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-01-02T20:38:19.829Z",
+  "generated_at": "2026-01-02T20:57:03.288Z",
   "types": {
     "AttendanceAnalyticsDto": {
       "name": "AttendanceAnalyticsDto",
@@ -618,6 +618,16 @@
       },
       "path": "types/communication.ts"
     },
+    "CommunicationsParams": {
+      "name": "CommunicationsParams",
+      "kind": "interface",
+      "properties": {
+        "page": "number",
+        "pageSize": "number",
+        "status": "string"
+      },
+      "path": "types/communication.ts"
+    },
     "CommunicationType": {
       "name": "CommunicationType",
       "kind": "enum",
@@ -729,6 +739,15 @@
         "fileName": "string",
         "contentType": "string",
         "length": "number",
+        "description": "string",
+        "binaryFileTypeIdKey": "string"
+      },
+      "path": "types/files.ts"
+    },
+    "UploadFileOptions": {
+      "name": "UploadFileOptions",
+      "kind": "interface",
+      "properties": {
         "description": "string",
         "binaryFileTypeIdKey": "string"
       },
@@ -911,6 +930,31 @@
       },
       "path": "types/giving.ts"
     },
+    "BatchFilterParams": {
+      "name": "BatchFilterParams",
+      "kind": "interface",
+      "properties": {
+        "status": "string",
+        "campusIdKey": "string",
+        "startDate": "string",
+        "endDate": "string",
+        "page": "number",
+        "pageSize": "number"
+      },
+      "path": "types/giving.ts"
+    },
+    "BatchListResponse": {
+      "name": "BatchListResponse",
+      "kind": "interface",
+      "properties": {
+        "data": "ContributionBatchDto[]",
+        "meta": "{\n    page: number",
+        "pageSize": "number",
+        "totalCount": "number",
+        "totalPages": "number"
+      },
+      "path": "types/giving.ts"
+    },
     "BatchStatus": {
       "name": "BatchStatus",
       "kind": "enum",
@@ -1055,6 +1099,40 @@
         "note": "string"
       },
       "path": "services/api/types.ts"
+    },
+    "PublicGroupDto": {
+      "name": "PublicGroupDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "string",
+        "name": "string",
+        "publicDescription": "string",
+        "groupTypeName": "string",
+        "campusIdKey": "string",
+        "campusName": "string",
+        "memberCount": "number",
+        "capacity": "number",
+        "hasOpenings": "boolean",
+        "meetingDay": "string",
+        "meetingTime": "string",
+        "meetingScheduleSummary": "string"
+      },
+      "path": "types/group.ts"
+    },
+    "PublicGroupSearchParams": {
+      "name": "PublicGroupSearchParams",
+      "kind": "interface",
+      "properties": {
+        "searchTerm": "string",
+        "groupTypeIdKey": "string",
+        "campusIdKey": "string",
+        "dayOfWeek": "number",
+        "timeOfDay": "0 | 1 | 2",
+        "hasOpenings": "boolean",
+        "pageNumber": "number",
+        "pageSize": "number"
+      },
+      "path": "types/group.ts"
     },
     "ValidationError": {
       "name": "ValidationError",

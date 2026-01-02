@@ -3,82 +3,26 @@
  */
 
 import { get, post } from './client';
-import type { PagedResult, IdKey } from './types';
+import type { PagedResult } from './types';
+import type {
+  CreateCommunicationDto,
+  CommunicationDto,
+  CommunicationRecipientDto,
+  CommunicationSummaryDto,
+  CommunicationsParams,
+} from '@/types/communication';
 
-// ============================================================================
-// Request Types
-// ============================================================================
+// Re-export types from central module for backward compatibility
+export type {
+  CreateCommunicationDto,
+  CommunicationDto,
+  CommunicationRecipientDto,
+  CommunicationSummaryDto,
+  CommunicationsParams,
+};
 
-export interface CreateCommunicationRequest {
-  communicationType: 'Email' | 'Sms';
-  subject?: string;
-  body: string;
-  fromEmail?: string;
-  fromName?: string;
-  replyToEmail?: string;
-  note?: string;
-  groupIdKeys: string[];
-}
-
-// ============================================================================
-// Response Types
-// ============================================================================
-
-export interface CommunicationRecipientDto {
-  idKey: IdKey;
-  personIdKey: IdKey;
-  address: string;
-  recipientName?: string;
-  status: string;
-  deliveredDateTime?: string;
-  openedDateTime?: string;
-  errorMessage?: string;
-  groupIdKey?: IdKey;
-}
-
-export interface CommunicationDto {
-  idKey: IdKey;
-  guid: string;
-  communicationType: string;
-  status: string;
-  subject?: string;
-  body: string;
-  fromEmail?: string;
-  fromName?: string;
-  replyToEmail?: string;
-  sentDateTime?: string;
-  recipientCount: number;
-  deliveredCount: number;
-  failedCount: number;
-  openedCount: number;
-  note?: string;
-  createdDateTime: string;
-  modifiedDateTime?: string;
-  recipients: CommunicationRecipientDto[];
-}
-
-export interface CommunicationSummaryDto {
-  idKey: IdKey;
-  guid: string;
-  communicationType: string;
-  status: string;
-  subject?: string;
-  sentDateTime?: string;
-  recipientCount: number;
-  deliveredCount: number;
-  failedCount: number;
-  createdDateTime: string;
-}
-
-// ============================================================================
-// Query Parameters
-// ============================================================================
-
-export interface CommunicationsParams {
-  page?: number;
-  pageSize?: number;
-  status?: string;
-}
+// Type alias for API compatibility
+export type CreateCommunicationRequest = CreateCommunicationDto;
 
 // ============================================================================
 // API Functions

@@ -3,20 +3,13 @@
  */
 
 import { get, del, apiClient, getAccessToken } from './client';
-import type { FileMetadataDto } from '@/types/files';
+import type { FileMetadataDto, UploadFileOptions } from '@/types/files';
 
 const API_BASE_URL =
   import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 
-/**
- * Upload options for file upload
- */
-export interface UploadFileOptions {
-  /** Optional description or alt text */
-  description?: string;
-  /** Optional file type category IdKey (from DefinedValue) */
-  binaryFileTypeIdKey?: string;
-}
+// Re-export for backward compatibility
+export type { UploadFileOptions };
 
 /**
  * Uploads a file

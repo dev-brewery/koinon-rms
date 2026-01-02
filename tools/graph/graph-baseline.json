@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-02T20:38:19.991602+00:00",
+  "generated_at": "2026-01-02T20:57:03.444452+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -8511,6 +8511,7 @@
     "dto:CampusSummaryDto": "type:CampusSummaryDto",
     "dto:PickupLogDto": "type:PickupLogDto",
     "dto:PickupVerificationResultDto": "type:PickupVerificationResultDto",
+    "dto:PublicGroupDto": "type:PublicGroupDto",
     "dto:RoomCapacityDto": "type:RoomCapacityDto",
     "dto:UpdateCapacitySettingsDto": "type:UpdateCapacitySettingsDto",
     "dto:CapacityOverrideRequestDto": "type:CapacityOverrideRequestDto",
@@ -8525,7 +8526,7 @@
     "dtos": 77,
     "services": 69,
     "controllers": 22,
-    "types": 225,
+    "types": 231,
     "api_functions": 111,
     "hooks": 83,
     "components": 93,
