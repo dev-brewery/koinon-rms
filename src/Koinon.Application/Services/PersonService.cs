@@ -83,7 +83,9 @@ public class PersonService(
         PersonSearchParameters parameters,
         CancellationToken ct = default)
     {
-        var query = context.People.AsNoTracking();
+        IQueryable<Person> query = context.People
+            .AsNoTracking()
+            .Include(p => p.Photo);
 
         // Apply full-text search if query provided
         if (!string.IsNullOrWhiteSpace(parameters.Query))

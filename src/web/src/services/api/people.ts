@@ -104,3 +104,17 @@ export async function getPersonGroups(
 
   return get<PagedResult<GroupMembershipDto>>(endpoint);
 }
+
+/**
+ * Upload a photo for a person
+ */
+export async function uploadPersonPhoto(
+  idKey: string,
+  file: File
+): Promise<PersonDetailDto> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await post<{ data: PersonDetailDto }>(`/people/${idKey}/photo`, formData);
+  return response.data;
+}
