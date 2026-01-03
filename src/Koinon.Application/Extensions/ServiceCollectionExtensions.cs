@@ -3,8 +3,10 @@ using Koinon.Application.DTOs.Auth;
 using Koinon.Application.Interfaces;
 using Koinon.Application.Services;
 using Koinon.Application.Services.Common;
+using Koinon.Application.Services.Reporting;
 using Koinon.Application.Validators;
 using Microsoft.Extensions.DependencyInjection;
+using QuestPDF.Infrastructure;
 
 namespace Koinon.Application.Extensions;
 
@@ -110,6 +112,16 @@ public static class ServiceCollectionExtensions
 
         // Audit log cleanup service (called by Hangfire)
         services.AddScoped<AuditLogCleanupService>();
+
+        // Reporting services
+        services.AddScoped<IReportService, ReportService>();
+        services.AddScoped<IReportScheduleService, ReportScheduleService>();
+        services.AddScoped<ReportGeneratorFactory>();
+
+        // Report generators (Transient for stateless generation)
+        services.AddTransient<AttendanceSummaryReportGenerator>();
+        services.AddTransient<GivingSummaryReportGenerator>();
+        services.AddTransient<DirectoryReportGenerator>();
 
         // Configure QuestPDF license
         QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;

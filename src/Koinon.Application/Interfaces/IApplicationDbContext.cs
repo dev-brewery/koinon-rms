@@ -46,6 +46,9 @@ public interface IApplicationDbContext
     DbSet<BinaryFile> BinaryFiles { get; }
     DbSet<ImportTemplate> ImportTemplates { get; }
     DbSet<ImportJob> ImportJobs { get; }
+    DbSet<ReportDefinition> ReportDefinitions { get; }
+    DbSet<ReportRun> ReportRuns { get; }
+    DbSet<ReportSchedule> ReportSchedules { get; }
 
     // Security/RBAC
     DbSet<SecurityRole> SecurityRoles { get; }

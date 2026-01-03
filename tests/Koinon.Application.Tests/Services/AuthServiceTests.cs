@@ -451,6 +451,9 @@ public class AuthServiceTests
         public DbSet<BinaryFile> BinaryFiles { get; set; } = null!;
         public DbSet<ImportTemplate> ImportTemplates { get; set; } = null!;
         public DbSet<ImportJob> ImportJobs { get; set; } = null!;
+        public DbSet<ReportDefinition> ReportDefinitions { get; set; } = null!;
+        public DbSet<ReportRun> ReportRuns { get; set; } = null!;
+        public DbSet<ReportSchedule> ReportSchedules { get; set; } = null!;
 
         // Giving/Financial
         public DbSet<Fund> Funds { get; set; } = null!;
