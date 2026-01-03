@@ -58,4 +58,16 @@ public record Error(string Code, string Message, Dictionary<string, string[]>? D
     /// </summary>
     public static Error Forbidden(string message) =>
         new("FORBIDDEN", message);
+
+    /// <summary>
+    /// Creates a validation error.
+    /// </summary>
+    public static Error Validation(string message) =>
+        new("VALIDATION_ERROR", message);
+
+    /// <summary>
+    /// Creates an internal server error.
+    /// </summary>
+    public static Error Internal(string message, string? details = null) =>
+        new("INTERNAL_ERROR", message, details != null ? new Dictionary<string, string[]> { ["Details"] = new[] { details } } : null);
 }

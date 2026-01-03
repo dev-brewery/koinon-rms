@@ -457,6 +457,7 @@ public class AuthServiceTests
         public DbSet<ContributionBatch> ContributionBatches { get; set; } = null!;
         public DbSet<Contribution> Contributions { get; set; } = null!;
         public DbSet<ContributionDetail> ContributionDetails { get; set; } = null!;
+        public DbSet<ContributionStatement> ContributionStatements { get; set; } = null!;
         public DbSet<FinancialAuditLog> FinancialAuditLogs { get; set; } = null!;
 
         // Security

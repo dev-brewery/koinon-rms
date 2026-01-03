@@ -14,6 +14,10 @@ import type {
   UpdateContributionRequest,
   BatchFilterParams,
   BatchListResponse,
+  ContributionStatementDto,
+  GenerateStatementRequest,
+  StatementPreviewDto,
+  EligiblePersonDto,
 } from '@/types/giving';
 
 // Re-export for backward compatibility
@@ -194,4 +198,102 @@ export async function updateContribution(
  */
 export async function deleteContribution(idKey: string): Promise<void> {
   await del<void>(`/giving/contributions/${idKey}`);
+}
+
+// ============================================================================
+// Contribution Statements
+// ============================================================================
+
+/**
+ * Gets paginated list of contribution statements.
+ * Requires authentication
+ */
+export async function getStatements(
+  page = 1,
+  pageSize = 25
+): Promise<{ data: ContributionStatementDto[]; meta: PaginationMeta }> {
+  const params = new URLSearchParams();
+  params.set('page', page.toString());
+  params.set('pageSize', pageSize.toString());
+
+  const url = `/giving/statements?${params.toString()}`;
+  const response = await get<{ data: ContributionStatementDto[]; meta: PaginationMeta }>(url);
+  return {
+    data: response.data,
+    meta: response.meta,
+  };
+}
+
+/**
+ * Gets a single contribution statement by IdKey.
+ * Requires authentication
+ */
+export async function getStatement(idKey: string): Promise<ContributionStatementDto> {
+  const response = await get<{ data: ContributionStatementDto }>(`/giving/statements/${idKey}`);
+  return response.data;
+}
+
+/**
+ * Previews a statement before generation.
+ * Requires authentication
+ */
+export async function previewStatement(
+  request: GenerateStatementRequest
+): Promise<StatementPreviewDto> {
+  const response = await post<{ data: StatementPreviewDto }>(
+    '/giving/statements/preview',
+    request
+  );
+  return response.data;
+}
+
+/**
+ * Generates a new contribution statement.
+ * Requires authentication
+ */
+export async function generateStatement(
+  request: GenerateStatementRequest
+): Promise<ContributionStatementDto> {
+  // POST returns 201 Created with body directly (not wrapped in data)
+  return post<ContributionStatementDto>('/giving/statements', request);
+}
+
+/**
+ * Downloads statement PDF.
+ * Requires authentication
+ */
+export async function downloadStatementPdf(idKey: string): Promise<Blob> {
+  const response = await fetch(`/api/v1/giving/statements/${idKey}/pdf`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('token')}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to download statement PDF');
+  }
+
+  return response.blob();
+}
+
+/**
+ * Gets eligible people for statement generation.
+ * Requires authentication
+ */
+export async function getEligiblePeople(
+  startDate: string,
+  endDate: string,
+  minimumAmount?: number
+): Promise<EligiblePersonDto[]> {
+  const params = new URLSearchParams();
+  params.set('startDate', startDate);
+  params.set('endDate', endDate);
+  if (minimumAmount !== undefined) {
+    params.set('minimumAmount', minimumAmount.toString());
+  }
+
+  const url = `/giving/statements/eligible?${params.toString()}`;
+  const response = await get<{ data: EligiblePersonDto[] }>(url);
+  return response.data;
 }

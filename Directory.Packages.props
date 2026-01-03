@@ -13,6 +13,7 @@
     <PackageVersion Include="MailKit" Version="4.14.1" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
+    <PackageVersion Include="QuestPDF" Version="2025.12.1" />
     <PackageVersion Include="Twilio" Version="7.13.8" />
   </ItemGroup>
   <!-- ===================================================================== -->
