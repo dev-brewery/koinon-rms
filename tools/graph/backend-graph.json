@@ -68,6 +68,21 @@
       },
       "navigations": []
     },
+    "AuditLog": {
+      "name": "AuditLog",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "audit_log",
+      "properties": {
+        "PersonId": "int?",
+        "OldValues": "string?",
+        "NewValues": "string?",
+        "IpAddress": "string?",
+        "UserAgent": "string?",
+        "ChangedProperties": "string?",
+        "AdditionalInfo": "string?"
+      },
+      "navigations": []
+    },
     "AuthorizedPickup": {
       "name": "AuthorizedPickup",
       "namespace": "Koinon.Domain.Entities",
@@ -900,6 +915,29 @@
       "namespace": "Koinon.Application.DTOs",
       "properties": {},
       "linked_entity": "Attendance"
+    },
+    "AuditLogDto": {
+      "name": "AuditLogDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "PersonIdKey": "string?",
+        "PersonName": "string?",
+        "OldValues": "string?",
+        "NewValues": "string?",
+        "IpAddress": "string?",
+        "UserAgent": "string?",
+        "ChangedProperties": "List<string>?",
+        "AdditionalInfo": "string?",
+        "StartDate": "DateTime?",
+        "EndDate": "DateTime?",
+        "EntityType": "string?",
+        "ActionType": "AuditAction?",
+        "EntityIdKey": "string?",
+        "Page": "int",
+        "PageSize": "int",
+        "Format": "ExportFormat"
+      },
+      "linked_entity": "AuditLog"
     },
     "AuthorizedPickupDto": {
       "name": "AuthorizedPickupDto",
@@ -2243,6 +2281,64 @@
       "dependencies": [
         "IApplicationDbContext",
         "ILogger<AttendanceTakerService>"
+      ]
+    },
+    "AuditLogCleanupService": {
+      "name": "AuditLogCleanupService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "AuditLogCleanupService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "CleanupAsync",
+          "return_type": "Task<int>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IOptions<AuditRetentionSettings>",
+        "ILogger<AuditLogCleanupService>"
+      ]
+    },
+    "AuditService": {
+      "name": "AuditService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "AuditService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "LogAsync",
+          "return_type": "Task",
+          "is_async": false
+        },
+        {
+          "name": "SearchAsync",
+          "return_type": "Task<PagedResult<AuditLogDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetByEntityAsync",
+          "return_type": "Task<IEnumerable<AuditLogDto>>",
+          "is_async": false
+        },
+        {
+          "name": "ExportAsync",
+          "return_type": "Task<byte[]>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IUserContext",
+        "IMapper",
+        "ILogger<AuditService>"
       ]
     },
     "AuthService": {
@@ -3829,6 +3925,12 @@
       "methods": [],
       "dependencies": []
     },
+    "IAuditService": {
+      "name": "IAuditService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
     "IAuthService": {
       "name": "IAuthService",
       "namespace": "Koinon.Application.Interfaces",
@@ -4156,6 +4258,41 @@
         "IAttendanceAnalyticsService",
         "IFirstTimeVisitorService",
         "ILogger<AnalyticsController>"
+      ]
+    },
+    "AuditLogsController": {
+      "name": "AuditLogsController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/audit-logs",
+      "endpoints": [
+        {
+          "name": "GetByEntity",
+          "method": "GET",
+          "route": "entity/{entityType}/{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Export",
+          "method": "GET",
+          "route": "export",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": true,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "IAuditService",
+        "ILogger<AuditLogsController>"
       ]
     },
     "AuthController": {
@@ -5814,6 +5951,11 @@
       "relationship": "maps_to"
     },
     {
+      "source": "AuditLogDto",
+      "target": "AuditLog",
+      "relationship": "maps_to"
+    },
+    {
       "source": "AuthorizedPickupDto",
       "target": "AuthorizedPickup",
       "relationship": "maps_to"
@@ -6024,6 +6166,11 @@
       "relationship": "depends_on"
     },
     {
+      "source": "AuditLogsController",
+      "target": "IAuditService",
+      "relationship": "depends_on"
+    },
+    {
       "source": "AuthController",
       "target": "IAuthService",
       "relationship": "depends_on"
@@ -6221,6 +6368,16 @@
     {
       "source": "AttendanceTakerService",
       "target": "MarkAttendanceResultDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "AuditService",
+      "target": "AuditLogDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "AuditService",
+      "target": "AuditLogDto",
       "relationship": "returns"
     },
     {
@@ -6774,6 +6931,11 @@
       "relationship": "uses"
     },
     {
+      "source": "AuditLogCleanupService",
+      "target": "AuditLog",
+      "relationship": "uses"
+    },
+    {
       "source": "AuthorizedPickupService",
       "target": "AuthorizedPickup",
       "relationship": "uses"
@@ -6970,10 +7132,10 @@
     }
   ],
   "summary": {
-    "total_entities": 46,
-    "total_dtos": 93,
-    "total_services": 85,
-    "total_controllers": 27,
-    "total_relationships": 235
+    "total_entities": 47,
+    "total_dtos": 94,
+    "total_services": 88,
+    "total_controllers": 28,
+    "total_relationships": 240
   }
 }

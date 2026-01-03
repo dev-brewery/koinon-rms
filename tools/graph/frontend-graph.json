@@ -3230,6 +3230,52 @@
       },
       "path": "services/api/types.ts"
     },
+    "AuditLogDto": {
+      "name": "AuditLogDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "actionType": "AuditAction",
+        "entityType": "string",
+        "entityIdKey": "IdKey",
+        "personIdKey": "IdKey",
+        "personName": "string",
+        "timestamp": "DateTime",
+        "oldValues": "string",
+        "newValues": "string",
+        "ipAddress": "string",
+        "userAgent": "string",
+        "changedProperties": "string[]",
+        "additionalInfo": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "AuditLogSearchParams": {
+      "name": "AuditLogSearchParams",
+      "kind": "interface",
+      "properties": {
+        "startDate": "DateTime",
+        "endDate": "DateTime",
+        "entityType": "string",
+        "actionType": "AuditAction",
+        "personIdKey": "IdKey",
+        "entityIdKey": "IdKey"
+      },
+      "path": "services/api/types.ts"
+    },
+    "AuditLogExportParams": {
+      "name": "AuditLogExportParams",
+      "kind": "interface",
+      "properties": {
+        "startDate": "DateTime",
+        "endDate": "DateTime",
+        "entityType": "string",
+        "actionType": "AuditAction",
+        "personIdKey": "IdKey",
+        "format": "ExportFormat"
+      },
+      "path": "services/api/types.ts"
+    },
     "IdKey": {
       "name": "IdKey",
       "kind": "type",
@@ -3289,6 +3335,18 @@
       "kind": "enum",
       "properties": {},
       "path": "services/api/types.ts"
+    },
+    "AuditAction": {
+      "name": "AuditAction",
+      "kind": "enum",
+      "properties": {},
+      "path": "services/api/types.ts"
+    },
+    "ExportFormat": {
+      "name": "ExportFormat",
+      "kind": "enum",
+      "properties": {},
+      "path": "services/api/types.ts"
     }
   },
   "api_functions": {
@@ -3326,6 +3384,20 @@
       "endpoint": "/analytics/first-time-visitors?${queryParams.toString()}",
       "method": "GET",
       "responseType": "FirstTimeVisitorDto[]"
+    },
+    "getEntityAuditHistory": {
+      "name": "getEntityAuditHistory",
+      "path": "services/api/auditLogApi.ts",
+      "endpoint": "/audit-logs/entity/${entityType}/${idKey}",
+      "method": "GET",
+      "responseType": "AuditLogDto[]"
+    },
+    "exportAuditLogs": {
+      "name": "exportAuditLogs",
+      "path": "services/api/auditLogApi.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "Blob"
     },
     "login": {
       "name": "login",
@@ -4365,6 +4437,43 @@
       "usesMutation": false,
       "dependencies": [
         "getFirstTimeVisitorsByDateRange"
+      ]
+    },
+    "useAuditLogs": {
+      "name": "useAuditLogs",
+      "path": "hooks/useAuditLogs.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "auditlogs"
+      ],
+      "usesQuery": false,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useEntityAuditHistory": {
+      "name": "useEntityAuditHistory",
+      "path": "hooks/useAuditLogs.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "audit-logs"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getEntityAuditHistory"
+      ]
+    },
+    "useExportAuditLogs": {
+      "name": "useExportAuditLogs",
+      "path": "hooks/useAuditLogs.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "exportauditlogs"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "exportAuditLogs"
       ]
     },
     "useAuth": {
@@ -5932,6 +6041,24 @@
       "hooksUsed": [
         "useTodaysFirstTimeVisitors"
       ],
+      "apiCallsDirectly": false
+    },
+    "AuditLogDetailModal": {
+      "name": "AuditLogDetailModal",
+      "path": "components/admin/audit/AuditLogDetailModal.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "AuditLogFilters": {
+      "name": "AuditLogFilters",
+      "path": "components/admin/audit/AuditLogFilters.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "AuditLogTable": {
+      "name": "AuditLogTable",
+      "path": "components/admin/audit/AuditLogTable.tsx",
+      "hooksUsed": [],
       "apiCallsDirectly": false
     },
     "CommunicationsSummaryCard": {
