@@ -855,6 +855,22 @@
       "properties": {},
       "linked_entity": "AuthorizedPickup"
     },
+    "CampusDto": {
+      "name": "CampusDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "ShortCode": "string?",
+        "Description": "string?",
+        "IsActive": "bool",
+        "Url": "string?",
+        "PhoneNumber": "string?",
+        "TimeZoneId": "string?",
+        "ServiceTimes": "string?",
+        "Order": "int",
+        "ModifiedDateTime": "DateTime?"
+      },
+      "linked_entity": "Campus"
+    },
     "CheckinRequestDto": {
       "name": "CheckinRequestDto",
       "namespace": "Koinon.Application.DTOs",
@@ -3964,11 +3980,39 @@
       "name": "CampusesController",
       "namespace": "Koinon.Api.Controllers",
       "route": "api/v1/[controller]",
-      "endpoints": [],
+      "endpoints": [
+        {
+          "name": "GetByIdKey",
+          "method": "GET",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Update",
+          "method": "PUT",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Delete",
+          "method": "DELETE",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
       "patterns": {
         "response_envelope": true,
-        "idkey_routes": false,
-        "problem_details": false,
+        "idkey_routes": true,
+        "problem_details": true,
         "result_pattern": false
       },
       "dependencies": [
@@ -5343,6 +5387,71 @@
       "usesMutation": false,
       "dependencies": []
     },
+    "useCampuses": {
+      "name": "useCampuses",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "getCampuses",
+      "queryKey": [
+        "campuses"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getCampuses"
+      ]
+    },
+    "useCampus": {
+      "name": "useCampus",
+      "path": "hooks/useCampuses.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "campuses"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getCampus"
+      ]
+    },
+    "useCreateCampus": {
+      "name": "useCreateCampus",
+      "path": "hooks/useCampuses.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "campuses"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "createCampus"
+      ]
+    },
+    "useUpdateCampus": {
+      "name": "useUpdateCampus",
+      "path": "hooks/useCampuses.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "campuses"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "updateCampus"
+      ]
+    },
+    "useDeleteCampus": {
+      "name": "useDeleteCampus",
+      "path": "hooks/useCampuses.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "campuses"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "deleteCampus"
+      ]
+    },
     "useCheckinConfiguration": {
       "name": "useCheckinConfiguration",
       "path": "hooks/useCheckin.ts",
@@ -5856,19 +5965,6 @@
       "usesMutation": true,
       "dependencies": [
         "deleteContribution"
-      ]
-    },
-    "useCampuses": {
-      "name": "useCampuses",
-      "path": "hooks/useGiving.ts",
-      "apiBinding": "getCampuses",
-      "queryKey": [
-        "campuses"
-      ],
-      "usesQuery": true,
-      "usesMutation": false,
-      "dependencies": [
-        "getCampuses"
       ]
     },
     "useGroupTypes": {
@@ -6536,6 +6632,41 @@
       "endpoint": "/unknown",
       "method": "GET",
       "responseType": "{ message: string; count: number; pickups: AuthorizedPickupDto[] }"
+    },
+    "getCampuses": {
+      "name": "getCampuses",
+      "path": "services/api/reference.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "CampusDto[]"
+    },
+    "getCampus": {
+      "name": "getCampus",
+      "path": "services/api/campuses.ts",
+      "endpoint": "${BASE_URL}/${idKey}",
+      "method": "GET",
+      "responseType": "CampusDto"
+    },
+    "createCampus": {
+      "name": "createCampus",
+      "path": "services/api/campuses.ts",
+      "endpoint": "/unknown",
+      "method": "POST",
+      "responseType": "CampusDto"
+    },
+    "updateCampus": {
+      "name": "updateCampus",
+      "path": "services/api/campuses.ts",
+      "endpoint": "${BASE_URL}/${idKey}",
+      "method": "PUT",
+      "responseType": "CampusDto"
+    },
+    "deleteCampus": {
+      "name": "deleteCampus",
+      "path": "services/api/campuses.ts",
+      "endpoint": "${BASE_URL}/${idKey}",
+      "method": "DELETE",
+      "responseType": "void"
     },
     "getCheckinConfiguration": {
       "name": "getCheckinConfiguration",
@@ -7258,13 +7389,6 @@
       "method": "GET",
       "responseType": "DefinedValueDto[]"
     },
-    "getCampuses": {
-      "name": "getCampuses",
-      "path": "services/api/reference.ts",
-      "endpoint": "/unknown",
-      "method": "GET",
-      "responseType": "CampusDto[]"
-    },
     "getScheduleByIdKey": {
       "name": "getScheduleByIdKey",
       "path": "services/api/schedules.ts",
@@ -7324,6 +7448,21 @@
       "name": "Breadcrumb",
       "path": "components/admin/Breadcrumb.tsx",
       "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "CampusCard": {
+      "name": "CampusCard",
+      "path": "components/admin/CampusCard.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "CampusEditorModal": {
+      "name": "CampusEditorModal",
+      "path": "components/admin/CampusEditorModal.tsx",
+      "hooksUsed": [
+        "useCreateCampus",
+        "useUpdateCampus"
+      ],
       "apiCallsDirectly": false
     },
     "GroupTypeCard": {
@@ -7990,6 +8129,11 @@
     {
       "source": "AuthorizedPickupDto",
       "target": "AuthorizedPickup",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CampusDto",
+      "target": "Campus",
       "relationship": "maps_to"
     },
     {
@@ -9093,6 +9237,16 @@
       "type": "api_binding"
     },
     {
+      "from": "CampusEditorModal",
+      "to": "useCreateCampus",
+      "type": "uses_hook"
+    },
+    {
+      "from": "CampusEditorModal",
+      "to": "useUpdateCampus",
+      "type": "uses_hook"
+    },
+    {
       "from": "GroupTypeEditorModal",
       "to": "useGroupType",
       "type": "uses_hook"
@@ -9252,6 +9406,7 @@
     "dto:FamilyRosterGroupDto": "type:FamilyRosterGroupDto",
     "dto:AttendanceTrendDto": "type:AttendanceTrendDto",
     "dto:AuthorizedPickupDto": "type:AuthorizedPickupDto",
+    "dto:CampusDto": "type:CampusDto",
     "dto:CheckinRequestDto": "type:CheckinRequestDto",
     "dto:BatchCheckinRequestDto": "type:BatchCheckinRequestDto",
     "dto:CheckinResultDto": "type:CheckinResultDto",
@@ -9330,13 +9485,13 @@
   },
   "stats": {
     "entities": 43,
-    "dtos": 87,
+    "dtos": 88,
     "services": 75,
     "controllers": 24,
-    "types": 243,
-    "api_functions": 122,
-    "hooks": 95,
-    "components": 102,
-    "total_edges": 255
+    "types": 245,
+    "api_functions": 126,
+    "hooks": 99,
+    "components": 104,
+    "total_edges": 258
   }
 }

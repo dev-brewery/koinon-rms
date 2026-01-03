@@ -668,12 +668,16 @@ export interface CampusDto {
   idKey: IdKey;
   guid: Guid;
   name: string;
+  description?: string;
   shortCode?: string;
   isActive: boolean;
+  order: number;
   url?: string;
   phoneNumber?: string;
   serviceTimes?: string;
   timeZoneId?: string;
+  createdDateTime?: DateTime;
+  modifiedDateTime?: DateTime;
 }
 
 export interface CampusSummaryDto {
