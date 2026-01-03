@@ -210,10 +210,25 @@ public class ReportScheduleService(
             timeZoneChanged = true;
         }
 
-        if (request.Parameters != null) schedule.Parameters = request.Parameters;
-        if (request.RecipientPersonAliasIds != null) schedule.RecipientPersonAliasIds = request.RecipientPersonAliasIds;
-        if (request.OutputFormat.HasValue) schedule.OutputFormat = request.OutputFormat.Value;
-        if (request.IsActive.HasValue) schedule.IsActive = request.IsActive.Value;
+        if (request.Parameters != null)
+        {
+            schedule.Parameters = request.Parameters;
+        }
+
+        if (request.RecipientPersonAliasIds != null)
+        {
+            schedule.RecipientPersonAliasIds = request.RecipientPersonAliasIds;
+        }
+
+        if (request.OutputFormat.HasValue)
+        {
+            schedule.OutputFormat = request.OutputFormat.Value;
+        }
+
+        if (request.IsActive.HasValue)
+        {
+            schedule.IsActive = request.IsActive.Value;
+        }
 
         schedule.ModifiedDateTime = DateTime.UtcNow;
 

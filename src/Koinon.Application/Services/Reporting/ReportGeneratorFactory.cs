@@ -21,7 +21,7 @@ public class ReportGeneratorFactory(IServiceProvider serviceProvider)
     public IReportGenerator GetGenerator(ReportType type, ReportOutputFormat format)
     {
         var context = serviceProvider.GetRequiredService<IApplicationDbContext>();
-        
+
         IReportGenerator generator = type switch
         {
             ReportType.AttendanceSummary => new AttendanceSummaryReportGenerator(

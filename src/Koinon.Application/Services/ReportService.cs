@@ -115,12 +115,35 @@ public class ReportService(
         }
 
         // Apply updates
-        if (request.Name != null) definition.Name = request.Name;
-        if (request.Description != null) definition.Description = request.Description;
-        if (request.ParameterSchema != null) definition.ParameterSchema = request.ParameterSchema;
-        if (request.DefaultParameters != null) definition.DefaultParameters = request.DefaultParameters;
-        if (request.OutputFormat.HasValue) definition.OutputFormat = request.OutputFormat.Value;
-        if (request.IsActive.HasValue) definition.IsActive = request.IsActive.Value;
+        if (request.Name != null)
+        {
+            definition.Name = request.Name;
+        }
+
+        if (request.Description != null)
+        {
+            definition.Description = request.Description;
+        }
+
+        if (request.ParameterSchema != null)
+        {
+            definition.ParameterSchema = request.ParameterSchema;
+        }
+
+        if (request.DefaultParameters != null)
+        {
+            definition.DefaultParameters = request.DefaultParameters;
+        }
+
+        if (request.OutputFormat.HasValue)
+        {
+            definition.OutputFormat = request.OutputFormat.Value;
+        }
+
+        if (request.IsActive.HasValue)
+        {
+            definition.IsActive = request.IsActive.Value;
+        }
 
         definition.ModifiedDateTime = DateTime.UtcNow;
 
