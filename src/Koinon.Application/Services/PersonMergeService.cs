@@ -348,7 +348,9 @@ public class PersonMergeService(
             var source = selection.Value.ToLowerInvariant();
 
             if (source != "merged")
+            {
                 continue; // Keep survivor's value
+            }
 
             // Apply merged person's value to survivor for selected fields
             switch (fieldName)

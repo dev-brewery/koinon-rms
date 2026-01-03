@@ -57,7 +57,9 @@ public class DuplicateDetectionService(
                 // Skip if pair is ignored
                 var pairKey = (Math.Min(person1.Id, person2.Id), Math.Max(person1.Id, person2.Id));
                 if (ignoredSet.Contains(pairKey))
+                {
                     continue;
+                }
 
                 var (score, reasons) = CalculateMatchScore(person1, person2);
 
@@ -145,7 +147,9 @@ public class DuplicateDetectionService(
         foreach (var otherPerson in otherPeople)
         {
             if (ignoredSet.Contains(otherPerson.Id))
+            {
                 continue;
+            }
 
             var (score, reasons) = CalculateMatchScore(targetPerson, otherPerson);
 
@@ -263,7 +267,9 @@ public class DuplicateDetectionService(
     private double CalculateNameSimilarity(string name1, string name2)
     {
         if (string.IsNullOrEmpty(name1) || string.IsNullOrEmpty(name2))
+        {
             return 0;
+        }
 
         int distance = LevenshteinDistance(name1, name2);
         int maxLength = Math.Max(name1.Length, name2.Length);
@@ -279,10 +285,14 @@ public class DuplicateDetectionService(
         int[,] d = new int[s1.Length + 1, s2.Length + 1];
 
         for (int i = 0; i <= s1.Length; i++)
+        {
             d[i, 0] = i;
+        }
 
         for (int j = 0; j <= s2.Length; j++)
+        {
             d[0, j] = j;
+        }
 
         for (int j = 1; j <= s2.Length; j++)
         {
