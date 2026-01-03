@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-01-03T04:49:23.468Z",
+  "generated_at": "2026-01-03T13:18:49.436Z",
   "types": {
     "AttendanceAnalyticsDto": {
       "name": "AttendanceAnalyticsDto",

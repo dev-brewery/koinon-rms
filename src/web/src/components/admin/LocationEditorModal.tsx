@@ -3,7 +3,7 @@
  * Modal for creating and editing locations
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { LocationDto } from '@/types/location';
 import type { CreateLocationRequest, UpdateLocationRequest } from '@/types/location';
 import { useCreateLocation, useUpdateLocation, useLocations } from '@/hooks/useLocations';
@@ -45,6 +45,10 @@ export function LocationEditorModal({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Refs for focus management
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const previousActiveElementRef = useRef<HTMLElement | null>(null);
+
   // Populate form when editing
   useEffect(() => {
     if (location) {
@@ -71,6 +75,18 @@ export function LocationEditorModal({
       });
     }
   }, [location, parentLocationIdKey]);
+
+  // Handle focus management and escape key
+  useEffect(() => {
+    if (isOpen) {
+      // Save current focus and focus modal
+      previousActiveElementRef.current = document.activeElement as HTMLElement;
+      nameInputRef.current?.focus();
+    } else if (previousActiveElementRef.current && document.body.contains(previousActiveElementRef.current)) {
+      // Restore focus when modal closes (only if element still exists)
+      previousActiveElementRef.current.focus();
+    }
+  }, [isOpen]);
 
   // Handle escape key
   useEffect(() => {
@@ -141,6 +157,7 @@ export function LocationEditorModal({
 
       onClose();
     } catch (error) {
+      // ANTI-PATTERN OK: temporary logging until Sentry integration
       console.error('Failed to save location:', error);
     }
   };
@@ -151,6 +168,17 @@ export function LocationEditorModal({
 
   const isPending = createMutation.isPending || updateMutation.isPending;
   const error = createMutation.error || updateMutation.error;
+
+  // Helper to extract user-friendly error messages
+  const getErrorMessage = (err: unknown): string => {
+    if (err instanceof Error) {
+      return err.message;
+    }
+    if (typeof err === 'object' && err !== null && 'message' in err) {
+      return String((err as { message: unknown }).message);
+    }
+    return 'An unexpected error occurred. Please try again.';
+  };
 
   // Filter out the current location from parent options (can't be its own parent)
   const availableParentLocations = isEditing
@@ -173,6 +201,7 @@ export function LocationEditorModal({
               Name <span className="text-red-500">*</span>
             </label>
             <input
+              ref={nameInputRef}
               type="text"
               id="name"
               value={formData.name}
@@ -181,8 +210,15 @@ export function LocationEditorModal({
                 errors.name ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="Children's Ministry"
+              aria-required="true"
+              aria-invalid={!!errors.name}
+              aria-describedby={errors.name ? 'name-error' : undefined}
             />
-            {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
+            {errors.name && (
+              <p id="name-error" role="alert" className="mt-1 text-sm text-red-600">
+                {errors.name}
+              </p>
+            )}
           </div>
 
           {/* Description */}
@@ -200,9 +236,15 @@ export function LocationEditorModal({
                 errors.description ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="Brief description of this location"
+              aria-invalid={!!errors.description}
+              aria-describedby={errors.description ? 'description-error description-hint' : 'description-hint'}
             />
-            {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
-            <p className="mt-1 text-sm text-gray-500">
+            {errors.description && (
+              <p id="description-error" role="alert" className="mt-1 text-sm text-red-600">
+                {errors.description}
+              </p>
+            )}
+            <p id="description-hint" className="mt-1 text-sm text-gray-500">
               {formData.description.length}/500 characters
             </p>
           </div>
@@ -217,6 +259,7 @@ export function LocationEditorModal({
               value={formData.parentLocationIdKey}
               onChange={(e) => setFormData({ ...formData, parentLocationIdKey: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              aria-describedby="parentLocationIdKey-hint"
             >
               <option value="">None (Top Level)</option>
               {availableParentLocations.map((loc) => (
@@ -225,7 +268,7 @@ export function LocationEditorModal({
                 </option>
               ))}
             </select>
-            <p className="mt-1 text-sm text-gray-500">
+            <p id="parentLocationIdKey-hint" className="mt-1 text-sm text-gray-500">
               Optional: select a parent location to create a hierarchy
             </p>
           </div>
@@ -267,11 +310,15 @@ export function LocationEditorModal({
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
                   errors.softRoomThreshold ? 'border-red-500' : 'border-gray-300'
                 }`}
+                aria-invalid={!!errors.softRoomThreshold}
+                aria-describedby={errors.softRoomThreshold ? 'softRoomThreshold-error softRoomThreshold-hint' : 'softRoomThreshold-hint'}
               />
               {errors.softRoomThreshold && (
-                <p className="mt-1 text-sm text-red-600">{errors.softRoomThreshold}</p>
+                <p id="softRoomThreshold-error" role="alert" className="mt-1 text-sm text-red-600">
+                  {errors.softRoomThreshold}
+                </p>
               )}
-              <p className="mt-1 text-sm text-gray-500">Warning capacity</p>
+              <p id="softRoomThreshold-hint" className="mt-1 text-sm text-gray-500">Warning capacity</p>
             </div>
 
             <div>
@@ -287,8 +334,9 @@ export function LocationEditorModal({
                 }
                 min="0"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                aria-describedby="firmRoomThreshold-hint"
               />
-              <p className="mt-1 text-sm text-gray-500">Maximum capacity</p>
+              <p id="firmRoomThreshold-hint" className="mt-1 text-sm text-gray-500">Maximum capacity</p>
             </div>
           </div>
 
@@ -304,8 +352,9 @@ export function LocationEditorModal({
               onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value, 10) || 0 })}
               min="0"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              aria-describedby="order-hint"
             />
-            <p className="mt-1 text-sm text-gray-500">Lower numbers appear first</p>
+            <p id="order-hint" className="mt-1 text-sm text-gray-500">Lower numbers appear first</p>
           </div>
 
           {/* Is Active (only shown in edit mode) */}
@@ -326,9 +375,9 @@ export function LocationEditorModal({
 
           {/* Error Display */}
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <p className="text-sm text-red-800">
-                Failed to {isEditing ? 'update' : 'create'} location. Please try again.
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4" role="alert">
+              <p className="text-sm font-medium text-red-800">
+                {getErrorMessage(error)}
               </p>
             </div>
           )}

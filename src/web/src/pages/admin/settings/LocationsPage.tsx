@@ -84,6 +84,17 @@ export function LocationsPage() {
     setLocationToDelete(undefined);
   };
 
+  // Helper to extract user-friendly error messages
+  const getErrorMessage = (err: unknown): string => {
+    if (err instanceof Error) {
+      return err.message;
+    }
+    if (typeof err === 'object' && err !== null && 'message' in err) {
+      return String((err as { message: unknown }).message);
+    }
+    return 'An unexpected error occurred. Please try again.';
+  };
+
   // Find location name for delete confirmation
   const getLocationName = (idKey: string): string => {
     const findInTree = (nodes: LocationDto[]): string | undefined => {
@@ -164,7 +175,7 @@ export function LocationsPage() {
 
       {/* Error State */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4" role="alert">
           <div className="flex items-center gap-2">
             <svg
               className="w-5 h-5 text-red-600"
@@ -180,7 +191,7 @@ export function LocationsPage() {
                 d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <p className="text-sm font-medium text-red-800">Failed to load locations</p>
+            <p className="text-sm font-medium text-red-800">{getErrorMessage(error)}</p>
           </div>
         </div>
       )}
@@ -274,8 +285,8 @@ export function LocationsPage() {
                   Are you sure you want to delete "{locationToDelete ? getLocationName(locationToDelete) : 'this location'}"? This action cannot be undone.
                 </p>
                 {deleteMutation.error && (
-                  <p className="mt-2 text-sm text-red-600">
-                    Failed to delete location. It may have child locations or be in use.
+                  <p className="mt-2 text-sm text-red-600" role="alert">
+                    {getErrorMessage(deleteMutation.error)}
                   </p>
                 )}
               </div>

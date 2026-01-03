@@ -187,7 +187,6 @@ public class LocationsController(
             .Include(l => l.Campus)
             .Include(l => l.LocationTypeValue)
             .Include(l => l.OverflowLocation)
-            .Include(l => l.ChildLocations.Where(cl => cl.IsActive))
             .AsNoTracking()
             .Where(l => l.Id == id)
             .FirstOrDefaultAsync(ct);
@@ -226,13 +225,58 @@ public class LocationsController(
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] CreateLocationRequest request, CancellationToken ct = default)
     {
+        // Trim string inputs
+        var name = request.Name?.Trim();
+        var description = request.Description?.Trim();
+        var street1 = request.Street1?.Trim();
+        var street2 = request.Street2?.Trim();
+        var city = request.City?.Trim();
+        var state = request.State?.Trim();
+        var postalCode = request.PostalCode?.Trim();
+        var country = request.Country?.Trim();
+
         // Validate required fields
-        if (string.IsNullOrWhiteSpace(request.Name))
+        if (string.IsNullOrWhiteSpace(name))
         {
             return BadRequest(new ProblemDetails
             {
                 Title = "Validation failed",
                 Detail = "Location name is required",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        // Validate capacity thresholds
+        if (request.SoftRoomThreshold.HasValue && request.SoftRoomThreshold.Value < 0)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Validation failed",
+                Detail = "Soft room threshold must be non-negative",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        if (request.FirmRoomThreshold.HasValue && request.FirmRoomThreshold.Value < 0)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Validation failed",
+                Detail = "Firm room threshold must be non-negative",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        if (request.SoftRoomThreshold.HasValue && request.FirmRoomThreshold.HasValue &&
+            request.SoftRoomThreshold.Value > request.FirmRoomThreshold.Value)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Validation failed",
+                Detail = "Soft room threshold must be less than or equal to firm room threshold",
                 Status = StatusCodes.Status400BadRequest,
                 Instance = HttpContext.Request.Path
             });
@@ -252,6 +296,22 @@ public class LocationsController(
                     Instance = HttpContext.Request.Path
                 });
             }
+
+            // BLOCKER #1: Validate parent location exists
+            var parentExists = await context.Locations
+                .AnyAsync(l => l.Id == parentId, ct);
+
+            if (!parentExists)
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Validation failed",
+                    Detail = $"Parent location not found with IdKey '{request.ParentLocationIdKey}'",
+                    Status = StatusCodes.Status400BadRequest,
+                    Instance = HttpContext.Request.Path
+                });
+            }
+
             parentLocationId = parentId;
         }
 
@@ -269,6 +329,22 @@ public class LocationsController(
                     Instance = HttpContext.Request.Path
                 });
             }
+
+            // BLOCKER #5: Validate campus exists
+            var campusExists = await context.Campuses
+                .AnyAsync(c => c.Id == cId, ct);
+
+            if (!campusExists)
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Validation failed",
+                    Detail = $"Campus not found with IdKey '{request.CampusIdKey}'",
+                    Status = StatusCodes.Status400BadRequest,
+                    Instance = HttpContext.Request.Path
+                });
+            }
+
             campusId = cId;
         }
 
@@ -286,6 +362,22 @@ public class LocationsController(
                     Instance = HttpContext.Request.Path
                 });
             }
+
+            // BLOCKER #7: Validate location type exists
+            var typeExists = await context.DefinedValues
+                .AnyAsync(dv => dv.Id == typeId, ct);
+
+            if (!typeExists)
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Validation failed",
+                    Detail = $"Location type not found with IdKey '{request.LocationTypeValueIdKey}'",
+                    Status = StatusCodes.Status400BadRequest,
+                    Instance = HttpContext.Request.Path
+                });
+            }
+
             locationTypeValueId = typeId;
         }
 
@@ -303,13 +395,29 @@ public class LocationsController(
                     Instance = HttpContext.Request.Path
                 });
             }
+
+            // BLOCKER #3: Validate overflow location exists
+            var overflowExists = await context.Locations
+                .AnyAsync(l => l.Id == overflowId, ct);
+
+            if (!overflowExists)
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Validation failed",
+                    Detail = $"Overflow location not found with IdKey '{request.OverflowLocationIdKey}'",
+                    Status = StatusCodes.Status400BadRequest,
+                    Instance = HttpContext.Request.Path
+                });
+            }
+
             overflowLocationId = overflowId;
         }
 
         var location = new Domain.Entities.Location
         {
-            Name = request.Name,
-            Description = request.Description,
+            Name = name,
+            Description = description,
             ParentLocationId = parentLocationId,
             CampusId = campusId,
             LocationTypeValueId = locationTypeValueId,
@@ -318,12 +426,12 @@ public class LocationsController(
             StaffToChildRatio = request.StaffToChildRatio,
             OverflowLocationId = overflowLocationId,
             AutoAssignOverflow = request.AutoAssignOverflow,
-            Street1 = request.Street1,
-            Street2 = request.Street2,
-            City = request.City,
-            State = request.State,
-            PostalCode = request.PostalCode,
-            Country = request.Country,
+            Street1 = street1,
+            Street2 = street2,
+            City = city,
+            State = state,
+            PostalCode = postalCode,
+            Country = country,
             Latitude = request.Latitude,
             Longitude = request.Longitude,
             IsGeoPointLocked = request.IsGeoPointLocked,
@@ -409,7 +517,8 @@ public class LocationsController(
         // Apply partial updates
         if (request.Name != null)
         {
-            if (string.IsNullOrWhiteSpace(request.Name))
+            var trimmedName = request.Name.Trim();
+            if (string.IsNullOrWhiteSpace(trimmedName))
             {
                 return BadRequest(new ProblemDetails
                 {
@@ -419,12 +528,12 @@ public class LocationsController(
                     Instance = HttpContext.Request.Path
                 });
             }
-            location.Name = request.Name;
+            location.Name = trimmedName;
         }
 
         if (request.Description != null)
         {
-            location.Description = request.Description;
+            location.Description = request.Description.Trim();
         }
 
         if (request.IsActive.HasValue)
@@ -450,6 +559,33 @@ public class LocationsController(
             }
             else
             {
+                // BLOCKER #2: Validate parent location exists
+                var parentExists = await context.Locations
+                    .AnyAsync(l => l.Id == parentId, ct);
+
+                if (!parentExists)
+                {
+                    return BadRequest(new ProblemDetails
+                    {
+                        Title = "Validation failed",
+                        Detail = $"Parent location not found with IdKey '{request.ParentLocationIdKey}'",
+                        Status = StatusCodes.Status400BadRequest,
+                        Instance = HttpContext.Request.Path
+                    });
+                }
+
+                // BLOCKER #2: Check for circular reference
+                if (await WouldCreateCircularReferenceAsync(id, parentId, ct))
+                {
+                    return BadRequest(new ProblemDetails
+                    {
+                        Title = "Validation failed",
+                        Detail = "Setting this parent would create a circular reference in the location hierarchy",
+                        Status = StatusCodes.Status400BadRequest,
+                        Instance = HttpContext.Request.Path
+                    });
+                }
+
                 location.ParentLocationId = parentId;
             }
         }
@@ -472,6 +608,21 @@ public class LocationsController(
             }
             else
             {
+                // BLOCKER #6: Validate campus exists
+                var campusExists = await context.Campuses
+                    .AnyAsync(c => c.Id == campusId, ct);
+
+                if (!campusExists)
+                {
+                    return BadRequest(new ProblemDetails
+                    {
+                        Title = "Validation failed",
+                        Detail = $"Campus not found with IdKey '{request.CampusIdKey}'",
+                        Status = StatusCodes.Status400BadRequest,
+                        Instance = HttpContext.Request.Path
+                    });
+                }
+
                 location.CampusId = campusId;
             }
         }
@@ -494,18 +645,66 @@ public class LocationsController(
             }
             else
             {
+                // BLOCKER #8: Validate location type exists
+                var typeExists = await context.DefinedValues
+                    .AnyAsync(dv => dv.Id == typeId, ct);
+
+                if (!typeExists)
+                {
+                    return BadRequest(new ProblemDetails
+                    {
+                        Title = "Validation failed",
+                        Detail = $"Location type not found with IdKey '{request.LocationTypeValueIdKey}'",
+                        Status = StatusCodes.Status400BadRequest,
+                        Instance = HttpContext.Request.Path
+                    });
+                }
+
                 location.LocationTypeValueId = typeId;
             }
         }
 
         if (request.SoftRoomThreshold.HasValue)
         {
+            if (request.SoftRoomThreshold.Value < 0)
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Validation failed",
+                    Detail = "Soft room threshold must be non-negative",
+                    Status = StatusCodes.Status400BadRequest,
+                    Instance = HttpContext.Request.Path
+                });
+            }
             location.SoftRoomThreshold = request.SoftRoomThreshold.Value;
         }
 
         if (request.FirmRoomThreshold.HasValue)
         {
+            if (request.FirmRoomThreshold.Value < 0)
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Validation failed",
+                    Detail = "Firm room threshold must be non-negative",
+                    Status = StatusCodes.Status400BadRequest,
+                    Instance = HttpContext.Request.Path
+                });
+            }
             location.FirmRoomThreshold = request.FirmRoomThreshold.Value;
+        }
+
+        // Validate threshold relationship after both updates
+        if (location.SoftRoomThreshold.HasValue && location.FirmRoomThreshold.HasValue &&
+            location.SoftRoomThreshold.Value > location.FirmRoomThreshold.Value)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Validation failed",
+                Detail = "Soft room threshold must be less than or equal to firm room threshold",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
         }
 
         if (request.StaffToChildRatio.HasValue)
@@ -531,6 +730,21 @@ public class LocationsController(
             }
             else
             {
+                // BLOCKER #4: Validate overflow location exists
+                var overflowExists = await context.Locations
+                    .AnyAsync(l => l.Id == overflowId, ct);
+
+                if (!overflowExists)
+                {
+                    return BadRequest(new ProblemDetails
+                    {
+                        Title = "Validation failed",
+                        Detail = $"Overflow location not found with IdKey '{request.OverflowLocationIdKey}'",
+                        Status = StatusCodes.Status400BadRequest,
+                        Instance = HttpContext.Request.Path
+                    });
+                }
+
                 location.OverflowLocationId = overflowId;
             }
         }
@@ -542,32 +756,32 @@ public class LocationsController(
 
         if (request.Street1 != null)
         {
-            location.Street1 = request.Street1;
+            location.Street1 = request.Street1.Trim();
         }
 
         if (request.Street2 != null)
         {
-            location.Street2 = request.Street2;
+            location.Street2 = request.Street2.Trim();
         }
 
         if (request.City != null)
         {
-            location.City = request.City;
+            location.City = request.City.Trim();
         }
 
         if (request.State != null)
         {
-            location.State = request.State;
+            location.State = request.State.Trim();
         }
 
         if (request.PostalCode != null)
         {
-            location.PostalCode = request.PostalCode;
+            location.PostalCode = request.PostalCode.Trim();
         }
 
         if (request.Country != null)
         {
-            location.Country = request.Country;
+            location.Country = request.Country.Trim();
         }
 
         if (request.Latitude.HasValue)
@@ -600,7 +814,6 @@ public class LocationsController(
             .Include(l => l.Campus)
             .Include(l => l.LocationTypeValue)
             .Include(l => l.OverflowLocation)
-            .Include(l => l.ChildLocations.Where(cl => cl.IsActive))
             .AsNoTracking()
             .FirstAsync(l => l.Id == location.Id, ct);
 
@@ -620,10 +833,12 @@ public class LocationsController(
     /// <param name="ct">Cancellation token</param>
     /// <returns>No content</returns>
     /// <response code="204">Location deactivated successfully</response>
+    /// <response code="400">Cannot deactivate location with active children</response>
     /// <response code="404">Location not found</response>
     [HttpDelete("{idKey}")]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(string idKey, CancellationToken ct = default)
     {
@@ -657,6 +872,21 @@ public class LocationsController(
             });
         }
 
+        // WARNING #1: Check for active children before soft-deleting
+        var hasActiveChildren = await context.Locations
+            .AnyAsync(l => l.ParentLocationId == id && l.IsActive, ct);
+
+        if (hasActiveChildren)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Validation failed",
+                Detail = "Cannot deactivate location with active child locations. Deactivate children first.",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
         // Soft delete by setting IsActive to false
         location.IsActive = false;
         location.ModifiedDateTime = DateTime.UtcNow;
@@ -666,6 +896,54 @@ public class LocationsController(
         logger.LogInformation("Location deactivated successfully: IdKey={IdKey}", idKey);
 
         return NoContent();
+    }
+
+    /// <summary>
+    /// Checks if setting a new parent would create a circular reference.
+    /// Walks up the parent chain to ensure the new parent is not a descendant of the location.
+    /// </summary>
+    private async Task<bool> WouldCreateCircularReferenceAsync(int locationId, int newParentId, CancellationToken ct)
+    {
+        // If trying to set self as parent, that's circular
+        if (locationId == newParentId)
+        {
+            return true;
+        }
+
+        // Walk up the parent chain from newParentId
+        var currentId = newParentId;
+        var visited = new HashSet<int> { newParentId };
+
+        while (currentId != 0)
+        {
+            var parent = await context.Locations
+                .Where(l => l.Id == currentId)
+                .Select(l => new { l.ParentLocationId })
+                .FirstOrDefaultAsync(ct);
+
+            if (parent?.ParentLocationId == null)
+            {
+                // Reached root, no circular reference
+                return false;
+            }
+
+            currentId = parent.ParentLocationId.Value;
+
+            // If we encounter the location we're updating, it would create a circle
+            if (currentId == locationId)
+            {
+                return true;
+            }
+
+            // Detect infinite loop (shouldn't happen with valid data, but safety check)
+            if (!visited.Add(currentId))
+            {
+                logger.LogWarning("Detected existing circular reference in location hierarchy at Id={CurrentId}", currentId);
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -683,11 +961,7 @@ public class LocationsController(
             Order = location.Order,
             ParentLocationIdKey = location.ParentLocation?.IdKey,
             ParentLocationName = location.ParentLocation?.Name,
-            Children = location.ChildLocations
-                .OrderBy(cl => cl.Order)
-                .ThenBy(cl => cl.Name)
-                .Select(cl => MapToLocationDto(cl))
-                .ToList(),
+            Children = new List<LocationDto>(), // Empty to avoid N+1 queries
             CampusIdKey = location.Campus?.IdKey,
             CampusName = location.Campus?.Name,
             LocationTypeName = location.LocationTypeValue?.Value,
