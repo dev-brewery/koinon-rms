@@ -11,13 +11,13 @@ public class RequiresClaimAttribute : AuthorizeAttribute
     /// <summary>
     /// Initializes a new instance of the <see cref="RequiresClaimAttribute"/> class.
     /// </summary>
-    /// <param name="claimValue">The required claim value (e.g., "person:edit").</param>
-    /// <param name="claimType">The claim type (defaults to "permission").</param>
-    public RequiresClaimAttribute(string claimValue, string claimType = "permission")
+    /// <param name="claimType">The claim type (e.g., "financial", "person").</param>
+    /// <param name="claimValue">The required claim value (e.g., "view", "edit").</param>
+    public RequiresClaimAttribute(string claimType, string claimValue)
     {
+        ClaimType = claimType ?? throw new ArgumentNullException(nameof(claimType));
         ClaimValue = claimValue ?? throw new ArgumentNullException(nameof(claimValue));
-        ClaimType = claimType ?? "permission";
-        Policy = $"{ClaimType}:{ClaimValue}";
+        Policy = $"permission:{ClaimType}.{ClaimValue}";
     }
 
     /// <summary>

@@ -1,3 +1,4 @@
+using Koinon.Api.Authorization;
 using Koinon.Api.Filters;
 using Koinon.Application.Common;
 using Koinon.Application.DTOs.Giving;
@@ -29,7 +30,7 @@ public class GivingController(
     /// <returns>List of active funds</returns>
     /// <response code="200">Returns list of active funds</response>
     [HttpGet("funds")]
-    // TODO(#258): Add [RequiresClaim("financial", "view")] when claims-based auth is implemented
+    [RequiresClaim("financial", "view")]
     [ProducesResponseType(typeof(IReadOnlyList<FundDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetFundsAsync(CancellationToken ct = default)
     {
@@ -50,7 +51,7 @@ public class GivingController(
     /// <response code="404">Fund not found</response>
     [HttpGet("funds/{idKey}")]
     [ValidateIdKey]
-    // TODO(#258): Add [RequiresClaim("financial", "view")] when claims-based auth is implemented
+    [RequiresClaim("financial", "view")]
     [ProducesResponseType(typeof(FundDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetFundAsync(string idKey, CancellationToken ct = default)
@@ -84,7 +85,7 @@ public class GivingController(
     /// <returns>Paginated list of batches</returns>
     /// <response code="200">Returns paginated list of batches</response>
     [HttpGet("batches")]
-    // TODO(#258): Add [RequiresClaim("financial", "view")] when claims-based auth is implemented
+    [RequiresClaim("financial", "view")]
     [ProducesResponseType(typeof(PagedResult<ContributionBatchDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetBatchesAsync([FromQuery] BatchFilterRequest filter, CancellationToken ct = default)
     {
@@ -117,7 +118,7 @@ public class GivingController(
     /// <response code="404">Batch not found</response>
     [HttpGet("batches/{idKey}")]
     [ValidateIdKey]
-    // TODO(#258): Add [RequiresClaim("financial", "view")] when claims-based auth is implemented
+    [RequiresClaim("financial", "view")]
     [ProducesResponseType(typeof(ContributionBatchDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetBatchAsync(string idKey, CancellationToken ct = default)
@@ -149,7 +150,7 @@ public class GivingController(
     /// <response code="404">Batch not found</response>
     [HttpGet("batches/{idKey}/summary")]
     [ValidateIdKey]
-    // TODO(#258): Add [RequiresClaim("financial", "view")] when claims-based auth is implemented
+    [RequiresClaim("financial", "view")]
     [ProducesResponseType(typeof(BatchSummaryDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetBatchSummaryAsync(string idKey, CancellationToken ct = default)
@@ -180,7 +181,7 @@ public class GivingController(
     /// <response code="201">Batch created successfully</response>
     /// <response code="400">Invalid request</response>
     [HttpPost("batches")]
-    // TODO(#258): Add [RequiresClaim("financial", "edit")] when claims-based auth is implemented
+    [RequiresClaim("financial", "edit")]
     [ProducesResponseType(typeof(ContributionBatchDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateBatchAsync([FromBody] CreateBatchRequest request, CancellationToken ct = default)
@@ -216,7 +217,7 @@ public class GivingController(
     /// <response code="404">Batch not found</response>
     [HttpPost("batches/{idKey}/open")]
     [ValidateIdKey]
-    // TODO(#258): Add [RequiresClaim("financial", "edit")] when claims-based auth is implemented
+    [RequiresClaim("financial", "edit")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -260,7 +261,7 @@ public class GivingController(
     /// <response code="404">Batch not found</response>
     [HttpPost("batches/{idKey}/close")]
     [ValidateIdKey]
-    // TODO(#258): Add [RequiresClaim("financial", "batch.close")] when claims-based auth is implemented
+    [RequiresClaim("financial", "batch.close")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -307,7 +308,7 @@ public class GivingController(
     /// <response code="404">Batch not found</response>
     [HttpGet("batches/{batchIdKey}/contributions")]
     [ValidateIdKey]
-    // TODO(#258): Add [RequiresClaim("financial", "view")] when claims-based auth is implemented
+    [RequiresClaim("financial", "view")]
     [ProducesResponseType(typeof(IReadOnlyList<ContributionDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetBatchContributionsAsync(string batchIdKey, CancellationToken ct = default)
@@ -341,7 +342,7 @@ public class GivingController(
     /// <response code="404">Batch not found</response>
     [HttpPost("batches/{batchIdKey}/contributions")]
     [ValidateIdKey]
-    // TODO(#258): Add [RequiresClaim("financial", "edit")] when claims-based auth is implemented
+    [RequiresClaim("financial", "edit")]
     [ProducesResponseType(typeof(ContributionDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -390,7 +391,7 @@ public class GivingController(
     /// <response code="404">Contribution not found</response>
     [HttpGet("contributions/{idKey}")]
     [ValidateIdKey]
-    // TODO(#258): Add [RequiresClaim("financial", "view")] when claims-based auth is implemented
+    [RequiresClaim("financial", "view")]
     [ProducesResponseType(typeof(ContributionDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetContributionAsync(string idKey, CancellationToken ct = default)
@@ -424,7 +425,7 @@ public class GivingController(
     /// <response code="404">Contribution not found</response>
     [HttpPut("contributions/{idKey}")]
     [ValidateIdKey]
-    // TODO(#258): Add [RequiresClaim("financial", "edit")] when claims-based auth is implemented
+    [RequiresClaim("financial", "edit")]
     [ProducesResponseType(typeof(ContributionDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -471,7 +472,7 @@ public class GivingController(
     /// <response code="404">Contribution not found</response>
     [HttpDelete("contributions/{idKey}")]
     [ValidateIdKey]
-    // TODO(#258): Add [RequiresClaim("financial", "edit")] when claims-based auth is implemented
+    [RequiresClaim("financial", "edit")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -517,7 +518,7 @@ public class GivingController(
     /// <returns>Paginated list of contribution statements</returns>
     /// <response code="200">Returns list of contribution statements</response>
     [HttpGet("statements")]
-    // TODO(#258): Add [RequiresClaim("financial", "view")] when claims-based auth is implemented
+    [RequiresClaim("financial", "view")]
     [ProducesResponseType(typeof(PagedResult<ContributionStatementDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetStatementsAsync(
         [FromQuery] int page = 1,
@@ -576,7 +577,7 @@ public class GivingController(
     /// <response code="404">Statement not found</response>
     [HttpGet("statements/{idKey}")]
     [ValidateIdKey]
-    // TODO(#258): Add [RequiresClaim("financial", "view")] when claims-based auth is implemented
+    [RequiresClaim("financial", "view")]
     [ProducesResponseType(typeof(ContributionStatementDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetStatementAsync(string idKey, CancellationToken ct = default)
@@ -608,7 +609,7 @@ public class GivingController(
     /// <response code="400">Invalid request</response>
     /// <response code="404">Person not found</response>
     [HttpPost("statements/preview")]
-    // TODO(#258): Add [RequiresClaim("financial", "view")] when claims-based auth is implemented
+    [RequiresClaim("financial", "view")]
     [ProducesResponseType(typeof(StatementPreviewDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -655,7 +656,7 @@ public class GivingController(
     /// <response code="400">Invalid request</response>
     /// <response code="404">Person not found</response>
     [HttpPost("statements")]
-    // TODO(#258): Add [RequiresClaim("financial", "edit")] when claims-based auth is implemented
+    [RequiresClaim("financial", "edit")]
     [ProducesResponseType(typeof(ContributionStatementDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -705,7 +706,7 @@ public class GivingController(
     /// <response code="404">Statement not found</response>
     [HttpGet("statements/{idKey}/pdf")]
     [ValidateIdKey]
-    // TODO(#258): Add [RequiresClaim("financial", "view")] when claims-based auth is implemented
+    [RequiresClaim("financial", "view")]
     [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetStatementPdfAsync(string idKey, CancellationToken ct = default)
@@ -741,7 +742,7 @@ public class GivingController(
     /// <response code="200">Returns list of eligible people</response>
     /// <response code="400">Invalid date range</response>
     [HttpGet("statements/eligible")]
-    // TODO(#258): Add [RequiresClaim("financial", "view")] when claims-based auth is implemented
+    [RequiresClaim("financial", "view")]
     [ProducesResponseType(typeof(List<EligiblePersonDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetEligiblePeopleAsync(

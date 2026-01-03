@@ -1,5 +1,6 @@
 using System.Text;
 using Hangfire;
+using Koinon.Api.Authorization;
 using Koinon.Api.Filters;
 using Koinon.Api.Middleware;
 using Koinon.Api.Services;
@@ -8,6 +9,7 @@ using Koinon.Application.Interfaces;
 using Koinon.Infrastructure.Data;
 using Koinon.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -69,6 +71,11 @@ builder.Services.AddAuthentication(options =>
         ClockSkew = TimeSpan.FromSeconds(30) // 30 second tolerance for clock drift
     };
 });
+
+// Add authorization with custom policy provider for claim-based access control
+builder.Services.AddSingleton<IAuthorizationPolicyProvider, RequiresClaimPolicyProvider>();
+builder.Services.AddScoped<IAuthorizationHandler, RequiresClaimAuthorizationHandler>();
+builder.Services.AddAuthorization();
 
 // Add infrastructure services (includes DbContext, SMS/Twilio configuration)
 builder.Services.AddKoinonInfrastructure(postgresConnectionString, builder.Configuration, options =>
