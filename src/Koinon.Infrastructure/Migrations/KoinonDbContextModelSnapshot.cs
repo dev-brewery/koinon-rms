@@ -341,6 +341,103 @@ namespace Koinon.Infrastructure.Migrations
                     b.ToTable("attendance_occurrence", (string)null);
                 });
 
+            modelBuilder.Entity("Koinon.Domain.Entities.AuditLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ActionType")
+                        .HasColumnType("integer")
+                        .HasColumnName("action_type");
+
+                    b.Property<string>("AdditionalInfo")
+                        .HasColumnType("text")
+                        .HasColumnName("additional_info");
+
+                    b.Property<string>("ChangedProperties")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("changed_properties");
+
+                    b.Property<int?>("CreatedByPersonAliasId")
+                        .HasColumnType("integer")
+                        .HasColumnName("created_by_person_alias_id");
+
+                    b.Property<DateTime>("CreatedDateTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_date_time");
+
+                    b.Property<string>("EntityIdKey")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("entity_id_key");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("entity_type");
+
+                    b.Property<Guid>("Guid")
+                        .HasColumnType("uuid")
+                        .HasColumnName("guid");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(45)
+                        .HasColumnType("character varying(45)")
+                        .HasColumnName("ip_address");
+
+                    b.Property<int?>("ModifiedByPersonAliasId")
+                        .HasColumnType("integer")
+                        .HasColumnName("modified_by_person_alias_id");
+
+                    b.Property<DateTime?>("ModifiedDateTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("modified_date_time");
+
+                    b.Property<string>("NewValues")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("new_values");
+
+                    b.Property<string>("OldValues")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("old_values");
+
+                    b.Property<int?>("PersonId")
+                        .HasColumnType("integer")
+                        .HasColumnName("person_id");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("timestamp");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("user_agent");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Guid")
+                        .IsUnique()
+                        .HasDatabaseName("uix_audit_log_guid");
+
+                    b.HasIndex("PersonId")
+                        .HasDatabaseName("ix_audit_log_person_id");
+
+                    b.HasIndex("Timestamp")
+                        .HasDatabaseName("ix_audit_log_timestamp");
+
+                    b.HasIndex("EntityType", "EntityIdKey")
+                        .HasDatabaseName("ix_audit_log_entity_type_entity_id_key");
+
+                    b.ToTable("audit_log", (string)null);
+                });
+
             modelBuilder.Entity("Koinon.Domain.Entities.AuthorizedPickup", b =>
                 {
                     b.Property<int>("Id")
@@ -4490,6 +4587,16 @@ namespace Koinon.Infrastructure.Migrations
                     b.Navigation("Location");
 
                     b.Navigation("Schedule");
+                });
+
+            modelBuilder.Entity("Koinon.Domain.Entities.AuditLog", b =>
+                {
+                    b.HasOne("Koinon.Domain.Entities.Person", "Person")
+                        .WithMany()
+                        .HasForeignKey("PersonId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Person");
                 });
 
             modelBuilder.Entity("Koinon.Domain.Entities.AuthorizedPickup", b =>

@@ -43,6 +43,7 @@ import { GroupTypesPage } from './pages/admin/settings/GroupTypesPage';
 import { ImportSettingsPage } from './pages/admin/settings/ImportSettingsPage';
 import { CampusesPage } from './pages/admin/settings/CampusesPage';
 import { LocationsPage } from './pages/admin/settings/LocationsPage';
+import { AuditLogsPage } from './pages/admin/settings/AuditLogsPage';
 import { PWAUpdatePrompt, InstallPrompt } from './components/pwa';
 import { GroupFinderPage } from './pages/public/GroupFinderPage';
 import { MyGroupsPage } from './pages/MyGroupsPage';
@@ -262,6 +263,7 @@ function App() {
           <Route path="settings/import" element={<ImportSettingsPage />} />
           <Route path="settings/campuses" element={<CampusesPage />} />
           <Route path="settings/locations" element={<LocationsPage />} />
+          <Route path="settings/audit-logs" element={<AuditLogsPage />} />
         </Route>
 
         {/* Check-in route */}

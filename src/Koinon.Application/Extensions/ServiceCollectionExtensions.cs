@@ -105,6 +105,12 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IContributionStatementService, ContributionStatementService>();
         services.AddScoped<StatementPdfGenerator>();
 
+        // Audit services
+        services.AddScoped<IAuditService, AuditService>();
+
+        // Audit log cleanup service (called by Hangfire)
+        services.AddScoped<AuditLogCleanupService>();
+
         // Configure QuestPDF license
         QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 

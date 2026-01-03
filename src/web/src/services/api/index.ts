@@ -23,6 +23,7 @@ export * from './types';
 
 // Export services
 export * as analyticsApi from './analytics';
+export * as auditLogApi from './auditLogApi';
 export * as authApi from './auth';
 export * as authorizedPickupApi from './authorizedPickup';
 export * as campusesApi from './campuses';

@@ -1,8 +1,10 @@
 using Hangfire;
 using Hangfire.PostgreSql;
 using Koinon.Application.Interfaces;
+using Koinon.Application.Options;
 using Koinon.Application.Services;
 using Koinon.Infrastructure.Data;
+using Koinon.Infrastructure.Interceptors;
 using Koinon.Infrastructure.Options;
 using Koinon.Infrastructure.Providers;
 using Koinon.Infrastructure.Services;
@@ -67,6 +69,9 @@ public static class ServiceCollectionExtensions
         // Register database provider
         services.AddSingleton<IDatabaseProvider, PostgreSqlProvider>();
 
+        // Register audit interceptor
+        services.AddScoped<AuditSaveChangesInterceptor>();
+
         // Register DbContext with PostgreSQL
         services.AddDbContext<KoinonDbContext>((serviceProvider, options) =>
         {
@@ -75,12 +80,19 @@ public static class ServiceCollectionExtensions
             // Configure with provider-specific options
             provider.ConfigureDbContext(options, connectionString);
 
+            // Add audit interceptor
+            var auditInterceptor = serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>();
+            options.AddInterceptors(auditInterceptor);
+
             // Apply any additional configuration
             configureOptions?.Invoke(options);
         });
 
         // Configure Twilio options
         services.Configure<TwilioOptions>(configuration.GetSection(TwilioOptions.SectionName));
+
+        // Configure audit retention settings
+        services.Configure<AuditRetentionSettings>(configuration.GetSection(AuditRetentionSettings.SectionName));
 
         // Register SMS service (Singleton - has shared rate-limiting state via SemaphoreSlim)
         services.AddSingleton<ISmsService, TwilioSmsService>();
@@ -163,15 +175,25 @@ public static class ServiceCollectionExtensions
         // Register the custom provider
         services.AddSingleton(provider);
 
+        // Register audit interceptor
+        services.AddScoped<AuditSaveChangesInterceptor>();
+
         // Register DbContext with the provider
         services.AddDbContext<KoinonDbContext>((serviceProvider, options) =>
         {
             var dbProvider = serviceProvider.GetRequiredService<IDatabaseProvider>();
             dbProvider.ConfigureDbContext(options, connectionString);
+
+            // Add audit interceptor
+            var auditInterceptor = serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>();
+            options.AddInterceptors(auditInterceptor);
         });
 
         // Configure Twilio options
         services.Configure<TwilioOptions>(configuration.GetSection(TwilioOptions.SectionName));
+
+        // Configure audit retention settings
+        services.Configure<AuditRetentionSettings>(configuration.GetSection(AuditRetentionSettings.SectionName));
 
         // Register SMS service (Singleton - has shared rate-limiting state via SemaphoreSlim)
         services.AddSingleton<ISmsService, TwilioSmsService>();

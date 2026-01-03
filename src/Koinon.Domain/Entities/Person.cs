@@ -1,3 +1,4 @@
+using Koinon.Domain.Attributes;
 using Koinon.Domain.Enums;
 
 namespace Koinon.Domain.Entities;
@@ -81,12 +82,14 @@ public class Person : Entity
     /// <summary>
     /// Argon2id hash of the user's password. Format: Base64(salt[16] + hash[32])
     /// </summary>
+    [SensitiveData(MaskType = SensitiveMaskType.Hash)]
     public string? PasswordHash { get; set; }
 
     /// <summary>
     /// Argon2id hash of the supervisor PIN (4-6 digits). Format: Base64(salt[16] + hash[32])
     /// Used for kiosk supervisor mode authentication.
     /// </summary>
+    [SensitiveData(MaskType = SensitiveMaskType.Hash)]
     public string? SupervisorPinHash { get; set; }
 
     /// <summary>
