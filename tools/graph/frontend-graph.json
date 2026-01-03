@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-01-03T01:04:44.254Z",
+  "generated_at": "2026-01-03T04:49:23.468Z",
   "types": {
     "AttendanceAnalyticsDto": {
       "name": "AttendanceAnalyticsDto",
@@ -866,20 +866,20 @@
       },
       "path": "types/dashboard.ts"
     },
-    "LocationDto": {
-      "name": "LocationDto",
+    "AddressDto": {
+      "name": "AddressDto",
       "kind": "interface",
       "properties": {
-        "idKey": "IdKey",
         "street1": "string",
         "street2": "string",
         "city": "string",
         "state": "string",
         "postalCode": "string",
         "country": "string",
-        "formattedAddress": "string"
+        "formattedAddress": "string",
+        "formattedHtmlAddress": "string"
       },
-      "path": "types/family.ts"
+      "path": "services/api/types.ts"
     },
     "FamilyMembershipDto": {
       "name": "FamilyMembershipDto",
@@ -903,7 +903,7 @@
         "description": "string",
         "isActive": "boolean",
         "campus": "CampusSummaryDto",
-        "address": "LocationDto",
+        "address": "AddressDto",
         "members": "FamilyMembershipDto[]",
         "createdDateTime": "DateTime",
         "modifiedDateTime": "DateTime"
@@ -1570,6 +1570,111 @@
       "properties": {},
       "path": "types/labels.ts"
     },
+    "LocationDto": {
+      "name": "LocationDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "string",
+        "guid": "string",
+        "name": "string",
+        "description": "string",
+        "isActive": "boolean",
+        "order": "number",
+        "parentLocationIdKey": "string",
+        "parentLocationName": "string",
+        "campusIdKey": "string",
+        "campusName": "string",
+        "locationTypeName": "string",
+        "softRoomThreshold": "number",
+        "firmRoomThreshold": "number",
+        "staffToChildRatio": "number",
+        "overflowLocationIdKey": "string",
+        "overflowLocationName": "string",
+        "autoAssignOverflow": "boolean",
+        "street1": "string",
+        "street2": "string",
+        "city": "string",
+        "state": "string",
+        "postalCode": "string",
+        "country": "string",
+        "latitude": "number",
+        "longitude": "number",
+        "isGeoPointLocked": "boolean",
+        "children": "LocationDto[]",
+        "createdDateTime": "string",
+        "modifiedDateTime": "string"
+      },
+      "path": "types/location.ts"
+    },
+    "LocationSummaryDto": {
+      "name": "LocationSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "string",
+        "name": "string",
+        "description": "string",
+        "isActive": "boolean",
+        "parentLocationName": "string",
+        "campusName": "string",
+        "locationTypeName": "string"
+      },
+      "path": "types/location.ts"
+    },
+    "CreateLocationRequest": {
+      "name": "CreateLocationRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "description": "string",
+        "parentLocationIdKey": "string",
+        "campusIdKey": "string",
+        "locationTypeValueIdKey": "string",
+        "softRoomThreshold": "number",
+        "firmRoomThreshold": "number",
+        "staffToChildRatio": "number",
+        "overflowLocationIdKey": "string",
+        "autoAssignOverflow": "boolean",
+        "street1": "string",
+        "street2": "string",
+        "city": "string",
+        "state": "string",
+        "postalCode": "string",
+        "country": "string",
+        "latitude": "number",
+        "longitude": "number",
+        "isGeoPointLocked": "boolean",
+        "order": "number"
+      },
+      "path": "types/location.ts"
+    },
+    "UpdateLocationRequest": {
+      "name": "UpdateLocationRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "description": "string",
+        "parentLocationIdKey": "string",
+        "campusIdKey": "string",
+        "locationTypeValueIdKey": "string",
+        "softRoomThreshold": "number",
+        "firmRoomThreshold": "number",
+        "staffToChildRatio": "number",
+        "overflowLocationIdKey": "string",
+        "autoAssignOverflow": "boolean",
+        "street1": "string",
+        "street2": "string",
+        "city": "string",
+        "state": "string",
+        "postalCode": "string",
+        "country": "string",
+        "latitude": "number",
+        "longitude": "number",
+        "isGeoPointLocked": "boolean",
+        "order": "number",
+        "isActive": "boolean"
+      },
+      "path": "types/location.ts"
+    },
     "PagerAssignmentDto": {
       "name": "PagerAssignmentDto",
       "kind": "interface",
@@ -2115,21 +2220,6 @@
         "address": "AddressDto",
         "isMailingAddress": "boolean",
         "isMappedAddress": "boolean"
-      },
-      "path": "services/api/types.ts"
-    },
-    "AddressDto": {
-      "name": "AddressDto",
-      "kind": "interface",
-      "properties": {
-        "street1": "string",
-        "street2": "string",
-        "city": "string",
-        "state": "string",
-        "postalCode": "string",
-        "country": "string",
-        "formattedAddress": "string",
-        "formattedHtmlAddress": "string"
       },
       "path": "services/api/types.ts"
     },
@@ -3673,6 +3763,48 @@
       "method": "GET",
       "responseType": "Blob"
     },
+    "getLocations": {
+      "name": "getLocations",
+      "path": "services/api/locations.ts",
+      "endpoint": "campusIdKey",
+      "method": "GET",
+      "responseType": "LocationSummaryDto[]"
+    },
+    "getLocationTree": {
+      "name": "getLocationTree",
+      "path": "services/api/locations.ts",
+      "endpoint": "campusIdKey",
+      "method": "GET",
+      "responseType": "LocationDto[]"
+    },
+    "getLocation": {
+      "name": "getLocation",
+      "path": "services/api/locations.ts",
+      "endpoint": "${BASE_URL}/${idKey}",
+      "method": "GET",
+      "responseType": "LocationDto"
+    },
+    "createLocation": {
+      "name": "createLocation",
+      "path": "services/api/locations.ts",
+      "endpoint": "/unknown",
+      "method": "POST",
+      "responseType": "LocationDto"
+    },
+    "updateLocation": {
+      "name": "updateLocation",
+      "path": "services/api/locations.ts",
+      "endpoint": "${BASE_URL}/${idKey}",
+      "method": "PUT",
+      "responseType": "LocationDto"
+    },
+    "deleteLocation": {
+      "name": "deleteLocation",
+      "path": "services/api/locations.ts",
+      "endpoint": "${BASE_URL}/${idKey}",
+      "method": "DELETE",
+      "responseType": "void"
+    },
     "submitMembershipRequest": {
       "name": "submitMembershipRequest",
       "path": "services/api/membershipRequests.ts",
@@ -4754,6 +4886,84 @@
         "removeGroupSchedule"
       ]
     },
+    "useLocations": {
+      "name": "useLocations",
+      "path": "hooks/useLocations.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "locations"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getLocations"
+      ]
+    },
+    "useLocationTree": {
+      "name": "useLocationTree",
+      "path": "hooks/useLocations.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "locations"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getLocationTree"
+      ]
+    },
+    "useLocation": {
+      "name": "useLocation",
+      "path": "hooks/useLocations.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "locations"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getLocation"
+      ]
+    },
+    "useCreateLocation": {
+      "name": "useCreateLocation",
+      "path": "hooks/useLocations.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "locations"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "createLocation"
+      ]
+    },
+    "useUpdateLocation": {
+      "name": "useUpdateLocation",
+      "path": "hooks/useLocations.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "locations"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "updateLocation"
+      ]
+    },
+    "useDeleteLocation": {
+      "name": "useDeleteLocation",
+      "path": "hooks/useLocations.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "locations"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "deleteLocation"
+      ]
+    },
     "usePendingRequests": {
       "name": "usePendingRequests",
       "path": "hooks/useMembershipRequests.ts",
@@ -5159,7 +5369,9 @@
     "Breadcrumb": {
       "name": "Breadcrumb",
       "path": "components/admin/Breadcrumb.tsx",
-      "hooksUsed": [],
+      "hooksUsed": [
+        "useLocation"
+      ],
       "apiCallsDirectly": false
     },
     "CampusCard": {
@@ -5207,6 +5419,23 @@
       "hooksUsed": [
         "useAuth"
       ],
+      "apiCallsDirectly": false
+    },
+    "LocationEditorModal": {
+      "name": "LocationEditorModal",
+      "path": "components/admin/LocationEditorModal.tsx",
+      "hooksUsed": [
+        "useCampuses",
+        "useLocations",
+        "useCreateLocation",
+        "useUpdateLocation"
+      ],
+      "apiCallsDirectly": false
+    },
+    "LocationTreeNode": {
+      "name": "LocationTreeNode",
+      "path": "components/admin/LocationTreeNode.tsx",
+      "hooksUsed": [],
       "apiCallsDirectly": false
     },
     "Sidebar": {
@@ -5374,7 +5603,8 @@
       "name": "ProtectedRoute",
       "path": "components/auth/ProtectedRoute.tsx",
       "hooksUsed": [
-        "useAuth"
+        "useAuth",
+        "useLocation"
       ],
       "apiCallsDirectly": false
     },
@@ -5824,6 +6054,11 @@
       "type": "api_binding"
     },
     {
+      "from": "Breadcrumb",
+      "to": "useLocation",
+      "type": "uses_hook"
+    },
+    {
       "from": "CampusEditorModal",
       "to": "useCreateCampus",
       "type": "uses_hook"
@@ -5856,6 +6091,26 @@
     {
       "from": "Header",
       "to": "useAuth",
+      "type": "uses_hook"
+    },
+    {
+      "from": "LocationEditorModal",
+      "to": "useCampuses",
+      "type": "uses_hook"
+    },
+    {
+      "from": "LocationEditorModal",
+      "to": "useLocations",
+      "type": "uses_hook"
+    },
+    {
+      "from": "LocationEditorModal",
+      "to": "useCreateLocation",
+      "type": "uses_hook"
+    },
+    {
+      "from": "LocationEditorModal",
+      "to": "useUpdateLocation",
       "type": "uses_hook"
     },
     {
@@ -5931,6 +6186,11 @@
     {
       "from": "ProtectedRoute",
       "to": "useAuth",
+      "type": "uses_hook"
+    },
+    {
+      "from": "ProtectedRoute",
+      "to": "useLocation",
       "type": "uses_hook"
     },
     {

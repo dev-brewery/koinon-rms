@@ -24,6 +24,7 @@ export * from './giving';
 export * from './group';
 export * from './import';
 export * from './labels';
+export * from './location';
 export * from './pager';
 export * from './person';
 export * from './profile';

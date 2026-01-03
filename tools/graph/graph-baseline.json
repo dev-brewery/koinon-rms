@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-03T01:04:44.402156+00:00",
+  "generated_at": "2026-01-03T04:49:23.656436+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -543,6 +543,7 @@
       "properties": {
         "ParentLocationId": "int?",
         "LocationTypeValueId": "int?",
+        "CampusId": "int?",
         "IsActive": "bool",
         "Description": "string?",
         "PrinterDeviceId": "int?",
@@ -1336,7 +1337,7 @@
       "properties": {
         "Description": "string?",
         "Campus": "CampusSummaryDto?",
-        "Address": "LocationDto?",
+        "Address": "AddressDto?",
         "ModifiedDateTime": "DateTime?",
         "DateTimeAdded": "DateTime?",
         "Street1": "string?",
@@ -1354,7 +1355,7 @@
       "properties": {
         "Description": "string?",
         "Campus": "CampusSummaryDto?",
-        "Address": "LocationDto?",
+        "Address": "AddressDto?",
         "ModifiedDateTime": "DateTime?",
         "DateTimeAdded": "DateTime?",
         "Street1": "string?",
@@ -1366,13 +1367,13 @@
       },
       "linked_entity": "FamilyMember"
     },
-    "LocationDto": {
-      "name": "LocationDto",
+    "AddressDto": {
+      "name": "AddressDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
         "Description": "string?",
         "Campus": "CampusSummaryDto?",
-        "Address": "LocationDto?",
+        "Address": "AddressDto?",
         "ModifiedDateTime": "DateTime?",
         "DateTimeAdded": "DateTime?",
         "Street1": "string?",
@@ -1381,8 +1382,7 @@
         "State": "string?",
         "PostalCode": "string?",
         "Country": "string?"
-      },
-      "linked_entity": "Location"
+      }
     },
     "GroupTypeRoleDto": {
       "name": "GroupTypeRoleDto",
@@ -1390,7 +1390,7 @@
       "properties": {
         "Description": "string?",
         "Campus": "CampusSummaryDto?",
-        "Address": "LocationDto?",
+        "Address": "AddressDto?",
         "ModifiedDateTime": "DateTime?",
         "DateTimeAdded": "DateTime?",
         "Street1": "string?",
@@ -1657,6 +1657,64 @@
         "LabelTypes": "IReadOnlyList<LabelType>?",
         "TemplateIdKey": "string?"
       }
+    },
+    "LocationDto": {
+      "name": "LocationDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Description": "string?",
+        "ParentLocationIdKey": "string?",
+        "ParentLocationName": "string?",
+        "CampusIdKey": "string?",
+        "CampusName": "string?",
+        "LocationTypeName": "string?",
+        "SoftRoomThreshold": "int?",
+        "FirmRoomThreshold": "int?",
+        "StaffToChildRatio": "int?",
+        "OverflowLocationIdKey": "string?",
+        "OverflowLocationName": "string?",
+        "AutoAssignOverflow": "bool",
+        "Street1": "string?",
+        "Street2": "string?",
+        "City": "string?",
+        "State": "string?",
+        "PostalCode": "string?",
+        "Country": "string?",
+        "Latitude": "double?",
+        "Longitude": "double?",
+        "IsGeoPointLocked": "bool",
+        "ModifiedDateTime": "DateTime?"
+      },
+      "linked_entity": "Location"
+    },
+    "LocationSummaryDto": {
+      "name": "LocationSummaryDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Description": "string?",
+        "ParentLocationIdKey": "string?",
+        "ParentLocationName": "string?",
+        "CampusIdKey": "string?",
+        "CampusName": "string?",
+        "LocationTypeName": "string?",
+        "SoftRoomThreshold": "int?",
+        "FirmRoomThreshold": "int?",
+        "StaffToChildRatio": "int?",
+        "OverflowLocationIdKey": "string?",
+        "OverflowLocationName": "string?",
+        "AutoAssignOverflow": "bool",
+        "Street1": "string?",
+        "Street2": "string?",
+        "City": "string?",
+        "State": "string?",
+        "PostalCode": "string?",
+        "Country": "string?",
+        "Latitude": "double?",
+        "Longitude": "double?",
+        "IsGeoPointLocked": "bool",
+        "ModifiedDateTime": "DateTime?"
+      },
+      "linked_entity": "Location"
     },
     "MergeFieldDto": {
       "name": "MergeFieldDto",
@@ -4926,6 +4984,59 @@
       },
       "dependencies": []
     },
+    "LocationsController": {
+      "name": "LocationsController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/[controller]",
+      "endpoints": [
+        {
+          "name": "GetTree",
+          "method": "GET",
+          "route": "tree",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetByIdKey",
+          "method": "GET",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Update",
+          "method": "PUT",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Delete",
+          "method": "DELETE",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": true,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "IApplicationDbContext",
+        "ILogger<LocationsController>"
+      ]
+    },
     "MyGroupsController": {
       "name": "MyGroupsController",
       "namespace": "Koinon.Api.Controllers",
@@ -6158,6 +6269,84 @@
         "removeGroupSchedule"
       ]
     },
+    "useLocations": {
+      "name": "useLocations",
+      "path": "hooks/useLocations.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "locations"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getLocations"
+      ]
+    },
+    "useLocationTree": {
+      "name": "useLocationTree",
+      "path": "hooks/useLocations.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "locations"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getLocationTree"
+      ]
+    },
+    "useLocation": {
+      "name": "useLocation",
+      "path": "hooks/useLocations.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "locations"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getLocation"
+      ]
+    },
+    "useCreateLocation": {
+      "name": "useCreateLocation",
+      "path": "hooks/useLocations.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "locations"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "createLocation"
+      ]
+    },
+    "useUpdateLocation": {
+      "name": "useUpdateLocation",
+      "path": "hooks/useLocations.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "locations"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "updateLocation"
+      ]
+    },
+    "useDeleteLocation": {
+      "name": "useDeleteLocation",
+      "path": "hooks/useLocations.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "locations"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "deleteLocation"
+      ]
+    },
     "usePendingRequests": {
       "name": "usePendingRequests",
       "path": "hooks/useMembershipRequests.ts",
@@ -7214,6 +7403,48 @@
       "method": "GET",
       "responseType": "Blob"
     },
+    "getLocations": {
+      "name": "getLocations",
+      "path": "services/api/locations.ts",
+      "endpoint": "campusIdKey",
+      "method": "GET",
+      "responseType": "LocationSummaryDto[]"
+    },
+    "getLocationTree": {
+      "name": "getLocationTree",
+      "path": "services/api/locations.ts",
+      "endpoint": "campusIdKey",
+      "method": "GET",
+      "responseType": "LocationDto[]"
+    },
+    "getLocation": {
+      "name": "getLocation",
+      "path": "services/api/locations.ts",
+      "endpoint": "${BASE_URL}/${idKey}",
+      "method": "GET",
+      "responseType": "LocationDto"
+    },
+    "createLocation": {
+      "name": "createLocation",
+      "path": "services/api/locations.ts",
+      "endpoint": "/unknown",
+      "method": "POST",
+      "responseType": "LocationDto"
+    },
+    "updateLocation": {
+      "name": "updateLocation",
+      "path": "services/api/locations.ts",
+      "endpoint": "${BASE_URL}/${idKey}",
+      "method": "PUT",
+      "responseType": "LocationDto"
+    },
+    "deleteLocation": {
+      "name": "deleteLocation",
+      "path": "services/api/locations.ts",
+      "endpoint": "${BASE_URL}/${idKey}",
+      "method": "DELETE",
+      "responseType": "void"
+    },
     "submitMembershipRequest": {
       "name": "submitMembershipRequest",
       "path": "services/api/membershipRequests.ts",
@@ -7447,7 +7678,9 @@
     "Breadcrumb": {
       "name": "Breadcrumb",
       "path": "components/admin/Breadcrumb.tsx",
-      "hooksUsed": [],
+      "hooksUsed": [
+        "useLocation"
+      ],
       "apiCallsDirectly": false
     },
     "CampusCard": {
@@ -7495,6 +7728,23 @@
       "hooksUsed": [
         "useAuth"
       ],
+      "apiCallsDirectly": false
+    },
+    "LocationEditorModal": {
+      "name": "LocationEditorModal",
+      "path": "components/admin/LocationEditorModal.tsx",
+      "hooksUsed": [
+        "useCampuses",
+        "useLocations",
+        "useCreateLocation",
+        "useUpdateLocation"
+      ],
+      "apiCallsDirectly": false
+    },
+    "LocationTreeNode": {
+      "name": "LocationTreeNode",
+      "path": "components/admin/LocationTreeNode.tsx",
+      "hooksUsed": [],
       "apiCallsDirectly": false
     },
     "Sidebar": {
@@ -7662,7 +7912,8 @@
       "name": "ProtectedRoute",
       "path": "components/auth/ProtectedRoute.tsx",
       "hooksUsed": [
-        "useAuth"
+        "useAuth",
+        "useLocation"
       ],
       "apiCallsDirectly": false
     },
@@ -8197,11 +8448,6 @@
       "relationship": "maps_to"
     },
     {
-      "source": "LocationDto",
-      "target": "Location",
-      "relationship": "maps_to"
-    },
-    {
       "source": "GroupTypeRoleDto",
       "target": "GroupTypeRole",
       "relationship": "maps_to"
@@ -8254,6 +8500,16 @@
     {
       "source": "GroupTypeSummaryDto",
       "target": "Group",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "LocationDto",
+      "target": "Location",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "LocationSummaryDto",
+      "target": "Location",
       "relationship": "maps_to"
     },
     {
@@ -9237,6 +9493,11 @@
       "type": "api_binding"
     },
     {
+      "from": "Breadcrumb",
+      "to": "useLocation",
+      "type": "uses_hook"
+    },
+    {
       "from": "CampusEditorModal",
       "to": "useCreateCampus",
       "type": "uses_hook"
@@ -9269,6 +9530,26 @@
     {
       "from": "Header",
       "to": "useAuth",
+      "type": "uses_hook"
+    },
+    {
+      "from": "LocationEditorModal",
+      "to": "useCampuses",
+      "type": "uses_hook"
+    },
+    {
+      "from": "LocationEditorModal",
+      "to": "useLocations",
+      "type": "uses_hook"
+    },
+    {
+      "from": "LocationEditorModal",
+      "to": "useCreateLocation",
+      "type": "uses_hook"
+    },
+    {
+      "from": "LocationEditorModal",
+      "to": "useUpdateLocation",
       "type": "uses_hook"
     },
     {
@@ -9344,6 +9625,11 @@
     {
       "from": "ProtectedRoute",
       "to": "useAuth",
+      "type": "uses_hook"
+    },
+    {
+      "from": "ProtectedRoute",
+      "to": "useLocation",
       "type": "uses_hook"
     },
     {
@@ -9438,7 +9724,7 @@
     "dto:UpcomingScheduleDto": "type:UpcomingScheduleDto",
     "dto:FamilyDto": "type:FamilyDto",
     "dto:FamilyMemberDto": "type:FamilyMemberDto",
-    "dto:LocationDto": "type:LocationDto",
+    "dto:AddressDto": "type:AddressDto",
     "dto:GroupTypeRoleDto": "type:GroupTypeRoleDto",
     "dto:FirstTimeVisitorDto": "type:FirstTimeVisitorDto",
     "dto:FollowUpDto": "type:FollowUpDto",
@@ -9458,6 +9744,8 @@
     "dto:BatchLabelRequestDto": "type:BatchLabelRequestDto",
     "dto:LabelPreviewRequestDto": "type:LabelPreviewRequestDto",
     "dto:LabelPreviewDto": "type:LabelPreviewDto",
+    "dto:LocationDto": "type:LocationDto",
+    "dto:LocationSummaryDto": "type:LocationSummaryDto",
     "dto:MergeFieldDto": "type:MergeFieldDto",
     "dto:MyGroupDto": "type:MyGroupDto",
     "dto:MyInvolvementDto": "type:MyInvolvementDto",
@@ -9485,13 +9773,13 @@
   },
   "stats": {
     "entities": 43,
-    "dtos": 88,
+    "dtos": 90,
     "services": 75,
-    "controllers": 24,
-    "types": 245,
-    "api_functions": 126,
-    "hooks": 99,
-    "components": 104,
-    "total_edges": 258
+    "controllers": 25,
+    "types": 248,
+    "api_functions": 132,
+    "hooks": 105,
+    "components": 106,
+    "total_edges": 265
   }
 }

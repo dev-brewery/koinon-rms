@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-03T01:04:44.077837+00:00",
+  "generated_at": "2026-01-03T04:49:23.275028+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -543,6 +543,7 @@
       "properties": {
         "ParentLocationId": "int?",
         "LocationTypeValueId": "int?",
+        "CampusId": "int?",
         "IsActive": "bool",
         "Description": "string?",
         "PrinterDeviceId": "int?",
@@ -1336,7 +1337,7 @@
       "properties": {
         "Description": "string?",
         "Campus": "CampusSummaryDto?",
-        "Address": "LocationDto?",
+        "Address": "AddressDto?",
         "ModifiedDateTime": "DateTime?",
         "DateTimeAdded": "DateTime?",
         "Street1": "string?",
@@ -1354,7 +1355,7 @@
       "properties": {
         "Description": "string?",
         "Campus": "CampusSummaryDto?",
-        "Address": "LocationDto?",
+        "Address": "AddressDto?",
         "ModifiedDateTime": "DateTime?",
         "DateTimeAdded": "DateTime?",
         "Street1": "string?",
@@ -1366,13 +1367,13 @@
       },
       "linked_entity": "FamilyMember"
     },
-    "LocationDto": {
-      "name": "LocationDto",
+    "AddressDto": {
+      "name": "AddressDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
         "Description": "string?",
         "Campus": "CampusSummaryDto?",
-        "Address": "LocationDto?",
+        "Address": "AddressDto?",
         "ModifiedDateTime": "DateTime?",
         "DateTimeAdded": "DateTime?",
         "Street1": "string?",
@@ -1381,8 +1382,7 @@
         "State": "string?",
         "PostalCode": "string?",
         "Country": "string?"
-      },
-      "linked_entity": "Location"
+      }
     },
     "GroupTypeRoleDto": {
       "name": "GroupTypeRoleDto",
@@ -1390,7 +1390,7 @@
       "properties": {
         "Description": "string?",
         "Campus": "CampusSummaryDto?",
-        "Address": "LocationDto?",
+        "Address": "AddressDto?",
         "ModifiedDateTime": "DateTime?",
         "DateTimeAdded": "DateTime?",
         "Street1": "string?",
@@ -1657,6 +1657,64 @@
         "LabelTypes": "IReadOnlyList<LabelType>?",
         "TemplateIdKey": "string?"
       }
+    },
+    "LocationDto": {
+      "name": "LocationDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Description": "string?",
+        "ParentLocationIdKey": "string?",
+        "ParentLocationName": "string?",
+        "CampusIdKey": "string?",
+        "CampusName": "string?",
+        "LocationTypeName": "string?",
+        "SoftRoomThreshold": "int?",
+        "FirmRoomThreshold": "int?",
+        "StaffToChildRatio": "int?",
+        "OverflowLocationIdKey": "string?",
+        "OverflowLocationName": "string?",
+        "AutoAssignOverflow": "bool",
+        "Street1": "string?",
+        "Street2": "string?",
+        "City": "string?",
+        "State": "string?",
+        "PostalCode": "string?",
+        "Country": "string?",
+        "Latitude": "double?",
+        "Longitude": "double?",
+        "IsGeoPointLocked": "bool",
+        "ModifiedDateTime": "DateTime?"
+      },
+      "linked_entity": "Location"
+    },
+    "LocationSummaryDto": {
+      "name": "LocationSummaryDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Description": "string?",
+        "ParentLocationIdKey": "string?",
+        "ParentLocationName": "string?",
+        "CampusIdKey": "string?",
+        "CampusName": "string?",
+        "LocationTypeName": "string?",
+        "SoftRoomThreshold": "int?",
+        "FirmRoomThreshold": "int?",
+        "StaffToChildRatio": "int?",
+        "OverflowLocationIdKey": "string?",
+        "OverflowLocationName": "string?",
+        "AutoAssignOverflow": "bool",
+        "Street1": "string?",
+        "Street2": "string?",
+        "City": "string?",
+        "State": "string?",
+        "PostalCode": "string?",
+        "Country": "string?",
+        "Latitude": "double?",
+        "Longitude": "double?",
+        "IsGeoPointLocked": "bool",
+        "ModifiedDateTime": "DateTime?"
+      },
+      "linked_entity": "Location"
     },
     "MergeFieldDto": {
       "name": "MergeFieldDto",
@@ -4926,6 +4984,59 @@
       },
       "dependencies": []
     },
+    "LocationsController": {
+      "name": "LocationsController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/[controller]",
+      "endpoints": [
+        {
+          "name": "GetTree",
+          "method": "GET",
+          "route": "tree",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetByIdKey",
+          "method": "GET",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Update",
+          "method": "PUT",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Delete",
+          "method": "DELETE",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": true,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "IApplicationDbContext",
+        "ILogger<LocationsController>"
+      ]
+    },
     "MyGroupsController": {
       "name": "MyGroupsController",
       "namespace": "Koinon.Api.Controllers",
@@ -5380,11 +5491,6 @@
       "relationship": "maps_to"
     },
     {
-      "source": "LocationDto",
-      "target": "Location",
-      "relationship": "maps_to"
-    },
-    {
       "source": "GroupTypeRoleDto",
       "target": "GroupTypeRole",
       "relationship": "maps_to"
@@ -5437,6 +5543,16 @@
     {
       "source": "GroupTypeSummaryDto",
       "target": "Group",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "LocationDto",
+      "target": "Location",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "LocationSummaryDto",
+      "target": "Location",
       "relationship": "maps_to"
     },
     {
@@ -6417,9 +6533,9 @@
   ],
   "summary": {
     "total_entities": 43,
-    "total_dtos": 88,
+    "total_dtos": 90,
     "total_services": 75,
-    "total_controllers": 24,
-    "total_relationships": 225
+    "total_controllers": 25,
+    "total_relationships": 226
   }
 }

@@ -26,7 +26,7 @@ public class FamilyMappingProfile : Profile
             .ForMember(d => d.Status, o => o.MapFrom(s => "Active")) // FamilyMember doesn't have status
             .ForMember(d => d.DateTimeAdded, o => o.MapFrom(s => (DateTime?)s.DateAdded));
 
-        CreateMap<Location, LocationDto>()
+        CreateMap<Location, AddressDto>()
             .ForMember(d => d.IdKey, o => o.MapFrom(s => s.IdKey))
             .ForMember(d => d.FormattedAddress, o => o.MapFrom(s => FormatAddress(s)));
 

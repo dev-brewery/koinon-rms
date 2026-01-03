@@ -22,10 +22,10 @@ import type { GroupTypeRoleDto } from './group';
 // ============================================================================
 
 /**
- * Location/Address DTO.
- * Matches C# LocationDto.
+ * Address DTO for postal addresses.
+ * Matches C# AddressDto.
  */
-export interface LocationDto {
+export interface AddressDto {
   idKey: IdKey;
   street1?: string;
   street2?: string;
@@ -70,7 +70,7 @@ export interface FamilyDto {
   description?: string;
   isActive: boolean;
   campus?: CampusSummaryDto;
-  address?: LocationDto;
+  address?: AddressDto;
   members: FamilyMembershipDto[];
   createdDateTime: DateTime;
   modifiedDateTime?: DateTime;
