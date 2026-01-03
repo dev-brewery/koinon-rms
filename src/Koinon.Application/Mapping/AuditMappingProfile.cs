@@ -1,8 +1,8 @@
+using System.Text.Json;
 using AutoMapper;
 using Koinon.Application.DTOs;
 using Koinon.Domain.Data;
 using Koinon.Domain.Entities;
-using System.Text.Json;
 
 namespace Koinon.Application.Mapping;
 
