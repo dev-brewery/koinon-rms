@@ -13,7 +13,7 @@ using NpgsqlTypes;
 namespace Koinon.Infrastructure.Migrations
 {
     [DbContext(typeof(KoinonDbContext))]
-    [Migration("20260103230351_AddReportingInfrastructure")]
+    [Migration("20260103232150_AddReportingInfrastructure")]
     partial class AddReportingInfrastructure
     {
         /// <inheritdoc />
