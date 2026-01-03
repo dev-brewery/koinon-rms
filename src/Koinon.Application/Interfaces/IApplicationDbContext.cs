@@ -60,6 +60,7 @@ public interface IApplicationDbContext
     DbSet<ContributionDetail> ContributionDetails { get; }
     DbSet<ContributionStatement> ContributionStatements { get; }
     DbSet<FinancialAuditLog> FinancialAuditLogs { get; }
+    DbSet<AuditLog> AuditLogs { get; }
 
     // Person merge and duplicate tracking
     DbSet<PersonMergeHistory> PersonMergeHistories { get; }

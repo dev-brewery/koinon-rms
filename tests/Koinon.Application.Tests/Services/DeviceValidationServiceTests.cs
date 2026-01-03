@@ -287,6 +287,7 @@ public class DeviceValidationServiceTests : IDisposable
         public DbSet<ContributionDetail> ContributionDetails { get; set; } = null!;
         public DbSet<ContributionStatement> ContributionStatements { get; set; } = null!;
         public DbSet<FinancialAuditLog> FinancialAuditLogs { get; set; } = null!;
+        public DbSet<AuditLog> AuditLogs { get; set; } = null!;
 
         // Person merge and duplicate tracking
         public DbSet<PersonMergeHistory> PersonMergeHistories { get; set; } = null!;

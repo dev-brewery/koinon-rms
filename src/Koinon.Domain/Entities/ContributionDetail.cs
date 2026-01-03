@@ -1,3 +1,6 @@
+using Koinon.Domain.Attributes;
+using Koinon.Domain.Enums;
+
 namespace Koinon.Domain.Entities;
 
 /// <summary>
@@ -19,6 +22,7 @@ public class ContributionDetail : Entity
     /// Amount allocated to this fund.
     /// Can be negative for corrections/refunds.
     /// </summary>
+    [SensitiveData(MaskType = SensitiveMaskType.Partial)]
     public required decimal Amount { get; set; }
 
     /// <summary>

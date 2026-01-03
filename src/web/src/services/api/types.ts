@@ -1040,3 +1040,59 @@ export interface ProcessMembershipRequestRequest {
   status: 'Approved' | 'Denied';
   note?: string;
 }
+
+// ============================================================================
+// Audit Log Types
+// ============================================================================
+
+export enum AuditAction {
+  Create = 'Create',
+  Update = 'Update',
+  Delete = 'Delete',
+  View = 'View',
+  Export = 'Export',
+  Login = 'Login',
+  Logout = 'Logout',
+  Search = 'Search',
+  Other = 'Other',
+}
+
+export enum ExportFormat {
+  Csv = 'Csv',
+  Json = 'Json',
+  Excel = 'Excel',
+}
+
+export interface AuditLogDto {
+  idKey: IdKey;
+  actionType: AuditAction;
+  entityType: string;
+  entityIdKey: IdKey;
+  personIdKey?: IdKey;
+  personName?: string;
+  timestamp: DateTime;
+  oldValues?: string;
+  newValues?: string;
+  ipAddress?: string;
+  userAgent?: string;
+  changedProperties?: string[];
+  additionalInfo?: string;
+}
+
+export interface AuditLogSearchParams extends PaginationParams {
+  startDate?: DateTime;
+  endDate?: DateTime;
+  entityType?: string;
+  actionType?: AuditAction;
+  personIdKey?: IdKey;
+  entityIdKey?: IdKey;
+}
+
+export interface AuditLogExportParams {
+  startDate?: DateTime;
+  endDate?: DateTime;
+  entityType?: string;
+  actionType?: AuditAction;
+  personIdKey?: IdKey;
+  format?: ExportFormat;
+}
