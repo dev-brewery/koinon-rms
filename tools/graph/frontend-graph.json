@@ -1934,6 +1934,98 @@
       },
       "path": "services/api/types.ts"
     },
+    "DuplicateMatchDto": {
+      "name": "DuplicateMatchDto",
+      "kind": "interface",
+      "properties": {
+        "person1IdKey": "IdKey",
+        "person1Name": "string",
+        "person1Email": "string",
+        "person1Phone": "string",
+        "person1PhotoUrl": "string",
+        "person2IdKey": "IdKey",
+        "person2Name": "string",
+        "person2Email": "string",
+        "person2Phone": "string",
+        "person2PhotoUrl": "string",
+        "matchScore": "number",
+        "matchReasons": "string[]"
+      },
+      "path": "types/personMerge.ts"
+    },
+    "PersonComparisonDto": {
+      "name": "PersonComparisonDto",
+      "kind": "interface",
+      "properties": {
+        "person1": "PersonDto",
+        "person2": "PersonDto",
+        "person1AttendanceCount": "number",
+        "person2AttendanceCount": "number",
+        "person1GroupMembershipCount": "number",
+        "person2GroupMembershipCount": "number",
+        "person1ContributionTotal": "number",
+        "person2ContributionTotal": "number"
+      },
+      "path": "types/personMerge.ts"
+    },
+    "PersonMergeRequestDto": {
+      "name": "PersonMergeRequestDto",
+      "kind": "interface",
+      "properties": {
+        "survivorIdKey": "IdKey",
+        "mergedIdKey": "IdKey",
+        "fieldSelections": "Record<string, 'survivor' | 'merged'>",
+        "notes": "string"
+      },
+      "path": "types/personMerge.ts"
+    },
+    "PersonMergeResultDto": {
+      "name": "PersonMergeResultDto",
+      "kind": "interface",
+      "properties": {
+        "survivorIdKey": "IdKey",
+        "mergedIdKey": "IdKey",
+        "aliasesUpdated": "number",
+        "groupMembershipsUpdated": "number",
+        "familyMembershipsUpdated": "number",
+        "phoneNumbersUpdated": "number",
+        "authorizedPickupsUpdated": "number",
+        "communicationPreferencesUpdated": "number",
+        "refreshTokensUpdated": "number",
+        "securityRolesUpdated": "number",
+        "supervisorSessionsUpdated": "number",
+        "followUpsUpdated": "number",
+        "totalRecordsUpdated": "number",
+        "mergedDateTime": "DateTime"
+      },
+      "path": "types/personMerge.ts"
+    },
+    "PersonMergeHistoryDto": {
+      "name": "PersonMergeHistoryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "survivorIdKey": "IdKey",
+        "survivorName": "string",
+        "mergedIdKey": "IdKey",
+        "mergedName": "string",
+        "mergedByIdKey": "IdKey",
+        "mergedByName": "string",
+        "mergedDateTime": "DateTime",
+        "notes": "string"
+      },
+      "path": "types/personMerge.ts"
+    },
+    "IgnoreDuplicateRequestDto": {
+      "name": "IgnoreDuplicateRequestDto",
+      "kind": "interface",
+      "properties": {
+        "person1IdKey": "IdKey",
+        "person2IdKey": "IdKey",
+        "reason": "string"
+      },
+      "path": "types/personMerge.ts"
+    },
     "PhoneNumberDto": {
       "name": "PhoneNumberDto",
       "kind": "interface",
@@ -4068,6 +4160,41 @@
       "method": "POST",
       "responseType": "PersonDetailDto"
     },
+    "getDuplicatesForPerson": {
+      "name": "getDuplicatesForPerson",
+      "path": "services/api/personMerge.ts",
+      "endpoint": "/people/${idKey}/duplicates",
+      "method": "GET",
+      "responseType": "DuplicateMatchDto[]"
+    },
+    "comparePeople": {
+      "name": "comparePeople",
+      "path": "services/api/personMerge.ts",
+      "endpoint": "/people/compare?person1IdKey=${person1IdKey}&person2IdKey=${person2IdKey}",
+      "method": "GET",
+      "responseType": "PersonComparisonDto"
+    },
+    "mergePeople": {
+      "name": "mergePeople",
+      "path": "services/api/personMerge.ts",
+      "endpoint": "/people/merge",
+      "method": "POST",
+      "responseType": "PersonMergeResultDto"
+    },
+    "ignoreDuplicate": {
+      "name": "ignoreDuplicate",
+      "path": "services/api/personMerge.ts",
+      "endpoint": "/people/duplicates/ignore",
+      "method": "POST",
+      "responseType": "void"
+    },
+    "unignoreDuplicate": {
+      "name": "unignoreDuplicate",
+      "path": "services/api/personMerge.ts",
+      "endpoint": "/people/duplicates/ignore/${person1IdKey}/${person2IdKey}",
+      "method": "DELETE",
+      "responseType": "void"
+    },
     "verifyPickup": {
       "name": "verifyPickup",
       "path": "services/api/pickup.ts",
@@ -5378,6 +5505,93 @@
       "usesMutation": false,
       "dependencies": []
     },
+    "useDuplicates": {
+      "name": "useDuplicates",
+      "path": "hooks/usePersonMerge.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "duplicates"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useDuplicatesForPerson": {
+      "name": "useDuplicatesForPerson",
+      "path": "hooks/usePersonMerge.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "duplicates"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getDuplicatesForPerson"
+      ]
+    },
+    "usePersonComparison": {
+      "name": "usePersonComparison",
+      "path": "hooks/usePersonMerge.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "personComparison"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "comparePeople"
+      ]
+    },
+    "useMergePeople": {
+      "name": "useMergePeople",
+      "path": "hooks/usePersonMerge.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "duplicates"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "mergePeople"
+      ]
+    },
+    "useMergeHistory": {
+      "name": "useMergeHistory",
+      "path": "hooks/usePersonMerge.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "mergeHistory"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useIgnoreDuplicate": {
+      "name": "useIgnoreDuplicate",
+      "path": "hooks/usePersonMerge.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "duplicates"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "ignoreDuplicate"
+      ]
+    },
+    "useUnignoreDuplicate": {
+      "name": "useUnignoreDuplicate",
+      "path": "hooks/usePersonMerge.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "duplicates"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "unignoreDuplicate"
+      ]
+    },
     "useMyProfile": {
       "name": "useMyProfile",
       "path": "hooks/useProfile.ts",
@@ -5816,6 +6030,24 @@
       "name": "PersonCard",
       "path": "components/admin/people/PersonCard.tsx",
       "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "PersonComparisonView": {
+      "name": "PersonComparisonView",
+      "path": "components/admin/people/PersonComparisonView.tsx",
+      "hooksUsed": [
+        "usePersonComparison",
+        "useIgnoreDuplicate"
+      ],
+      "apiCallsDirectly": false
+    },
+    "PersonMergeWizard": {
+      "name": "PersonMergeWizard",
+      "path": "components/admin/people/PersonMergeWizard.tsx",
+      "hooksUsed": [
+        "usePersonComparison",
+        "useMergePeople"
+      ],
       "apiCallsDirectly": false
     },
     "PersonPhotoUpload": {
@@ -6446,6 +6678,26 @@
     {
       "from": "CommunicationPreferences",
       "to": "useUpdateCommunicationPreference",
+      "type": "uses_hook"
+    },
+    {
+      "from": "PersonComparisonView",
+      "to": "usePersonComparison",
+      "type": "uses_hook"
+    },
+    {
+      "from": "PersonComparisonView",
+      "to": "useIgnoreDuplicate",
+      "type": "uses_hook"
+    },
+    {
+      "from": "PersonMergeWizard",
+      "to": "usePersonComparison",
+      "type": "uses_hook"
+    },
+    {
+      "from": "PersonMergeWizard",
+      "to": "useMergePeople",
       "type": "uses_hook"
     },
     {

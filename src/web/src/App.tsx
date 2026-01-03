@@ -24,6 +24,10 @@ import {
   PeopleListPage,
   PersonDetailPage,
   PersonFormPage,
+  DuplicateReviewPage,
+  PersonComparisonPage,
+  PersonMergePage,
+  MergeHistoryPage,
 } from './pages/admin/people';
 import {
   FamilyListPage,
@@ -223,6 +227,10 @@ function App() {
           <Route index element={<DashboardPage />} />
           <Route path="people" element={<PeopleListPage />} />
           <Route path="people/new" element={<PersonFormPage />} />
+          <Route path="people/duplicates" element={<DuplicateReviewPage />} />
+          <Route path="people/compare" element={<PersonComparisonPage />} />
+          <Route path="people/merge" element={<PersonMergePage />} />
+          <Route path="people/merge-history" element={<MergeHistoryPage />} />
           <Route path="people/:idKey" element={<PersonDetailPage />} />
           <Route path="people/:idKey/edit" element={<PersonFormPage />} />
           <Route path="families" element={<FamilyListPage />} />

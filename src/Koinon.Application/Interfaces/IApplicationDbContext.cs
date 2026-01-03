@@ -61,6 +61,10 @@ public interface IApplicationDbContext
     DbSet<ContributionStatement> ContributionStatements { get; }
     DbSet<FinancialAuditLog> FinancialAuditLogs { get; }
 
+    // Person merge and duplicate tracking
+    DbSet<PersonMergeHistory> PersonMergeHistories { get; }
+    DbSet<PersonDuplicateIgnore> PersonDuplicateIgnores { get; }
+
     DatabaseFacade Database { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     EntityEntry<TEntity> Entry<TEntity>(TEntity entity) where TEntity : class;

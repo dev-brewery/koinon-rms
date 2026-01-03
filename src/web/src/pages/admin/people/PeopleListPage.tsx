@@ -55,12 +55,20 @@ export function PeopleListPage() {
             Search and manage person records
           </p>
         </div>
-        <Link
-          to="/admin/people/new"
-          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-        >
-          Add Person
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            to="/admin/people/duplicates"
+            className="px-4 py-2 text-orange-600 border border-orange-600 rounded-lg hover:bg-orange-50 transition-colors"
+          >
+            Review Duplicates
+          </Link>
+          <Link
+            to="/admin/people/new"
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+          >
+            Add Person
+          </Link>
+        </div>
       </div>
 
       {/* Filters */}

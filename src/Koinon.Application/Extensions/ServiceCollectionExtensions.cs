@@ -87,6 +87,11 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICommunicationSender, CommunicationSender>();
         services.AddScoped<IMergeFieldService, MergeFieldService>();
 
+        // Person merge and duplicate detection services
+        services.AddScoped<IDuplicateDetectionService, DuplicateDetectionService>();
+        services.AddScoped<IPersonMergeService, PersonMergeService>();
+        services.AddScoped<IDuplicateIgnoreService, DuplicateIgnoreService>();
+
         // Self-service profile service
         services.AddScoped<IMyProfileService, MyProfileService>();
 
