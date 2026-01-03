@@ -13,7 +13,7 @@ using NpgsqlTypes;
 namespace Koinon.Infrastructure.Migrations
 {
     [DbContext(typeof(KoinonDbContext))]
-    [Migration("20260103160335_AddPersonMergeEntities")]
+    [Migration("20260103162940_AddPersonMergeEntities")]
     partial class AddPersonMergeEntities
     {
         /// <inheritdoc />
