@@ -2,7 +2,7 @@
  * Communications API service
  */
 
-import { get, post } from './client';
+import { get, post, put } from './client';
 import type { PagedResult } from './types';
 import type {
   CreateCommunicationDto,
@@ -13,6 +13,9 @@ import type {
   MergeFieldDto,
   CommunicationPreviewRequest,
   CommunicationPreviewResponse,
+  CommunicationPreferenceDto,
+  UpdateCommunicationPreferenceDto,
+  BulkUpdatePreferencesDto,
 } from '@/types/communication';
 
 // Re-export types from central module for backward compatibility
@@ -25,6 +28,9 @@ export type {
   MergeFieldDto,
   CommunicationPreviewRequest,
   CommunicationPreviewResponse,
+  CommunicationPreferenceDto,
+  UpdateCommunicationPreferenceDto,
+  BulkUpdatePreferencesDto,
 };
 
 // Type alias for API compatibility
@@ -118,6 +124,53 @@ export async function previewCommunication(
 ): Promise<CommunicationPreviewResponse> {
   const response = await post<{ data: CommunicationPreviewResponse }>(
     '/communications/preview',
+    request
+  );
+  return response.data;
+}
+
+// ============================================================================
+// Communication Preferences API
+// ============================================================================
+
+/**
+ * Get communication preferences for a person
+ * Returns array of preferences (Email and/or SMS)
+ * No record means opted-in (default)
+ */
+export async function getCommunicationPreferences(
+  personIdKey: string
+): Promise<CommunicationPreferenceDto[]> {
+  const response = await get<{ data: CommunicationPreferenceDto[] }>(
+    `/people/${personIdKey}/communication-preferences`
+  );
+  return response.data;
+}
+
+/**
+ * Update a single communication preference for a person
+ */
+export async function updateCommunicationPreference(
+  personIdKey: string,
+  type: 'Email' | 'Sms',
+  request: UpdateCommunicationPreferenceDto
+): Promise<CommunicationPreferenceDto> {
+  const response = await put<{ data: CommunicationPreferenceDto }>(
+    `/people/${personIdKey}/communication-preferences/${type}`,
+    request
+  );
+  return response.data;
+}
+
+/**
+ * Bulk update multiple communication preferences for a person
+ */
+export async function bulkUpdateCommunicationPreferences(
+  personIdKey: string,
+  request: BulkUpdatePreferencesDto
+): Promise<CommunicationPreferenceDto[]> {
+  const response = await put<{ data: CommunicationPreferenceDto[] }>(
+    `/people/${personIdKey}/communication-preferences`,
     request
   );
   return response.data;

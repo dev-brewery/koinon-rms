@@ -268,3 +268,38 @@ export interface CommunicationPreviewResponse {
   /** Name of person used for preview data */
   personName: string;
 }
+
+// ============================================================================
+// Communication Preference Types
+// ============================================================================
+
+/**
+ * Communication preference for a person
+ */
+export interface CommunicationPreferenceDto {
+  idKey: IdKey;
+  personIdKey: string;
+  communicationType: 'Email' | 'Sms';
+  isOptedOut: boolean;
+  optOutDateTime?: DateTime;
+  optOutReason?: string;
+}
+
+/**
+ * Request to update a single communication preference
+ */
+export interface UpdateCommunicationPreferenceDto {
+  isOptedOut: boolean;
+  optOutReason?: string;
+}
+
+/**
+ * Request to bulk update multiple communication preferences
+ */
+export interface BulkUpdatePreferencesDto {
+  preferences: Array<{
+    communicationType: 'Email' | 'Sms';
+    isOptedOut: boolean;
+    optOutReason?: string;
+  }>;
+}
