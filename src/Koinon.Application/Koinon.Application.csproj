@@ -28,6 +28,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
     <PackageReference Include="Konscious.Security.Cryptography.Argon2" />
     <PackageReference Include="QuestPDF" />
+    <PackageReference Include="ClosedXML" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" />
     <PackageReference Include="SixLabors.ImageSharp" />

@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-03T19:18:40.318834+00:00",
+  "generated_at": "2026-01-03T23:06:16.945030+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -786,6 +786,59 @@
         {
           "name": "ExpiresAt",
           "target_entity": "DateTime",
+          "type": "one"
+        }
+      ]
+    },
+    "ReportDefinition": {
+      "name": "ReportDefinition",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "report_definition",
+      "properties": {
+        "Description": "string?",
+        "DefaultParameters": "string?",
+        "IsActive": "bool",
+        "IsSystem": "bool"
+      },
+      "navigations": []
+    },
+    "ReportRun": {
+      "name": "ReportRun",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "report_run",
+      "properties": {
+        "ReportDefinitionId": "int",
+        "Status": "ReportStatus",
+        "OutputFileId": "int?",
+        "StartedAt": "DateTime?",
+        "CompletedAt": "DateTime?",
+        "ErrorMessage": "string?",
+        "RequestedByPersonAliasId": "int?"
+      },
+      "navigations": [
+        {
+          "name": "Status",
+          "target_entity": "ReportStatus",
+          "type": "one"
+        }
+      ]
+    },
+    "ReportSchedule": {
+      "name": "ReportSchedule",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "report_schedule",
+      "properties": {
+        "ReportDefinitionId": "int",
+        "TimeZone": "string",
+        "OutputFormat": "ReportOutputFormat",
+        "IsActive": "bool",
+        "LastRunAt": "DateTime?",
+        "NextRunAt": "DateTime?"
+      },
+      "navigations": [
+        {
+          "name": "OutputFormat",
+          "target_entity": "ReportOutputFormat",
           "type": "one"
         }
       ]
@@ -3755,6 +3808,128 @@
         "ILogger<PublicGroupService>"
       ]
     },
+    "ReportScheduleService": {
+      "name": "ReportScheduleService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "ReportScheduleService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetSchedulesAsync",
+          "return_type": "Task<PagedResult<ReportScheduleDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetScheduleAsync",
+          "return_type": "Task<ReportScheduleDto?>",
+          "is_async": false
+        },
+        {
+          "name": "CreateScheduleAsync",
+          "return_type": "Task<Result<ReportScheduleDto>>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateScheduleAsync",
+          "return_type": "Task<Result<ReportScheduleDto>>",
+          "is_async": false
+        },
+        {
+          "name": "DeleteScheduleAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        },
+        {
+          "name": "TriggerScheduledReportAsync",
+          "return_type": "Task<Result<ReportRunDto>>",
+          "is_async": false
+        },
+        {
+          "name": "TriggerScheduledReportInternalAsync",
+          "return_type": "Task",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IBackgroundJobService",
+        "IReportService",
+        "IMapper",
+        "ILogger<ReportScheduleService>"
+      ]
+    },
+    "ReportService": {
+      "name": "ReportService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "ReportService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetDefinitionsAsync",
+          "return_type": "Task<PagedResult<ReportDefinitionDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetDefinitionAsync",
+          "return_type": "Task<ReportDefinitionDto?>",
+          "is_async": false
+        },
+        {
+          "name": "CreateDefinitionAsync",
+          "return_type": "Task<Result<ReportDefinitionDto>>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateDefinitionAsync",
+          "return_type": "Task<Result<ReportDefinitionDto>>",
+          "is_async": false
+        },
+        {
+          "name": "DeleteDefinitionAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        },
+        {
+          "name": "RunReportAsync",
+          "return_type": "Task<Result<ReportRunDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetRunsAsync",
+          "return_type": "Task<PagedResult<ReportRunDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetRunAsync",
+          "return_type": "Task<ReportRunDto?>",
+          "is_async": false
+        },
+        {
+          "name": "DownloadReportAsync",
+          "return_type": "Task<(Stream Stream, string FileName, string MimeType)?>",
+          "is_async": false
+        },
+        {
+          "name": "ProcessReportJobAsync",
+          "return_type": "Task",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IBackgroundJobService",
+        "IFileStorageService",
+        "IServiceProvider",
+        "IMapper",
+        "ILogger<ReportService>"
+      ]
+    },
     "RoomRosterService": {
       "name": "RoomRosterService",
       "namespace": "Koinon.Application.Services",
@@ -4143,6 +4318,18 @@
     },
     "IPublicGroupService": {
       "name": "IPublicGroupService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IReportScheduleService": {
+      "name": "IReportScheduleService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IReportService": {
+      "name": "IReportService",
       "namespace": "Koinon.Application.Interfaces",
       "methods": [],
       "dependencies": []
@@ -5848,6 +6035,157 @@
       "dependencies": [
         "IPublicGroupService",
         "ILogger<PublicGroupsController>"
+      ]
+    },
+    "ReportSchedulesController": {
+      "name": "ReportSchedulesController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/reports/schedules",
+      "endpoints": [
+        {
+          "name": "GetSchedule",
+          "method": "GET",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "TriggerScheduledReport",
+          "method": "POST",
+          "route": "{idKey}/trigger",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "UpdateSchedule",
+          "method": "PUT",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "DeleteSchedule",
+          "method": "DELETE",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": true,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "IReportScheduleService",
+        "ILogger<ReportSchedulesController>"
+      ]
+    },
+    "ReportsController": {
+      "name": "ReportsController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/reports",
+      "endpoints": [
+        {
+          "name": "GetDefinitions",
+          "method": "GET",
+          "route": "definitions",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetDefinition",
+          "method": "GET",
+          "route": "definitions/{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetRuns",
+          "method": "GET",
+          "route": "runs",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetRun",
+          "method": "GET",
+          "route": "runs/{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "DownloadReport",
+          "method": "GET",
+          "route": "runs/{idKey}/download",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "CreateDefinition",
+          "method": "POST",
+          "route": "definitions",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "RunReport",
+          "method": "POST",
+          "route": "run",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "UpdateDefinition",
+          "method": "PUT",
+          "route": "definitions/{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "DeleteDefinition",
+          "method": "DELETE",
+          "route": "definitions/{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": true,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "IReportService",
+        "ILogger<ReportsController>"
       ]
     },
     "SchedulesController": {
@@ -9663,6 +10001,16 @@
       "relationship": "depends_on"
     },
     {
+      "source": "ReportSchedulesController",
+      "target": "IReportScheduleService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "ReportsController",
+      "target": "IReportService",
+      "relationship": "depends_on"
+    },
+    {
       "source": "SchedulesController",
       "target": "IScheduleService",
       "relationship": "depends_on"
@@ -10208,6 +10556,26 @@
       "relationship": "returns"
     },
     {
+      "source": "ReportScheduleService",
+      "target": "ScheduleDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "ReportScheduleService",
+      "target": "ScheduleDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "ReportScheduleService",
+      "target": "ScheduleDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "ReportScheduleService",
+      "target": "ScheduleDto",
+      "relationship": "returns"
+    },
+    {
       "source": "RoomRosterService",
       "target": "RoomRosterDto",
       "relationship": "returns"
@@ -10445,6 +10813,11 @@
     {
       "source": "PublicGroupService",
       "target": "Group",
+      "relationship": "uses"
+    },
+    {
+      "source": "ReportScheduleService",
+      "target": "ReportSchedule",
       "relationship": "uses"
     },
     {
@@ -10780,14 +11153,14 @@
     "dto:SupervisorInfoDto": "type:SupervisorInfoDto"
   },
   "stats": {
-    "entities": 47,
+    "entities": 50,
     "dtos": 94,
-    "services": 88,
-    "controllers": 28,
+    "services": 92,
+    "controllers": 30,
     "types": 268,
     "api_functions": 146,
     "hooks": 121,
     "components": 118,
-    "total_edges": 284
+    "total_edges": 291
   }
 }

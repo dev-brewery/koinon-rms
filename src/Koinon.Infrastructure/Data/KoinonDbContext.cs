@@ -98,6 +98,11 @@ public class KoinonDbContext : DbContext, IApplicationDbContext
     public DbSet<AuditLog> AuditLogs { get; set; } = null!;
     public DbSet<FinancialAuditLog> FinancialAuditLogs { get; set; } = null!;
 
+    // Reporting entities
+    public DbSet<ReportDefinition> ReportDefinitions => Set<ReportDefinition>();
+    public DbSet<ReportRun> ReportRuns => Set<ReportRun>();
+    public DbSet<ReportSchedule> ReportSchedules => Set<ReportSchedule>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
