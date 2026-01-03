@@ -248,7 +248,9 @@ public class CommunicationSender(
             fromName,
             subject,
             bodyHtml,
-            replyToAddress,
-            cancellationToken);
+            bodyText: null,
+            attachments: null,
+            replyToAddress: replyToAddress,
+            ct: cancellationToken);
     }
 }
