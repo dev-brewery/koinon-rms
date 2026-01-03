@@ -49,7 +49,7 @@ public class TwilioWebhookController(ILogger<TwilioWebhookController> logger) : 
 
         // TODO(#400): Validate X-Twilio-Signature header to ensure request authenticity
         // TODO(#401): Persist status to CommunicationRecipient when integrated with communications feature
-        
+
         // Twilio expects 2xx response to confirm receipt
         return NoContent();
     }
