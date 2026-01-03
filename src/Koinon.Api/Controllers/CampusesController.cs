@@ -262,28 +262,44 @@ public class CampusesController(
         }
 
         if (request.ShortCode != null)
+        {
             campus.ShortCode = request.ShortCode;
+        }
 
         if (request.Description != null)
+        {
             campus.Description = request.Description;
+        }
 
         if (request.Url != null)
+        {
             campus.Url = request.Url;
+        }
 
         if (request.PhoneNumber != null)
+        {
             campus.PhoneNumber = request.PhoneNumber;
+        }
 
         if (request.TimeZoneId != null)
+        {
             campus.TimeZoneId = request.TimeZoneId;
+        }
 
         if (request.ServiceTimes != null)
+        {
             campus.ServiceTimes = request.ServiceTimes;
+        }
 
         if (request.Order.HasValue)
+        {
             campus.Order = request.Order.Value;
+        }
 
         if (request.IsActive.HasValue)
+        {
             campus.IsActive = request.IsActive.Value;
+        }
 
         campus.ModifiedDateTime = DateTime.UtcNow;
 
