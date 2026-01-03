@@ -693,6 +693,26 @@
       },
       "navigations": []
     },
+    "PersonDuplicateIgnore": {
+      "name": "PersonDuplicateIgnore",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "person_duplicate_ignore",
+      "properties": {
+        "MarkedByPersonId": "int?",
+        "Reason": "string?"
+      },
+      "navigations": []
+    },
+    "PersonMergeHistory": {
+      "name": "PersonMergeHistory",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "person_merge_history",
+      "properties": {
+        "MergedByPersonId": "int?",
+        "Notes": "string?"
+      },
+      "navigations": []
+    },
     "PersonSecurityRole": {
       "name": "PersonSecurityRole",
       "namespace": "Koinon.Domain.Entities",
@@ -2915,6 +2935,56 @@
       ],
       "dependencies": []
     },
+    "DuplicateDetectionService": {
+      "name": "DuplicateDetectionService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "DuplicateDetectionService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "FindDuplicatesAsync",
+          "return_type": "Task<PagedResult<DuplicateMatchDto>>",
+          "is_async": false
+        },
+        {
+          "name": "FindDuplicatesForPersonAsync",
+          "return_type": "Task<List<DuplicateMatchDto>>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "ILogger<DuplicateDetectionService>"
+      ]
+    },
+    "DuplicateIgnoreService": {
+      "name": "DuplicateIgnoreService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "DuplicateIgnoreService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "IgnoreDuplicateAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        },
+        {
+          "name": "UnignoreDuplicateAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "ILogger<DuplicateIgnoreService>"
+      ]
+    },
     "FamilyService": {
       "name": "FamilyService",
       "namespace": "Koinon.Application.Services",
@@ -3469,6 +3539,37 @@
         "ILogger<ParentPagingService>"
       ]
     },
+    "PersonMergeService": {
+      "name": "PersonMergeService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "PersonMergeService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "ComparePersonsAsync",
+          "return_type": "Task<PersonComparisonDto?>",
+          "is_async": false
+        },
+        {
+          "name": "MergeAsync",
+          "return_type": "Task<Result<PersonMergeResultDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetMergeHistoryAsync",
+          "return_type": "Task<PagedResult<PersonMergeHistoryDto>>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IPersonService",
+        "ILogger<PersonMergeService>"
+      ]
+    },
     "PersonService": {
       "name": "PersonService",
       "namespace": "Koinon.Application.Services",
@@ -3824,6 +3925,18 @@
       "methods": [],
       "dependencies": []
     },
+    "IDuplicateDetectionService": {
+      "name": "IDuplicateDetectionService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IDuplicateIgnoreService": {
+      "name": "IDuplicateIgnoreService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
     "IFamilyService": {
       "name": "IFamilyService",
       "namespace": "Koinon.Application.Interfaces",
@@ -3910,6 +4023,12 @@
     },
     "IParentPagingService": {
       "name": "IParentPagingService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IPersonMergeService": {
+      "name": "IPersonMergeService",
       "namespace": "Koinon.Application.Interfaces",
       "methods": [],
       "dependencies": []
@@ -5430,6 +5549,88 @@
         "ILogger<PeopleController>"
       ]
     },
+    "PersonMergeController": {
+      "name": "PersonMergeController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/people",
+      "endpoints": [
+        {
+          "name": "GetDuplicates",
+          "method": "GET",
+          "route": "duplicates",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetDuplicatesForPerson",
+          "method": "GET",
+          "route": "{idKey}/duplicates",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "ComparePeople",
+          "method": "GET",
+          "route": "compare",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetMergeHistory",
+          "method": "GET",
+          "route": "merge-history",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "MergePeople",
+          "method": "POST",
+          "route": "merge",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "IgnoreDuplicate",
+          "method": "POST",
+          "route": "duplicates/ignore",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "UnignoreDuplicate",
+          "method": "DELETE",
+          "route": "duplicates/ignore/{person1IdKey}/{person2IdKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": true,
+        "result_pattern": true
+      },
+      "dependencies": [
+        "IDuplicateDetectionService",
+        "IPersonMergeService",
+        "IDuplicateIgnoreService",
+        "ILogger<PersonMergeController>"
+      ]
+    },
     "PickupController": {
       "name": "PickupController",
       "namespace": "Koinon.Api.Controllers",
@@ -6758,6 +6959,93 @@
       "usesMutation": false,
       "dependencies": []
     },
+    "useDuplicates": {
+      "name": "useDuplicates",
+      "path": "hooks/usePersonMerge.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "duplicates"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useDuplicatesForPerson": {
+      "name": "useDuplicatesForPerson",
+      "path": "hooks/usePersonMerge.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "duplicates"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getDuplicatesForPerson"
+      ]
+    },
+    "usePersonComparison": {
+      "name": "usePersonComparison",
+      "path": "hooks/usePersonMerge.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "personComparison"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "comparePeople"
+      ]
+    },
+    "useMergePeople": {
+      "name": "useMergePeople",
+      "path": "hooks/usePersonMerge.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "duplicates"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "mergePeople"
+      ]
+    },
+    "useMergeHistory": {
+      "name": "useMergeHistory",
+      "path": "hooks/usePersonMerge.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "mergeHistory"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useIgnoreDuplicate": {
+      "name": "useIgnoreDuplicate",
+      "path": "hooks/usePersonMerge.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "duplicates"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "ignoreDuplicate"
+      ]
+    },
+    "useUnignoreDuplicate": {
+      "name": "useUnignoreDuplicate",
+      "path": "hooks/usePersonMerge.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "duplicates"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "unignoreDuplicate"
+      ]
+    },
     "useMyProfile": {
       "name": "useMyProfile",
       "path": "hooks/useProfile.ts",
@@ -7832,6 +8120,41 @@
       "method": "POST",
       "responseType": "PersonDetailDto"
     },
+    "getDuplicatesForPerson": {
+      "name": "getDuplicatesForPerson",
+      "path": "services/api/personMerge.ts",
+      "endpoint": "/people/${idKey}/duplicates",
+      "method": "GET",
+      "responseType": "DuplicateMatchDto[]"
+    },
+    "comparePeople": {
+      "name": "comparePeople",
+      "path": "services/api/personMerge.ts",
+      "endpoint": "/people/compare?person1IdKey=${person1IdKey}&person2IdKey=${person2IdKey}",
+      "method": "GET",
+      "responseType": "PersonComparisonDto"
+    },
+    "mergePeople": {
+      "name": "mergePeople",
+      "path": "services/api/personMerge.ts",
+      "endpoint": "/people/merge",
+      "method": "POST",
+      "responseType": "PersonMergeResultDto"
+    },
+    "ignoreDuplicate": {
+      "name": "ignoreDuplicate",
+      "path": "services/api/personMerge.ts",
+      "endpoint": "/people/duplicates/ignore",
+      "method": "POST",
+      "responseType": "void"
+    },
+    "unignoreDuplicate": {
+      "name": "unignoreDuplicate",
+      "path": "services/api/personMerge.ts",
+      "endpoint": "/people/duplicates/ignore/${person1IdKey}/${person2IdKey}",
+      "method": "DELETE",
+      "responseType": "void"
+    },
     "verifyPickup": {
       "name": "verifyPickup",
       "path": "services/api/pickup.ts",
@@ -8171,6 +8494,24 @@
       "name": "PersonCard",
       "path": "components/admin/people/PersonCard.tsx",
       "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "PersonComparisonView": {
+      "name": "PersonComparisonView",
+      "path": "components/admin/people/PersonComparisonView.tsx",
+      "hooksUsed": [
+        "usePersonComparison",
+        "useIgnoreDuplicate"
+      ],
+      "apiCallsDirectly": false
+    },
+    "PersonMergeWizard": {
+      "name": "PersonMergeWizard",
+      "path": "components/admin/people/PersonMergeWizard.tsx",
+      "hooksUsed": [
+        "usePersonComparison",
+        "useMergePeople"
+      ],
       "apiCallsDirectly": false
     },
     "PersonPhotoUpload": {
@@ -9044,6 +9385,21 @@
       "relationship": "depends_on"
     },
     {
+      "source": "PersonMergeController",
+      "target": "IDuplicateDetectionService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "PersonMergeController",
+      "target": "IPersonMergeService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "PersonMergeController",
+      "target": "IDuplicateIgnoreService",
+      "relationship": "depends_on"
+    },
+    {
       "source": "PickupController",
       "target": "IAuthorizedPickupService",
       "relationship": "depends_on"
@@ -9794,6 +10150,16 @@
       "relationship": "uses"
     },
     {
+      "source": "PersonMergeService",
+      "target": "Person",
+      "relationship": "uses"
+    },
+    {
+      "source": "PersonMergeService",
+      "target": "Person",
+      "relationship": "uses"
+    },
+    {
       "source": "PersonService",
       "target": "Person",
       "relationship": "uses"
@@ -9951,6 +10317,26 @@
     {
       "from": "CommunicationPreferences",
       "to": "useUpdateCommunicationPreference",
+      "type": "uses_hook"
+    },
+    {
+      "from": "PersonComparisonView",
+      "to": "usePersonComparison",
+      "type": "uses_hook"
+    },
+    {
+      "from": "PersonComparisonView",
+      "to": "useIgnoreDuplicate",
+      "type": "uses_hook"
+    },
+    {
+      "from": "PersonMergeWizard",
+      "to": "usePersonComparison",
+      "type": "uses_hook"
+    },
+    {
+      "from": "PersonMergeWizard",
+      "to": "useMergePeople",
       "type": "uses_hook"
     },
     {
@@ -10125,14 +10511,14 @@
     "dto:SupervisorInfoDto": "type:SupervisorInfoDto"
   },
   "stats": {
-    "entities": 44,
+    "entities": 46,
     "dtos": 93,
-    "services": 77,
-    "controllers": 25,
-    "types": 257,
-    "api_functions": 139,
-    "hooks": 111,
-    "components": 113,
-    "total_edges": 270
+    "services": 83,
+    "controllers": 26,
+    "types": 263,
+    "api_functions": 144,
+    "hooks": 118,
+    "components": 115,
+    "total_edges": 279
   }
 }

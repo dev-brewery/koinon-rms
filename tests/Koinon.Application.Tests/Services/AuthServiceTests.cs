@@ -460,6 +460,10 @@ public class AuthServiceTests
         public DbSet<ContributionStatement> ContributionStatements { get; set; } = null!;
         public DbSet<FinancialAuditLog> FinancialAuditLogs { get; set; } = null!;
 
+        // Person merge and duplicate tracking
+        public DbSet<PersonMergeHistory> PersonMergeHistories { get; set; } = null!;
+        public DbSet<PersonDuplicateIgnore> PersonDuplicateIgnores { get; set; } = null!;
+
         // Security
         public DbSet<SecurityRole> SecurityRoles { get; set; } = null!;
         public DbSet<SecurityClaim> SecurityClaims { get; set; } = null!;
