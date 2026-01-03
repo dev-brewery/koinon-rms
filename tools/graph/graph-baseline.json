@@ -4063,6 +4063,12 @@
       "methods": [],
       "dependencies": []
     },
+    "ISessionCleanupService": {
+      "name": "ISessionCleanupService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
     "ISmsService": {
       "name": "ISmsService",
       "namespace": "Koinon.Application.Interfaces",
@@ -10513,7 +10519,7 @@
   "stats": {
     "entities": 46,
     "dtos": 93,
-    "services": 83,
+    "services": 84,
     "controllers": 26,
     "types": 263,
     "api_functions": 144,

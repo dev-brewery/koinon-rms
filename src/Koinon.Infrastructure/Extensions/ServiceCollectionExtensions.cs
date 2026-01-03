@@ -93,6 +93,9 @@ public static class ServiceCollectionExtensions
         // Register file storage service
         services.AddScoped<IFileStorageService, LocalFileStorageService>();
 
+        // Register session cleanup service
+        services.AddScoped<ISessionCleanupService, SessionCleanupService>();
+
         // Future: Register repositories and unit of work (WU-1.3.4)
         // services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         // services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -178,6 +181,9 @@ public static class ServiceCollectionExtensions
         // Register file storage service
         services.AddScoped<IFileStorageService, LocalFileStorageService>();
 
+        // Register session cleanup service
+        services.AddScoped<ISessionCleanupService, SessionCleanupService>();
+
         // Future: Register repositories and unit of work
         // services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         // services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -211,6 +217,9 @@ public static class ServiceCollectionExtensions
 
         // Register file storage service
         services.AddScoped<IFileStorageService, LocalFileStorageService>();
+
+        // Register session cleanup service
+        services.AddScoped<ISessionCleanupService, SessionCleanupService>();
 
         // Future: Register repositories and unit of work
         // services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
@@ -305,6 +314,19 @@ public static class ServiceCollectionExtensions
             options.Queues = new[] { "default", "critical", "low" };
             options.ServerName = $"{Environment.MachineName}:{Guid.NewGuid():N}";
         });
+
+        // Register Hangfire health check
+        services.AddHealthChecks()
+            .AddHangfire(options =>
+            {
+                options.MinimumAvailableServers = 1;
+            },
+            name: "hangfire",
+            failureStatus: Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Degraded,
+            tags: new[] { "ready", "hangfire" });
+
+        // Register hosted service to configure recurring jobs after startup
+        services.AddHostedService<HangfireRecurringJobsService>();
 
         return services;
     }
