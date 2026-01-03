@@ -25,6 +25,7 @@ export * from './types';
 export * as analyticsApi from './analytics';
 export * as authApi from './auth';
 export * as authorizedPickupApi from './authorizedPickup';
+export * as campusesApi from './campuses';
 export * as checkinApi from './checkin';
 export * as communicationsApi from './communications';
 export * as dashboardApi from './dashboard';

@@ -12,6 +12,7 @@
 // Domain types
 export * from './analytics';
 export * from './authorized-pickup';
+export * from './campus';
 export * from './checkin';
 export * from './checkin-extended';
 export * from './communication';

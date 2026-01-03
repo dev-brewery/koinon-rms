@@ -3,6 +3,10 @@
  */
 
 import type { IdKey, DateTime, DateOnly } from '@/services/api/types';
+import type { CampusSummaryDto } from './campus';
+
+// Re-export shared types for convenience
+export type { CampusSummaryDto };
 
 // ============================================================================
 // Phone Number Types
@@ -33,12 +37,6 @@ export interface PhoneNumberRequestDto {
 // ============================================================================
 // Profile Types
 // ============================================================================
-
-export interface CampusSummaryDto {
-  idKey: IdKey;
-  name: string;
-  shortCode?: string;
-}
 
 export interface FamilySummaryDto {
   idKey: IdKey;

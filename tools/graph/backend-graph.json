@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-03T00:16:05.787149+00:00",
+  "generated_at": "2026-01-03T01:04:44.077837+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -152,6 +152,16 @@
           "type": "one"
         }
       ]
+    },
+    "CommunicationPreference": {
+      "name": "CommunicationPreference",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "communication_preference",
+      "properties": {
+        "OptOutDateTime": "DateTime?",
+        "OptOutReason": "string?"
+      },
+      "navigations": []
     },
     "CommunicationRecipient": {
       "name": "CommunicationRecipient",
@@ -845,6 +855,22 @@
       "properties": {},
       "linked_entity": "AuthorizedPickup"
     },
+    "CampusDto": {
+      "name": "CampusDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "ShortCode": "string?",
+        "Description": "string?",
+        "IsActive": "bool",
+        "Url": "string?",
+        "PhoneNumber": "string?",
+        "TimeZoneId": "string?",
+        "ServiceTimes": "string?",
+        "Order": "int",
+        "ModifiedDateTime": "DateTime?"
+      },
+      "linked_entity": "Campus"
+    },
     "CheckinRequestDto": {
       "name": "CheckinRequestDto",
       "namespace": "Koinon.Application.DTOs",
@@ -1195,6 +1221,31 @@
         "ErrorMessage": "string?",
         "GroupIdKey": "string?",
         "Body": "string?"
+      }
+    },
+    "CommunicationPreferenceDto": {
+      "name": "CommunicationPreferenceDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "OptOutDateTime": "DateTime?",
+        "OptOutReason": "string?"
+      },
+      "linked_entity": "CommunicationPreference"
+    },
+    "UpdateCommunicationPreferenceDto": {
+      "name": "UpdateCommunicationPreferenceDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "OptOutDateTime": "DateTime?",
+        "OptOutReason": "string?"
+      }
+    },
+    "BulkUpdatePreferencesDto": {
+      "name": "BulkUpdatePreferencesDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "OptOutDateTime": "DateTime?",
+        "OptOutReason": "string?"
       }
     },
     "CommunicationPreviewRequestDto": {
@@ -2437,6 +2488,47 @@
         "CheckinDataLoader"
       ]
     },
+    "CommunicationPreferenceService": {
+      "name": "CommunicationPreferenceService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "CommunicationPreferenceService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetByPersonAsync",
+          "return_type": "Task<List<CommunicationPreferenceDto>>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateAsync",
+          "return_type": "Task<Result<CommunicationPreferenceDto>>",
+          "is_async": false
+        },
+        {
+          "name": "BulkUpdateAsync",
+          "return_type": "Task<Result<List<CommunicationPreferenceDto>>>",
+          "is_async": false
+        },
+        {
+          "name": "IsOptedOutAsync",
+          "return_type": "Task<bool>",
+          "is_async": false
+        },
+        {
+          "name": "IsOptedOutBatchAsync",
+          "return_type": "Task<Dictionary<int, bool>>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IMapper",
+        "ILogger<CommunicationPreferenceService>"
+      ]
+    },
     "CommunicationService": {
       "name": "CommunicationService",
       "namespace": "Koinon.Application.Services",
@@ -2497,6 +2589,7 @@
         "IMapper",
         "IUserContext",
         "IMergeFieldService",
+        "ICommunicationPreferenceService",
         "ILogger<CommunicationService>"
       ]
     },
@@ -3531,6 +3624,12 @@
       "methods": [],
       "dependencies": []
     },
+    "ICommunicationPreferenceService": {
+      "name": "ICommunicationPreferenceService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
     "ICommunicationService": {
       "name": "ICommunicationService",
       "namespace": "Koinon.Application.Interfaces",
@@ -3881,11 +3980,39 @@
       "name": "CampusesController",
       "namespace": "Koinon.Api.Controllers",
       "route": "api/v1/[controller]",
-      "endpoints": [],
+      "endpoints": [
+        {
+          "name": "GetByIdKey",
+          "method": "GET",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Update",
+          "method": "PUT",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Delete",
+          "method": "DELETE",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
       "patterns": {
         "response_envelope": true,
-        "idkey_routes": false,
-        "problem_details": false,
+        "idkey_routes": true,
+        "problem_details": true,
         "result_pattern": false
       },
       "dependencies": [
@@ -4049,6 +4176,32 @@
         "IRoomRosterService",
         "ICapacityService",
         "ILogger<CheckinController>"
+      ]
+    },
+    "CommunicationPreferencesController": {
+      "name": "CommunicationPreferencesController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/people/{personIdKey}/communication-preferences",
+      "endpoints": [
+        {
+          "name": "UpdateSingle",
+          "method": "PUT",
+          "route": "{type}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": false,
+        "problem_details": true,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "ICommunicationPreferenceService",
+        "ILogger<CommunicationPreferencesController>"
       ]
     },
     "CommunicationTemplatesController": {
@@ -5162,6 +5315,11 @@
       "relationship": "maps_to"
     },
     {
+      "source": "CampusDto",
+      "target": "Campus",
+      "relationship": "maps_to"
+    },
+    {
       "source": "AttendanceSummaryDto",
       "target": "Attendance",
       "relationship": "maps_to"
@@ -5184,6 +5342,11 @@
     {
       "source": "CommunicationRecipientDto",
       "target": "CommunicationRecipient",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CommunicationPreferenceDto",
+      "target": "CommunicationPreference",
       "relationship": "maps_to"
     },
     {
@@ -5389,6 +5552,11 @@
     {
       "source": "CheckinController",
       "target": "ICapacityService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "CommunicationPreferencesController",
+      "target": "ICommunicationPreferenceService",
       "relationship": "depends_on"
     },
     {
@@ -5639,6 +5807,21 @@
     {
       "source": "CheckinSearchService",
       "target": "CheckinFamilySearchResultDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CommunicationPreferenceService",
+      "target": "CommunicationPreferenceDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CommunicationPreferenceService",
+      "target": "CommunicationPreferenceDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CommunicationPreferenceService",
+      "target": "CommunicationPreferenceDto",
       "relationship": "returns"
     },
     {
@@ -6077,6 +6260,16 @@
       "relationship": "uses"
     },
     {
+      "source": "CommunicationPreferenceService",
+      "target": "Communication",
+      "relationship": "uses"
+    },
+    {
+      "source": "CommunicationService",
+      "target": "Communication",
+      "relationship": "uses"
+    },
+    {
       "source": "CommunicationService",
       "target": "Communication",
       "relationship": "uses"
@@ -6223,10 +6416,10 @@
     }
   ],
   "summary": {
-    "total_entities": 42,
-    "total_dtos": 84,
-    "total_services": 73,
-    "total_controllers": 23,
-    "total_relationships": 217
+    "total_entities": 43,
+    "total_dtos": 88,
+    "total_services": 75,
+    "total_controllers": 24,
+    "total_relationships": 225
   }
 }

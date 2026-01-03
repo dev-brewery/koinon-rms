@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-01-03T00:16:05.968Z",
+  "generated_at": "2026-01-03T01:04:44.254Z",
   "types": {
     "AttendanceAnalyticsDto": {
       "name": "AttendanceAnalyticsDto",
@@ -175,6 +175,67 @@
       "kind": "enum",
       "properties": {},
       "path": "types/authorized-pickup.ts"
+    },
+    "CampusSummaryDto": {
+      "name": "CampusSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "shortCode": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CampusDto": {
+      "name": "CampusDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "name": "string",
+        "description": "string",
+        "shortCode": "string",
+        "isActive": "boolean",
+        "order": "number",
+        "url": "string",
+        "phoneNumber": "string",
+        "serviceTimes": "string",
+        "timeZoneId": "string",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CreateCampusRequest": {
+      "name": "CreateCampusRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "shortCode": "string",
+        "description": "string",
+        "url": "string",
+        "phoneNumber": "string",
+        "timeZoneId": "string",
+        "serviceTimes": "string",
+        "order": "number"
+      },
+      "path": "types/campus.ts"
+    },
+    "UpdateCampusRequest": {
+      "name": "UpdateCampusRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "shortCode": "string",
+        "description": "string",
+        "isActive": "boolean",
+        "url": "string",
+        "phoneNumber": "string",
+        "timeZoneId": "string",
+        "serviceTimes": "string",
+        "order": "number"
+      },
+      "path": "types/campus.ts"
     },
     "MarkAttendanceResultDto": {
       "name": "MarkAttendanceResultDto",
@@ -727,6 +788,38 @@
         "subject": "string",
         "body": "string",
         "personName": "string"
+      },
+      "path": "types/communication.ts"
+    },
+    "CommunicationPreferenceDto": {
+      "name": "CommunicationPreferenceDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "personIdKey": "string",
+        "communicationType": "'Email' | 'Sms'",
+        "isOptedOut": "boolean",
+        "optOutDateTime": "DateTime",
+        "optOutReason": "string"
+      },
+      "path": "types/communication.ts"
+    },
+    "UpdateCommunicationPreferenceDto": {
+      "name": "UpdateCommunicationPreferenceDto",
+      "kind": "interface",
+      "properties": {
+        "isOptedOut": "boolean",
+        "optOutReason": "string"
+      },
+      "path": "types/communication.ts"
+    },
+    "BulkUpdatePreferencesDto": {
+      "name": "BulkUpdatePreferencesDto",
+      "kind": "interface",
+      "properties": {
+        "preferences": "Array<{\n    communicationType: 'Email' | 'Sms'",
+        "isOptedOut": "boolean",
+        "optOutReason": "string"
       },
       "path": "types/communication.ts"
     },
@@ -1654,16 +1747,6 @@
       },
       "path": "types/profile.ts"
     },
-    "CampusSummaryDto": {
-      "name": "CampusSummaryDto",
-      "kind": "interface",
-      "properties": {
-        "idKey": "IdKey",
-        "name": "string",
-        "shortCode": "string"
-      },
-      "path": "services/api/types.ts"
-    },
     "FamilySummaryDto": {
       "name": "FamilySummaryDto",
       "kind": "interface",
@@ -2468,22 +2551,6 @@
       },
       "path": "services/api/types.ts"
     },
-    "CampusDto": {
-      "name": "CampusDto",
-      "kind": "interface",
-      "properties": {
-        "idKey": "IdKey",
-        "guid": "Guid",
-        "name": "string",
-        "shortCode": "string",
-        "isActive": "boolean",
-        "url": "string",
-        "phoneNumber": "string",
-        "serviceTimes": "string",
-        "timeZoneId": "string"
-      },
-      "path": "services/api/types.ts"
-    },
     "CampusesParams": {
       "name": "CampusesParams",
       "kind": "interface",
@@ -3025,6 +3092,41 @@
       "method": "GET",
       "responseType": "{ message: string; count: number; pickups: AuthorizedPickupDto[] }"
     },
+    "getCampuses": {
+      "name": "getCampuses",
+      "path": "services/api/reference.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "CampusDto[]"
+    },
+    "getCampus": {
+      "name": "getCampus",
+      "path": "services/api/campuses.ts",
+      "endpoint": "${BASE_URL}/${idKey}",
+      "method": "GET",
+      "responseType": "CampusDto"
+    },
+    "createCampus": {
+      "name": "createCampus",
+      "path": "services/api/campuses.ts",
+      "endpoint": "/unknown",
+      "method": "POST",
+      "responseType": "CampusDto"
+    },
+    "updateCampus": {
+      "name": "updateCampus",
+      "path": "services/api/campuses.ts",
+      "endpoint": "${BASE_URL}/${idKey}",
+      "method": "PUT",
+      "responseType": "CampusDto"
+    },
+    "deleteCampus": {
+      "name": "deleteCampus",
+      "path": "services/api/campuses.ts",
+      "endpoint": "${BASE_URL}/${idKey}",
+      "method": "DELETE",
+      "responseType": "void"
+    },
     "getCheckinConfiguration": {
       "name": "getCheckinConfiguration",
       "path": "services/api/checkin.ts",
@@ -3185,6 +3287,27 @@
       "endpoint": "/communications/preview",
       "method": "POST",
       "responseType": "CommunicationPreviewResponse"
+    },
+    "getCommunicationPreferences": {
+      "name": "getCommunicationPreferences",
+      "path": "services/api/communications.ts",
+      "endpoint": "/people/${personIdKey}/communication-preferences",
+      "method": "GET",
+      "responseType": "CommunicationPreferenceDto[]"
+    },
+    "updateCommunicationPreference": {
+      "name": "updateCommunicationPreference",
+      "path": "services/api/communications.ts",
+      "endpoint": "/people/${personIdKey}/communication-preferences/${type}",
+      "method": "PUT",
+      "responseType": "CommunicationPreferenceDto"
+    },
+    "bulkUpdateCommunicationPreferences": {
+      "name": "bulkUpdateCommunicationPreferences",
+      "path": "services/api/communications.ts",
+      "endpoint": "/people/${personIdKey}/communication-preferences",
+      "method": "PUT",
+      "responseType": "CommunicationPreferenceDto[]"
     },
     "getDashboardStats": {
       "name": "getDashboardStats",
@@ -3725,13 +3848,6 @@
       "method": "GET",
       "responseType": "DefinedValueDto[]"
     },
-    "getCampuses": {
-      "name": "getCampuses",
-      "path": "services/api/reference.ts",
-      "endpoint": "/unknown",
-      "method": "GET",
-      "responseType": "CampusDto[]"
-    },
     "getScheduleByIdKey": {
       "name": "getScheduleByIdKey",
       "path": "services/api/schedules.ts",
@@ -3867,6 +3983,71 @@
       "usesMutation": false,
       "dependencies": []
     },
+    "useCampuses": {
+      "name": "useCampuses",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "getCampuses",
+      "queryKey": [
+        "campuses"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getCampuses"
+      ]
+    },
+    "useCampus": {
+      "name": "useCampus",
+      "path": "hooks/useCampuses.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "campuses"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getCampus"
+      ]
+    },
+    "useCreateCampus": {
+      "name": "useCreateCampus",
+      "path": "hooks/useCampuses.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "campuses"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "createCampus"
+      ]
+    },
+    "useUpdateCampus": {
+      "name": "useUpdateCampus",
+      "path": "hooks/useCampuses.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "campuses"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "updateCampus"
+      ]
+    },
+    "useDeleteCampus": {
+      "name": "useDeleteCampus",
+      "path": "hooks/useCampuses.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "campuses"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "deleteCampus"
+      ]
+    },
     "useCheckinConfiguration": {
       "name": "useCheckinConfiguration",
       "path": "hooks/useCheckin.ts",
@@ -3938,6 +4119,45 @@
       "usesQuery": false,
       "usesMutation": false,
       "dependencies": []
+    },
+    "useCommunicationPreferences": {
+      "name": "useCommunicationPreferences",
+      "path": "hooks/useCommunicationPreferences.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "communication-preferences"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getCommunicationPreferences"
+      ]
+    },
+    "useUpdateCommunicationPreference": {
+      "name": "useUpdateCommunicationPreference",
+      "path": "hooks/useCommunicationPreferences.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "updatecommunicationpreference"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "updateCommunicationPreference"
+      ]
+    },
+    "useBulkUpdateCommunicationPreferences": {
+      "name": "useBulkUpdateCommunicationPreferences",
+      "path": "hooks/useCommunicationPreferences.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "bulkupdatecommunicationpreferences"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "bulkUpdateCommunicationPreferences"
+      ]
     },
     "useCommunicationTemplates": {
       "name": "useCommunicationTemplates",
@@ -4341,19 +4561,6 @@
       "usesMutation": true,
       "dependencies": [
         "deleteContribution"
-      ]
-    },
-    "useCampuses": {
-      "name": "useCampuses",
-      "path": "hooks/useGiving.ts",
-      "apiBinding": "getCampuses",
-      "queryKey": [
-        "campuses"
-      ],
-      "usesQuery": true,
-      "usesMutation": false,
-      "dependencies": [
-        "getCampuses"
       ]
     },
     "useGroupTypes": {
@@ -4955,6 +5162,21 @@
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
+    "CampusCard": {
+      "name": "CampusCard",
+      "path": "components/admin/CampusCard.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "CampusEditorModal": {
+      "name": "CampusEditorModal",
+      "path": "components/admin/CampusEditorModal.tsx",
+      "hooksUsed": [
+        "useCreateCampus",
+        "useUpdateCampus"
+      ],
+      "apiCallsDirectly": false
+    },
     "GroupTypeCard": {
       "name": "GroupTypeCard",
       "path": "components/admin/GroupTypeCard.tsx",
@@ -5089,6 +5311,15 @@
       "path": "components/admin/groups/GroupTree.tsx",
       "hooksUsed": [
         "useChildGroups"
+      ],
+      "apiCallsDirectly": false
+    },
+    "CommunicationPreferences": {
+      "name": "CommunicationPreferences",
+      "path": "components/admin/people/CommunicationPreferences.tsx",
+      "hooksUsed": [
+        "useCommunicationPreferences",
+        "useUpdateCommunicationPreference"
       ],
       "apiCallsDirectly": false
     },
@@ -5593,6 +5824,16 @@
       "type": "api_binding"
     },
     {
+      "from": "CampusEditorModal",
+      "to": "useCreateCampus",
+      "type": "uses_hook"
+    },
+    {
+      "from": "CampusEditorModal",
+      "to": "useUpdateCampus",
+      "type": "uses_hook"
+    },
+    {
       "from": "GroupTypeEditorModal",
       "to": "useGroupType",
       "type": "uses_hook"
@@ -5660,6 +5901,16 @@
     {
       "from": "GroupTree",
       "to": "useChildGroups",
+      "type": "uses_hook"
+    },
+    {
+      "from": "CommunicationPreferences",
+      "to": "useCommunicationPreferences",
+      "type": "uses_hook"
+    },
+    {
+      "from": "CommunicationPreferences",
+      "to": "useUpdateCommunicationPreference",
       "type": "uses_hook"
     },
     {
