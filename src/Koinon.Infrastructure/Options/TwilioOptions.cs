@@ -27,6 +27,35 @@ public class TwilioOptions
     public string? FromNumber { get; set; }
 
     /// <summary>
+    /// URL for Twilio to post status callbacks (delivery receipts, etc.).
+    /// </summary>
+    public string? WebhookUrl { get; set; }
+
+    /// <summary>
+    /// Optional monthly cost limit in cents. NOT ENFORCED - for informational tracking only.
+    /// Future: May be enforced when cost tracking persistence is implemented.
+    /// </summary>
+    public int? MonthlyCostLimitCents { get; set; }
+
+    /// <summary>
+    /// Optional monthly SMS count limit. NOT ENFORCED - for informational tracking only.
+    /// Future: May be enforced when usage tracking persistence is implemented.
+    /// </summary>
+    public int? MonthlySmsLimit { get; set; }
+
+    /// <summary>
+    /// Approximate cost per SMS segment in cents. For cost estimation only, not billing.
+    /// Default: 1 (~$0.0075 per segment for US carriers).
+    /// </summary>
+    public int CostPerSmsCents { get; set; } = 1;
+
+    /// <summary>
+    /// Approximate cost per MMS in cents. For cost estimation only, not billing.
+    /// Default: 2 (~$0.02 per MMS for US carriers).
+    /// </summary>
+    public int CostPerMmsCents { get; set; } = 2;
+
+    /// <summary>
     /// Validates that all required options are configured.
     /// </summary>
     public bool IsValid =>

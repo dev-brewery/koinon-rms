@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-03T15:10:32.183680+00:00",
+  "generated_at": "2026-01-03T19:18:40.318834+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -4069,6 +4069,12 @@
       "methods": [],
       "dependencies": []
     },
+    "ISmsQueueService": {
+      "name": "ISmsQueueService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
     "ISmsService": {
       "name": "ISmsService",
       "namespace": "Koinon.Application.Interfaces",
@@ -5758,6 +5764,31 @@
       "dependencies": [
         "IScheduleService",
         "ILogger<SchedulesController>"
+      ]
+    },
+    "TwilioWebhookController": {
+      "name": "TwilioWebhookController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/webhooks/twilio",
+      "endpoints": [
+        {
+          "name": "ReceiveStatusCallback",
+          "method": "POST",
+          "route": "status",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": false,
+        "idkey_routes": false,
+        "problem_details": false,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "ILogger<TwilioWebhookController>"
       ]
     }
   },
@@ -10519,8 +10550,8 @@
   "stats": {
     "entities": 46,
     "dtos": 93,
-    "services": 84,
-    "controllers": 26,
+    "services": 85,
+    "controllers": 27,
     "types": 263,
     "api_functions": 144,
     "hooks": 118,
