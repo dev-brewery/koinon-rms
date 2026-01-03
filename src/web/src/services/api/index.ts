@@ -36,6 +36,7 @@ export * as givingApi from './giving';
 export * as groupsApi from './groups';
 export * as groupTypesApi from './groupTypes';
 export * as importApi from './import';
+export * as locationsApi from './locations';
 export * as membershipRequestsApi from './membershipRequests';
 export * as myGroupsApi from './myGroups';
 export * as pagerApi from './pager';

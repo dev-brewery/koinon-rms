@@ -39,6 +39,16 @@ public class Location : Entity
     public virtual DefinedValue? LocationTypeValue { get; set; }
 
     /// <summary>
+    /// Foreign key to the campus that this location belongs to (for multi-campus churches).
+    /// </summary>
+    public int? CampusId { get; set; }
+
+    /// <summary>
+    /// Navigation property to the campus.
+    /// </summary>
+    public virtual Campus? Campus { get; set; }
+
+    /// <summary>
     /// Indicates whether this location is currently active.
     /// </summary>
     public bool IsActive { get; set; } = true;

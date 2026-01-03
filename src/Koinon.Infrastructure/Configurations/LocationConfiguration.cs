@@ -41,6 +41,9 @@ public class LocationConfiguration : IEntityTypeConfiguration<Location>
         builder.Property(l => l.LocationTypeValueId)
             .HasColumnName("location_type_value_id");
 
+        builder.Property(l => l.CampusId)
+            .HasColumnName("campus_id");
+
         builder.Property(l => l.IsActive)
             .HasColumnName("is_active")
             .IsRequired()
@@ -141,6 +144,9 @@ public class LocationConfiguration : IEntityTypeConfiguration<Location>
         builder.HasIndex(l => l.LocationTypeValueId)
             .HasDatabaseName("ix_location_location_type_value_id");
 
+        builder.HasIndex(l => l.CampusId)
+            .HasDatabaseName("ix_location_campus_id");
+
         builder.HasIndex(l => l.Name)
             .HasDatabaseName("ix_location_name");
 
@@ -156,6 +162,11 @@ public class LocationConfiguration : IEntityTypeConfiguration<Location>
         builder.HasOne(l => l.LocationTypeValue)
             .WithMany()
             .HasForeignKey(l => l.LocationTypeValueId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(l => l.Campus)
+            .WithMany()
+            .HasForeignKey(l => l.CampusId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(l => l.OverflowLocation)

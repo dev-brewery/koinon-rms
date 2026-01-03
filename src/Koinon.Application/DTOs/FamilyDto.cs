@@ -11,7 +11,7 @@ public record FamilyDto
     public string? Description { get; init; }
     public required bool IsActive { get; init; }
     public CampusSummaryDto? Campus { get; init; }
-    public LocationDto? Address { get; init; }
+    public AddressDto? Address { get; init; }
     public required IReadOnlyList<FamilyMemberDto> Members { get; init; }
     public required DateTime CreatedDateTime { get; init; }
     public DateTime? ModifiedDateTime { get; init; }
@@ -30,9 +30,9 @@ public record FamilyMemberDto
 }
 
 /// <summary>
-/// Location/Address DTO.
+/// Address DTO for postal addresses.
 /// </summary>
-public record LocationDto
+public record AddressDto
 {
     public required string IdKey { get; init; }
     public string? Street1 { get; init; }

@@ -690,6 +690,9 @@ export interface CampusesParams {
   includeInactive?: boolean;
 }
 
+// Location types moved to src/web/src/types/location.ts
+// Import from there to use LocationDto and LocationSummaryDto
+
 export interface GroupTypeDto {
   idKey: IdKey;
   guid: Guid;
