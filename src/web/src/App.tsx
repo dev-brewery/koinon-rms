@@ -48,7 +48,7 @@ import { TemplatesPage } from './pages/communications/TemplatesPage';
 import { TemplateFormPage } from './pages/communications/TemplateFormPage';
 import { MyProfilePage } from './pages/profile';
 import { RosterPage } from './pages/admin/RosterPage';
-import { BatchListPage, BatchDetailPage, BatchFormPage } from './pages/admin/giving';
+import { BatchListPage, BatchDetailPage, BatchFormPage, StatementsPage } from './pages/admin/giving';
 
 function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -248,6 +248,7 @@ function App() {
           <Route path="giving" element={<BatchListPage />} />
           <Route path="giving/new" element={<BatchFormPage />} />
           <Route path="giving/:idKey" element={<BatchDetailPage />} />
+          <Route path="giving/statements" element={<StatementsPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="settings/group-types" element={<GroupTypesPage />} />
           <Route path="settings/import" element={<ImportSettingsPage />} />

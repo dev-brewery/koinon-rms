@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as givingApi from '@/services/api/giving';
 import { getCampuses } from '@/services/api/reference';
 import type { BatchFilterParams } from '@/services/api/giving';
-import type { AddContributionRequest, CreateBatchRequest } from '@/types/giving';
+import type { AddContributionRequest, CreateBatchRequest, GenerateStatementRequest } from '@/types/giving';
 
 /**
  * Get financial batches with filters
@@ -168,5 +168,81 @@ export function useCampuses() {
     queryKey: ['campuses'],
     queryFn: () => getCampuses(),
     staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+// ============================================================================
+// Contribution Statements
+// ============================================================================
+
+/**
+ * Get contribution statements with pagination
+ */
+export function useStatements(page = 1, pageSize = 25) {
+  return useQuery({
+    queryKey: ['statements', page, pageSize],
+    queryFn: () => givingApi.getStatements(page, pageSize),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+/**
+ * Get a single contribution statement
+ */
+export function useStatement(idKey?: string) {
+  return useQuery({
+    queryKey: ['statements', idKey],
+    queryFn: () => givingApi.getStatement(idKey!),
+    enabled: !!idKey,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+/**
+ * Get eligible people for statement generation
+ */
+export function useEligiblePeople(
+  startDate: string,
+  endDate: string,
+  minimumAmount?: number
+) {
+  return useQuery({
+    queryKey: ['statements', 'eligible', startDate, endDate, minimumAmount],
+    queryFn: () => givingApi.getEligiblePeople(startDate, endDate, minimumAmount),
+    enabled: !!startDate && !!endDate,
+    staleTime: 1 * 60 * 1000, // 1 minute
+  });
+}
+
+/**
+ * Generate a contribution statement
+ */
+export function useGenerateStatement() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (request: GenerateStatementRequest) => givingApi.generateStatement(request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['statements'] });
+    },
+  });
+}
+
+/**
+ * Download statement PDF
+ */
+export function useDownloadStatementPdf() {
+  return useMutation({
+    mutationFn: async (idKey: string) => {
+      const blob = await givingApi.downloadStatementPdf(idKey);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `statement-${idKey}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    },
   });
 }

@@ -93,6 +93,13 @@ public static class ServiceCollectionExtensions
         // File management service
         services.AddScoped<IFileService, FileService>();
 
+        // Giving/Financial services
+        services.AddScoped<IContributionStatementService, ContributionStatementService>();
+        services.AddScoped<StatementPdfGenerator>();
+
+        // Configure QuestPDF license
+        QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+
         // AutoMapper - register all mapping profiles
         services.AddAutoMapper(typeof(ServiceCollectionExtensions).Assembly);
 

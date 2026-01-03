@@ -17,6 +17,7 @@ namespace Koinon.Api.Controllers;
 [Authorize]
 public class GivingController(
     IBatchDonationEntryService batchDonationService,
+    IContributionStatementService statementService,
     ILogger<GivingController> logger) : ControllerBase
 {
     #region Funds
@@ -501,6 +502,278 @@ public class GivingController(
         logger.LogInformation("Deleted contribution: {IdKey}", idKey);
 
         return NoContent();
+    }
+
+    #endregion
+
+    #region Contribution Statements
+
+    /// <summary>
+    /// Gets a paginated list of all generated contribution statements.
+    /// </summary>
+    /// <param name="page">Page number (default: 1)</param>
+    /// <param name="pageSize">Number of items per page (default: 25, max: 100)</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Paginated list of contribution statements</returns>
+    /// <response code="200">Returns list of contribution statements</response>
+    [HttpGet("statements")]
+    // TODO(#258): Add [RequiresClaim("financial", "view")] when claims-based auth is implemented
+    [ProducesResponseType(typeof(PagedResult<ContributionStatementDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetStatementsAsync(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 25,
+        CancellationToken ct = default)
+    {
+        // Validate pagination parameters
+        if (page < 1)
+        {
+            page = 1;
+        }
+
+        if (pageSize < 1 || pageSize > 100)
+        {
+            pageSize = 25;
+        }
+
+        var result = await statementService.GetStatementsAsync(page, pageSize, ct);
+
+        if (!result.IsSuccess)
+        {
+            logger.LogWarning("Failed to get statements: {Error}", result.Error);
+            return Problem(
+                detail: result.Error?.Message ?? "Failed to get statements",
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Bad Request"
+            );
+        }
+
+        var statements = result.Value!;
+
+        logger.LogInformation(
+            "Statements search completed: Page={Page}, PageSize={PageSize}, TotalCount={TotalCount}",
+            statements.Page, statements.PageSize, statements.TotalCount);
+
+        return Ok(new
+        {
+            data = statements.Items,
+            meta = new
+            {
+                page = statements.Page,
+                pageSize = statements.PageSize,
+                totalCount = statements.TotalCount,
+                totalPages = (int)Math.Ceiling(statements.TotalCount / (double)statements.PageSize)
+            }
+        });
+    }
+
+    /// <summary>
+    /// Gets a specific contribution statement by IdKey.
+    /// </summary>
+    /// <param name="idKey">The statement IdKey</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>The contribution statement if found</returns>
+    /// <response code="200">Returns the contribution statement</response>
+    /// <response code="404">Statement not found</response>
+    [HttpGet("statements/{idKey}")]
+    [ValidateIdKey]
+    // TODO(#258): Add [RequiresClaim("financial", "view")] when claims-based auth is implemented
+    [ProducesResponseType(typeof(ContributionStatementDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetStatementAsync(string idKey, CancellationToken ct = default)
+    {
+        var result = await statementService.GetStatementAsync(idKey, ct);
+
+        if (!result.IsSuccess)
+        {
+            logger.LogWarning("Statement not found: {IdKey}", idKey);
+            return Problem(
+                detail: result.Error?.Message ?? "Statement not found",
+                statusCode: StatusCodes.Status404NotFound,
+                title: "Not Found"
+            );
+        }
+
+        logger.LogInformation("Retrieved statement: {IdKey}", idKey);
+
+        return Ok(new { data = result.Value });
+    }
+
+    /// <summary>
+    /// Previews a contribution statement without saving.
+    /// </summary>
+    /// <param name="request">The statement generation request</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Preview of the statement with all contribution details</returns>
+    /// <response code="200">Returns statement preview</response>
+    /// <response code="400">Invalid request</response>
+    /// <response code="404">Person not found</response>
+    [HttpPost("statements/preview")]
+    // TODO(#258): Add [RequiresClaim("financial", "view")] when claims-based auth is implemented
+    [ProducesResponseType(typeof(StatementPreviewDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> PreviewStatementAsync(
+        [FromBody] GenerateStatementRequest request,
+        CancellationToken ct = default)
+    {
+        var result = await statementService.PreviewStatementAsync(request, ct);
+
+        if (!result.IsSuccess)
+        {
+            logger.LogWarning("Failed to preview statement: {Error}", result.Error);
+
+            if (result.Error?.Code == "NOT_FOUND")
+            {
+                return Problem(
+                    detail: result.Error?.Message ?? "Person not found",
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Not Found"
+                );
+            }
+
+            return Problem(
+                detail: result.Error?.Message ?? "Failed to preview statement",
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Bad Request"
+            );
+        }
+
+        logger.LogInformation(
+            "Previewed statement for person: {PersonIdKey}, Period: {StartDate} to {EndDate}",
+            request.PersonIdKey, request.StartDate, request.EndDate);
+
+        return Ok(new { data = result.Value });
+    }
+
+    /// <summary>
+    /// Generates and saves a contribution statement.
+    /// </summary>
+    /// <param name="request">The statement generation request</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>The generated contribution statement</returns>
+    /// <response code="201">Statement created successfully</response>
+    /// <response code="400">Invalid request</response>
+    /// <response code="404">Person not found</response>
+    [HttpPost("statements")]
+    // TODO(#258): Add [RequiresClaim("financial", "edit")] when claims-based auth is implemented
+    [ProducesResponseType(typeof(ContributionStatementDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GenerateStatementAsync(
+        [FromBody] GenerateStatementRequest request,
+        CancellationToken ct = default)
+    {
+        var result = await statementService.GenerateStatementAsync(request, ct);
+
+        if (!result.IsSuccess)
+        {
+            logger.LogWarning("Failed to generate statement: {Error}", result.Error);
+
+            if (result.Error?.Code == "NOT_FOUND")
+            {
+                return Problem(
+                    detail: result.Error?.Message ?? "Person not found",
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Not Found"
+                );
+            }
+
+            return Problem(
+                detail: result.Error?.Message ?? "Failed to generate statement",
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Bad Request"
+            );
+        }
+
+        logger.LogInformation(
+            "Generated statement {IdKey} for person: {PersonIdKey}",
+            result.Value!.IdKey, request.PersonIdKey);
+
+        return CreatedAtAction(
+            nameof(GetStatementAsync),
+            new { idKey = result.Value.IdKey },
+            new { data = result.Value });
+    }
+
+    /// <summary>
+    /// Downloads a contribution statement as PDF.
+    /// </summary>
+    /// <param name="idKey">The statement IdKey</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>PDF file</returns>
+    /// <response code="200">Returns PDF file</response>
+    /// <response code="404">Statement not found</response>
+    [HttpGet("statements/{idKey}/pdf")]
+    [ValidateIdKey]
+    // TODO(#258): Add [RequiresClaim("financial", "view")] when claims-based auth is implemented
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetStatementPdfAsync(string idKey, CancellationToken ct = default)
+    {
+        var result = await statementService.GenerateStatementPdfAsync(idKey, ct);
+
+        if (!result.IsSuccess)
+        {
+            logger.LogWarning("Failed to generate PDF for statement {IdKey}: {Error}", idKey, result.Error);
+            return Problem(
+                detail: result.Error?.Message ?? "Statement not found",
+                statusCode: StatusCodes.Status404NotFound,
+                title: "Not Found"
+            );
+        }
+
+        logger.LogInformation("Generated PDF for statement: {IdKey}", idKey);
+
+        return File(
+            result.Value!,
+            "application/pdf",
+            $"contribution-statement-{idKey}.pdf");
+    }
+
+    /// <summary>
+    /// Gets a list of people eligible for statement generation based on criteria.
+    /// </summary>
+    /// <param name="startDate">Start date of statement period (inclusive)</param>
+    /// <param name="endDate">End date of statement period (inclusive)</param>
+    /// <param name="minimumAmount">Minimum contribution amount to include (default: 0)</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>List of eligible people with contribution totals</returns>
+    /// <response code="200">Returns list of eligible people</response>
+    /// <response code="400">Invalid date range</response>
+    [HttpGet("statements/eligible")]
+    // TODO(#258): Add [RequiresClaim("financial", "view")] when claims-based auth is implemented
+    [ProducesResponseType(typeof(List<EligiblePersonDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetEligiblePeopleAsync(
+        [FromQuery] DateTime startDate,
+        [FromQuery] DateTime endDate,
+        [FromQuery] decimal minimumAmount = 0,
+        CancellationToken ct = default)
+    {
+        var request = new BatchStatementRequest
+        {
+            StartDate = startDate,
+            EndDate = endDate,
+            MinimumAmount = minimumAmount
+        };
+
+        var result = await statementService.GetEligiblePeopleAsync(request, ct);
+
+        if (!result.IsSuccess)
+        {
+            logger.LogWarning("Failed to get eligible people: {Error}", result.Error);
+            return Problem(
+                detail: result.Error?.Message ?? "Failed to get eligible people",
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Bad Request"
+            );
+        }
+
+        logger.LogInformation(
+            "Retrieved {Count} eligible people for period: {StartDate} to {EndDate}",
+            result.Value!.Count, startDate, endDate);
+
+        return Ok(new { data = result.Value });
     }
 
     #endregion

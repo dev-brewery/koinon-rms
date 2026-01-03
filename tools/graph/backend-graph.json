@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-03T13:51:04.844855+00:00",
+  "generated_at": "2026-01-03T15:10:31.840703+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -234,6 +234,37 @@
         "Summary": "string?"
       },
       "navigations": []
+    },
+    "ContributionStatement": {
+      "name": "ContributionStatement",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "contribution_statement",
+      "properties": {
+        "PersonId": "int",
+        "StartDate": "DateTime",
+        "EndDate": "DateTime",
+        "TotalAmount": "decimal",
+        "ContributionCount": "int",
+        "GeneratedDateTime": "DateTime",
+        "BinaryFileId": "int?"
+      },
+      "navigations": [
+        {
+          "name": "StartDate",
+          "target_entity": "DateTime",
+          "type": "one"
+        },
+        {
+          "name": "EndDate",
+          "target_entity": "DateTime",
+          "type": "one"
+        },
+        {
+          "name": "GeneratedDateTime",
+          "target_entity": "DateTime",
+          "type": "one"
+        }
+      ]
     },
     "DefinedType": {
       "name": "DefinedType",
@@ -2709,6 +2740,53 @@
         "ILogger<CommunicationTemplateService>"
       ]
     },
+    "ContributionStatementService": {
+      "name": "ContributionStatementService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "ContributionStatementService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetStatementsAsync",
+          "return_type": "Task<Result<PagedResult<ContributionStatementDto>>>",
+          "is_async": false
+        },
+        {
+          "name": "GetStatementAsync",
+          "return_type": "Task<Result<ContributionStatementDto>>",
+          "is_async": false
+        },
+        {
+          "name": "PreviewStatementAsync",
+          "return_type": "Task<Result<StatementPreviewDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GenerateStatementAsync",
+          "return_type": "Task<Result<ContributionStatementDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GenerateStatementPdfAsync",
+          "return_type": "Task<Result<byte[]>>",
+          "is_async": false
+        },
+        {
+          "name": "GetEligiblePeopleAsync",
+          "return_type": "Task<Result<List<EligiblePersonDto>>>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IConfiguration",
+        "StatementPdfGenerator",
+        "ILogger<ContributionStatementService>"
+      ]
+    },
     "CsvParserService": {
       "name": "CsvParserService",
       "namespace": "Koinon.Application.Services",
@@ -3716,6 +3794,12 @@
       "methods": [],
       "dependencies": []
     },
+    "IContributionStatementService": {
+      "name": "IContributionStatementService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
     "ICsvParserService": {
       "name": "ICsvParserService",
       "namespace": "Koinon.Application.Interfaces",
@@ -4654,6 +4738,42 @@
           "required_roles": []
         },
         {
+          "name": "GetStatementsAsync",
+          "method": "GET",
+          "route": "statements",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetStatementAsync",
+          "method": "GET",
+          "route": "statements/{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetStatementPdfAsync",
+          "method": "GET",
+          "route": "statements/{idKey}/pdf",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetEligiblePeopleAsync",
+          "method": "GET",
+          "route": "statements/eligible",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "CreateBatchAsync",
           "method": "POST",
           "route": "batches",
@@ -4690,6 +4810,24 @@
           "required_roles": []
         },
         {
+          "name": "PreviewStatementAsync",
+          "method": "POST",
+          "route": "statements/preview",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GenerateStatementAsync",
+          "method": "POST",
+          "route": "statements",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "UpdateContributionAsync",
           "method": "PUT",
           "route": "contributions/{idKey}",
@@ -4716,6 +4854,7 @@
       },
       "dependencies": [
         "IBatchDonationEntryService",
+        "IContributionStatementService",
         "ILogger<GivingController>"
       ]
     },
@@ -5732,6 +5871,11 @@
       "relationship": "depends_on"
     },
     {
+      "source": "GivingController",
+      "target": "IContributionStatementService",
+      "relationship": "depends_on"
+    },
+    {
       "source": "GroupMembershipRequestsController",
       "target": "IGroupMemberRequestService",
       "relationship": "depends_on"
@@ -6019,6 +6163,11 @@
     {
       "source": "CommunicationTemplateService",
       "target": "CommunicationTemplateDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "ContributionStatementService",
+      "target": "PersonDto",
       "relationship": "returns"
     },
     {
@@ -6417,6 +6566,11 @@
       "relationship": "uses"
     },
     {
+      "source": "ContributionStatementService",
+      "target": "Contribution",
+      "relationship": "uses"
+    },
+    {
       "source": "DataImportService",
       "target": "Person",
       "relationship": "uses"
@@ -6553,10 +6707,10 @@
     }
   ],
   "summary": {
-    "total_entities": 43,
+    "total_entities": 44,
     "total_dtos": 93,
-    "total_services": 75,
+    "total_services": 77,
     "total_controllers": 25,
-    "total_relationships": 227
+    "total_relationships": 230
   }
 }

@@ -58,6 +58,7 @@ public interface IApplicationDbContext
     DbSet<ContributionBatch> ContributionBatches { get; }
     DbSet<Contribution> Contributions { get; }
     DbSet<ContributionDetail> ContributionDetails { get; }
+    DbSet<ContributionStatement> ContributionStatements { get; }
     DbSet<FinancialAuditLog> FinancialAuditLogs { get; }
 
     DatabaseFacade Database { get; }

@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-03T13:51:05.185921+00:00",
+  "generated_at": "2026-01-03T15:10:32.183680+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -234,6 +234,37 @@
         "Summary": "string?"
       },
       "navigations": []
+    },
+    "ContributionStatement": {
+      "name": "ContributionStatement",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "contribution_statement",
+      "properties": {
+        "PersonId": "int",
+        "StartDate": "DateTime",
+        "EndDate": "DateTime",
+        "TotalAmount": "decimal",
+        "ContributionCount": "int",
+        "GeneratedDateTime": "DateTime",
+        "BinaryFileId": "int?"
+      },
+      "navigations": [
+        {
+          "name": "StartDate",
+          "target_entity": "DateTime",
+          "type": "one"
+        },
+        {
+          "name": "EndDate",
+          "target_entity": "DateTime",
+          "type": "one"
+        },
+        {
+          "name": "GeneratedDateTime",
+          "target_entity": "DateTime",
+          "type": "one"
+        }
+      ]
     },
     "DefinedType": {
       "name": "DefinedType",
@@ -2709,6 +2740,53 @@
         "ILogger<CommunicationTemplateService>"
       ]
     },
+    "ContributionStatementService": {
+      "name": "ContributionStatementService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "ContributionStatementService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetStatementsAsync",
+          "return_type": "Task<Result<PagedResult<ContributionStatementDto>>>",
+          "is_async": false
+        },
+        {
+          "name": "GetStatementAsync",
+          "return_type": "Task<Result<ContributionStatementDto>>",
+          "is_async": false
+        },
+        {
+          "name": "PreviewStatementAsync",
+          "return_type": "Task<Result<StatementPreviewDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GenerateStatementAsync",
+          "return_type": "Task<Result<ContributionStatementDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GenerateStatementPdfAsync",
+          "return_type": "Task<Result<byte[]>>",
+          "is_async": false
+        },
+        {
+          "name": "GetEligiblePeopleAsync",
+          "return_type": "Task<Result<List<EligiblePersonDto>>>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IConfiguration",
+        "StatementPdfGenerator",
+        "ILogger<ContributionStatementService>"
+      ]
+    },
     "CsvParserService": {
       "name": "CsvParserService",
       "namespace": "Koinon.Application.Services",
@@ -3716,6 +3794,12 @@
       "methods": [],
       "dependencies": []
     },
+    "IContributionStatementService": {
+      "name": "IContributionStatementService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
     "ICsvParserService": {
       "name": "ICsvParserService",
       "namespace": "Koinon.Application.Interfaces",
@@ -4654,6 +4738,42 @@
           "required_roles": []
         },
         {
+          "name": "GetStatementsAsync",
+          "method": "GET",
+          "route": "statements",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetStatementAsync",
+          "method": "GET",
+          "route": "statements/{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetStatementPdfAsync",
+          "method": "GET",
+          "route": "statements/{idKey}/pdf",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetEligiblePeopleAsync",
+          "method": "GET",
+          "route": "statements/eligible",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "CreateBatchAsync",
           "method": "POST",
           "route": "batches",
@@ -4690,6 +4810,24 @@
           "required_roles": []
         },
         {
+          "name": "PreviewStatementAsync",
+          "method": "POST",
+          "route": "statements/preview",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GenerateStatementAsync",
+          "method": "POST",
+          "route": "statements",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "UpdateContributionAsync",
           "method": "PUT",
           "route": "contributions/{idKey}",
@@ -4716,6 +4854,7 @@
       },
       "dependencies": [
         "IBatchDonationEntryService",
+        "IContributionStatementService",
         "ILogger<GivingController>"
       ]
     },
@@ -6094,6 +6233,71 @@
         "deleteContribution"
       ]
     },
+    "useStatements": {
+      "name": "useStatements",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "statements"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getStatements"
+      ]
+    },
+    "useStatement": {
+      "name": "useStatement",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "statements"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getStatement"
+      ]
+    },
+    "useEligiblePeople": {
+      "name": "useEligiblePeople",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "statements"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getEligiblePeople"
+      ]
+    },
+    "useGenerateStatement": {
+      "name": "useGenerateStatement",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "statements"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "generateStatement"
+      ]
+    },
+    "useDownloadStatementPdf": {
+      "name": "useDownloadStatementPdf",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "async",
+      "queryKey": [
+        "downloadstatementpdf"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "downloadStatementPdf"
+      ]
+    },
     "useGroupTypes": {
       "name": "useGroupTypes",
       "path": "hooks/useGroupTypes.ts",
@@ -7263,6 +7467,48 @@
       "endpoint": "/giving/contributions/${idKey}",
       "method": "DELETE",
       "responseType": "void"
+    },
+    "getStatements": {
+      "name": "getStatements",
+      "path": "services/api/giving.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "{ data: ContributionStatementDto[]; meta: PaginationMeta }"
+    },
+    "getStatement": {
+      "name": "getStatement",
+      "path": "services/api/giving.ts",
+      "endpoint": "/giving/statements/${idKey}",
+      "method": "GET",
+      "responseType": "ContributionStatementDto"
+    },
+    "previewStatement": {
+      "name": "previewStatement",
+      "path": "services/api/giving.ts",
+      "endpoint": "/giving/statements/preview",
+      "method": "POST",
+      "responseType": "StatementPreviewDto"
+    },
+    "generateStatement": {
+      "name": "generateStatement",
+      "path": "services/api/giving.ts",
+      "endpoint": "/giving/statements",
+      "method": "POST",
+      "responseType": "ContributionStatementDto"
+    },
+    "downloadStatementPdf": {
+      "name": "downloadStatementPdf",
+      "path": "services/api/giving.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "Blob"
+    },
+    "getEligiblePeople": {
+      "name": "getEligiblePeople",
+      "path": "services/api/giving.ts",
+      "endpoint": "/giving/statements/eligible",
+      "method": "GET",
+      "responseType": "EligiblePersonDto[]"
     },
     "getGroupTypes": {
       "name": "getGroupTypes",
@@ -8753,6 +8999,11 @@
       "relationship": "depends_on"
     },
     {
+      "source": "GivingController",
+      "target": "IContributionStatementService",
+      "relationship": "depends_on"
+    },
+    {
       "source": "GroupMembershipRequestsController",
       "target": "IGroupMemberRequestService",
       "relationship": "depends_on"
@@ -9040,6 +9291,11 @@
     {
       "source": "CommunicationTemplateService",
       "target": "CommunicationTemplateDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "ContributionStatementService",
+      "target": "PersonDto",
       "relationship": "returns"
     },
     {
@@ -9435,6 +9691,11 @@
     {
       "source": "CommunicationTemplateService",
       "target": "Communication",
+      "relationship": "uses"
+    },
+    {
+      "source": "ContributionStatementService",
+      "target": "Contribution",
       "relationship": "uses"
     },
     {
@@ -9864,14 +10125,14 @@
     "dto:SupervisorInfoDto": "type:SupervisorInfoDto"
   },
   "stats": {
-    "entities": 43,
+    "entities": 44,
     "dtos": 93,
-    "services": 75,
+    "services": 77,
     "controllers": 25,
-    "types": 252,
-    "api_functions": 133,
-    "hooks": 106,
+    "types": 257,
+    "api_functions": 139,
+    "hooks": 111,
     "components": 113,
-    "total_edges": 267
+    "total_edges": 270
   }
 }

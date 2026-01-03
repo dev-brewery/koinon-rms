@@ -163,6 +163,68 @@ export interface PersonLookupDto {
 }
 
 // ============================================================================
+// Contribution Statement Types
+// ============================================================================
+
+/**
+ * Contribution statement record
+ */
+export interface ContributionStatementDto {
+  idKey: IdKey;
+  personIdKey: string;
+  personName: string;
+  startDate: DateTime;
+  endDate: DateTime;
+  totalAmount: number;
+  contributionCount: number;
+  generatedDateTime: DateTime;
+}
+
+/**
+ * Individual contribution for statement detail
+ */
+export interface StatementContributionDto {
+  date: DateTime;
+  fundName: string;
+  amount: number;
+  checkNumber?: string;
+}
+
+/**
+ * Request to generate a new statement
+ */
+export interface GenerateStatementRequest {
+  personIdKey: string;
+  startDate: DateTime;
+  endDate: DateTime;
+}
+
+/**
+ * Statement preview with full details
+ */
+export interface StatementPreviewDto {
+  personIdKey: string;
+  personName: string;
+  personAddress: string;
+  startDate: DateTime;
+  endDate: DateTime;
+  totalAmount: number;
+  contributions: StatementContributionDto[];
+  churchName: string;
+  churchAddress: string;
+}
+
+/**
+ * Eligible person for statement generation
+ */
+export interface EligiblePersonDto {
+  personIdKey: string;
+  personName: string;
+  totalAmount: number;
+  contributionCount: number;
+}
+
+// ============================================================================
 // Batch Filter and Response Types
 // ============================================================================
 

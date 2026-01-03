@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-01-03T13:51:05.030Z",
+  "generated_at": "2026-01-03T15:10:32.028Z",
   "types": {
     "AttendanceAnalyticsDto": {
       "name": "AttendanceAnalyticsDto",
@@ -1168,6 +1168,69 @@
         "idKey": "IdKey",
         "fullName": "string",
         "email": "string"
+      },
+      "path": "types/giving.ts"
+    },
+    "ContributionStatementDto": {
+      "name": "ContributionStatementDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "personIdKey": "string",
+        "personName": "string",
+        "startDate": "DateTime",
+        "endDate": "DateTime",
+        "totalAmount": "number",
+        "contributionCount": "number",
+        "generatedDateTime": "DateTime"
+      },
+      "path": "types/giving.ts"
+    },
+    "StatementContributionDto": {
+      "name": "StatementContributionDto",
+      "kind": "interface",
+      "properties": {
+        "date": "DateTime",
+        "fundName": "string",
+        "amount": "number",
+        "checkNumber": "string"
+      },
+      "path": "types/giving.ts"
+    },
+    "GenerateStatementRequest": {
+      "name": "GenerateStatementRequest",
+      "kind": "interface",
+      "properties": {
+        "personIdKey": "string",
+        "startDate": "DateTime",
+        "endDate": "DateTime"
+      },
+      "path": "types/giving.ts"
+    },
+    "StatementPreviewDto": {
+      "name": "StatementPreviewDto",
+      "kind": "interface",
+      "properties": {
+        "personIdKey": "string",
+        "personName": "string",
+        "personAddress": "string",
+        "startDate": "DateTime",
+        "endDate": "DateTime",
+        "totalAmount": "number",
+        "contributions": "StatementContributionDto[]",
+        "churchName": "string",
+        "churchAddress": "string"
+      },
+      "path": "types/giving.ts"
+    },
+    "EligiblePersonDto": {
+      "name": "EligiblePersonDto",
+      "kind": "interface",
+      "properties": {
+        "personIdKey": "string",
+        "personName": "string",
+        "totalAmount": "number",
+        "contributionCount": "number"
       },
       "path": "types/giving.ts"
     },
@@ -3641,6 +3704,48 @@
       "method": "DELETE",
       "responseType": "void"
     },
+    "getStatements": {
+      "name": "getStatements",
+      "path": "services/api/giving.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "{ data: ContributionStatementDto[]; meta: PaginationMeta }"
+    },
+    "getStatement": {
+      "name": "getStatement",
+      "path": "services/api/giving.ts",
+      "endpoint": "/giving/statements/${idKey}",
+      "method": "GET",
+      "responseType": "ContributionStatementDto"
+    },
+    "previewStatement": {
+      "name": "previewStatement",
+      "path": "services/api/giving.ts",
+      "endpoint": "/giving/statements/preview",
+      "method": "POST",
+      "responseType": "StatementPreviewDto"
+    },
+    "generateStatement": {
+      "name": "generateStatement",
+      "path": "services/api/giving.ts",
+      "endpoint": "/giving/statements",
+      "method": "POST",
+      "responseType": "ContributionStatementDto"
+    },
+    "downloadStatementPdf": {
+      "name": "downloadStatementPdf",
+      "path": "services/api/giving.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "Blob"
+    },
+    "getEligiblePeople": {
+      "name": "getEligiblePeople",
+      "path": "services/api/giving.ts",
+      "endpoint": "/giving/statements/eligible",
+      "method": "GET",
+      "responseType": "EligiblePersonDto[]"
+    },
     "getGroupTypes": {
       "name": "getGroupTypes",
       "path": "services/api/reference.ts",
@@ -4746,6 +4851,71 @@
       "usesMutation": true,
       "dependencies": [
         "deleteContribution"
+      ]
+    },
+    "useStatements": {
+      "name": "useStatements",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "statements"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getStatements"
+      ]
+    },
+    "useStatement": {
+      "name": "useStatement",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "statements"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getStatement"
+      ]
+    },
+    "useEligiblePeople": {
+      "name": "useEligiblePeople",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "statements"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getEligiblePeople"
+      ]
+    },
+    "useGenerateStatement": {
+      "name": "useGenerateStatement",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "statements"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "generateStatement"
+      ]
+    },
+    "useDownloadStatementPdf": {
+      "name": "useDownloadStatementPdf",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "async",
+      "queryKey": [
+        "downloadstatementpdf"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "downloadStatementPdf"
       ]
     },
     "useGroupTypes": {
