@@ -4063,6 +4063,12 @@
       "methods": [],
       "dependencies": []
     },
+    "ISessionCleanupService": {
+      "name": "ISessionCleanupService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
     "ISmsService": {
       "name": "ISmsService",
       "namespace": "Koinon.Application.Interfaces",
@@ -6935,7 +6941,7 @@
   "summary": {
     "total_entities": 46,
     "total_dtos": 93,
-    "total_services": 83,
+    "total_services": 84,
     "total_controllers": 26,
     "total_relationships": 235
   }
