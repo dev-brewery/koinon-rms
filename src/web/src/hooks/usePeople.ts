@@ -78,6 +78,22 @@ export function useDeletePerson() {
 }
 
 /**
+ * Upload a photo for a person
+ */
+export function useUploadPersonPhoto() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ idKey, file }: { idKey: string; file: File }) =>
+      peopleApi.uploadPersonPhoto(idKey, file),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['people', variables.idKey] });
+      queryClient.invalidateQueries({ queryKey: ['people'] });
+    },
+  });
+}
+
+/**
  * Get person's family members
  */
 export function usePersonFamily(idKey?: string) {

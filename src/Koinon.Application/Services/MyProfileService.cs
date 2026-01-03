@@ -1,5 +1,6 @@
 using FluentValidation;
 using Koinon.Application.Common;
+using Koinon.Application.Constants;
 using Koinon.Application.DTOs;
 using Koinon.Application.DTOs.Requests;
 using Koinon.Application.Interfaces;
@@ -36,6 +37,7 @@ public class MyProfileService(
             .Include(p => p.PhoneNumbers)
                 .ThenInclude(pn => pn.NumberTypeValue)
             .Include(p => p.PrimaryCampus)
+            .Include(p => p.Photo)
             .FirstOrDefaultAsync(p => p.Id == currentPersonId.Value, ct);
 
         if (person == null)
@@ -75,6 +77,7 @@ public class MyProfileService(
             .Include(p => p.PhoneNumbers)
                 .ThenInclude(pn => pn.NumberTypeValue)
             .Include(p => p.PrimaryCampus)
+            .Include(p => p.Photo)
             .FirstOrDefaultAsync(p => p.Id == currentPersonId.Value, ct);
 
         if (person == null)
@@ -170,6 +173,8 @@ public class MyProfileService(
             .Include(fm => fm.Person)
                 .ThenInclude(p => p!.PhoneNumbers)
                     .ThenInclude(pn => pn.NumberTypeValue)
+            .Include(fm => fm.Person)
+                .ThenInclude(p => p!.Photo)
             .Include(fm => fm.FamilyRole)
             .Where(fm => fm.FamilyId == familyId)
             .OrderByDescending(fm => fm.FamilyRole!.Guid == SystemGuid.GroupTypeRole.FamilyAdult)
@@ -217,7 +222,7 @@ public class MyProfileService(
                         IsUnlisted = pn.IsUnlisted
                     })
                     .ToList(),
-                PhotoUrl = null, // TODO(#116): Implement photo URLs
+                PhotoUrl = fm.Person.Photo != null ? ApiPaths.GetFileUrl(fm.Person.Photo.IdKey) : null,
                 FamilyRole = fm.FamilyRole?.Name ?? "Unknown",
                 CanEdit = canEdit,
                 Allergies = fm.Person.Allergies,
@@ -283,6 +288,7 @@ public class MyProfileService(
         var targetPerson = await context.People
             .Include(p => p.PhoneNumbers)
                 .ThenInclude(pn => pn.NumberTypeValue)
+            .Include(p => p.Photo)
             .FirstOrDefaultAsync(p => p.Id == targetPersonId, ct);
 
         if (targetPerson == null)
@@ -382,7 +388,7 @@ public class MyProfileService(
                     IsUnlisted = pn.IsUnlisted
                 })
                 .ToList(),
-            PhotoUrl = null,
+            PhotoUrl = targetPerson.Photo != null ? ApiPaths.GetFileUrl(targetPerson.Photo.IdKey) : null,
             FamilyRole = targetFamilyMember.FamilyRole?.Name ?? "Child",
             CanEdit = true,
             Allergies = targetPerson.Allergies,
@@ -553,7 +559,7 @@ public class MyProfileService(
                 Name = person.PrimaryCampus.Name,
                 ShortCode = person.PrimaryCampus.ShortCode
             } : null,
-            PhotoUrl = null, // TODO(#116): Implement photo URLs
+            PhotoUrl = person.Photo != null ? ApiPaths.GetFileUrl(person.Photo.IdKey) : null,
             CreatedDateTime = person.CreatedDateTime,
             ModifiedDateTime = person.ModifiedDateTime
         };

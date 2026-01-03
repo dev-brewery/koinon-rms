@@ -8,6 +8,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { usePerson, useCreatePerson, useUpdatePerson } from '@/hooks/usePeople';
 import type { CreatePersonRequest, UpdatePersonRequest, Gender } from '@/services/api/types';
 import { personFormSchema } from '@/schemas/person.schema';
+import { PersonPhotoUpload } from '@/components/admin/people/PersonPhotoUpload';
 
 interface PhoneNumberForm {
   number: string;
@@ -230,6 +231,15 @@ export function PersonFormPage() {
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Photo Upload - Edit Mode Only */}
+          {isEdit && idKey && (
+            <div className="pb-6 border-b border-gray-200">
+              <PersonPhotoUpload
+                personIdKey={idKey}
+                currentPhotoUrl={person?.photoUrl}
+              />
+            </div>
+          )}
           {/* Names */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

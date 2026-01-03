@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-01-03T13:18:49.436Z",
+  "generated_at": "2026-01-03T13:51:05.030Z",
   "types": {
     "AttendanceAnalyticsDto": {
       "name": "AttendanceAnalyticsDto",
@@ -3910,6 +3910,13 @@
       "method": "GET",
       "responseType": "PersonFamilyResponse"
     },
+    "uploadPersonPhoto": {
+      "name": "uploadPersonPhoto",
+      "path": "services/api/people.ts",
+      "endpoint": "/people/${idKey}/photo",
+      "method": "POST",
+      "responseType": "PersonDetailDto"
+    },
     "verifyPickup": {
       "name": "verifyPickup",
       "path": "services/api/pickup.ts",
@@ -5118,6 +5125,19 @@
         "deletePerson"
       ]
     },
+    "useUploadPersonPhoto": {
+      "name": "useUploadPersonPhoto",
+      "path": "hooks/usePeople.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "people"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "uploadPersonPhoto"
+      ]
+    },
     "usePersonFamily": {
       "name": "usePersonFamily",
       "path": "hooks/usePeople.ts",
@@ -5558,6 +5578,14 @@
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
+    "PersonPhotoUpload": {
+      "name": "PersonPhotoUpload",
+      "path": "components/admin/people/PersonPhotoUpload.tsx",
+      "hooksUsed": [
+        "useUploadPersonPhoto"
+      ],
+      "apiCallsDirectly": false
+    },
     "PersonSearchBar": {
       "name": "PersonSearchBar",
       "path": "components/admin/people/PersonSearchBar.tsx",
@@ -5719,6 +5747,18 @@
     "PhoneSearch.test": {
       "name": "PhoneSearch.test",
       "path": "components/checkin/__tests__/PhoneSearch.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "ImageCropper": {
+      "name": "ImageCropper",
+      "path": "components/common/ImageCropper.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "PhotoUpload": {
+      "name": "PhotoUpload",
+      "path": "components/common/PhotoUpload.tsx",
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
@@ -6166,6 +6206,11 @@
     {
       "from": "CommunicationPreferences",
       "to": "useUpdateCommunicationPreference",
+      "type": "uses_hook"
+    },
+    {
+      "from": "PersonPhotoUpload",
+      "to": "useUploadPersonPhoto",
       "type": "uses_hook"
     },
     {
