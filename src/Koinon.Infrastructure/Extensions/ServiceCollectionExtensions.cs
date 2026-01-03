@@ -1,6 +1,7 @@
 using Hangfire;
 using Hangfire.PostgreSql;
 using Koinon.Application.Interfaces;
+using Koinon.Application.Services;
 using Koinon.Infrastructure.Data;
 using Koinon.Infrastructure.Options;
 using Koinon.Infrastructure.Providers;
@@ -83,6 +84,9 @@ public static class ServiceCollectionExtensions
 
         // Register SMS service (Singleton - has shared rate-limiting state via SemaphoreSlim)
         services.AddSingleton<ISmsService, TwilioSmsService>();
+
+        // Register SMS queue service
+        services.AddScoped<ISmsQueueService, SmsQueueService>();
 
         // Register email sender service
         services.AddScoped<IEmailSender, SmtpEmailSender>();
@@ -171,6 +175,9 @@ public static class ServiceCollectionExtensions
 
         // Register SMS service (Singleton - has shared rate-limiting state via SemaphoreSlim)
         services.AddSingleton<ISmsService, TwilioSmsService>();
+
+        // Register SMS queue service
+        services.AddScoped<ISmsQueueService, SmsQueueService>();
 
         // Register email sender service
         services.AddScoped<IEmailSender, SmtpEmailSender>();
