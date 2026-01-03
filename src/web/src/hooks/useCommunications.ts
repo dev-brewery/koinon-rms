@@ -7,6 +7,7 @@ import * as communicationsApi from '@/services/api/communications';
 import type {
   CreateCommunicationRequest,
   CommunicationsParams,
+  CommunicationPreviewRequest,
 } from '@/services/api/communications';
 
 /**
@@ -92,5 +93,26 @@ export function useCancelSchedule() {
       queryClient.invalidateQueries({ queryKey: ['communications', idKey] });
       queryClient.invalidateQueries({ queryKey: ['communications'] });
     },
+  });
+}
+
+/**
+ * Hook to fetch available merge fields
+ */
+export function useMergeFields() {
+  return useQuery({
+    queryKey: ['merge-fields'],
+    queryFn: communicationsApi.getMergeFields,
+    staleTime: 1000 * 60 * 60, // 1 hour - merge fields rarely change
+  });
+}
+
+/**
+ * Hook to preview a communication with merge fields resolved
+ */
+export function usePreviewCommunication() {
+  return useMutation({
+    mutationFn: (request: CommunicationPreviewRequest) =>
+      communicationsApi.previewCommunication(request),
   });
 }

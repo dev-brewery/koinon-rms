@@ -1,5 +1,6 @@
 using Koinon.Api.Filters;
 using Koinon.Application.DTOs;
+using Koinon.Application.DTOs.Requests;
 using Koinon.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +17,7 @@ namespace Koinon.Api.Controllers;
 [ValidateIdKey]
 public class CommunicationsController(
     ICommunicationService communicationService,
+    IMergeFieldService mergeFieldService,
     ILogger<CommunicationsController> logger) : ControllerBase
 {
     /// <summary>
@@ -433,9 +435,68 @@ public class CommunicationsController(
 
         return Ok(new { data = result.Value });
     }
-}
 
-/// <summary>
-/// Request DTO for scheduling a communication.
-/// </summary>
-public record ScheduleCommunicationRequest(DateTime ScheduledDateTime);
+    /// <summary>
+    /// Gets the list of available merge fields for personalizing communications.
+    /// </summary>
+    /// <returns>List of available merge fields with their tokens and descriptions</returns>
+    /// <response code="200">Returns the list of merge fields</response>
+    [HttpGet("merge-fields")]
+    [ProducesResponseType(typeof(IReadOnlyList<MergeFieldDto>), StatusCodes.Status200OK)]
+    public IActionResult GetMergeFields()
+    {
+        var fields = mergeFieldService.GetAvailableMergeFields();
+        return Ok(new { data = fields });
+    }
+
+    /// <summary>
+    /// Previews a communication with merge fields replaced.
+    /// If PersonIdKey is provided in the request, uses that person's data; otherwise uses sample data.
+    /// </summary>
+    /// <param name="request">Preview request containing subject, body, and optional person IdKey</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Preview with merge fields replaced</returns>
+    /// <response code="200">Returns rendered preview</response>
+    /// <response code="404">Person not found (if PersonIdKey provided)</response>
+    [HttpPost("preview")]
+    [ProducesResponseType(typeof(CommunicationPreviewResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Preview(
+        [FromBody] CommunicationPreviewRequestDto request,
+        CancellationToken ct = default)
+    {
+        var result = await communicationService.PreviewAsync(request, ct);
+
+        if (result.IsFailure)
+        {
+            logger.LogWarning(
+                "Failed to generate preview: Code={Code}, Message={Message}",
+                result.Error!.Code,
+                result.Error.Message);
+
+            return result.Error.Code switch
+            {
+                "NOT_FOUND" => NotFound(new ProblemDetails
+                {
+                    Title = "Person not found",
+                    Detail = result.Error.Message,
+                    Status = StatusCodes.Status404NotFound,
+                    Instance = HttpContext.Request.Path
+                }),
+                _ => UnprocessableEntity(new ProblemDetails
+                {
+                    Title = result.Error.Code,
+                    Detail = result.Error.Message,
+                    Status = StatusCodes.Status422UnprocessableEntity,
+                    Instance = HttpContext.Request.Path
+                })
+            };
+        }
+
+        logger.LogInformation(
+            "Communication preview generated for {PersonName}",
+            result.Value!.PersonName);
+
+        return Ok(new { data = result.Value });
+    }
+}

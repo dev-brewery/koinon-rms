@@ -10,6 +10,9 @@ import type {
   CommunicationRecipientDto,
   CommunicationSummaryDto,
   CommunicationsParams,
+  MergeFieldDto,
+  CommunicationPreviewRequest,
+  CommunicationPreviewResponse,
 } from '@/types/communication';
 
 // Re-export types from central module for backward compatibility
@@ -19,6 +22,9 @@ export type {
   CommunicationRecipientDto,
   CommunicationSummaryDto,
   CommunicationsParams,
+  MergeFieldDto,
+  CommunicationPreviewRequest,
+  CommunicationPreviewResponse,
 };
 
 // Type alias for API compatibility
@@ -94,4 +100,25 @@ export async function getCommunications(
   const endpoint = `/communications${query ? `?${query}` : ''}`;
 
   return get<PagedResult<CommunicationSummaryDto>>(endpoint);
+}
+
+/**
+ * Get available merge fields for communications
+ */
+export async function getMergeFields(): Promise<MergeFieldDto[]> {
+  const response = await get<{ data: MergeFieldDto[] }>('/communications/merge-fields');
+  return response.data;
+}
+
+/**
+ * Preview a communication with merge fields resolved
+ */
+export async function previewCommunication(
+  request: CommunicationPreviewRequest
+): Promise<CommunicationPreviewResponse> {
+  const response = await post<{ data: CommunicationPreviewResponse }>(
+    '/communications/preview',
+    request
+  );
+  return response.data;
 }

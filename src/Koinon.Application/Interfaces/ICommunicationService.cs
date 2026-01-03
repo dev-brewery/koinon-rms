@@ -63,4 +63,12 @@ public interface ICommunicationService
     Task<Result<CommunicationDto>> CancelScheduleAsync(
         string idKey,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// Previews a communication with merge fields replaced.
+    /// If PersonIdKey is provided, uses that person's data; otherwise uses sample data.
+    /// </summary>
+    Task<Result<CommunicationPreviewResponseDto>> PreviewAsync(
+        CommunicationPreviewRequestDto request,
+        CancellationToken ct = default);
 }

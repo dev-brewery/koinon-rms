@@ -228,3 +228,43 @@ export interface CommunicationTemplatesParams {
   type?: string; // Filter by communication type
   isActive?: boolean; // Filter by active status
 }
+
+// ============================================================================
+// Merge Field Types
+// ============================================================================
+
+/**
+ * Merge field definition for dynamic content in communications
+ */
+export interface MergeFieldDto {
+  /** Field name (e.g., "FirstName") */
+  name: string;
+  /** Token to use in templates (e.g., "{{FirstName}}") */
+  token: string;
+  /** Human-readable description of the field */
+  description: string;
+}
+
+/**
+ * Request to preview a communication with merge fields resolved
+ */
+export interface CommunicationPreviewRequest {
+  /** Email subject (optional for SMS) */
+  subject?: string;
+  /** Email or SMS body with merge field tokens */
+  body: string;
+  /** IdKey of person to use for preview (uses sample data if not provided) */
+  personIdKey?: string;
+}
+
+/**
+ * Response containing rendered preview with merge fields resolved
+ */
+export interface CommunicationPreviewResponse {
+  /** Rendered subject with merge fields resolved */
+  subject?: string;
+  /** Rendered body with merge fields resolved */
+  body: string;
+  /** Name of person used for preview data */
+  personName: string;
+}

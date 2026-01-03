@@ -13,6 +13,7 @@ public class CommunicationSender(
     IApplicationDbContext context,
     ISmsService smsService,
     IEmailSender emailSender,
+    IMergeFieldService mergeFieldService,
     ILogger<CommunicationSender> logger) : ICommunicationSender
 {
     /// <summary>
@@ -70,6 +71,7 @@ public class CommunicationSender(
         // Now load with recipients for processing
         var communication = await context.Communications
             .Include(c => c.Recipients)
+                .ThenInclude(cr => cr.Person)
             .FirstOrDefaultAsync(c => c.Id == communicationId, cancellationToken);
 
         if (communication == null)
@@ -102,12 +104,38 @@ public class CommunicationSender(
 
             try
             {
+                // Personalize content with merge fields
+                string personalizedBody = communication.Body;
+                string? personalizedSubject = communication.Subject;
+
+                if (recipient.Person != null)
+                {
+                    personalizedBody = mergeFieldService.ReplaceMergeFields(communication.Body, recipient.Person);
+
+                    if (communication.CommunicationType == CommunicationType.Email && communication.Subject != null)
+                    {
+                        personalizedSubject = mergeFieldService.ReplaceMergeFields(communication.Subject, recipient.Person);
+                    }
+
+                    logger.LogDebug(
+                        "Personalized content for recipient {RecipientId} (Person: {PersonId})",
+                        recipient.Id,
+                        recipient.PersonId);
+                }
+                else
+                {
+                    logger.LogWarning(
+                        "Person not loaded for recipient {RecipientId} (PersonId: {PersonId}), skipping merge field replacement",
+                        recipient.Id,
+                        recipient.PersonId);
+                }
+
                 if (communication.CommunicationType == CommunicationType.Sms)
                 {
                     // CRITICAL FIX #2: Capture error message from SMS service
                     (success, errorMessage) = await SendSmsToRecipientAsync(
                         recipient.Address,
-                        communication.Body,
+                        personalizedBody,
                         cancellationToken);
                 }
                 else // Email
@@ -117,8 +145,8 @@ public class CommunicationSender(
                         recipient.RecipientName,
                         communication.FromEmail ?? "noreply@koinon.app",
                         communication.FromName,
-                        communication.Subject ?? "",
-                        communication.Body,
+                        personalizedSubject ?? "",
+                        personalizedBody,
                         communication.ReplyToEmail,
                         cancellationToken);
                 }

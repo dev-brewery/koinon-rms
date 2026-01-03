@@ -9,6 +9,7 @@ import { EmailComposer } from './EmailComposer';
 import { SmsComposer } from './SmsComposer';
 import { TemplateSelector } from './TemplateSelector';
 import { SaveAsTemplateModal } from './SaveAsTemplateModal';
+import { MessagePreview } from './MessagePreview';
 import { useCreateCommunication, useSendCommunication } from '@/hooks/useCommunications';
 import type { GroupSummaryDto } from '@/services/api/types';
 import type { CreateCommunicationRequest } from '@/services/api/communications';
@@ -30,6 +31,7 @@ export function CommunicationComposer({ groups, onSend, onClose }: Communication
   const [selectedGroupIdKeys, setSelectedGroupIdKeys] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSaveTemplateModalOpen, setIsSaveTemplateModalOpen] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [sendMode, setSendMode] = useState<'now' | 'schedule'>('now');
   const [scheduledDateTime, setScheduledDateTime] = useState('');
 
@@ -342,14 +344,37 @@ export function CommunicationComposer({ groups, onSend, onClose }: Communication
 
           {/* Actions */}
           <div className="flex justify-between items-center gap-3 pt-4 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={() => setIsSaveTemplateModalOpen(true)}
-              disabled={isPending || !body.trim()}
-              className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
-            >
-              Save as Template
-            </button>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setIsSaveTemplateModalOpen(true)}
+                disabled={isPending || !body.trim()}
+                className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+              >
+                Save as Template
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsPreviewOpen(true)}
+                disabled={isPending || !body.trim()}
+                className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors flex items-center gap-2"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  />
+                </svg>
+                Preview
+              </button>
+            </div>
             <div className="flex gap-3">
               <button
                 type="button"
@@ -379,6 +404,16 @@ export function CommunicationComposer({ groups, onSend, onClose }: Communication
         subject={subject}
         body={body}
       />
+
+      {/* Message Preview Modal */}
+      {isPreviewOpen && (
+        <MessagePreview
+          subject={subject}
+          body={body}
+          communicationType={communicationType}
+          onClose={() => setIsPreviewOpen(false)}
+        />
+      )}
     </div>
   );
 }
