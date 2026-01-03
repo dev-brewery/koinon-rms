@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using FluentAssertions;
 using Koinon.Api.Controllers;
 using Koinon.Application.Common;
@@ -9,7 +10,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System.Security.Claims;
 using Xunit;
 
 namespace Koinon.Api.Tests.Controllers;

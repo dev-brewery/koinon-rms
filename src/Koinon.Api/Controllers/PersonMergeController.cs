@@ -1,10 +1,10 @@
+using System.Security.Claims;
 using Koinon.Api.Filters;
 using Koinon.Application.Common;
 using Koinon.Application.DTOs.PersonMerge;
 using Koinon.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace Koinon.Api.Controllers;
 
