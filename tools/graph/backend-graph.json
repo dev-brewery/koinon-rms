@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-02T23:24:17.869539+00:00",
+  "generated_at": "2026-01-03T00:16:05.787149+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -1197,6 +1197,24 @@
         "Body": "string?"
       }
     },
+    "CommunicationPreviewRequestDto": {
+      "name": "CommunicationPreviewRequestDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Subject": "string?",
+        "PersonIdKey": "string?"
+      },
+      "linked_entity": "Communication"
+    },
+    "CommunicationPreviewResponseDto": {
+      "name": "CommunicationPreviewResponseDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Subject": "string?",
+        "PersonIdKey": "string?"
+      },
+      "linked_entity": "Communication"
+    },
     "CommunicationTemplateDto": {
       "name": "CommunicationTemplateDto",
       "namespace": "Koinon.Application.DTOs",
@@ -1588,6 +1606,11 @@
         "LabelTypes": "IReadOnlyList<LabelType>?",
         "TemplateIdKey": "string?"
       }
+    },
+    "MergeFieldDto": {
+      "name": "MergeFieldDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {}
     },
     "MyFamilyMemberDto": {
       "name": "MyFamilyMemberDto",
@@ -2462,12 +2485,18 @@
           "name": "CancelScheduleAsync",
           "return_type": "Task<Result<CommunicationDto>>",
           "is_async": false
+        },
+        {
+          "name": "PreviewAsync",
+          "return_type": "Task<Result<CommunicationPreviewResponseDto>>",
+          "is_async": false
         }
       ],
       "dependencies": [
         "IApplicationDbContext",
         "IMapper",
         "IUserContext",
+        "IMergeFieldService",
         "ILogger<CommunicationService>"
       ]
     },
@@ -2509,6 +2538,7 @@
       "dependencies": [
         "IApplicationDbContext",
         "IMapper",
+        "IMergeFieldService",
         "ILogger<CommunicationTemplateService>"
       ]
     },
@@ -3044,6 +3074,28 @@
         "IUserContext",
         "ILogger<LabelGenerationService>"
       ]
+    },
+    "MergeFieldService": {
+      "name": "MergeFieldService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "GetAvailableMergeFields",
+          "return_type": "IReadOnlyList<MergeFieldDto>",
+          "is_async": false
+        },
+        {
+          "name": "ReplaceMergeFields",
+          "return_type": "string",
+          "is_async": false
+        },
+        {
+          "name": "ValidateMergeFields",
+          "return_type": "Result",
+          "is_async": false
+        }
+      ],
+      "dependencies": []
     },
     "MyGroupsService": {
       "name": "MyGroupsService",
@@ -3581,6 +3633,12 @@
       "methods": [],
       "dependencies": []
     },
+    "IMergeFieldService": {
+      "name": "IMergeFieldService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
     "IMyGroupsService": {
       "name": "IMyGroupsService",
       "namespace": "Koinon.Application.Interfaces",
@@ -4052,6 +4110,15 @@
           "required_roles": []
         },
         {
+          "name": "GetMergeFields",
+          "method": "GET",
+          "route": "merge-fields",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "Send",
           "method": "POST",
           "route": "{idKey}/send",
@@ -4073,6 +4140,15 @@
           "name": "CancelSchedule",
           "method": "POST",
           "route": "{idKey}/cancel-schedule",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Preview",
+          "method": "POST",
+          "route": "preview",
           "request_type": null,
           "response_type": null,
           "requires_auth": true,
@@ -4105,6 +4181,7 @@
       },
       "dependencies": [
         "ICommunicationService",
+        "IMergeFieldService",
         "ILogger<CommunicationsController>"
       ]
     },
@@ -5110,6 +5187,16 @@
       "relationship": "maps_to"
     },
     {
+      "source": "CommunicationPreviewRequestDto",
+      "target": "Communication",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CommunicationPreviewResponseDto",
+      "target": "Communication",
+      "relationship": "maps_to"
+    },
+    {
       "source": "CommunicationTemplateDto",
       "target": "CommunicationTemplate",
       "relationship": "maps_to"
@@ -5312,6 +5399,11 @@
     {
       "source": "CommunicationsController",
       "target": "ICommunicationService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "CommunicationsController",
+      "target": "IMergeFieldService",
       "relationship": "depends_on"
     },
     {
@@ -5585,6 +5677,11 @@
       "relationship": "returns"
     },
     {
+      "source": "CommunicationService",
+      "target": "CommunicationPreviewResponseDto",
+      "relationship": "returns"
+    },
+    {
       "source": "CommunicationTemplateService",
       "target": "CommunicationTemplateDto",
       "relationship": "returns"
@@ -5777,6 +5874,11 @@
     {
       "source": "LabelGenerationService",
       "target": "LabelPreviewDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "MergeFieldService",
+      "target": "MergeFieldDto",
       "relationship": "returns"
     },
     {
@@ -6122,9 +6224,9 @@
   ],
   "summary": {
     "total_entities": 42,
-    "total_dtos": 81,
-    "total_services": 71,
+    "total_dtos": 84,
+    "total_services": 73,
     "total_controllers": 23,
-    "total_relationships": 212
+    "total_relationships": 217
   }
 }

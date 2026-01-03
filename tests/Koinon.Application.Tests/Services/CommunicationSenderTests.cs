@@ -19,6 +19,7 @@ public class CommunicationSenderTests : IDisposable
     private readonly KoinonDbContext _context;
     private readonly Mock<ISmsService> _mockSmsService;
     private readonly Mock<IEmailSender> _mockEmailSender;
+    private readonly Mock<IMergeFieldService> _mockMergeFieldService;
     private readonly Mock<ILogger<CommunicationSender>> _mockLogger;
     private readonly CommunicationSender _service;
 
@@ -36,13 +37,20 @@ public class CommunicationSenderTests : IDisposable
         // Setup mocks
         _mockSmsService = new Mock<ISmsService>();
         _mockEmailSender = new Mock<IEmailSender>();
+        _mockMergeFieldService = new Mock<IMergeFieldService>();
         _mockLogger = new Mock<ILogger<CommunicationSender>>();
+
+        // Setup merge field service to pass through by default
+        _mockMergeFieldService
+            .Setup(m => m.ReplaceMergeFields(It.IsAny<string>(), It.IsAny<Person>()))
+            .Returns<string, Person>((template, person) => template);
 
         // Create service
         _service = new CommunicationSender(
             _context,
             _mockSmsService.Object,
             _mockEmailSender.Object,
+            _mockMergeFieldService.Object,
             _mockLogger.Object);
 
         // Seed test data
@@ -469,6 +477,167 @@ public class CommunicationSenderTests : IDisposable
         _mockSmsService.Verify(
             s => s.SendSmsAsync("+15551111111", It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never);
+    }
+
+    [Fact]
+    public async Task SendCommunicationAsync_WithSms_ReplacesMergeFieldsForEachRecipient()
+    {
+        // Arrange
+        var communication = new Communication
+        {
+            Id = 8,
+            CommunicationType = CommunicationType.Sms,
+            Status = CommunicationStatus.Pending,
+            Body = "Hello {{FirstName}}, this is a test message.",
+            CreatedDateTime = DateTime.UtcNow
+        };
+
+        var recipient1 = new CommunicationRecipient
+        {
+            Id = 9,
+            CommunicationId = 8,
+            PersonId = 1,
+            Address = "+15551234567",
+            RecipientName = "John Doe",
+            Status = CommunicationRecipientStatus.Pending,
+            CreatedDateTime = DateTime.UtcNow
+        };
+
+        var recipient2 = new CommunicationRecipient
+        {
+            Id = 10,
+            CommunicationId = 8,
+            PersonId = 2,
+            Address = "+15559876543",
+            RecipientName = "Jane Smith",
+            Status = CommunicationRecipientStatus.Pending,
+            CreatedDateTime = DateTime.UtcNow
+        };
+
+        communication.Recipients = new List<CommunicationRecipient> { recipient1, recipient2 };
+        _context.Communications.Add(communication);
+        await _context.SaveChangesAsync();
+
+        // Setup merge field service to replace fields
+        var person1 = await _context.People.FindAsync(1);
+        var person2 = await _context.People.FindAsync(2);
+
+        _mockMergeFieldService
+            .Setup(m => m.ReplaceMergeFields("Hello {{FirstName}}, this is a test message.", person1!))
+            .Returns("Hello John, this is a test message.");
+
+        _mockMergeFieldService
+            .Setup(m => m.ReplaceMergeFields("Hello {{FirstName}}, this is a test message.", person2!))
+            .Returns("Hello Jane, this is a test message.");
+
+        _mockSmsService
+            .Setup(s => s.SendSmsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SmsResult(Success: true, MessageId: "test-sid", ErrorMessage: null));
+
+        // Act
+        await _service.SendCommunicationAsync(8);
+
+        // Assert
+        _mockMergeFieldService.Verify(
+            m => m.ReplaceMergeFields("Hello {{FirstName}}, this is a test message.", person1!),
+            Times.Once,
+            "Should replace merge fields for person 1");
+
+        _mockMergeFieldService.Verify(
+            m => m.ReplaceMergeFields("Hello {{FirstName}}, this is a test message.", person2!),
+            Times.Once,
+            "Should replace merge fields for person 2");
+
+        _mockSmsService.Verify(
+            s => s.SendSmsAsync("+15551234567", "Hello John, this is a test message.", It.IsAny<CancellationToken>()),
+            Times.Once,
+            "Should send personalized SMS to John");
+
+        _mockSmsService.Verify(
+            s => s.SendSmsAsync("+15559876543", "Hello Jane, this is a test message.", It.IsAny<CancellationToken>()),
+            Times.Once,
+            "Should send personalized SMS to Jane");
+    }
+
+    [Fact]
+    public async Task SendCommunicationAsync_WithEmail_ReplacesMergeFieldsInSubjectAndBody()
+    {
+        // Arrange
+        var communication = new Communication
+        {
+            Id = 9,
+            CommunicationType = CommunicationType.Email,
+            Status = CommunicationStatus.Pending,
+            Subject = "Welcome {{FirstName}}!",
+            Body = "<p>Hello {{FirstName}} {{LastName}}, welcome to our community.</p>",
+            FromEmail = "noreply@example.com",
+            FromName = "Test Sender",
+            CreatedDateTime = DateTime.UtcNow
+        };
+
+        var recipient = new CommunicationRecipient
+        {
+            Id = 11,
+            CommunicationId = 9,
+            PersonId = 1,
+            Address = "john@example.com",
+            RecipientName = "John Doe",
+            Status = CommunicationRecipientStatus.Pending,
+            CreatedDateTime = DateTime.UtcNow
+        };
+
+        communication.Recipients = new List<CommunicationRecipient> { recipient };
+        _context.Communications.Add(communication);
+        await _context.SaveChangesAsync();
+
+        var person = await _context.People.FindAsync(1);
+
+        _mockMergeFieldService
+            .Setup(m => m.ReplaceMergeFields("Welcome {{FirstName}}!", person!))
+            .Returns("Welcome John!");
+
+        _mockMergeFieldService
+            .Setup(m => m.ReplaceMergeFields("<p>Hello {{FirstName}} {{LastName}}, welcome to our community.</p>", person!))
+            .Returns("<p>Hello John Doe, welcome to our community.</p>");
+
+        _mockEmailSender
+            .Setup(e => e.SendEmailAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        // Act
+        await _service.SendCommunicationAsync(9);
+
+        // Assert
+        _mockMergeFieldService.Verify(
+            m => m.ReplaceMergeFields("Welcome {{FirstName}}!", person!),
+            Times.Once,
+            "Should replace merge fields in subject");
+
+        _mockMergeFieldService.Verify(
+            m => m.ReplaceMergeFields("<p>Hello {{FirstName}} {{LastName}}, welcome to our community.</p>", person!),
+            Times.Once,
+            "Should replace merge fields in body");
+
+        _mockEmailSender.Verify(
+            e => e.SendEmailAsync(
+                "john@example.com",
+                "John Doe",
+                "noreply@example.com",
+                "Test Sender",
+                "Welcome John!",
+                "<p>Hello John Doe, welcome to our community.</p>",
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once,
+            "Should send email with personalized subject and body");
     }
 
     public void Dispose()

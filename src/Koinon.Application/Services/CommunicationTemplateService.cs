@@ -16,6 +16,7 @@ namespace Koinon.Application.Services;
 public class CommunicationTemplateService(
     IApplicationDbContext context,
     IMapper mapper,
+    IMergeFieldService mergeFieldService,
     ILogger<CommunicationTemplateService> logger) : ICommunicationTemplateService
 {
     public async Task<CommunicationTemplateDto?> GetByIdKeyAsync(string idKey, CancellationToken ct = default)
@@ -120,6 +121,25 @@ public class CommunicationTemplateService(
                 Error.Conflict($"A template with name '{dto.Name}' already exists"));
         }
 
+        // Validate merge fields in body
+        var bodyValidation = mergeFieldService.ValidateMergeFields(dto.Body);
+        if (!bodyValidation.IsSuccess)
+        {
+            return Result<CommunicationTemplateDto>.Failure(
+                new Error("VALIDATION_ERROR", $"Invalid merge fields in body: {bodyValidation.Error!.Message}"));
+        }
+
+        // Validate merge fields in subject for email communications
+        if (communicationType == CommunicationType.Email && !string.IsNullOrWhiteSpace(dto.Subject))
+        {
+            var subjectValidation = mergeFieldService.ValidateMergeFields(dto.Subject);
+            if (!subjectValidation.IsSuccess)
+            {
+                return Result<CommunicationTemplateDto>.Failure(
+                    new Error("VALIDATION_ERROR", $"Invalid merge fields in subject: {subjectValidation.Error!.Message}"));
+            }
+        }
+
         // Create template
         var template = new CommunicationTemplate
         {
@@ -194,6 +214,28 @@ public class CommunicationTemplateService(
                     new Error("INVALID_TYPE", $"Invalid communication type: {dto.CommunicationType}"));
             }
             template.CommunicationType = typeEnum;
+        }
+
+        // Validate merge fields in updated body
+        if (dto.Body is not null)
+        {
+            var bodyValidation = mergeFieldService.ValidateMergeFields(dto.Body);
+            if (!bodyValidation.IsSuccess)
+            {
+                return Result<CommunicationTemplateDto>.Failure(
+                    new Error("VALIDATION_ERROR", $"Invalid merge fields in body: {bodyValidation.Error!.Message}"));
+            }
+        }
+
+        // Validate merge fields in updated subject for email communications
+        if (dto.Subject is not null && template.CommunicationType == CommunicationType.Email)
+        {
+            var subjectValidation = mergeFieldService.ValidateMergeFields(dto.Subject);
+            if (!subjectValidation.IsSuccess)
+            {
+                return Result<CommunicationTemplateDto>.Failure(
+                    new Error("VALIDATION_ERROR", $"Invalid merge fields in subject: {subjectValidation.Error!.Message}"));
+            }
         }
 
         // Update other properties if provided

@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-01-02T23:24:18.060Z",
+  "generated_at": "2026-01-03T00:16:05.968Z",
   "types": {
     "AttendanceAnalyticsDto": {
       "name": "AttendanceAnalyticsDto",
@@ -699,6 +699,34 @@
         "pageSize": "number",
         "type": "string",
         "isActive": "boolean"
+      },
+      "path": "types/communication.ts"
+    },
+    "MergeFieldDto": {
+      "name": "MergeFieldDto",
+      "kind": "interface",
+      "properties": {
+        "name": "string"
+      },
+      "path": "types/communication.ts"
+    },
+    "CommunicationPreviewRequest": {
+      "name": "CommunicationPreviewRequest",
+      "kind": "interface",
+      "properties": {
+        "subject": "string",
+        "body": "string",
+        "personIdKey": "string"
+      },
+      "path": "types/communication.ts"
+    },
+    "CommunicationPreviewResponse": {
+      "name": "CommunicationPreviewResponse",
+      "kind": "interface",
+      "properties": {
+        "subject": "string",
+        "body": "string",
+        "personName": "string"
       },
       "path": "types/communication.ts"
     },
@@ -3144,6 +3172,20 @@
       "method": "GET",
       "responseType": "CommunicationDto"
     },
+    "getMergeFields": {
+      "name": "getMergeFields",
+      "path": "services/api/communications.ts",
+      "endpoint": "/communications/merge-fields",
+      "method": "GET",
+      "responseType": "MergeFieldDto[]"
+    },
+    "previewCommunication": {
+      "name": "previewCommunication",
+      "path": "services/api/communications.ts",
+      "endpoint": "/communications/preview",
+      "method": "POST",
+      "responseType": "CommunicationPreviewResponse"
+    },
     "getDashboardStats": {
       "name": "getDashboardStats",
       "path": "services/api/dashboard.ts",
@@ -4034,6 +4076,30 @@
       "usesMutation": true,
       "dependencies": [
         "cancelSchedule"
+      ]
+    },
+    "useMergeFields": {
+      "name": "useMergeFields",
+      "path": "hooks/useCommunications.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "merge-fields"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "usePreviewCommunication": {
+      "name": "usePreviewCommunication",
+      "path": "hooks/useCommunications.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "previewcommunication"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "previewCommunication"
       ]
     },
     "useDashboardStats": {
@@ -5222,6 +5288,20 @@
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
+    "MergeFieldPicker": {
+      "name": "MergeFieldPicker",
+      "path": "components/communication/MergeFieldPicker.tsx",
+      "hooksUsed": [
+        "useMergeFields"
+      ],
+      "apiCallsDirectly": false
+    },
+    "MessagePreview": {
+      "name": "MessagePreview",
+      "path": "components/communication/MessagePreview.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
     "MessageTypeToggle": {
       "name": "MessageTypeToggle",
       "path": "components/communication/MessageTypeToggle.tsx",
@@ -5257,6 +5337,12 @@
     "TemplateSelector": {
       "name": "TemplateSelector",
       "path": "components/import/TemplateSelector.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "MergeFieldPicker.test": {
+      "name": "MergeFieldPicker.test",
+      "path": "components/communication/__tests__/MergeFieldPicker.test.tsx",
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
@@ -5604,6 +5690,11 @@
     {
       "from": "CommunicationComposer",
       "to": "useSendCommunication",
+      "type": "uses_hook"
+    },
+    {
+      "from": "MergeFieldPicker",
+      "to": "useMergeFields",
       "type": "uses_hook"
     },
     {

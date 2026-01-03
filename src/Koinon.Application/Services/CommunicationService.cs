@@ -17,6 +17,7 @@ public class CommunicationService(
     IApplicationDbContext context,
     IMapper mapper,
     IUserContext userContext,
+    IMergeFieldService mergeFieldService,
     ILogger<CommunicationService> logger) : ICommunicationService
 {
     private const string RoleStaff = "Staff";
@@ -101,6 +102,25 @@ public class CommunicationService(
         {
             return Result<CommunicationDto>.Failure(
                 new Error("INVALID_TYPE", $"Invalid communication type: {dto.CommunicationType}"));
+        }
+
+        // Validate merge fields in body
+        var bodyValidation = mergeFieldService.ValidateMergeFields(dto.Body);
+        if (!bodyValidation.IsSuccess)
+        {
+            return Result<CommunicationDto>.Failure(
+                new Error("VALIDATION_ERROR", $"Invalid merge fields in body: {bodyValidation.Error!.Message}"));
+        }
+
+        // Validate merge fields in subject for email communications
+        if (communicationType == CommunicationType.Email && !string.IsNullOrWhiteSpace(dto.Subject))
+        {
+            var subjectValidation = mergeFieldService.ValidateMergeFields(dto.Subject);
+            if (!subjectValidation.IsSuccess)
+            {
+                return Result<CommunicationDto>.Failure(
+                    new Error("VALIDATION_ERROR", $"Invalid merge fields in subject: {subjectValidation.Error!.Message}"));
+            }
         }
 
         // BLOCKER #2: Validate group count before decode
@@ -236,6 +256,28 @@ public class CommunicationService(
         {
             return Result<CommunicationDto>.Failure(
                 Error.UnprocessableEntity("Only draft communications can be updated"));
+        }
+
+        // Validate merge fields in updated body
+        if (dto.Body is not null)
+        {
+            var bodyValidation = mergeFieldService.ValidateMergeFields(dto.Body);
+            if (!bodyValidation.IsSuccess)
+            {
+                return Result<CommunicationDto>.Failure(
+                    new Error("VALIDATION_ERROR", $"Invalid merge fields in body: {bodyValidation.Error!.Message}"));
+            }
+        }
+
+        // Validate merge fields in updated subject for email communications
+        if (dto.Subject is not null && communication.CommunicationType == CommunicationType.Email)
+        {
+            var subjectValidation = mergeFieldService.ValidateMergeFields(dto.Subject);
+            if (!subjectValidation.IsSuccess)
+            {
+                return Result<CommunicationDto>.Failure(
+                    new Error("VALIDATION_ERROR", $"Invalid merge fields in subject: {subjectValidation.Error!.Message}"));
+            }
         }
 
         // Update properties
@@ -518,6 +560,68 @@ public class CommunicationService(
             communication.IdKey);
 
         return Result<CommunicationDto>.Success(mapper.Map<CommunicationDto>(communication));
+    }
+
+    public async Task<Result<CommunicationPreviewResponseDto>> PreviewAsync(
+        CommunicationPreviewRequestDto request,
+        CancellationToken ct = default)
+    {
+        Person? person = null;
+        string personName;
+
+        // If PersonIdKey provided, load the person
+        if (!string.IsNullOrWhiteSpace(request.PersonIdKey))
+        {
+            if (!IdKeyHelper.TryDecode(request.PersonIdKey, out int personId))
+            {
+                return Result<CommunicationPreviewResponseDto>.Failure(
+                    Error.NotFound("Person", request.PersonIdKey));
+            }
+
+            person = await context.People
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == personId, ct);
+
+            if (person is null)
+            {
+                return Result<CommunicationPreviewResponseDto>.Failure(
+                    Error.NotFound("Person", request.PersonIdKey));
+            }
+
+            personName = person.FullName;
+        }
+        else
+        {
+            // Use sample data
+            person = new Person
+            {
+                FirstName = "John",
+                LastName = "Doe",
+                NickName = "Johnny",
+                Email = "john.doe@example.com"
+            };
+            personName = "John Doe (Sample)";
+        }
+
+        // Replace merge fields in subject and body
+        var renderedSubject = !string.IsNullOrWhiteSpace(request.Subject)
+            ? mergeFieldService.ReplaceMergeFields(request.Subject, person)
+            : null;
+
+        var renderedBody = mergeFieldService.ReplaceMergeFields(request.Body, person);
+
+        var response = new CommunicationPreviewResponseDto
+        {
+            Subject = renderedSubject,
+            Body = renderedBody,
+            PersonName = personName
+        };
+
+        logger.LogInformation(
+            "Generated communication preview using {PersonName}",
+            personName);
+
+        return Result<CommunicationPreviewResponseDto>.Success(response);
     }
 
     /// <summary>

@@ -3,6 +3,10 @@
  * Form fields for composing email messages
  */
 
+import { useRef } from 'react';
+import { flushSync } from 'react-dom';
+import { MergeFieldPicker } from './MergeFieldPicker';
+
 interface EmailComposerProps {
   subject: string;
   body: string;
@@ -23,6 +27,33 @@ interface EmailComposerProps {
   };
 }
 
+/**
+ * Helper function to insert a token at the cursor position in an input or textarea
+ * Uses flushSync to prevent race conditions between state update and cursor positioning
+ */
+const insertAtCursor = (
+  ref: React.RefObject<HTMLInputElement | HTMLTextAreaElement>,
+  currentValue: string,
+  onChange: (value: string) => void,
+  token: string
+) => {
+  const element = ref.current;
+  if (element) {
+    const start = element.selectionStart || 0;
+    const end = element.selectionEnd || 0;
+    const newValue = currentValue.slice(0, start) + token + currentValue.slice(end);
+    
+    flushSync(() => {
+      onChange(newValue);
+    });
+    
+    element.selectionStart = element.selectionEnd = start + token.length;
+    element.focus();
+  } else {
+    onChange(currentValue + token);
+  }
+};
+
 export function EmailComposer({
   subject,
   body,
@@ -36,6 +67,17 @@ export function EmailComposer({
   onReplyToEmailChange,
   errors = {},
 }: EmailComposerProps) {
+  const subjectRef = useRef<HTMLInputElement>(null);
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleInsertSubjectField = (token: string) => {
+    insertAtCursor(subjectRef, subject, onSubjectChange, token);
+  };
+
+  const handleInsertBodyField = (token: string) => {
+    insertAtCursor(bodyRef, body, onBodyChange, token);
+  };
+
   return (
     <div className="space-y-4">
       {/* From Name */}
@@ -94,12 +136,16 @@ export function EmailComposer({
 
       {/* Subject */}
       <div>
-        <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">
-          Subject <span className="text-red-500">*</span>
-        </label>
+        <div className="flex items-center justify-between mb-1">
+          <label htmlFor="subject" className="block text-sm font-medium text-gray-700">
+            Subject <span className="text-red-500">*</span>
+          </label>
+          <MergeFieldPicker onInsert={handleInsertSubjectField} />
+        </div>
         <input
           type="text"
           id="subject"
+          ref={subjectRef}
           value={subject}
           onChange={(e) => onSubjectChange(e.target.value)}
           className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
@@ -112,11 +158,15 @@ export function EmailComposer({
 
       {/* Body */}
       <div>
-        <label htmlFor="email-body" className="block text-sm font-medium text-gray-700 mb-1">
-          Message <span className="text-red-500">*</span>
-        </label>
+        <div className="flex items-center justify-between mb-1">
+          <label htmlFor="email-body" className="block text-sm font-medium text-gray-700">
+            Message <span className="text-red-500">*</span>
+          </label>
+          <MergeFieldPicker onInsert={handleInsertBodyField} />
+        </div>
         <textarea
           id="email-body"
+          ref={bodyRef}
           value={body}
           onChange={(e) => onBodyChange(e.target.value)}
           rows={10}

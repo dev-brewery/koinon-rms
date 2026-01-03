@@ -1176,6 +1176,64 @@ Remove a member from a group.
 
 ---
 
+## Communications
+
+### POST /api/v1/communications/preview
+
+Preview a communication with merge fields replaced. Used to show users how their message will appear to recipients before sending.
+
+**Request:**
+```typescript
+interface CommunicationPreviewRequest {
+  subject?: string;        // Email subject (null for SMS)
+  body: string;            // Message body with merge field tokens
+  personIdKey?: string;    // Optional: Use specific person's data (default: sample data)
+}
+```
+
+**Response (200):**
+```typescript
+interface CommunicationPreviewResponse {
+  data: {
+    subject?: string;       // Subject with merge fields replaced
+    body: string;           // Body with merge fields replaced
+    personName: string;     // Name of person used for preview (e.g., "John Doe (Sample)")
+  };
+}
+```
+
+**Merge Fields:**
+- `{{FirstName}}` - Person's first name
+- `{{LastName}}` - Person's last name
+- `{{NickName}}` - Person's nickname (or first name if no nickname)
+- `{{FullName}}` - Person's full name
+- `{{Email}}` - Person's email address
+
+**Example Request:**
+```json
+{
+  "subject": "Hello {{FirstName}}!",
+  "body": "Hi {{NickName}},\n\nWe're glad to have you at our church!",
+  "personIdKey": null
+}
+```
+
+**Example Response:**
+```json
+{
+  "data": {
+    "subject": "Hello John!",
+    "body": "Hi Johnny,\n\nWe're glad to have you at our church!",
+    "personName": "John Doe (Sample)"
+  }
+}
+```
+
+**Error Responses:**
+- **404**: Person not found (if personIdKey provided)
+
+---
+
 ## Reference Data
 
 ### GET /api/v1/defined-types

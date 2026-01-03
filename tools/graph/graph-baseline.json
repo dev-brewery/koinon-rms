@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-02T23:24:18.298465+00:00",
+  "generated_at": "2026-01-03T00:16:06.126336+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -1197,6 +1197,24 @@
         "Body": "string?"
       }
     },
+    "CommunicationPreviewRequestDto": {
+      "name": "CommunicationPreviewRequestDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Subject": "string?",
+        "PersonIdKey": "string?"
+      },
+      "linked_entity": "Communication"
+    },
+    "CommunicationPreviewResponseDto": {
+      "name": "CommunicationPreviewResponseDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Subject": "string?",
+        "PersonIdKey": "string?"
+      },
+      "linked_entity": "Communication"
+    },
     "CommunicationTemplateDto": {
       "name": "CommunicationTemplateDto",
       "namespace": "Koinon.Application.DTOs",
@@ -1588,6 +1606,11 @@
         "LabelTypes": "IReadOnlyList<LabelType>?",
         "TemplateIdKey": "string?"
       }
+    },
+    "MergeFieldDto": {
+      "name": "MergeFieldDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {}
     },
     "MyFamilyMemberDto": {
       "name": "MyFamilyMemberDto",
@@ -2462,12 +2485,18 @@
           "name": "CancelScheduleAsync",
           "return_type": "Task<Result<CommunicationDto>>",
           "is_async": false
+        },
+        {
+          "name": "PreviewAsync",
+          "return_type": "Task<Result<CommunicationPreviewResponseDto>>",
+          "is_async": false
         }
       ],
       "dependencies": [
         "IApplicationDbContext",
         "IMapper",
         "IUserContext",
+        "IMergeFieldService",
         "ILogger<CommunicationService>"
       ]
     },
@@ -2509,6 +2538,7 @@
       "dependencies": [
         "IApplicationDbContext",
         "IMapper",
+        "IMergeFieldService",
         "ILogger<CommunicationTemplateService>"
       ]
     },
@@ -3044,6 +3074,28 @@
         "IUserContext",
         "ILogger<LabelGenerationService>"
       ]
+    },
+    "MergeFieldService": {
+      "name": "MergeFieldService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "GetAvailableMergeFields",
+          "return_type": "IReadOnlyList<MergeFieldDto>",
+          "is_async": false
+        },
+        {
+          "name": "ReplaceMergeFields",
+          "return_type": "string",
+          "is_async": false
+        },
+        {
+          "name": "ValidateMergeFields",
+          "return_type": "Result",
+          "is_async": false
+        }
+      ],
+      "dependencies": []
     },
     "MyGroupsService": {
       "name": "MyGroupsService",
@@ -3581,6 +3633,12 @@
       "methods": [],
       "dependencies": []
     },
+    "IMergeFieldService": {
+      "name": "IMergeFieldService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
     "IMyGroupsService": {
       "name": "IMyGroupsService",
       "namespace": "Koinon.Application.Interfaces",
@@ -4052,6 +4110,15 @@
           "required_roles": []
         },
         {
+          "name": "GetMergeFields",
+          "method": "GET",
+          "route": "merge-fields",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "Send",
           "method": "POST",
           "route": "{idKey}/send",
@@ -4073,6 +4140,15 @@
           "name": "CancelSchedule",
           "method": "POST",
           "route": "{idKey}/cancel-schedule",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Preview",
+          "method": "POST",
+          "route": "preview",
           "request_type": null,
           "response_type": null,
           "requires_auth": true,
@@ -4105,6 +4181,7 @@
       },
       "dependencies": [
         "ICommunicationService",
+        "IMergeFieldService",
         "ILogger<CommunicationsController>"
       ]
     },
@@ -5368,6 +5445,30 @@
         "cancelSchedule"
       ]
     },
+    "useMergeFields": {
+      "name": "useMergeFields",
+      "path": "hooks/useCommunications.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "merge-fields"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "usePreviewCommunication": {
+      "name": "usePreviewCommunication",
+      "path": "hooks/useCommunications.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "previewcommunication"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "previewCommunication"
+      ]
+    },
     "useDashboardStats": {
       "name": "useDashboardStats",
       "path": "hooks/useDashboard.ts",
@@ -6435,6 +6536,20 @@
       "method": "GET",
       "responseType": "CommunicationDto"
     },
+    "getMergeFields": {
+      "name": "getMergeFields",
+      "path": "services/api/communications.ts",
+      "endpoint": "/communications/merge-fields",
+      "method": "GET",
+      "responseType": "MergeFieldDto[]"
+    },
+    "previewCommunication": {
+      "name": "previewCommunication",
+      "path": "services/api/communications.ts",
+      "endpoint": "/communications/preview",
+      "method": "POST",
+      "responseType": "CommunicationPreviewResponse"
+    },
     "getDashboardStats": {
       "name": "getDashboardStats",
       "path": "services/api/dashboard.ts",
@@ -7375,6 +7490,20 @@
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
+    "MergeFieldPicker": {
+      "name": "MergeFieldPicker",
+      "path": "components/communication/MergeFieldPicker.tsx",
+      "hooksUsed": [
+        "useMergeFields"
+      ],
+      "apiCallsDirectly": false
+    },
+    "MessagePreview": {
+      "name": "MessagePreview",
+      "path": "components/communication/MessagePreview.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
     "MessageTypeToggle": {
       "name": "MessageTypeToggle",
       "path": "components/communication/MessageTypeToggle.tsx",
@@ -7410,6 +7539,12 @@
     "TemplateSelector": {
       "name": "TemplateSelector",
       "path": "components/import/TemplateSelector.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "MergeFieldPicker.test": {
+      "name": "MergeFieldPicker.test",
+      "path": "components/communication/__tests__/MergeFieldPicker.test.tsx",
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
@@ -7705,6 +7840,16 @@
       "relationship": "maps_to"
     },
     {
+      "source": "CommunicationPreviewRequestDto",
+      "target": "Communication",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CommunicationPreviewResponseDto",
+      "target": "Communication",
+      "relationship": "maps_to"
+    },
+    {
       "source": "CommunicationTemplateDto",
       "target": "CommunicationTemplate",
       "relationship": "maps_to"
@@ -7907,6 +8052,11 @@
     {
       "source": "CommunicationsController",
       "target": "ICommunicationService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "CommunicationsController",
+      "target": "IMergeFieldService",
       "relationship": "depends_on"
     },
     {
@@ -8180,6 +8330,11 @@
       "relationship": "returns"
     },
     {
+      "source": "CommunicationService",
+      "target": "CommunicationPreviewResponseDto",
+      "relationship": "returns"
+    },
+    {
       "source": "CommunicationTemplateService",
       "target": "CommunicationTemplateDto",
       "relationship": "returns"
@@ -8372,6 +8527,11 @@
     {
       "source": "LabelGenerationService",
       "target": "LabelPreviewDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "MergeFieldService",
+      "target": "MergeFieldDto",
       "relationship": "returns"
     },
     {
@@ -8820,6 +8980,11 @@
       "type": "uses_hook"
     },
     {
+      "from": "MergeFieldPicker",
+      "to": "useMergeFields",
+      "type": "uses_hook"
+    },
+    {
       "from": "SaveAsTemplateModal",
       "to": "useCreateCommunicationTemplate",
       "type": "uses_hook"
@@ -8882,6 +9047,8 @@
     "dto:CommunicationRecipientDto": "type:CommunicationRecipientDto",
     "dto:CreateCommunicationDto": "type:CreateCommunicationDto",
     "dto:UpdateCommunicationDto": "type:UpdateCommunicationDto",
+    "dto:CommunicationPreviewRequestDto": "type:CommunicationPreviewRequest",
+    "dto:CommunicationPreviewResponseDto": "type:CommunicationPreviewResponse",
     "dto:CommunicationTemplateDto": "type:CommunicationTemplateDto",
     "dto:CommunicationTemplateSummaryDto": "type:CommunicationTemplateSummaryDto",
     "dto:CreateCommunicationTemplateDto": "type:CreateCommunicationTemplateDto",
@@ -8910,6 +9077,7 @@
     "dto:BatchLabelRequestDto": "type:BatchLabelRequestDto",
     "dto:LabelPreviewRequestDto": "type:LabelPreviewRequestDto",
     "dto:LabelPreviewDto": "type:LabelPreviewDto",
+    "dto:MergeFieldDto": "type:MergeFieldDto",
     "dto:MyGroupDto": "type:MyGroupDto",
     "dto:MyInvolvementDto": "type:MyInvolvementDto",
     "dto:MyProfileDto": "type:MyProfileDto",
@@ -8936,13 +9104,13 @@
   },
   "stats": {
     "entities": 42,
-    "dtos": 81,
-    "services": 71,
+    "dtos": 84,
+    "services": 73,
     "controllers": 23,
-    "types": 237,
-    "api_functions": 117,
-    "hooks": 90,
-    "components": 98,
-    "total_edges": 240
+    "types": 240,
+    "api_functions": 119,
+    "hooks": 92,
+    "components": 101,
+    "total_edges": 246
   }
 }

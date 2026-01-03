@@ -12,3 +12,6 @@ export { RecipientStatusBadge } from './RecipientStatusBadge';
 export { RecipientTable } from './RecipientTable';
 export { TemplateSelector } from './TemplateSelector';
 export { SaveAsTemplateModal } from './SaveAsTemplateModal';
+export { MessagePreview } from './MessagePreview';
+export { MergeFieldPicker } from './MergeFieldPicker';
+export type { MergeField, MergeFieldPickerProps } from './MergeFieldPicker';

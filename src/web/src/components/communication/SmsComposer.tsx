@@ -3,7 +3,8 @@
  * Text area for composing SMS messages with character counting
  */
 
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
+import { MergeFieldPicker } from './MergeFieldPicker';
 
 interface SmsComposerProps {
   value: string;
@@ -15,10 +16,28 @@ const SMS_SEGMENT_SIZE = 160;
 const SMS_MAX_LENGTH = 1600;
 
 export function SmsComposer({ value, onChange, error }: SmsComposerProps) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const characterCount = value.length;
   const segments = Math.ceil(characterCount / SMS_SEGMENT_SIZE) || 1;
   const isTooLong = characterCount > SMS_MAX_LENGTH;
   const isMultiSegment = characterCount > SMS_SEGMENT_SIZE;
+
+  const handleInsertField = (token: string) => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      const start = textarea.selectionStart || 0;
+      const end = textarea.selectionEnd || 0;
+      const newValue = value.slice(0, start) + token + value.slice(end);
+      onChange(newValue);
+      // Move cursor after inserted token
+      setTimeout(() => {
+        textarea.selectionStart = textarea.selectionEnd = start + token.length;
+        textarea.focus();
+      }, 0);
+    } else {
+      onChange(value + token);
+    }
+  };
 
   const warningMessage = useMemo(() => {
     if (isTooLong) {
@@ -32,11 +51,15 @@ export function SmsComposer({ value, onChange, error }: SmsComposerProps) {
 
   return (
     <div className="space-y-2">
-      <label htmlFor="sms-body" className="block text-sm font-medium text-gray-700">
-        Message <span className="text-red-500">*</span>
-      </label>
+      <div className="flex items-center justify-between">
+        <label htmlFor="sms-body" className="block text-sm font-medium text-gray-700">
+          Message <span className="text-red-500">*</span>
+        </label>
+        <MergeFieldPicker onInsert={handleInsertField} />
+      </div>
       <textarea
         id="sms-body"
+        ref={textareaRef}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         rows={6}
