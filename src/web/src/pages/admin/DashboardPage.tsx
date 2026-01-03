@@ -4,7 +4,15 @@
  */
 
 import { useDashboardStats } from '@/hooks/useDashboard';
-import { StatCard, QuickActions, UpcomingSchedules } from '@/components/admin/dashboard';
+import {
+  StatCard,
+  QuickActions,
+  UpcomingSchedules,
+  GivingSummaryCard,
+  RecentBatches,
+  CommunicationsSummaryCard,
+  RecentCommunications,
+} from '@/components/admin/dashboard';
 import { ErrorState } from '@/components/ui';
 
 export function DashboardPage() {
@@ -140,6 +148,36 @@ export function DashboardPage() {
         schedules={stats?.upcomingSchedules ?? []}
         isLoading={isLoading}
       />
+
+      {/* Giving Overview */}
+      {stats?.givingStats && (
+        <section>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Giving Overview</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <GivingSummaryCard
+              monthToDateTotal={stats.givingStats.monthToDateTotal}
+              yearToDateTotal={stats.givingStats.yearToDateTotal}
+            />
+            <RecentBatches batches={stats.givingStats.recentBatches} />
+          </div>
+        </section>
+      )}
+
+      {/* Communications Overview */}
+      {stats?.communicationsStats && (
+        <section>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Communications Overview</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <CommunicationsSummaryCard
+              pendingCount={stats.communicationsStats.pendingCount}
+              sentThisWeekCount={stats.communicationsStats.sentThisWeekCount}
+            />
+            <RecentCommunications
+              communications={stats.communicationsStats.recentCommunications}
+            />
+          </div>
+        </section>
+      )}
     </div>
   );
 }

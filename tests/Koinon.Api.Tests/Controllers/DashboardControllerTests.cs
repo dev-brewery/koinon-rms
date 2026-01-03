@@ -50,6 +50,18 @@ public class DashboardControllerTests
                     NextOccurrence = DateTime.UtcNow.AddDays(1),
                     MinutesUntilCheckIn = 60
                 }
+            },
+            GivingStats = new GivingStatsDto
+            {
+                MonthToDateTotal = 0m,
+                YearToDateTotal = 0m,
+                RecentBatches = new List<DashboardBatchDto>()
+            },
+            CommunicationsStats = new CommunicationsStatsDto
+            {
+                PendingCount = 0,
+                SentThisWeekCount = 0,
+                RecentCommunications = new List<CommunicationSummaryDto>()
             }
         };
 
@@ -109,7 +121,19 @@ public class DashboardControllerTests
             TodayCheckIns = 0,
             LastWeekCheckIns = 0,
             ActiveSchedules = 0,
-            UpcomingSchedules = new List<UpcomingScheduleDto>()
+            UpcomingSchedules = new List<UpcomingScheduleDto>(),
+            GivingStats = new GivingStatsDto
+            {
+                MonthToDateTotal = 0m,
+                YearToDateTotal = 0m,
+                RecentBatches = new List<DashboardBatchDto>()
+            },
+            CommunicationsStats = new CommunicationsStatsDto
+            {
+                PendingCount = 0,
+                SentThisWeekCount = 0,
+                RecentCommunications = new List<CommunicationSummaryDto>()
+            }
         };
 
         _dashboardServiceMock

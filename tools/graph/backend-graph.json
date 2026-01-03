@@ -1331,6 +1331,22 @@
       "namespace": "Koinon.Application.DTOs",
       "properties": {}
     },
+    "GivingStatsDto": {
+      "name": "GivingStatsDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {}
+    },
+    "DashboardBatchDto": {
+      "name": "DashboardBatchDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {}
+    },
+    "CommunicationsStatsDto": {
+      "name": "CommunicationsStatsDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {},
+      "linked_entity": "Communication"
+    },
     "FamilyDto": {
       "name": "FamilyDto",
       "namespace": "Koinon.Application.DTOs",
@@ -5481,6 +5497,11 @@
       "relationship": "maps_to"
     },
     {
+      "source": "CommunicationsStatsDto",
+      "target": "Communication",
+      "relationship": "maps_to"
+    },
+    {
       "source": "FamilyDto",
       "target": "Family",
       "relationship": "maps_to"
@@ -6533,9 +6554,9 @@
   ],
   "summary": {
     "total_entities": 43,
-    "total_dtos": 90,
+    "total_dtos": 93,
     "total_services": 75,
     "total_controllers": 25,
-    "total_relationships": 226
+    "total_relationships": 227
   }
 }

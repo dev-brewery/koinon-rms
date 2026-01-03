@@ -1,3 +1,5 @@
+using Koinon.Application.DTOs.Giving;
+
 namespace Koinon.Application.DTOs;
 
 /// <summary>
@@ -40,6 +42,16 @@ public record DashboardStatsDto
     /// List of upcoming schedules with their next occurrence times.
     /// </summary>
     public required List<UpcomingScheduleDto> UpcomingSchedules { get; init; }
+
+    /// <summary>
+    /// Giving statistics summary.
+    /// </summary>
+    public required GivingStatsDto GivingStats { get; init; }
+
+    /// <summary>
+    /// Communications statistics summary.
+    /// </summary>
+    public required CommunicationsStatsDto CommunicationsStats { get; init; }
 }
 
 /// <summary>
@@ -68,3 +80,78 @@ public record UpcomingScheduleDto
     /// </summary>
     public required int MinutesUntilCheckIn { get; init; }
 }
+
+/// <summary>
+/// Data transfer object for giving statistics.
+/// </summary>
+public record GivingStatsDto
+{
+    /// <summary>
+    /// Total contributions received this month.
+    /// </summary>
+    public required decimal MonthToDateTotal { get; init; }
+
+    /// <summary>
+    /// Total contributions received this year.
+    /// </summary>
+    public required decimal YearToDateTotal { get; init; }
+
+    /// <summary>
+    /// List of recent open/pending batches (last 5).
+    /// </summary>
+    public required List<DashboardBatchDto> RecentBatches { get; init; }
+}
+
+/// <summary>
+/// Data transfer object for batch information on the dashboard.
+/// </summary>
+public record DashboardBatchDto
+{
+    /// <summary>
+    /// URL-safe identifier for the batch.
+    /// </summary>
+    public required string IdKey { get; init; }
+
+    /// <summary>
+    /// Name of the batch.
+    /// </summary>
+    public required string Name { get; init; }
+
+    /// <summary>
+    /// Date of the batch.
+    /// </summary>
+    public required DateTime BatchDate { get; init; }
+
+    /// <summary>
+    /// Status of the batch (e.g., Open, Pending, Closed).
+    /// </summary>
+    public required string Status { get; init; }
+
+    /// <summary>
+    /// Total amount in the batch.
+    /// </summary>
+    public required decimal Total { get; init; }
+}
+
+/// <summary>
+/// Data transfer object for communications statistics.
+/// </summary>
+public record CommunicationsStatsDto
+{
+    /// <summary>
+    /// Count of communications with Pending status.
+    /// </summary>
+    public required int PendingCount { get; init; }
+
+    /// <summary>
+    /// Count of communications sent in the last 7 days.
+    /// </summary>
+    public required int SentThisWeekCount { get; init; }
+
+    /// <summary>
+    /// List of recent communications (last 5).
+    /// </summary>
+    public required List<CommunicationSummaryDto> RecentCommunications { get; init; }
+}
+
+

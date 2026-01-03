@@ -51,6 +51,12 @@ public class DashboardService(
         // Get upcoming schedules (next 5 active weekly schedules)
         var upcomingSchedules = await GetUpcomingSchedulesAsync(now, cancellationToken);
 
+        // Get giving statistics
+        var givingStats = await GetGivingStatsAsync(now, cancellationToken);
+
+        // Get communications statistics
+        var communicationsStats = await GetCommunicationsStatsAsync(now, cancellationToken);
+
         var stats = new DashboardStatsDto
         {
             TotalPeople = totalPeople,
@@ -59,7 +65,9 @@ public class DashboardService(
             ActiveSchedules = activeSchedules,
             TodayCheckIns = todayCheckIns,
             LastWeekCheckIns = lastWeekCheckIns,
-            UpcomingSchedules = upcomingSchedules
+            UpcomingSchedules = upcomingSchedules,
+            GivingStats = givingStats,
+            CommunicationsStats = communicationsStats
         };
 
         logger.LogInformation(
@@ -155,5 +163,110 @@ public class DashboardService(
 
         candidateDate = candidateDate.AddDays(daysUntilTarget);
         return candidateDate.ToDateTime(targetTimeOnly, DateTimeKind.Utc);
+    }
+
+    private async Task<GivingStatsDto> GetGivingStatsAsync(DateTime now, CancellationToken cancellationToken)
+    {
+        var currentMonth = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var currentYear = new DateTime(now.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        // Calculate Month-to-Date total from contribution details
+        var mtdTotal = await context.ContributionDetails
+            .AsNoTracking()
+            .Where(cd => cd.Contribution != null && cd.Contribution.TransactionDateTime >= currentMonth)
+            .SumAsync(cd => cd.Amount, cancellationToken);
+
+        // Calculate Year-to-Date total from contribution details
+        var ytdTotal = await context.ContributionDetails
+            .AsNoTracking()
+            .Where(cd => cd.Contribution != null && cd.Contribution.TransactionDateTime >= currentYear)
+            .SumAsync(cd => cd.Amount, cancellationToken);
+
+        // Get last 5 open/closed batches
+        var recentBatches = await context.ContributionBatches
+            .AsNoTracking()
+            .Where(cb => cb.Status == Domain.Enums.BatchStatus.Open || cb.Status == Domain.Enums.BatchStatus.Closed)
+            .OrderByDescending(cb => cb.BatchDate)
+            .Take(5)
+            .Select(cb => new
+            {
+                cb.IdKey,
+                cb.Name,
+                cb.BatchDate,
+                cb.Status,
+                cb.Id
+            })
+            .ToListAsync(cancellationToken);
+
+        // Calculate totals for each batch using single query with GroupBy
+        var batchIds = recentBatches.Select(b => b.Id).ToList();
+
+        var batchTotals = await context.ContributionDetails
+            .AsNoTracking()
+            .Where(cd => cd.Contribution != null && cd.Contribution.BatchId.HasValue && batchIds.Contains(cd.Contribution.BatchId.Value))
+            .GroupBy(cd => cd.Contribution!.BatchId!.Value)
+            .Select(g => new { BatchId = g.Key, Total = g.Sum(cd => cd.Amount) })
+            .ToListAsync(cancellationToken);
+
+        var batchTotalLookup = batchTotals.ToDictionary(bt => bt.BatchId, bt => bt.Total);
+
+        var batchDtos = recentBatches.Select(batch => new DashboardBatchDto
+        {
+            IdKey = batch.IdKey,
+            Name = batch.Name,
+            BatchDate = batch.BatchDate,
+            Status = batch.Status.ToString(),
+            Total = batchTotalLookup.TryGetValue(batch.Id, out var total) ? total : 0m
+        }).ToList();
+
+        return new GivingStatsDto
+        {
+            MonthToDateTotal = mtdTotal,
+            YearToDateTotal = ytdTotal,
+            RecentBatches = batchDtos
+        };
+    }
+
+    private async Task<CommunicationsStatsDto> GetCommunicationsStatsAsync(DateTime now, CancellationToken cancellationToken)
+    {
+        var sevenDaysAgo = now.AddDays(-7);
+
+        // Count pending communications
+        var pendingCount = await context.Communications
+            .AsNoTracking()
+            .CountAsync(c => c.Status == Domain.Enums.CommunicationStatus.Pending, cancellationToken);
+
+        // Count sent communications in last 7 days
+        var sentThisWeekCount = await context.Communications
+            .AsNoTracking()
+            .CountAsync(c => c.Status == Domain.Enums.CommunicationStatus.Sent
+                && c.CreatedDateTime >= sevenDaysAgo, cancellationToken);
+
+        // Get last 5 communications
+        var recentCommunications = await context.Communications
+            .AsNoTracking()
+            .OrderByDescending(c => c.CreatedDateTime)
+            .Take(5)
+            .Select(c => new CommunicationSummaryDto
+            {
+                IdKey = c.IdKey,
+                CommunicationType = c.CommunicationType.ToString(),
+                Status = c.Status.ToString(),
+                Subject = c.Subject,
+                RecipientCount = c.RecipientCount,
+                DeliveredCount = c.DeliveredCount,
+                FailedCount = c.FailedCount,
+                ScheduledDateTime = c.ScheduledDateTime,
+                CreatedDateTime = c.CreatedDateTime,
+                SentDateTime = c.SentDateTime
+            })
+            .ToListAsync(cancellationToken);
+
+        return new CommunicationsStatsDto
+        {
+            PendingCount = pendingCount,
+            SentThisWeekCount = sentThisWeekCount,
+            RecentCommunications = recentCommunications
+        };
     }
 }
