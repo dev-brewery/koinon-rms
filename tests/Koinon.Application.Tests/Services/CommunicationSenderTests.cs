@@ -208,6 +208,8 @@ public class CommunicationSenderTests : IDisposable
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
+                It.IsAny<IEnumerable<Koinon.Application.DTOs.Communications.EmailAttachmentDto>>(),
+                It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
@@ -229,13 +231,15 @@ public class CommunicationSenderTests : IDisposable
 
         _mockEmailSender.Verify(
             e => e.SendEmailAsync(
-                "john@example.com",
-                "John Doe",
-                "noreply@example.com",
-                "Test Sender",
-                "Test Subject",
-                "<p>Test email body</p>",
-                "reply@example.com",
+                "john@example.com",          // toAddress
+                "John Doe",                  // toName
+                "noreply@example.com",       // fromAddress
+                "Test Sender",               // fromName
+                "Test Subject",              // subject
+                "<p>Test email body</p>",    // bodyHtml
+                null,                         // bodyText
+                null,                         // attachments
+                "reply@example.com",         // replyToAddress
                 It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -408,6 +412,8 @@ public class CommunicationSenderTests : IDisposable
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<IEnumerable<Koinon.Application.DTOs.Communications.EmailAttachmentDto>>(),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);
@@ -609,6 +615,8 @@ public class CommunicationSenderTests : IDisposable
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
+                It.IsAny<IEnumerable<Koinon.Application.DTOs.Communications.EmailAttachmentDto>>(),
+                It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
@@ -628,13 +636,15 @@ public class CommunicationSenderTests : IDisposable
 
         _mockEmailSender.Verify(
             e => e.SendEmailAsync(
-                "john@example.com",
-                "John Doe",
-                "noreply@example.com",
-                "Test Sender",
-                "Welcome John!",
-                "<p>Hello John Doe, welcome to our community.</p>",
-                It.IsAny<string>(),
+                "john@example.com",                                              // toAddress
+                "John Doe",                                                      // toName
+                "noreply@example.com",                                           // fromAddress
+                "Test Sender",                                                   // fromName
+                "Welcome John!",                                                 // subject
+                "<p>Hello John Doe, welcome to our community.</p>",              // bodyHtml
+                null,                                                             // bodyText
+                null,                                                             // attachments
+                It.IsAny<string>(),                                              // replyToAddress
                 It.IsAny<CancellationToken>()),
             Times.Once,
             "Should send email with personalized subject and body");

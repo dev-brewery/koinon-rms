@@ -1,8 +1,11 @@
+using Koinon.Application.DTOs.Communications;
 using Koinon.Application.Interfaces;
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MimeKit;
+using Polly;
+using Polly.Retry;
 
 namespace Koinon.Infrastructure.Services;
 
@@ -13,6 +16,35 @@ public class SmtpEmailSender(
     IConfiguration configuration,
     ILogger<SmtpEmailSender> logger) : IEmailSender
 {
+    /// <summary>
+    /// Creates a Polly v8 resilience pipeline for transient SMTP failures with exponential backoff.
+    /// Retries on SocketException and SmtpProtocolException (transient).
+    /// Does NOT retry on SmtpCommandException or AuthenticationException (permanent).
+    /// </summary>
+    private ResiliencePipeline CreateRetryPipeline()
+    {
+        return new ResiliencePipelineBuilder()
+            .AddRetry(new RetryStrategyOptions
+            {
+                ShouldHandle = new PredicateBuilder()
+                    .Handle<System.Net.Sockets.SocketException>()
+                    .Handle<SmtpProtocolException>(),
+                MaxRetryAttempts = 3,
+                BackoffType = DelayBackoffType.Exponential,
+                Delay = TimeSpan.FromSeconds(1),
+                UseJitter = true,
+                OnRetry = args =>
+                {
+                    logger.LogWarning(
+                        args.Outcome.Exception,
+                        "SMTP send attempt {RetryCount} failed. Retrying in {Delay}...",
+                        args.AttemptNumber,
+                        args.RetryDelay);
+                    return ValueTask.CompletedTask;
+                }
+            })
+            .Build();
+    }
     public async Task<bool> SendEmailAsync(
         string toAddress,
         string? toName,
@@ -20,6 +52,8 @@ public class SmtpEmailSender(
         string? fromName,
         string subject,
         string bodyHtml,
+        string? bodyText = null,
+        IEnumerable<EmailAttachmentDto>? attachments = null,
         string? replyToAddress = null,
         CancellationToken ct = default)
     {
@@ -45,11 +79,29 @@ public class SmtpEmailSender(
 
             message.Subject = subject;
 
-            // Create HTML body
+            // Create body with HTML and optional plain text
             var bodyBuilder = new BodyBuilder
             {
                 HtmlBody = bodyHtml
             };
+
+            // Add plain text version if provided
+            if (!string.IsNullOrWhiteSpace(bodyText))
+            {
+                bodyBuilder.TextBody = bodyText;
+            }
+
+            // Add attachments if provided
+            if (attachments != null)
+            {
+                foreach (var attachment in attachments)
+                {
+                    bodyBuilder.Attachments.Add(
+                        attachment.FileName,
+                        attachment.Content,
+                        ContentType.Parse(attachment.ContentType));
+                }
+            }
 
             message.Body = bodyBuilder.ToMessageBody();
 
@@ -71,18 +123,31 @@ public class SmtpEmailSender(
                 logger.LogWarning("Invalid SMTP UseSsl configuration, using default: true");
             }
 
-            // Send email
-            using var client = new SmtpClient();
-            await client.ConnectAsync(smtpHost, smtpPort, smtpUseSsl, ct);
-
-            // Authenticate if credentials provided
-            if (!string.IsNullOrWhiteSpace(smtpUsername) && !string.IsNullOrWhiteSpace(smtpCredentials))
+            // Send email with retry pipeline for transient failures
+            var pipeline = CreateRetryPipeline();
+            await pipeline.ExecuteAsync(async cancellationToken =>
             {
-                await client.AuthenticateAsync(smtpUsername, smtpCredentials, ct);
-            }
+                using var client = new SmtpClient();
+                try
+                {
+                    await client.ConnectAsync(smtpHost, smtpPort, smtpUseSsl, cancellationToken);
 
-            await client.SendAsync(message, ct);
-            await client.DisconnectAsync(true, ct);
+                    // Authenticate if credentials provided
+                    if (!string.IsNullOrWhiteSpace(smtpUsername) && !string.IsNullOrWhiteSpace(smtpCredentials))
+                    {
+                        await client.AuthenticateAsync(smtpUsername, smtpCredentials, cancellationToken);
+                    }
+
+                    await client.SendAsync(message, cancellationToken);
+                    await client.DisconnectAsync(true, cancellationToken);
+                }
+                catch (Exception) when (client.IsConnected)
+                {
+                    // Ensure graceful disconnect on failure before retry
+                    await client.DisconnectAsync(false, cancellationToken);
+                    throw;
+                }
+            }, ct);
 
             logger.LogInformation(
                 "Email sent successfully to {ToAddress} with subject '{Subject}'",
@@ -91,24 +156,28 @@ public class SmtpEmailSender(
 
             return true;
         }
-        catch (MailKit.Net.Smtp.SmtpCommandException ex)
+        catch (SmtpCommandException ex)
         {
-            logger.LogError(ex, "SMTP command failed for {ToAddress}", toAddress);
+            // Permanent error - do not retry
+            logger.LogError(ex, "SMTP command failed for {ToAddress} (permanent error)", toAddress);
             return false;
         }
-        catch (MailKit.Net.Smtp.SmtpProtocolException ex)
+        catch (SmtpProtocolException ex)
         {
-            logger.LogError(ex, "SMTP protocol error for {ToAddress}", toAddress);
+            // Transient error - retries exhausted
+            logger.LogError(ex, "SMTP protocol error for {ToAddress} after retries", toAddress);
             return false;
         }
         catch (System.Net.Sockets.SocketException ex)
         {
-            logger.LogError(ex, "Network error sending to {ToAddress}", toAddress);
+            // Transient error - retries exhausted
+            logger.LogError(ex, "Network error sending to {ToAddress} after retries", toAddress);
             return false;
         }
         catch (MailKit.Security.AuthenticationException ex)
         {
-            logger.LogError(ex, "SMTP authentication failed");
+            // Permanent error - do not retry
+            logger.LogError(ex, "SMTP authentication failed (permanent error)");
             return false;
         }
     }

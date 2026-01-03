@@ -1,3 +1,5 @@
+using Koinon.Application.DTOs.Communications;
+
 namespace Koinon.Application.Interfaces;
 
 /// <summary>
@@ -14,6 +16,8 @@ public interface IEmailSender
     /// <param name="fromName">Sender name (optional).</param>
     /// <param name="subject">Email subject.</param>
     /// <param name="bodyHtml">HTML body content.</param>
+    /// <param name="bodyText">Plain text body content (optional).</param>
+    /// <param name="attachments">Email attachments (optional).</param>
     /// <param name="replyToAddress">Reply-to email address (optional).</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>True if sent successfully, false otherwise.</returns>
@@ -24,6 +28,8 @@ public interface IEmailSender
         string? fromName,
         string subject,
         string bodyHtml,
+        string? bodyText = null,
+        IEnumerable<EmailAttachmentDto>? attachments = null,
         string? replyToAddress = null,
         CancellationToken ct = default);
 }

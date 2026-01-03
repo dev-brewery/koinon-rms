@@ -28,6 +28,7 @@
     <PackageReference Include="Hangfire.AspNetCore" />
     <PackageReference Include="Hangfire.PostgreSql" />
     <PackageReference Include="AspNetCore.HealthChecks.Hangfire" />
+    <PackageReference Include="Polly" />
   </ItemGroup>
 
 </Project>
