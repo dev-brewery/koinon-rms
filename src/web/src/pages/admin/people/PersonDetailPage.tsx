@@ -5,6 +5,7 @@
 
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { usePerson, usePersonFamily, usePersonGroups, useDeletePerson } from '@/hooks/usePeople';
+import { CommunicationPreferences } from '@/components/admin/people/CommunicationPreferences';
 
 export function PersonDetailPage() {
   const { idKey } = useParams<{ idKey: string }>();
@@ -237,6 +238,9 @@ export function PersonDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Communication Preferences */}
+      <CommunicationPreferences personIdKey={idKey!} />
 
       {/* Family */}
       {family && (

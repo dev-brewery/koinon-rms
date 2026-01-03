@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-03T00:16:06.126336+00:00",
+  "generated_at": "2026-01-03T01:04:44.402156+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -152,6 +152,16 @@
           "type": "one"
         }
       ]
+    },
+    "CommunicationPreference": {
+      "name": "CommunicationPreference",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "communication_preference",
+      "properties": {
+        "OptOutDateTime": "DateTime?",
+        "OptOutReason": "string?"
+      },
+      "navigations": []
     },
     "CommunicationRecipient": {
       "name": "CommunicationRecipient",
@@ -1195,6 +1205,31 @@
         "ErrorMessage": "string?",
         "GroupIdKey": "string?",
         "Body": "string?"
+      }
+    },
+    "CommunicationPreferenceDto": {
+      "name": "CommunicationPreferenceDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "OptOutDateTime": "DateTime?",
+        "OptOutReason": "string?"
+      },
+      "linked_entity": "CommunicationPreference"
+    },
+    "UpdateCommunicationPreferenceDto": {
+      "name": "UpdateCommunicationPreferenceDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "OptOutDateTime": "DateTime?",
+        "OptOutReason": "string?"
+      }
+    },
+    "BulkUpdatePreferencesDto": {
+      "name": "BulkUpdatePreferencesDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "OptOutDateTime": "DateTime?",
+        "OptOutReason": "string?"
       }
     },
     "CommunicationPreviewRequestDto": {
@@ -2437,6 +2472,47 @@
         "CheckinDataLoader"
       ]
     },
+    "CommunicationPreferenceService": {
+      "name": "CommunicationPreferenceService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "CommunicationPreferenceService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetByPersonAsync",
+          "return_type": "Task<List<CommunicationPreferenceDto>>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateAsync",
+          "return_type": "Task<Result<CommunicationPreferenceDto>>",
+          "is_async": false
+        },
+        {
+          "name": "BulkUpdateAsync",
+          "return_type": "Task<Result<List<CommunicationPreferenceDto>>>",
+          "is_async": false
+        },
+        {
+          "name": "IsOptedOutAsync",
+          "return_type": "Task<bool>",
+          "is_async": false
+        },
+        {
+          "name": "IsOptedOutBatchAsync",
+          "return_type": "Task<Dictionary<int, bool>>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IMapper",
+        "ILogger<CommunicationPreferenceService>"
+      ]
+    },
     "CommunicationService": {
       "name": "CommunicationService",
       "namespace": "Koinon.Application.Services",
@@ -2497,6 +2573,7 @@
         "IMapper",
         "IUserContext",
         "IMergeFieldService",
+        "ICommunicationPreferenceService",
         "ILogger<CommunicationService>"
       ]
     },
@@ -3531,6 +3608,12 @@
       "methods": [],
       "dependencies": []
     },
+    "ICommunicationPreferenceService": {
+      "name": "ICommunicationPreferenceService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
     "ICommunicationService": {
       "name": "ICommunicationService",
       "namespace": "Koinon.Application.Interfaces",
@@ -4049,6 +4132,32 @@
         "IRoomRosterService",
         "ICapacityService",
         "ILogger<CheckinController>"
+      ]
+    },
+    "CommunicationPreferencesController": {
+      "name": "CommunicationPreferencesController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/people/{personIdKey}/communication-preferences",
+      "endpoints": [
+        {
+          "name": "UpdateSingle",
+          "method": "PUT",
+          "route": "{type}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": false,
+        "problem_details": true,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "ICommunicationPreferenceService",
+        "ILogger<CommunicationPreferencesController>"
       ]
     },
     "CommunicationTemplatesController": {
@@ -5306,6 +5415,45 @@
       "usesMutation": false,
       "dependencies": []
     },
+    "useCommunicationPreferences": {
+      "name": "useCommunicationPreferences",
+      "path": "hooks/useCommunicationPreferences.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "communication-preferences"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getCommunicationPreferences"
+      ]
+    },
+    "useUpdateCommunicationPreference": {
+      "name": "useUpdateCommunicationPreference",
+      "path": "hooks/useCommunicationPreferences.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "updatecommunicationpreference"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "updateCommunicationPreference"
+      ]
+    },
+    "useBulkUpdateCommunicationPreferences": {
+      "name": "useBulkUpdateCommunicationPreferences",
+      "path": "hooks/useCommunicationPreferences.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "bulkupdatecommunicationpreferences"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "bulkUpdateCommunicationPreferences"
+      ]
+    },
     "useCommunicationTemplates": {
       "name": "useCommunicationTemplates",
       "path": "hooks/useCommunicationTemplates.ts",
@@ -6550,6 +6698,27 @@
       "method": "POST",
       "responseType": "CommunicationPreviewResponse"
     },
+    "getCommunicationPreferences": {
+      "name": "getCommunicationPreferences",
+      "path": "services/api/communications.ts",
+      "endpoint": "/people/${personIdKey}/communication-preferences",
+      "method": "GET",
+      "responseType": "CommunicationPreferenceDto[]"
+    },
+    "updateCommunicationPreference": {
+      "name": "updateCommunicationPreference",
+      "path": "services/api/communications.ts",
+      "endpoint": "/people/${personIdKey}/communication-preferences/${type}",
+      "method": "PUT",
+      "responseType": "CommunicationPreferenceDto"
+    },
+    "bulkUpdateCommunicationPreferences": {
+      "name": "bulkUpdateCommunicationPreferences",
+      "path": "services/api/communications.ts",
+      "endpoint": "/people/${personIdKey}/communication-preferences",
+      "method": "PUT",
+      "responseType": "CommunicationPreferenceDto[]"
+    },
     "getDashboardStats": {
       "name": "getDashboardStats",
       "path": "services/api/dashboard.ts",
@@ -7294,6 +7463,15 @@
       ],
       "apiCallsDirectly": false
     },
+    "CommunicationPreferences": {
+      "name": "CommunicationPreferences",
+      "path": "components/admin/people/CommunicationPreferences.tsx",
+      "hooksUsed": [
+        "useCommunicationPreferences",
+        "useUpdateCommunicationPreference"
+      ],
+      "apiCallsDirectly": false
+    },
     "PersonCard": {
       "name": "PersonCard",
       "path": "components/admin/people/PersonCard.tsx",
@@ -7840,6 +8018,11 @@
       "relationship": "maps_to"
     },
     {
+      "source": "CommunicationPreferenceDto",
+      "target": "CommunicationPreference",
+      "relationship": "maps_to"
+    },
+    {
       "source": "CommunicationPreviewRequestDto",
       "target": "Communication",
       "relationship": "maps_to"
@@ -8042,6 +8225,11 @@
     {
       "source": "CheckinController",
       "target": "ICapacityService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "CommunicationPreferencesController",
+      "target": "ICommunicationPreferenceService",
       "relationship": "depends_on"
     },
     {
@@ -8292,6 +8480,21 @@
     {
       "source": "CheckinSearchService",
       "target": "CheckinFamilySearchResultDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CommunicationPreferenceService",
+      "target": "CommunicationPreferenceDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CommunicationPreferenceService",
+      "target": "CommunicationPreferenceDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CommunicationPreferenceService",
+      "target": "CommunicationPreferenceDto",
       "relationship": "returns"
     },
     {
@@ -8730,6 +8933,16 @@
       "relationship": "uses"
     },
     {
+      "source": "CommunicationPreferenceService",
+      "target": "Communication",
+      "relationship": "uses"
+    },
+    {
+      "source": "CommunicationService",
+      "target": "Communication",
+      "relationship": "uses"
+    },
+    {
       "source": "CommunicationService",
       "target": "Communication",
       "relationship": "uses"
@@ -8950,6 +9163,16 @@
       "type": "uses_hook"
     },
     {
+      "from": "CommunicationPreferences",
+      "to": "useCommunicationPreferences",
+      "type": "uses_hook"
+    },
+    {
+      "from": "CommunicationPreferences",
+      "to": "useUpdateCommunicationPreference",
+      "type": "uses_hook"
+    },
+    {
       "from": "ChildCard",
       "to": "useCheckOutFromRoster",
       "type": "uses_hook"
@@ -9047,6 +9270,9 @@
     "dto:CommunicationRecipientDto": "type:CommunicationRecipientDto",
     "dto:CreateCommunicationDto": "type:CreateCommunicationDto",
     "dto:UpdateCommunicationDto": "type:UpdateCommunicationDto",
+    "dto:CommunicationPreferenceDto": "type:CommunicationPreferenceDto",
+    "dto:UpdateCommunicationPreferenceDto": "type:UpdateCommunicationPreferenceDto",
+    "dto:BulkUpdatePreferencesDto": "type:BulkUpdatePreferencesDto",
     "dto:CommunicationPreviewRequestDto": "type:CommunicationPreviewRequest",
     "dto:CommunicationPreviewResponseDto": "type:CommunicationPreviewResponse",
     "dto:CommunicationTemplateDto": "type:CommunicationTemplateDto",
@@ -9103,14 +9329,14 @@
     "dto:SupervisorInfoDto": "type:SupervisorInfoDto"
   },
   "stats": {
-    "entities": 42,
-    "dtos": 84,
-    "services": 73,
-    "controllers": 23,
-    "types": 240,
-    "api_functions": 119,
-    "hooks": 92,
-    "components": 101,
-    "total_edges": 246
+    "entities": 43,
+    "dtos": 87,
+    "services": 75,
+    "controllers": 24,
+    "types": 243,
+    "api_functions": 122,
+    "hooks": 95,
+    "components": 102,
+    "total_edges": 255
   }
 }

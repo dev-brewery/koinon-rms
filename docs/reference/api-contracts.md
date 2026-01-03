@@ -1234,6 +1234,144 @@ interface CommunicationPreviewResponse {
 
 ---
 
+## Communication Preferences
+
+### GET /api/v1/people/{personIdKey}/communication-preferences
+
+Get all communication preferences for a person. Returns preferences for all communication types (Email, SMS), using system defaults for types without explicit preferences.
+
+**Path Parameters:**
+- `personIdKey` (IdKey): The person's encoded identifier
+
+**Response (200):**
+```typescript
+interface CommunicationPreferencesResponse {
+  data: CommunicationPreferenceDto[];
+}
+
+interface CommunicationPreferenceDto {
+  idKey: IdKey;
+  personIdKey: IdKey;
+  communicationType: 'Email' | 'Sms';
+  isOptedOut: boolean;
+  optOutDateTime?: DateTime;       // When person opted out (null if not opted out)
+  optOutReason?: string;           // Reason provided when opting out
+}
+```
+
+**Example Response:**
+```json
+{
+  "data": [
+    {
+      "idKey": "abc123",
+      "personIdKey": "xyz789",
+      "communicationType": "Email",
+      "isOptedOut": false,
+      "optOutDateTime": null,
+      "optOutReason": null
+    },
+    {
+      "idKey": "def456",
+      "personIdKey": "xyz789",
+      "communicationType": "Sms",
+      "isOptedOut": true,
+      "optOutDateTime": "2024-01-15T10:30:00Z",
+      "optOutReason": "Prefers email only"
+    }
+  ]
+}
+```
+
+---
+
+### PUT /api/v1/people/{personIdKey}/communication-preferences/{type}
+
+Update a person's preference for a specific communication type. Creates a new preference record if one doesn't exist.
+
+**Path Parameters:**
+- `personIdKey` (IdKey): The person's encoded identifier
+- `type` (string): The communication type - must be "Email" or "Sms"
+
+**Request:**
+```typescript
+interface UpdateCommunicationPreferenceRequest {
+  isOptedOut: boolean;             // Whether person should be opted out
+  optOutReason?: string;           // Reason for opting out (required when isOptedOut is true)
+}
+```
+
+**Response (200):**
+```typescript
+interface UpdatePreferenceResponse {
+  data: CommunicationPreferenceDto;
+}
+```
+
+**Example Request:**
+```json
+{
+  "isOptedOut": true,
+  "optOutReason": "Too many messages"
+}
+```
+
+**Error Responses:**
+- **400 Bad Request**: Invalid communication type or validation error (e.g., missing optOutReason when isOptedOut is true)
+- **404 Not Found**: Person not found
+
+---
+
+### PUT /api/v1/people/{personIdKey}/communication-preferences
+
+Update multiple communication preferences for a person in a single operation. Useful for preference management UI where users can update all communication settings at once.
+
+**Path Parameters:**
+- `personIdKey` (IdKey): The person's encoded identifier
+
+**Request:**
+```typescript
+interface BulkUpdatePreferencesRequest {
+  preferences: PreferenceUpdateItem[];
+}
+
+interface PreferenceUpdateItem {
+  communicationType: 'Email' | 'Sms';
+  isOptedOut: boolean;
+  optOutReason?: string;
+}
+```
+
+**Response (200):**
+```typescript
+interface BulkUpdatePreferencesResponse {
+  data: CommunicationPreferenceDto[];
+}
+```
+
+**Example Request:**
+```json
+{
+  "preferences": [
+    {
+      "communicationType": "Email",
+      "isOptedOut": false
+    },
+    {
+      "communicationType": "Sms",
+      "isOptedOut": true,
+      "optOutReason": "Prefers email only"
+    }
+  ]
+}
+```
+
+**Error Responses:**
+- **400 Bad Request**: Validation error (e.g., duplicate communication types, invalid types, missing required fields)
+- **404 Not Found**: Person not found
+
+---
+
 ## Reference Data
 
 ### GET /api/v1/defined-types

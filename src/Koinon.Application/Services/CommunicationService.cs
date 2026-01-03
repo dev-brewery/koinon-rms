@@ -18,6 +18,7 @@ public class CommunicationService(
     IMapper mapper,
     IUserContext userContext,
     IMergeFieldService mergeFieldService,
+    ICommunicationPreferenceService communicationPreferenceService,
     ILogger<CommunicationService> logger) : ICommunicationService
 {
     private const string RoleStaff = "Staff";
@@ -690,7 +691,7 @@ public class CommunicationService(
     }
 
     /// <summary>
-    /// Resolves recipients from groups, deduplicates by person, and snapshots contact info.
+    /// Resolves recipients from groups, deduplicates by person, filters opted-out users, and snapshots contact info.
     /// </summary>
     private async Task<List<CommunicationRecipient>> ResolveRecipientsAsync(
         List<int> groupIds,
@@ -711,7 +712,19 @@ public class CommunicationService(
             .GroupBy(gm => gm.PersonId)
             .ToDictionary(g => g.Key, g => g.First());
 
+        // CRITICAL #2: Batch check opt-out status for all persons at once
+        var personIds = personLookup.Keys.ToList();
+        var optedOutDictionary = await communicationPreferenceService.IsOptedOutBatchAsync(
+            personIds,
+            communicationType,
+            ct);
+        var optedOutPersonIds = optedOutDictionary
+            .Where(kvp => kvp.Value)
+            .Select(kvp => kvp.Key)
+            .ToHashSet();
+
         var recipients = new List<CommunicationRecipient>();
+        var filteredCount = 0;
 
         foreach (var kvp in personLookup)
         {
@@ -721,6 +734,17 @@ public class CommunicationService(
 
             if (person is null)
             {
+                continue;
+            }
+
+            // Filter out opted-out persons
+            if (optedOutPersonIds.Contains(personId))
+            {
+                filteredCount++;
+                logger.LogDebug(
+                    "Skipping opted-out person {PersonId} for {CommunicationType}",
+                    personId,
+                    communicationType);
                 continue;
             }
 
@@ -754,6 +778,14 @@ public class CommunicationService(
                 GroupId = member.GroupId,
                 CreatedDateTime = DateTime.UtcNow
             });
+        }
+
+        if (filteredCount > 0)
+        {
+            logger.LogInformation(
+                "Filtered {FilteredCount} opted-out recipients from {TotalCount} potential recipients",
+                filteredCount,
+                personLookup.Count);
         }
 
         return recipients;
