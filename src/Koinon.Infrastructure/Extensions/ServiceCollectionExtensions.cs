@@ -325,16 +325,8 @@ public static class ServiceCollectionExtensions
             failureStatus: Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Degraded,
             tags: new[] { "ready", "hangfire" });
 
-        // Register recurring jobs
-        // Session cleanup runs daily at 2 AM UTC
-        RecurringJob.AddOrUpdate<ISessionCleanupService>(
-            "session-cleanup",
-            service => service.CleanupExpiredSessionsAsync(CancellationToken.None),
-            "0 2 * * *", // Daily at 2 AM UTC
-            new RecurringJobOptions
-            {
-                TimeZone = TimeZoneInfo.Utc
-            });
+        // Register hosted service to configure recurring jobs after startup
+        services.AddHostedService<HangfireRecurringJobsService>();
 
         return services;
     }
