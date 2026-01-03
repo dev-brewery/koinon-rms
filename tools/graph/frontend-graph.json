@@ -852,6 +852,50 @@
       },
       "path": "types/dashboard.ts"
     },
+    "BatchSummary": {
+      "name": "BatchSummary",
+      "kind": "interface",
+      "properties": {
+        "idKey": "string",
+        "name": "string",
+        "batchDate": "string",
+        "status": "'Open' | 'Pending' | 'Closed'",
+        "total": "number"
+      },
+      "path": "types/dashboard.ts"
+    },
+    "GivingStats": {
+      "name": "GivingStats",
+      "kind": "interface",
+      "properties": {
+        "monthToDateTotal": "number",
+        "yearToDateTotal": "number",
+        "recentBatches": "BatchSummary[]"
+      },
+      "path": "types/dashboard.ts"
+    },
+    "CommunicationSummary": {
+      "name": "CommunicationSummary",
+      "kind": "interface",
+      "properties": {
+        "idKey": "string",
+        "subject": "string",
+        "type": "'Email' | 'SMS' | 'Push'",
+        "status": "'Draft' | 'Pending' | 'Sent' | 'Failed'",
+        "createdDateTime": "string"
+      },
+      "path": "types/dashboard.ts"
+    },
+    "CommunicationsStats": {
+      "name": "CommunicationsStats",
+      "kind": "interface",
+      "properties": {
+        "pendingCount": "number",
+        "sentThisWeekCount": "number",
+        "recentCommunications": "CommunicationSummary[]"
+      },
+      "path": "types/dashboard.ts"
+    },
     "DashboardStatsDto": {
       "name": "DashboardStatsDto",
       "kind": "interface",
@@ -862,7 +906,9 @@
         "todayCheckIns": "number",
         "lastWeekCheckIns": "number",
         "activeSchedules": "number",
-        "upcomingSchedules": "UpcomingScheduleDto[]"
+        "upcomingSchedules": "UpcomingScheduleDto[]",
+        "givingStats": "GivingStats",
+        "communicationsStats": "CommunicationsStats"
       },
       "path": "types/dashboard.ts"
     },
@@ -5504,9 +5550,33 @@
       ],
       "apiCallsDirectly": false
     },
+    "CommunicationsSummaryCard": {
+      "name": "CommunicationsSummaryCard",
+      "path": "components/admin/dashboard/CommunicationsSummaryCard.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "GivingSummaryCard": {
+      "name": "GivingSummaryCard",
+      "path": "components/admin/dashboard/GivingSummaryCard.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
     "QuickActions": {
       "name": "QuickActions",
       "path": "components/admin/dashboard/QuickActions.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "RecentBatches": {
+      "name": "RecentBatches",
+      "path": "components/admin/dashboard/RecentBatches.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "RecentCommunications": {
+      "name": "RecentCommunications",
+      "path": "components/admin/dashboard/RecentCommunications.tsx",
       "hooksUsed": [],
       "apiCallsDirectly": false
     },

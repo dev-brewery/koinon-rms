@@ -1331,6 +1331,22 @@
       "namespace": "Koinon.Application.DTOs",
       "properties": {}
     },
+    "GivingStatsDto": {
+      "name": "GivingStatsDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {}
+    },
+    "DashboardBatchDto": {
+      "name": "DashboardBatchDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {}
+    },
+    "CommunicationsStatsDto": {
+      "name": "CommunicationsStatsDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {},
+      "linked_entity": "Communication"
+    },
     "FamilyDto": {
       "name": "FamilyDto",
       "namespace": "Koinon.Application.DTOs",
@@ -7813,9 +7829,33 @@
       ],
       "apiCallsDirectly": false
     },
+    "CommunicationsSummaryCard": {
+      "name": "CommunicationsSummaryCard",
+      "path": "components/admin/dashboard/CommunicationsSummaryCard.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "GivingSummaryCard": {
+      "name": "GivingSummaryCard",
+      "path": "components/admin/dashboard/GivingSummaryCard.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
     "QuickActions": {
       "name": "QuickActions",
       "path": "components/admin/dashboard/QuickActions.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "RecentBatches": {
+      "name": "RecentBatches",
+      "path": "components/admin/dashboard/RecentBatches.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "RecentCommunications": {
+      "name": "RecentCommunications",
+      "path": "components/admin/dashboard/RecentCommunications.tsx",
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
@@ -8474,6 +8514,11 @@
     },
     {
       "source": "CommunicationTemplateSummaryDto",
+      "target": "Communication",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CommunicationsStatsDto",
       "target": "Communication",
       "relationship": "maps_to"
     },
@@ -9767,6 +9812,8 @@
     "dto:UpdateCommunicationTemplateDto": "type:UpdateCommunicationTemplateDto",
     "dto:DashboardStatsDto": "type:DashboardStatsDto",
     "dto:UpcomingScheduleDto": "type:UpcomingScheduleDto",
+    "dto:GivingStatsDto": "type:GivingStats",
+    "dto:CommunicationsStatsDto": "type:CommunicationsStats",
     "dto:FamilyDto": "type:FamilyDto",
     "dto:FamilyMemberDto": "type:FamilyMemberDto",
     "dto:AddressDto": "type:AddressDto",
@@ -9818,13 +9865,13 @@
   },
   "stats": {
     "entities": 43,
-    "dtos": 90,
+    "dtos": 93,
     "services": 75,
     "controllers": 25,
-    "types": 248,
+    "types": 252,
     "api_functions": 133,
     "hooks": 106,
-    "components": 109,
-    "total_edges": 266
+    "components": 113,
+    "total_edges": 267
   }
 }
