@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-01-03T23:59:16.520Z",
+  "generated_at": "2026-01-04T01:10:02.973Z",
   "types": {
     "AttendanceAnalyticsDto": {
       "name": "AttendanceAnalyticsDto",
@@ -3276,6 +3276,43 @@
       },
       "path": "services/api/types.ts"
     },
+    "DataExportJobDto": {
+      "name": "DataExportJobDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "exportType": "DataExportType",
+        "outputFormat": "DataExportFormat",
+        "status": "DataExportStatus",
+        "recordCount": "number",
+        "createdDateTime": "DateTime",
+        "completedDateTime": "DateTime",
+        "errorMessage": "string",
+        "fileName": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CreateDataExportRequest": {
+      "name": "CreateDataExportRequest",
+      "kind": "interface",
+      "properties": {
+        "exportType": "DataExportType",
+        "outputFormat": "DataExportFormat",
+        "selectedFields": "string[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "ExportFieldDto": {
+      "name": "ExportFieldDto",
+      "kind": "interface",
+      "properties": {
+        "fieldName": "string",
+        "displayName": "string",
+        "dataType": "string",
+        "isRequired": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
     "IdKey": {
       "name": "IdKey",
       "kind": "type",
@@ -3326,6 +3363,24 @@
     },
     "MembershipRequestStatus": {
       "name": "MembershipRequestStatus",
+      "kind": "type",
+      "properties": {},
+      "path": "services/api/types.ts"
+    },
+    "DataExportType": {
+      "name": "DataExportType",
+      "kind": "type",
+      "properties": {},
+      "path": "services/api/types.ts"
+    },
+    "DataExportStatus": {
+      "name": "DataExportStatus",
+      "kind": "type",
+      "properties": {},
+      "path": "services/api/types.ts"
+    },
+    "DataExportFormat": {
+      "name": "DataExportFormat",
       "kind": "type",
       "properties": {},
       "path": "services/api/types.ts"

@@ -49,6 +49,7 @@ public interface IApplicationDbContext
     DbSet<ReportDefinition> ReportDefinitions { get; }
     DbSet<ReportRun> ReportRuns { get; }
     DbSet<ReportSchedule> ReportSchedules { get; }
+    DbSet<ExportJob> ExportJobs { get; }
 
     // Security/RBAC
     DbSet<SecurityRole> SecurityRoles { get; }

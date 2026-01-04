@@ -3,6 +3,7 @@ using Koinon.Application.DTOs.Auth;
 using Koinon.Application.Interfaces;
 using Koinon.Application.Services;
 using Koinon.Application.Services.Common;
+using Koinon.Application.Services.Exports;
 using Koinon.Application.Services.Reporting;
 using Koinon.Application.Validators;
 using Microsoft.Extensions.DependencyInjection;
@@ -123,6 +124,19 @@ public static class ServiceCollectionExtensions
         services.AddTransient<AttendanceSummaryReportGenerator>();
         services.AddTransient<GivingSummaryReportGenerator>();
         services.AddTransient<DirectoryReportGenerator>();
+
+        // Data Export Services
+        services.AddScoped<IDataExportService, DataExportService>();
+
+        // Export Data Providers
+        services.AddScoped<IExportDataProvider, PersonExportProvider>();
+        services.AddScoped<IExportDataProvider, FamilyExportProvider>();
+        services.AddScoped<IExportDataProvider, GroupExportProvider>();
+        services.AddScoped<IExportDataProvider, ContributionExportProvider>();
+
+        // Export Format Generators
+        services.AddScoped<IExportFormatGenerator, CsvExportGenerator>();
+        services.AddScoped<IExportFormatGenerator, ExcelExportGenerator>();
 
         // Configure QuestPDF license
         QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;

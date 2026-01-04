@@ -1096,3 +1096,36 @@ export interface AuditLogExportParams {
   personIdKey?: IdKey;
   format?: ExportFormat;
 }
+
+// ============================================================================
+// Data Export Types
+// ============================================================================
+
+export type DataExportType = 'People' | 'Families' | 'Groups' | 'Contributions' | 'Attendance';
+export type DataExportStatus = 'Pending' | 'Processing' | 'Completed' | 'Failed';
+export type DataExportFormat = 'CSV' | 'Excel';
+
+export interface DataExportJobDto {
+  idKey: IdKey;
+  exportType: DataExportType;
+  outputFormat: DataExportFormat;
+  status: DataExportStatus;
+  recordCount?: number;
+  createdDateTime: DateTime;
+  completedDateTime?: DateTime;
+  errorMessage?: string;
+  fileName?: string;
+}
+
+export interface CreateDataExportRequest {
+  exportType: DataExportType;
+  outputFormat: DataExportFormat;
+  selectedFields: string[];
+}
+
+export interface ExportFieldDto {
+  fieldName: string;
+  displayName: string;
+  dataType: string;
+  isRequired: boolean;
+}

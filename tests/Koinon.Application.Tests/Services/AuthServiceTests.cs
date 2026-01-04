@@ -454,6 +454,7 @@ public class AuthServiceTests
         public DbSet<ReportDefinition> ReportDefinitions { get; set; } = null!;
         public DbSet<ReportRun> ReportRuns { get; set; } = null!;
         public DbSet<ReportSchedule> ReportSchedules { get; set; } = null!;
+        public DbSet<ExportJob> ExportJobs { get; set; } = null!;
 
         // Giving/Financial
         public DbSet<Fund> Funds { get; set; } = null!;
