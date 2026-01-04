@@ -136,9 +136,10 @@ public partial class AddUserSettingsEntities : Migration
             unique: true);
 
         migrationBuilder.CreateIndex(
-            name: "ix_user_preference_person_id",
+            name: "uix_user_preference_person_id",
             table: "user_preference",
-            column: "person_id");
+            column: "person_id",
+            unique: true);
 
         migrationBuilder.CreateIndex(
             name: "uix_user_preference_guid",
