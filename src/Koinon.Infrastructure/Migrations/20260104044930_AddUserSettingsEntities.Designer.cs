@@ -5038,7 +5038,8 @@ namespace Koinon.Infrastructure.Migrations
                         .HasDatabaseName("uix_user_preference_guid");
 
                     b.HasIndex("PersonId")
-                        .HasDatabaseName("ix_user_preference_person_id");
+                        .IsUnique()
+                        .HasDatabaseName("uix_user_preference_person_id");
 
                     b.ToTable("user_preference", (string)null);
                 });
