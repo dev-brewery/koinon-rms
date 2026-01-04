@@ -103,6 +103,9 @@ public static class ServiceCollectionExtensions
         // Register SMS queue service
         services.AddScoped<ISmsQueueService, SmsQueueService>();
 
+        // Register SMS delivery status service
+        services.AddScoped<ISmsDeliveryStatusService, SmsDeliveryStatusService>();
+
         // Register email sender service
         services.AddScoped<IEmailSender, SmtpEmailSender>();
 
@@ -206,6 +209,9 @@ public static class ServiceCollectionExtensions
 
         // Register SMS queue service
         services.AddScoped<ISmsQueueService, SmsQueueService>();
+
+        // Register SMS delivery status service
+        services.AddScoped<ISmsDeliveryStatusService, SmsDeliveryStatusService>();
 
         // Register email sender service
         services.AddScoped<IEmailSender, SmtpEmailSender>();

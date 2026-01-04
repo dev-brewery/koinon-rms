@@ -20,6 +20,7 @@ public class CommunicationSenderTests : IDisposable
     private readonly Mock<ISmsService> _mockSmsService;
     private readonly Mock<IEmailSender> _mockEmailSender;
     private readonly Mock<IMergeFieldService> _mockMergeFieldService;
+    private readonly Mock<ISmsDeliveryStatusService> _mockSmsDeliveryStatusService;
     private readonly Mock<ILogger<CommunicationSender>> _mockLogger;
     private readonly CommunicationSender _service;
 
@@ -38,6 +39,7 @@ public class CommunicationSenderTests : IDisposable
         _mockSmsService = new Mock<ISmsService>();
         _mockEmailSender = new Mock<IEmailSender>();
         _mockMergeFieldService = new Mock<IMergeFieldService>();
+        _mockSmsDeliveryStatusService = new Mock<ISmsDeliveryStatusService>();
         _mockLogger = new Mock<ILogger<CommunicationSender>>();
 
         // Setup merge field service to pass through by default
@@ -51,6 +53,7 @@ public class CommunicationSenderTests : IDisposable
             _mockSmsService.Object,
             _mockEmailSender.Object,
             _mockMergeFieldService.Object,
+            _mockSmsDeliveryStatusService.Object,
             _mockLogger.Object);
 
         // Seed test data

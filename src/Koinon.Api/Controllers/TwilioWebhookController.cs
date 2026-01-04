@@ -1,5 +1,6 @@
 using Koinon.Api.Filters;
 using Koinon.Application.DTOs.Communications;
+using Koinon.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,7 +19,9 @@ namespace Koinon.Api.Controllers;
 [Route("api/v1/webhooks/twilio")]
 [AllowAnonymous] // Twilio cannot provide JWT tokens
 [ValidateTwilioSignature] // Validates X-Twilio-Signature header
-public class TwilioWebhookController(ILogger<TwilioWebhookController> logger) : ControllerBase
+public class TwilioWebhookController(
+    ILogger<TwilioWebhookController> logger,
+    ISmsDeliveryStatusService smsDeliveryStatusService) : ControllerBase
 {
     /// <summary>
     /// Receives SMS delivery status callback from Twilio.
@@ -35,7 +38,9 @@ public class TwilioWebhookController(ILogger<TwilioWebhookController> logger) : 
     [HttpPost("status")]
     [Consumes("application/x-www-form-urlencoded")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public IActionResult ReceiveStatusCallback([FromForm] TwilioWebhookDto payload)
+    public async Task<IActionResult> ReceiveStatusCallback(
+        [FromForm] TwilioWebhookDto payload,
+        CancellationToken cancellationToken)
     {
         // Log the status update for monitoring and debugging
         logger.LogInformation(
@@ -55,7 +60,23 @@ public class TwilioWebhookController(ILogger<TwilioWebhookController> logger) : 
                 payload.ErrorMessage);
         }
 
-        // TODO(#401): Persist status to CommunicationRecipient when integrated with communications feature
+        // Persist status to CommunicationRecipient
+        if (!string.IsNullOrEmpty(payload.MessageSid) && !string.IsNullOrEmpty(payload.MessageStatus))
+        {
+            await smsDeliveryStatusService.UpdateDeliveryStatusAsync(
+                payload.MessageSid,
+                payload.MessageStatus,
+                payload.ErrorCode,
+                payload.ErrorMessage,
+                cancellationToken);
+        }
+        else
+        {
+            logger.LogWarning(
+                "Received Twilio webhook with missing required fields: MessageSid={MessageSid}, MessageStatus={MessageStatus}",
+                payload.MessageSid,
+                payload.MessageStatus);
+        }
 
         // Twilio expects 2xx response to confirm receipt
         return NoContent();
