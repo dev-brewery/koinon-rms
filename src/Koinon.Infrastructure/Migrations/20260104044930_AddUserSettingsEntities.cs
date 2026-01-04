@@ -12,16 +12,6 @@ public partial class AddUserSettingsEntities : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.RenameColumn(
-            name: "StorageKey",
-            table: "import_job",
-            newName: "storage_key");
-
-        migrationBuilder.RenameColumn(
-            name: "BackgroundJobId",
-            table: "import_job",
-            newName: "background_job_id");
-
         migrationBuilder.AlterColumn<string>(
             name: "storage_key",
             table: "import_job",
@@ -185,18 +175,8 @@ public partial class AddUserSettingsEntities : Migration
         migrationBuilder.DropTable(
             name: "user_session");
 
-        migrationBuilder.RenameColumn(
-            name: "storage_key",
-            table: "import_job",
-            newName: "StorageKey");
-
-        migrationBuilder.RenameColumn(
-            name: "background_job_id",
-            table: "import_job",
-            newName: "BackgroundJobId");
-
         migrationBuilder.AlterColumn<string>(
-            name: "StorageKey",
+            name: "storage_key",
             table: "import_job",
             type: "text",
             nullable: true,
@@ -206,7 +186,7 @@ public partial class AddUserSettingsEntities : Migration
             oldNullable: true);
 
         migrationBuilder.AlterColumn<string>(
-            name: "BackgroundJobId",
+            name: "background_job_id",
             table: "import_job",
             type: "text",
             nullable: true,
