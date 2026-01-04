@@ -4119,6 +4119,13 @@
       "method": "GET",
       "responseType": "ImportJobDto"
     },
+    "getImportJobs": {
+      "name": "getImportJobs",
+      "path": "services/api/import.ts",
+      "endpoint": "/import/jobs${queryString ",
+      "method": "GET",
+      "responseType": "ImportJobDto[]"
+    },
     "getImportJobStatus": {
       "name": "getImportJobStatus",
       "path": "services/api/import.ts",
@@ -5398,6 +5405,30 @@
       "usesMutation": true,
       "dependencies": [
         "removeGroupSchedule"
+      ]
+    },
+    "useImport": {
+      "name": "useImport",
+      "path": "hooks/useImport.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "import"
+      ],
+      "usesQuery": false,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useImportJobs": {
+      "name": "useImportJobs",
+      "path": "hooks/useImportJobs.ts",
+      "apiBinding": "getImportJobs",
+      "queryKey": [
+        "import-jobs"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getImportJobs"
       ]
     },
     "useLocations": {
@@ -6745,6 +6776,11 @@
     {
       "from": "useCampuses",
       "to": "getCampuses",
+      "type": "api_binding"
+    },
+    {
+      "from": "useImportJobs",
+      "to": "getImportJobs",
       "type": "api_binding"
     },
     {

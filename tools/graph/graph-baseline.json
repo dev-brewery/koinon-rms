@@ -3145,8 +3145,18 @@
           "is_async": false
         },
         {
+          "name": "GetImportJobsAsync",
+          "return_type": "Task<PagedResult<ImportJobDto>>",
+          "is_async": false
+        },
+        {
           "name": "GenerateErrorReportAsync",
           "return_type": "Task<Result<Stream>>",
+          "is_async": false
+        },
+        {
+          "name": "ProcessImportJobAsync",
+          "return_type": "Task",
           "is_async": false
         }
       ],
@@ -3154,6 +3164,9 @@
         "IApplicationDbContext",
         "ICsvParserService",
         "IPersonService",
+        "IFamilyService",
+        "IBackgroundJobService",
+        "IFileStorageService",
         "ILogger<DataImportService>"
       ]
     },
@@ -5674,6 +5687,15 @@
           "required_roles": []
         },
         {
+          "name": "GetImportJobs",
+          "method": "GET",
+          "route": "jobs",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "GetJobStatus",
           "method": "GET",
           "route": "jobs/{idKey}",
@@ -5741,7 +5763,7 @@
         "response_envelope": true,
         "idkey_routes": true,
         "problem_details": false,
-        "result_pattern": false
+        "result_pattern": true
       },
       "dependencies": []
     },
@@ -7391,6 +7413,30 @@
         "removeGroupSchedule"
       ]
     },
+    "useImport": {
+      "name": "useImport",
+      "path": "hooks/useImport.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "import"
+      ],
+      "usesQuery": false,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useImportJobs": {
+      "name": "useImportJobs",
+      "path": "hooks/useImportJobs.ts",
+      "apiBinding": "getImportJobs",
+      "queryKey": [
+        "import-jobs"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getImportJobs"
+      ]
+    },
     "useLocations": {
       "name": "useLocations",
       "path": "hooks/useLocations.ts",
@@ -8666,6 +8712,13 @@
       "endpoint": "/unknown",
       "method": "GET",
       "responseType": "ImportJobDto"
+    },
+    "getImportJobs": {
+      "name": "getImportJobs",
+      "path": "services/api/import.ts",
+      "endpoint": "/import/jobs${queryString ",
+      "method": "GET",
+      "responseType": "ImportJobDto[]"
     },
     "getImportJobStatus": {
       "name": "getImportJobStatus",
@@ -10863,6 +10916,11 @@
       "relationship": "uses"
     },
     {
+      "source": "DataImportService",
+      "target": "Family",
+      "relationship": "uses"
+    },
+    {
       "source": "FamilyService",
       "target": "Family",
       "relationship": "uses"
@@ -11010,6 +11068,11 @@
     {
       "from": "useCampuses",
       "to": "getCampuses",
+      "type": "api_binding"
+    },
+    {
+      "from": "useImportJobs",
+      "to": "getImportJobs",
       "type": "api_binding"
     },
     {
@@ -11326,9 +11389,9 @@
     "services": 95,
     "controllers": 31,
     "types": 274,
-    "api_functions": 146,
-    "hooks": 121,
+    "api_functions": 147,
+    "hooks": 123,
     "components": 118,
-    "total_edges": 294
+    "total_edges": 296
   }
 }

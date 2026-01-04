@@ -55,6 +55,9 @@ import { MyProfilePage } from './pages/profile';
 import { RosterPage } from './pages/admin/RosterPage';
 import { BatchListPage, BatchDetailPage, BatchFormPage, StatementsPage } from './pages/admin/giving';
 import { DataExportsPage } from './features/admin/DataExportsPage';
+import { PeopleImportPage } from './pages/admin/import/PeopleImportPage';
+import { FamiliesImportPage } from './pages/admin/import/FamiliesImportPage';
+import { ImportHistoryPage } from './pages/admin/import/ImportHistoryPage';
 
 function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -266,6 +269,9 @@ function App() {
           <Route path="settings/locations" element={<LocationsPage />} />
           <Route path="settings/audit-logs" element={<AuditLogsPage />} />
           <Route path="exports" element={<DataExportsPage />} />
+          <Route path="import/history" element={<ImportHistoryPage />} />
+          <Route path="import/people" element={<PeopleImportPage />} />
+          <Route path="import/families" element={<FamiliesImportPage />} />
         </Route>
 
         {/* Check-in route */}

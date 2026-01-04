@@ -3145,8 +3145,18 @@
           "is_async": false
         },
         {
+          "name": "GetImportJobsAsync",
+          "return_type": "Task<PagedResult<ImportJobDto>>",
+          "is_async": false
+        },
+        {
           "name": "GenerateErrorReportAsync",
           "return_type": "Task<Result<Stream>>",
+          "is_async": false
+        },
+        {
+          "name": "ProcessImportJobAsync",
+          "return_type": "Task",
           "is_async": false
         }
       ],
@@ -3154,6 +3164,9 @@
         "IApplicationDbContext",
         "ICsvParserService",
         "IPersonService",
+        "IFamilyService",
+        "IBackgroundJobService",
+        "IFileStorageService",
         "ILogger<DataImportService>"
       ]
     },
@@ -5674,6 +5687,15 @@
           "required_roles": []
         },
         {
+          "name": "GetImportJobs",
+          "method": "GET",
+          "route": "jobs",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "GetJobStatus",
           "method": "GET",
           "route": "jobs/{idKey}",
@@ -5741,7 +5763,7 @@
         "response_envelope": true,
         "idkey_routes": true,
         "problem_details": false,
-        "result_pattern": false
+        "result_pattern": true
       },
       "dependencies": []
     },
@@ -7526,6 +7548,11 @@
       "relationship": "uses"
     },
     {
+      "source": "DataImportService",
+      "target": "Family",
+      "relationship": "uses"
+    },
+    {
       "source": "FamilyService",
       "target": "Family",
       "relationship": "uses"
@@ -7676,6 +7703,6 @@
     "total_dtos": 95,
     "total_services": 95,
     "total_controllers": 31,
-    "total_relationships": 250
+    "total_relationships": 251
   }
 }
