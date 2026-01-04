@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-04T08:02:04.183221+00:00",
+  "generated_at": "2026-01-04T08:20:57.277909+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -6256,7 +6256,7 @@
         },
         {
           "name": "MarkAsRead",
-          "method": "POST",
+          "method": "PUT",
           "route": "{idKey}/read",
           "request_type": null,
           "response_type": null,
@@ -6265,7 +6265,7 @@
         },
         {
           "name": "MarkAllAsRead",
-          "method": "POST",
+          "method": "PUT",
           "route": "read-all",
           "request_type": null,
           "response_type": null,
@@ -9530,14 +9530,14 @@
       "name": "markAsRead",
       "path": "services/api/notifications.ts",
       "endpoint": "/notifications/${idKey}/read",
-      "method": "POST",
+      "method": "PUT",
       "responseType": "void"
     },
     "markAllAsRead": {
       "name": "markAllAsRead",
       "path": "services/api/notifications.ts",
       "endpoint": "/notifications/read-all",
-      "method": "POST",
+      "method": "PUT",
       "responseType": "number"
     },
     "deleteNotification": {

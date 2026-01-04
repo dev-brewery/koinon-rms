@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-04T08:01:53.153065+00:00",
+  "generated_at": "2026-01-04T08:20:56.906163+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -6256,7 +6256,7 @@
         },
         {
           "name": "MarkAsRead",
-          "method": "POST",
+          "method": "PUT",
           "route": "{idKey}/read",
           "request_type": null,
           "response_type": null,
@@ -6265,7 +6265,7 @@
         },
         {
           "name": "MarkAllAsRead",
-          "method": "POST",
+          "method": "PUT",
           "route": "read-all",
           "request_type": null,
           "response_type": null,

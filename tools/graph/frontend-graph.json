@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-01-04T08:01:58.799Z",
+  "generated_at": "2026-01-04T08:20:57.116Z",
   "types": {
     "AttendanceAnalyticsDto": {
       "name": "AttendanceAnalyticsDto",
@@ -4396,14 +4396,14 @@
       "name": "markAsRead",
       "path": "services/api/notifications.ts",
       "endpoint": "/notifications/${idKey}/read",
-      "method": "POST",
+      "method": "PUT",
       "responseType": "void"
     },
     "markAllAsRead": {
       "name": "markAllAsRead",
       "path": "services/api/notifications.ts",
       "endpoint": "/notifications/read-all",
-      "method": "POST",
+      "method": "PUT",
       "responseType": "number"
     },
     "deleteNotification": {
