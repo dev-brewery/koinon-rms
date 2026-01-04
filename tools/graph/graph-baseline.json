@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-04T01:10:03.145237+00:00",
+  "generated_at": "2026-01-04T06:08:31.065438+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -963,6 +963,44 @@
           "type": "one"
         }
       ]
+    },
+    "TwoFactorConfig": {
+      "name": "TwoFactorConfig",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "two_factor_config",
+      "properties": {
+        "IsEnabled": "bool",
+        "RecoveryCodes": "string?",
+        "EnabledAt": "DateTime?"
+      },
+      "navigations": []
+    },
+    "UserPreference": {
+      "name": "UserPreference",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "user_preference",
+      "properties": {
+        "Theme": "Theme"
+      },
+      "navigations": [
+        {
+          "name": "Theme",
+          "target_entity": "Theme",
+          "type": "one"
+        }
+      ]
+    },
+    "UserSession": {
+      "name": "UserSession",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "user_session",
+      "properties": {
+        "RefreshTokenId": "int?",
+        "DeviceInfo": "string?",
+        "Location": "string?",
+        "IsActive": "bool"
+      },
+      "navigations": []
     }
   },
   "dtos": {
@@ -2303,6 +2341,37 @@
       "name": "SupervisorInfoDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {}
+    },
+    "TwoFactorSetupDto": {
+      "name": "TwoFactorSetupDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "EnabledAt": "DateTime?"
+      }
+    },
+    "TwoFactorStatusDto": {
+      "name": "TwoFactorStatusDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "EnabledAt": "DateTime?"
+      }
+    },
+    "UserPreferenceDto": {
+      "name": "UserPreferenceDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "ModifiedDateTime": "DateTime?"
+      },
+      "linked_entity": "UserPreference"
+    },
+    "UserSessionDto": {
+      "name": "UserSessionDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "DeviceInfo": "string?",
+        "Location": "string?"
+      },
+      "linked_entity": "UserSession"
     }
   },
   "services": {
@@ -2460,6 +2529,11 @@
         },
         {
           "name": "LogoutAsync",
+          "return_type": "Task<bool>",
+          "is_async": false
+        },
+        {
+          "name": "VerifyPasswordAsync",
           "return_type": "Task<bool>",
           "is_async": false
         },
@@ -4196,6 +4270,70 @@
         "ILogger<SupervisorModeService>"
       ]
     },
+    "UserSettingsService": {
+      "name": "UserSettingsService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "UserSettingsService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetPreferencesAsync",
+          "return_type": "Task<Result<UserPreferenceDto>>",
+          "is_async": false
+        },
+        {
+          "name": "UpdatePreferencesAsync",
+          "return_type": "Task<Result<UserPreferenceDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetSessionsAsync",
+          "return_type": "Task<Result<IReadOnlyList<UserSessionDto>>>",
+          "is_async": false
+        },
+        {
+          "name": "RevokeSessionAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        },
+        {
+          "name": "ChangePasswordAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        },
+        {
+          "name": "GetTwoFactorStatusAsync",
+          "return_type": "Task<Result<TwoFactorStatusDto>>",
+          "is_async": false
+        },
+        {
+          "name": "SetupTwoFactorAsync",
+          "return_type": "Task<Result<TwoFactorSetupDto>>",
+          "is_async": false
+        },
+        {
+          "name": "VerifyTwoFactorAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        },
+        {
+          "name": "DisableTwoFactorAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IAuthService",
+        "IValidator<UpdateUserPreferenceRequest>",
+        "IValidator<ChangePasswordRequest>",
+        "IValidator<TwoFactorVerifyRequest>",
+        "ILogger<UserSettingsService>"
+      ]
+    },
     "IAttendanceAnalyticsService": {
       "name": "IAttendanceAnalyticsService",
       "namespace": "Koinon.Application.Interfaces",
@@ -4498,6 +4636,12 @@
     },
     "ISupervisorModeService": {
       "name": "ISupervisorModeService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IUserSettingsService": {
+      "name": "IUserSettingsService",
       "namespace": "Koinon.Application.Interfaces",
       "methods": [],
       "dependencies": []
@@ -6439,6 +6583,105 @@
         "ILogger<TwilioWebhookController>",
         "ISmsDeliveryStatusService"
       ]
+    },
+    "UserSettingsController": {
+      "name": "UserSettingsController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/my-settings",
+      "endpoints": [
+        {
+          "name": "GetPreferences",
+          "method": "GET",
+          "route": "preferences",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetSessions",
+          "method": "GET",
+          "route": "sessions",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetTwoFactorStatus",
+          "method": "GET",
+          "route": "two-factor",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "ChangePassword",
+          "method": "POST",
+          "route": "change-password",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "SetupTwoFactor",
+          "method": "POST",
+          "route": "two-factor/setup",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "VerifyTwoFactor",
+          "method": "POST",
+          "route": "two-factor/verify",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "UpdatePreferences",
+          "method": "PUT",
+          "route": "preferences",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "RevokeSession",
+          "method": "DELETE",
+          "route": "sessions/{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "DisableTwoFactor",
+          "method": "DELETE",
+          "route": "two-factor",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": true,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "IUserSettingsService",
+        "IUserContext",
+        "ILogger<UserSettingsController>"
+      ]
     }
   },
   "hooks": {
@@ -7984,6 +8227,123 @@
         "deleteSchedule"
       ]
     },
+    "usePreferences": {
+      "name": "usePreferences",
+      "path": "hooks/useSettings.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "settings"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getPreferences"
+      ]
+    },
+    "useUpdatePreferences": {
+      "name": "useUpdatePreferences",
+      "path": "hooks/useSettings.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "settings"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "updatePreferences"
+      ]
+    },
+    "useSessions": {
+      "name": "useSessions",
+      "path": "hooks/useSettings.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "settings"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getSessions"
+      ]
+    },
+    "useRevokeSession": {
+      "name": "useRevokeSession",
+      "path": "hooks/useSettings.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "settings"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "revokeSession"
+      ]
+    },
+    "useChangePassword": {
+      "name": "useChangePassword",
+      "path": "hooks/useSettings.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "changepassword"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "changePassword"
+      ]
+    },
+    "useTwoFactorStatus": {
+      "name": "useTwoFactorStatus",
+      "path": "hooks/useSettings.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "settings"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getTwoFactorStatus"
+      ]
+    },
+    "useSetupTwoFactor": {
+      "name": "useSetupTwoFactor",
+      "path": "hooks/useSettings.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "setuptwofactor"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "setupTwoFactor"
+      ]
+    },
+    "useVerifyTwoFactor": {
+      "name": "useVerifyTwoFactor",
+      "path": "hooks/useSettings.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "settings"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "verifyTwoFactor"
+      ]
+    },
+    "useDisableTwoFactor": {
+      "name": "useDisableTwoFactor",
+      "path": "hooks/useSettings.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "settings"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "disableTwoFactor"
+      ]
+    },
     "useSupervisorAttendance": {
       "name": "useSupervisorAttendance",
       "path": "hooks/useSupervisorAttendance.ts",
@@ -9027,6 +9387,69 @@
       "endpoint": "/schedules/${idKey}",
       "method": "DELETE",
       "responseType": "void"
+    },
+    "getPreferences": {
+      "name": "getPreferences",
+      "path": "services/api/settings.ts",
+      "endpoint": "/my-settings/preferences",
+      "method": "GET",
+      "responseType": "UserPreferenceDto"
+    },
+    "updatePreferences": {
+      "name": "updatePreferences",
+      "path": "services/api/settings.ts",
+      "endpoint": "/my-settings/preferences",
+      "method": "PUT",
+      "responseType": "UserPreferenceDto"
+    },
+    "getSessions": {
+      "name": "getSessions",
+      "path": "services/api/settings.ts",
+      "endpoint": "/my-settings/sessions",
+      "method": "GET",
+      "responseType": "UserSessionDto[]"
+    },
+    "revokeSession": {
+      "name": "revokeSession",
+      "path": "services/api/settings.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "void"
+    },
+    "changePassword": {
+      "name": "changePassword",
+      "path": "services/api/settings.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "void"
+    },
+    "getTwoFactorStatus": {
+      "name": "getTwoFactorStatus",
+      "path": "services/api/settings.ts",
+      "endpoint": "/my-settings/two-factor",
+      "method": "GET",
+      "responseType": "TwoFactorStatusDto"
+    },
+    "setupTwoFactor": {
+      "name": "setupTwoFactor",
+      "path": "services/api/settings.ts",
+      "endpoint": "/my-settings/two-factor/setup",
+      "method": "POST",
+      "responseType": "TwoFactorSetupDto"
+    },
+    "verifyTwoFactor": {
+      "name": "verifyTwoFactor",
+      "path": "services/api/settings.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "void"
+    },
+    "disableTwoFactor": {
+      "name": "disableTwoFactor",
+      "path": "services/api/settings.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "void"
     }
   },
   "components": {
@@ -9748,6 +10171,55 @@
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
+    "DisplaySettingsSection": {
+      "name": "DisplaySettingsSection",
+      "path": "components/settings/DisplaySettingsSection.tsx",
+      "hooksUsed": [
+        "usePreferences",
+        "useUpdatePreferences"
+      ],
+      "apiCallsDirectly": false
+    },
+    "NotificationSettingsSection": {
+      "name": "NotificationSettingsSection",
+      "path": "components/settings/NotificationSettingsSection.tsx",
+      "hooksUsed": [
+        "useAuth",
+        "useCommunicationPreferences",
+        "useBulkUpdateCommunicationPreferences"
+      ],
+      "apiCallsDirectly": false
+    },
+    "ProfileSettingsSection": {
+      "name": "ProfileSettingsSection",
+      "path": "components/settings/ProfileSettingsSection.tsx",
+      "hooksUsed": [
+        "useMyProfile",
+        "useUpdateMyProfile"
+      ],
+      "apiCallsDirectly": false
+    },
+    "SecuritySettingsSection": {
+      "name": "SecuritySettingsSection",
+      "path": "components/settings/SecuritySettingsSection.tsx",
+      "hooksUsed": [
+        "useChangePassword",
+        "useTwoFactorStatus",
+        "useSetupTwoFactor",
+        "useVerifyTwoFactor",
+        "useDisableTwoFactor"
+      ],
+      "apiCallsDirectly": false
+    },
+    "SessionsSettingsSection": {
+      "name": "SessionsSettingsSection",
+      "path": "components/settings/SessionsSettingsSection.tsx",
+      "hooksUsed": [
+        "useSessions",
+        "useRevokeSession"
+      ],
+      "apiCallsDirectly": false
+    },
     "Button": {
       "name": "Button",
       "path": "components/ui/Button.tsx",
@@ -9793,6 +10265,12 @@
     "PhoneInput": {
       "name": "PhoneInput",
       "path": "components/ui/PhoneInput.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "Select": {
+      "name": "Select",
+      "path": "components/ui/Select.tsx",
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
@@ -10036,6 +10514,16 @@
       "relationship": "maps_to"
     },
     {
+      "source": "UserPreferenceDto",
+      "target": "UserPreference",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UserSessionDto",
+      "target": "UserSession",
+      "relationship": "maps_to"
+    },
+    {
       "source": "AnalyticsController",
       "target": "IAttendanceAnalyticsService",
       "relationship": "depends_on"
@@ -10228,6 +10716,11 @@
     {
       "source": "TwilioWebhookController",
       "target": "ISmsDeliveryStatusService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "UserSettingsController",
+      "target": "IUserSettingsService",
       "relationship": "depends_on"
     },
     {
@@ -10846,6 +11339,31 @@
       "relationship": "returns"
     },
     {
+      "source": "UserSettingsService",
+      "target": "UserPreferenceDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "UserSettingsService",
+      "target": "UserPreferenceDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "UserSettingsService",
+      "target": "UserSessionDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "UserSettingsService",
+      "target": "TwoFactorStatusDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "UserSettingsService",
+      "target": "TwoFactorSetupDto",
+      "relationship": "returns"
+    },
+    {
       "source": "AttendanceAnalyticsService",
       "target": "Attendance",
       "relationship": "uses"
@@ -11063,6 +11581,11 @@
     {
       "source": "ScheduleService",
       "target": "Schedule",
+      "relationship": "uses"
+    },
+    {
+      "source": "UserSettingsService",
+      "target": "UserPreference",
       "relationship": "uses"
     },
     {
@@ -11289,6 +11812,76 @@
       "from": "ProfileEditor",
       "to": "useUpdateMyProfile",
       "type": "uses_hook"
+    },
+    {
+      "from": "DisplaySettingsSection",
+      "to": "usePreferences",
+      "type": "uses_hook"
+    },
+    {
+      "from": "DisplaySettingsSection",
+      "to": "useUpdatePreferences",
+      "type": "uses_hook"
+    },
+    {
+      "from": "NotificationSettingsSection",
+      "to": "useAuth",
+      "type": "uses_hook"
+    },
+    {
+      "from": "NotificationSettingsSection",
+      "to": "useCommunicationPreferences",
+      "type": "uses_hook"
+    },
+    {
+      "from": "NotificationSettingsSection",
+      "to": "useBulkUpdateCommunicationPreferences",
+      "type": "uses_hook"
+    },
+    {
+      "from": "ProfileSettingsSection",
+      "to": "useMyProfile",
+      "type": "uses_hook"
+    },
+    {
+      "from": "ProfileSettingsSection",
+      "to": "useUpdateMyProfile",
+      "type": "uses_hook"
+    },
+    {
+      "from": "SecuritySettingsSection",
+      "to": "useChangePassword",
+      "type": "uses_hook"
+    },
+    {
+      "from": "SecuritySettingsSection",
+      "to": "useTwoFactorStatus",
+      "type": "uses_hook"
+    },
+    {
+      "from": "SecuritySettingsSection",
+      "to": "useSetupTwoFactor",
+      "type": "uses_hook"
+    },
+    {
+      "from": "SecuritySettingsSection",
+      "to": "useVerifyTwoFactor",
+      "type": "uses_hook"
+    },
+    {
+      "from": "SecuritySettingsSection",
+      "to": "useDisableTwoFactor",
+      "type": "uses_hook"
+    },
+    {
+      "from": "SessionsSettingsSection",
+      "to": "useSessions",
+      "type": "uses_hook"
+    },
+    {
+      "from": "SessionsSettingsSection",
+      "to": "useRevokeSession",
+      "type": "uses_hook"
     }
   ],
   "cross_layer_mappings": {
@@ -11381,17 +11974,21 @@
     "dto:RoomRosterDto": "type:RoomRosterDto",
     "dto:ScheduleSummaryDto": "type:ScheduleSummaryDto",
     "dto:ScheduleOccurrenceDto": "type:ScheduleOccurrenceDto",
-    "dto:SupervisorInfoDto": "type:SupervisorInfoDto"
+    "dto:SupervisorInfoDto": "type:SupervisorInfoDto",
+    "dto:TwoFactorSetupDto": "type:TwoFactorSetupDto",
+    "dto:TwoFactorStatusDto": "type:TwoFactorStatusDto",
+    "dto:UserPreferenceDto": "type:UserPreferenceDto",
+    "dto:UserSessionDto": "type:UserSessionDto"
   },
   "stats": {
-    "entities": 51,
-    "dtos": 95,
-    "services": 95,
-    "controllers": 31,
-    "types": 274,
-    "api_functions": 147,
-    "hooks": 123,
-    "components": 118,
-    "total_edges": 296
+    "entities": 54,
+    "dtos": 99,
+    "services": 97,
+    "controllers": 32,
+    "types": 283,
+    "api_functions": 156,
+    "hooks": 132,
+    "components": 124,
+    "total_edges": 319
   }
 }
