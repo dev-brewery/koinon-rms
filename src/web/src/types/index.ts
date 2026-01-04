@@ -25,6 +25,7 @@ export * from './group';
 export * from './import';
 export * from './labels';
 export * from './location';
+export * from './notification';
 export * from './pager';
 export * from './person';
 export * from './profile';

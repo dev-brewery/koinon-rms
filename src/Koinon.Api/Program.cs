@@ -2,6 +2,7 @@ using System.Text;
 using Hangfire;
 using Koinon.Api.Authorization;
 using Koinon.Api.Filters;
+using Koinon.Api.Hubs;
 using Koinon.Api.Middleware;
 using Koinon.Api.Services;
 using Koinon.Application.Extensions;
@@ -20,9 +21,15 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Add SignalR for real-time notifications
+builder.Services.AddSignalR();
+
 // Add HttpContext access and user context
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IUserContext, HttpContextUserContext>();
+
+// Add notification hub context for real-time notifications
+builder.Services.AddScoped<INotificationHubContext, NotificationHubContext>();
 
 // Get connection strings (with validation)
 var postgresConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")
@@ -69,6 +76,25 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = jwtAudience,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSigningKey)),
         ClockSkew = TimeSpan.FromSeconds(30) // 30 second tolerance for clock drift
+    };
+
+    // Allow SignalR to read JWT token from query string for WebSocket connections
+    // WebSockets cannot send custom headers, so the token must be in the query string
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+
+            // If the request is for our hub and has a token, use it
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+            {
+                context.Token = accessToken;
+            }
+
+            return Task.CompletedTask;
+        }
     };
 });
 
@@ -142,6 +168,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Map SignalR hub for real-time notifications (requires authentication)
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 // Map health check endpoint (no authentication required)
 app.MapHealthChecks("/health");

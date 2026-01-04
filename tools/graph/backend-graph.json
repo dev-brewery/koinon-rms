@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-04T06:08:30.694872+00:00",
+  "generated_at": "2026-01-04T08:20:56.906163+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -647,6 +647,41 @@
         "AutoAssignOverflow": "bool"
       },
       "navigations": []
+    },
+    "Notification": {
+      "name": "Notification",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "notification",
+      "properties": {
+        "NotificationType": "NotificationType",
+        "IsRead": "bool",
+        "ReadDateTime": "DateTime?",
+        "ActionUrl": "string?",
+        "MetadataJson": "string?"
+      },
+      "navigations": [
+        {
+          "name": "NotificationType",
+          "target_entity": "NotificationType",
+          "type": "one"
+        }
+      ]
+    },
+    "NotificationPreference": {
+      "name": "NotificationPreference",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "notification_preference",
+      "properties": {
+        "NotificationType": "NotificationType",
+        "IsEnabled": "bool"
+      },
+      "navigations": [
+        {
+          "name": "NotificationType",
+          "target_entity": "NotificationType",
+          "type": "one"
+        }
+      ]
     },
     "PagerAssignment": {
       "name": "PagerAssignment",
@@ -1537,6 +1572,15 @@
         "Body": "string?"
       }
     },
+    "CreateNotificationDto": {
+      "name": "CreateNotificationDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "NotificationType": "NotificationType",
+        "ActionUrl": "string?",
+        "MetadataJson": "string?"
+      }
+    },
     "DashboardStatsDto": {
       "name": "DashboardStatsDto",
       "namespace": "Koinon.Application.DTOs",
@@ -2030,6 +2074,28 @@
         "ModifiedDateTime": "DateTime?"
       }
     },
+    "NotificationDto": {
+      "name": "NotificationDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "NotificationType": "NotificationType",
+        "IsRead": "bool",
+        "ReadDateTime": "DateTime?",
+        "ActionUrl": "string?",
+        "MetadataJson": "string?",
+        "CreatedDateTime": "DateTime"
+      },
+      "linked_entity": "Notification"
+    },
+    "NotificationPreferenceDto": {
+      "name": "NotificationPreferenceDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "NotificationType": "NotificationType",
+        "IsEnabled": "bool"
+      },
+      "linked_entity": "NotificationPreference"
+    },
     "PagerAssignmentDto": {
       "name": "PagerAssignmentDto",
       "namespace": "Koinon.Application.DTOs",
@@ -2354,6 +2420,14 @@
       "namespace": "Koinon.Application.DTOs",
       "properties": {
         "EnabledAt": "DateTime?"
+      }
+    },
+    "UpdateNotificationPreferenceDto": {
+      "name": "UpdateNotificationPreferenceDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "NotificationType": "NotificationType",
+        "IsEnabled": "bool"
       }
     },
     "UserPreferenceDto": {
@@ -3829,6 +3903,71 @@
         "ILogger<MyProfileService>"
       ]
     },
+    "NotificationService": {
+      "name": "NotificationService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "NotificationService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetByIdKeyAsync",
+          "return_type": "Task<NotificationDto?>",
+          "is_async": false
+        },
+        {
+          "name": "GetForPersonAsync",
+          "return_type": "Task<IReadOnlyList<NotificationDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetUnreadCountAsync",
+          "return_type": "Task<int>",
+          "is_async": false
+        },
+        {
+          "name": "CreateAsync",
+          "return_type": "Task<NotificationDto>",
+          "is_async": false
+        },
+        {
+          "name": "MarkAsReadAsync",
+          "return_type": "Task<bool>",
+          "is_async": false
+        },
+        {
+          "name": "MarkAllAsReadAsync",
+          "return_type": "Task<int>",
+          "is_async": false
+        },
+        {
+          "name": "DeleteAsync",
+          "return_type": "Task<bool>",
+          "is_async": false
+        },
+        {
+          "name": "GetPreferencesAsync",
+          "return_type": "Task<IReadOnlyList<NotificationPreferenceDto>>",
+          "is_async": false
+        },
+        {
+          "name": "UpdatePreferenceAsync",
+          "return_type": "Task<NotificationPreferenceDto>",
+          "is_async": false
+        },
+        {
+          "name": "IsNotificationTypeEnabledAsync",
+          "return_type": "Task<bool>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "ILogger<NotificationService>"
+      ]
+    },
     "ParentPagingService": {
       "name": "ParentPagingService",
       "namespace": "Koinon.Application.Services",
@@ -4546,6 +4685,12 @@
     },
     "IMyProfileService": {
       "name": "IMyProfileService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "INotificationService": {
+      "name": "INotificationService",
       "namespace": "Koinon.Application.Interfaces",
       "methods": [],
       "dependencies": []
@@ -6077,6 +6222,88 @@
         "IMyProfileService"
       ]
     },
+    "NotificationsController": {
+      "name": "NotificationsController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/[controller]",
+      "endpoints": [
+        {
+          "name": "GetUnreadCount",
+          "method": "GET",
+          "route": "unread-count",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetNotification",
+          "method": "GET",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetPreferences",
+          "method": "GET",
+          "route": "preferences",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "MarkAsRead",
+          "method": "PUT",
+          "route": "{idKey}/read",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "MarkAllAsRead",
+          "method": "PUT",
+          "route": "read-all",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "UpdatePreference",
+          "method": "PUT",
+          "route": "preferences",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "DeleteNotification",
+          "method": "DELETE",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": true,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "INotificationService",
+        "INotificationHubContext",
+        "IUserContext",
+        "ILogger<NotificationsController>"
+      ]
+    },
     "PagerController": {
       "name": "PagerController",
       "namespace": "Koinon.Api.Controllers",
@@ -6851,6 +7078,16 @@
       "relationship": "maps_to"
     },
     {
+      "source": "NotificationDto",
+      "target": "Notification",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "NotificationPreferenceDto",
+      "target": "NotificationPreference",
+      "relationship": "maps_to"
+    },
+    {
       "source": "PagerAssignmentDto",
       "target": "PagerAssignment",
       "relationship": "maps_to"
@@ -7053,6 +7290,11 @@
     {
       "source": "MyProfileController",
       "target": "IMyProfileService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "NotificationsController",
+      "target": "INotificationService",
       "relationship": "depends_on"
     },
     {
@@ -7596,6 +7838,31 @@
       "relationship": "returns"
     },
     {
+      "source": "NotificationService",
+      "target": "NotificationDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "NotificationService",
+      "target": "NotificationDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "NotificationService",
+      "target": "NotificationDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "NotificationService",
+      "target": "NotificationPreferenceDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "NotificationService",
+      "target": "NotificationPreferenceDto",
+      "relationship": "returns"
+    },
+    {
       "source": "ParentPagingService",
       "target": "PagerAssignmentDto",
       "relationship": "returns"
@@ -7926,6 +8193,11 @@
       "relationship": "uses"
     },
     {
+      "source": "NotificationService",
+      "target": "Notification",
+      "relationship": "uses"
+    },
+    {
       "source": "PersonMergeService",
       "target": "Person",
       "relationship": "uses"
@@ -7987,10 +8259,10 @@
     }
   ],
   "summary": {
-    "total_entities": 54,
-    "total_dtos": 99,
-    "total_services": 97,
-    "total_controllers": 32,
-    "total_relationships": 260
+    "total_entities": 56,
+    "total_dtos": 103,
+    "total_services": 99,
+    "total_controllers": 33,
+    "total_relationships": 269
   }
 }

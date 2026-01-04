@@ -40,6 +40,7 @@ export * as importApi from './import';
 export * as locationsApi from './locations';
 export * as membershipRequestsApi from './membershipRequests';
 export * as myGroupsApi from './myGroups';
+export * as notificationsApi from './notifications';
 export * as pagerApi from './pager';
 export * as peopleApi from './people';
 export * as pickupApi from './pickup';

@@ -472,6 +472,10 @@ public class AuthServiceTests
         public DbSet<PersonMergeHistory> PersonMergeHistories { get; set; } = null!;
         public DbSet<PersonDuplicateIgnore> PersonDuplicateIgnores { get; set; } = null!;
 
+        // In-app notifications
+        public DbSet<Notification> Notifications { get; set; } = null!;
+        public DbSet<NotificationPreference> NotificationPreferences { get; set; } = null!;
+
         // Security
         public DbSet<SecurityRole> SecurityRoles { get; set; } = null!;
         public DbSet<SecurityClaim> SecurityClaims { get; set; } = null!;
