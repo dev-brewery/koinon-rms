@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-01-04T06:08:30.902Z",
+  "generated_at": "2026-01-04T08:01:58.799Z",
   "types": {
     "AttendanceAnalyticsDto": {
       "name": "AttendanceAnalyticsDto",
@@ -1783,6 +1783,64 @@
         "isActive": "boolean"
       },
       "path": "types/location.ts"
+    },
+    "NotificationDto": {
+      "name": "NotificationDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "string",
+        "notificationType": "NotificationType",
+        "title": "string",
+        "message": "string",
+        "isRead": "boolean",
+        "readDateTime": "DateTime | null",
+        "actionUrl": "string | null",
+        "metadataJson": "string | null",
+        "createdDateTime": "DateTime"
+      },
+      "path": "types/notification.ts"
+    },
+    "NotificationPreferenceDto": {
+      "name": "NotificationPreferenceDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "notificationType": "NotificationType",
+        "isEnabled": "boolean"
+      },
+      "path": "types/notification.ts"
+    },
+    "UpdateNotificationPreferenceDto": {
+      "name": "UpdateNotificationPreferenceDto",
+      "kind": "interface",
+      "properties": {
+        "notificationType": "NotificationType",
+        "isEnabled": "boolean"
+      },
+      "path": "types/notification.ts"
+    },
+    "UnreadCountResponse": {
+      "name": "UnreadCountResponse",
+      "kind": "interface",
+      "properties": {
+        "count": "number"
+      },
+      "path": "types/notification.ts"
+    },
+    "MarkAllAsReadResponse": {
+      "name": "MarkAllAsReadResponse",
+      "kind": "interface",
+      "properties": {
+        "markedCount": "number"
+      },
+      "path": "types/notification.ts"
+    },
+    "NotificationType": {
+      "name": "NotificationType",
+      "kind": "enum",
+      "properties": {},
+      "path": "types/notification.ts"
     },
     "PagerAssignmentDto": {
       "name": "PagerAssignmentDto",
@@ -4313,6 +4371,62 @@
       "method": "PUT",
       "responseType": "MyGroupMemberDetailDto"
     },
+    "getNotifications": {
+      "name": "getNotifications",
+      "path": "services/api/notifications.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "NotificationDto[]"
+    },
+    "getUnreadCount": {
+      "name": "getUnreadCount",
+      "path": "services/api/notifications.ts",
+      "endpoint": "/notifications/unread-count",
+      "method": "GET",
+      "responseType": "number"
+    },
+    "getNotification": {
+      "name": "getNotification",
+      "path": "services/api/notifications.ts",
+      "endpoint": "/notifications/${idKey}",
+      "method": "GET",
+      "responseType": "NotificationDto"
+    },
+    "markAsRead": {
+      "name": "markAsRead",
+      "path": "services/api/notifications.ts",
+      "endpoint": "/notifications/${idKey}/read",
+      "method": "POST",
+      "responseType": "void"
+    },
+    "markAllAsRead": {
+      "name": "markAllAsRead",
+      "path": "services/api/notifications.ts",
+      "endpoint": "/notifications/read-all",
+      "method": "POST",
+      "responseType": "number"
+    },
+    "deleteNotification": {
+      "name": "deleteNotification",
+      "path": "services/api/notifications.ts",
+      "endpoint": "/notifications/${idKey}",
+      "method": "DELETE",
+      "responseType": "void"
+    },
+    "getPreferences": {
+      "name": "getPreferences",
+      "path": "services/api/settings.ts",
+      "endpoint": "/my-settings/preferences",
+      "method": "GET",
+      "responseType": "UserPreferenceDto"
+    },
+    "updatePreference": {
+      "name": "updatePreference",
+      "path": "services/api/notifications.ts",
+      "endpoint": "/notifications/preferences",
+      "method": "PUT",
+      "responseType": "NotificationPreferenceDto"
+    },
     "sendPage": {
       "name": "sendPage",
       "path": "services/api/pager.ts",
@@ -4522,13 +4636,6 @@
       "endpoint": "/schedules/${idKey}",
       "method": "DELETE",
       "responseType": "void"
-    },
-    "getPreferences": {
-      "name": "getPreferences",
-      "path": "services/api/settings.ts",
-      "endpoint": "/my-settings/preferences",
-      "method": "GET",
-      "responseType": "UserPreferenceDto"
     },
     "updatePreferences": {
       "name": "updatePreferences",
@@ -5752,6 +5859,106 @@
         "removeGroupMember"
       ]
     },
+    "useNotifications": {
+      "name": "useNotifications",
+      "path": "hooks/useNotifications.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "notifications"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getNotifications"
+      ]
+    },
+    "useNotification": {
+      "name": "useNotification",
+      "path": "hooks/useNotifications.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "notification"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getNotification"
+      ]
+    },
+    "useUnreadCount": {
+      "name": "useUnreadCount",
+      "path": "hooks/useNotifications.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "unreadcount"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useNotificationPreferences": {
+      "name": "useNotificationPreferences",
+      "path": "hooks/useNotifications.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "notificationpreferences"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useMarkAsRead": {
+      "name": "useMarkAsRead",
+      "path": "hooks/useNotifications.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "markasread"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "markAsRead"
+      ]
+    },
+    "useMarkAllAsRead": {
+      "name": "useMarkAllAsRead",
+      "path": "hooks/useNotifications.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "markallasread"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "markAllAsRead"
+      ]
+    },
+    "useDeleteNotification": {
+      "name": "useDeleteNotification",
+      "path": "hooks/useNotifications.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "deletenotification"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "deleteNotification"
+      ]
+    },
+    "useUpdatePreference": {
+      "name": "useUpdatePreference",
+      "path": "hooks/useNotifications.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "updatepreference"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "updatePreference"
+      ]
+    },
     "usePeople": {
       "name": "usePeople",
       "path": "hooks/usePeople.ts",
@@ -6936,6 +7143,40 @@
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
+    "NotificationBell": {
+      "name": "NotificationBell",
+      "path": "components/notifications/NotificationBell.tsx",
+      "hooksUsed": [
+        "useUnreadCount",
+        "useMarkAllAsRead"
+      ],
+      "apiCallsDirectly": false
+    },
+    "NotificationItem": {
+      "name": "NotificationItem",
+      "path": "components/notifications/NotificationItem.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "NotificationList": {
+      "name": "NotificationList",
+      "path": "components/notifications/NotificationList.tsx",
+      "hooksUsed": [
+        "useNotifications",
+        "useMarkAsRead",
+        "useDeleteNotification"
+      ],
+      "apiCallsDirectly": false
+    },
+    "NotificationPreferences": {
+      "name": "NotificationPreferences",
+      "path": "components/notifications/NotificationPreferences.tsx",
+      "hooksUsed": [
+        "useNotificationPreferences",
+        "useUpdatePreference"
+      ],
+      "apiCallsDirectly": false
+    },
     "FamilySection": {
       "name": "FamilySection",
       "path": "components/profile/FamilySection.tsx",
@@ -7315,6 +7556,41 @@
     {
       "from": "GroupCardWithRequests",
       "to": "usePendingRequests",
+      "type": "uses_hook"
+    },
+    {
+      "from": "NotificationBell",
+      "to": "useUnreadCount",
+      "type": "uses_hook"
+    },
+    {
+      "from": "NotificationBell",
+      "to": "useMarkAllAsRead",
+      "type": "uses_hook"
+    },
+    {
+      "from": "NotificationList",
+      "to": "useNotifications",
+      "type": "uses_hook"
+    },
+    {
+      "from": "NotificationList",
+      "to": "useMarkAsRead",
+      "type": "uses_hook"
+    },
+    {
+      "from": "NotificationList",
+      "to": "useDeleteNotification",
+      "type": "uses_hook"
+    },
+    {
+      "from": "NotificationPreferences",
+      "to": "useNotificationPreferences",
+      "type": "uses_hook"
+    },
+    {
+      "from": "NotificationPreferences",
+      "to": "useUpdatePreference",
       "type": "uses_hook"
     },
     {

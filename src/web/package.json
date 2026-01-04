@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "@microsoft/signalr": "^10.0.0",
     "@sentry/react": "^10.30.0",
     "@tanstack/react-query": "^5.8.0",
     "@tanstack/react-query-devtools": "^5.8.0",

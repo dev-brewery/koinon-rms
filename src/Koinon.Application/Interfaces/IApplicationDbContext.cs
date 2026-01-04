@@ -73,6 +73,10 @@ public interface IApplicationDbContext
     DbSet<PersonMergeHistory> PersonMergeHistories { get; }
     DbSet<PersonDuplicateIgnore> PersonDuplicateIgnores { get; }
 
+    // In-app notifications
+    DbSet<Notification> Notifications { get; }
+    DbSet<NotificationPreference> NotificationPreferences { get; }
+
     DatabaseFacade Database { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     EntityEntry<TEntity> Entry<TEntity>(TEntity entity) where TEntity : class;

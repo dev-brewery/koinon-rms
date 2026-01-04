@@ -81,6 +81,10 @@ public class KoinonDbContext : DbContext, IApplicationDbContext
     public DbSet<UserSession> UserSessions { get; set; } = null!;
     public DbSet<TwoFactorConfig> TwoFactorConfigs { get; set; } = null!;
 
+    // In-app notification entities
+    public DbSet<Notification> Notifications { get; set; } = null!;
+    public DbSet<NotificationPreference> NotificationPreferences { get; set; } = null!;
+
     // Person merge and duplicate tracking entities
     public DbSet<PersonMergeHistory> PersonMergeHistories => Set<PersonMergeHistory>();
     public DbSet<PersonDuplicateIgnore> PersonDuplicateIgnores => Set<PersonDuplicateIgnore>();
