@@ -1528,7 +1528,8 @@
       "namespace": "Koinon.Application.DTOs",
       "properties": {
         "Description": "string?",
-        "IsDefaultField": "bool"
+        "IsDefaultField": "bool",
+        "IsRequired": "bool"
       }
     },
     "FamilyDto": {
