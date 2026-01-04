@@ -18,5 +18,10 @@ public enum ImportType
     /// <summary>
     /// Giving/contribution records import.
     /// </summary>
-    Giving = 3
+    Giving = 3,
+
+    /// <summary>
+    /// Families import (household groups).
+    /// </summary>
+    Families = 4
 }

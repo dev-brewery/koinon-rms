@@ -3,6 +3,7 @@ using System;
 using Koinon.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using NpgsqlTypes;
@@ -12,9 +13,11 @@ using NpgsqlTypes;
 namespace Koinon.Infrastructure.Migrations
 {
     [DbContext(typeof(KoinonDbContext))]
-    partial class KoinonDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260104034511_AddImportJobBackgroundFields")]
+    partial class AddImportJobBackgroundFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2935,7 +2938,8 @@ namespace Koinon.Infrastructure.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("BackgroundJobId")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("background_job_id");
 
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone")
@@ -3000,7 +3004,8 @@ namespace Koinon.Infrastructure.Migrations
                         .HasColumnName("status");
 
                     b.Property<string>("StorageKey")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("storage_key");
 
                     b.Property<int>("SuccessCount")
                         .ValueGeneratedOnAdd()

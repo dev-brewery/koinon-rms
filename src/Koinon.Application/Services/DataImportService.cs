@@ -21,10 +21,13 @@ public class DataImportService(
     IApplicationDbContext context,
     ICsvParserService csvParser,
     IPersonService personService,
-
+    IFamilyService familyService,
+    IBackgroundJobService backgroundJobService,
+    IFileStorageService fileStorageService,
     ILogger<DataImportService> logger) : IDataImportService
 {
     private const int BatchSize = 100;
+    private const int BackgroundJobThreshold = 500;
 
     // Template management
 
@@ -303,7 +306,43 @@ public class DataImportService(
         await context.ImportJobs.AddAsync(job, ct);
         await context.SaveChangesAsync(ct);
 
-        // Start processing
+        // For large imports (>500 rows), process as background job
+        if (csvPreview.TotalRowCount > BackgroundJobThreshold)
+        {
+            logger.LogInformation(
+                "Import job {JobId} has {TotalRows} rows, enqueueing as background job",
+                job.Id,
+                csvPreview.TotalRowCount);
+
+            // Store file for background processing
+            var storageKey = await fileStorageService.StoreFileAsync(
+                request.FileStream,
+                request.FileName,
+                "text/csv",
+                ct);
+
+            job.StorageKey = storageKey;
+
+            // Serialize field mappings for background job
+            var fieldMappingsJson = JsonSerializer.Serialize(request.FieldMappings);
+
+            // Enqueue background job
+            var backgroundJobId = backgroundJobService.Enqueue<IDataImportService>(
+                service => service.ProcessImportJobAsync(job.IdKey, fieldMappingsJson, CancellationToken.None));
+
+            job.BackgroundJobId = backgroundJobId;
+            await context.SaveChangesAsync(ct);
+
+            logger.LogInformation(
+                "Enqueued background job {BackgroundJobId} for import job {JobId}",
+                backgroundJobId,
+                job.Id);
+
+            var dto = MapJobToDto(job, null);
+            return Result<ImportJobDto>.Success(dto);
+        }
+
+        // For small imports, process synchronously
         job.Status = ImportJobStatus.Processing;
         job.StartedAt = DateTime.UtcNow;
         await context.SaveChangesAsync(ct);
@@ -323,6 +362,9 @@ public class DataImportService(
             {
                 case ImportType.People:
                     await ProcessPeopleImportAsync(job, request.FileStream, request.FieldMappings, errors, ct);
+                    break;
+                case ImportType.Families:
+                    await ProcessFamiliesImportAsync(job, request.FileStream, request.FieldMappings, errors, ct);
                     break;
                 default:
                     errors.Add(new ImportRowError
@@ -404,6 +446,40 @@ public class DataImportService(
 
         var dto = MapJobToDto(job, errors);
         return Result<ImportJobDto>.Success(dto);
+    }
+
+    public async Task<PagedResult<ImportJobDto>> GetImportJobsAsync(
+        int page,
+        int pageSize,
+        ImportType? importType = null,
+        CancellationToken ct = default)
+    {
+        // Build query
+        var query = context.ImportJobs
+            .AsNoTracking()
+            .Include(j => j.ImportTemplate)
+            .AsQueryable();
+
+        // Apply import type filter if specified
+        if (importType.HasValue)
+        {
+            query = query.Where(j => j.ImportType == importType.Value);
+        }
+
+        // Get total count
+        var totalCount = await query.CountAsync(ct);
+
+        // Order by created date descending and apply pagination
+        var jobs = await query
+            .OrderByDescending(j => j.CreatedDateTime)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        // Map to DTOs (excluding error details for list view)
+        var dtos = jobs.Select(j => MapJobToDto(j, null)).ToList();
+
+        return new PagedResult<ImportJobDto>(dtos, totalCount, page, pageSize);
     }
 
     public async Task<Result<Stream>> GenerateErrorReportAsync(
@@ -574,6 +650,233 @@ public class DataImportService(
         }
     }
 
+    private async Task ProcessFamiliesImportAsync(
+        ImportJob job,
+        Stream fileStream,
+        Dictionary<string, string> fieldMappings,
+        List<ImportRowError> errors,
+        CancellationToken ct)
+    {
+        var rows = csvParser.StreamRowsAsync(fileStream, ct);
+        var batch = new List<Dictionary<string, string>>();
+        var rowNumber = 1; // Header is row 0
+
+        await foreach (var row in rows.WithCancellation(ct))
+        {
+            batch.Add(row);
+            rowNumber++;
+
+            if (batch.Count >= BatchSize)
+            {
+                await ProcessFamiliesBatchAsync(job, batch, fieldMappings, errors, rowNumber - batch.Count, ct);
+                batch.Clear();
+            }
+        }
+
+        // Process remaining rows
+        if (batch.Count > 0)
+        {
+            await ProcessFamiliesBatchAsync(job, batch, fieldMappings, errors, rowNumber - batch.Count, ct);
+        }
+    }
+
+    private async Task ProcessFamiliesBatchAsync(
+        ImportJob job,
+        List<Dictionary<string, string>> batch,
+        Dictionary<string, string> fieldMappings,
+        List<ImportRowError> errors,
+        int startRowNumber,
+        CancellationToken ct)
+    {
+        using var transaction = await context.Database.BeginTransactionAsync(ct);
+
+        try
+        {
+            var currentRow = startRowNumber;
+            var batchSuccessCount = 0;
+            var batchErrorCount = 0;
+            var batchErrors = new List<ImportRowError>();
+
+            foreach (var row in batch)
+            {
+                currentRow++;
+
+                try
+                {
+                    var familyRequest = MapRowToFamilyRequest(row, fieldMappings, currentRow, batchErrors);
+
+                    if (familyRequest != null)
+                    {
+                        // Check for duplicates before creating
+                        var isDuplicate = await CheckFamilyDuplicateAsync(familyRequest, ct);
+
+                        if (isDuplicate)
+                        {
+                            batchErrorCount++;
+                            batchErrors.Add(new ImportRowError
+                            {
+                                Row = currentRow,
+                                Column = "Name",
+                                Value = familyRequest.Name,
+                                Message = "Potential duplicate family detected"
+                            });
+                            continue;
+                        }
+
+                        var result = await familyService.CreateFamilyAsync(familyRequest, ct);
+
+                        if (result.IsSuccess)
+                        {
+                            batchSuccessCount++;
+                        }
+                        else
+                        {
+                            batchErrorCount++;
+                            batchErrors.Add(new ImportRowError
+                            {
+                                Row = currentRow,
+                                Column = "Family",
+                                Value = familyRequest.Name,
+                                Message = result.Error?.Message ?? "Unknown error"
+                            });
+                        }
+                    }
+                    else
+                    {
+                        batchErrorCount++;
+                        // Error already added in MapRowToFamilyRequest
+                    }
+                }
+                catch (Exception ex)
+                {
+                    batchErrorCount++;
+                    batchErrors.Add(new ImportRowError
+                    {
+                        Row = currentRow,
+                        Column = "System",
+                        Value = string.Empty,
+                        Message = $"Error processing row: {ex.Message}"
+                    });
+                }
+            }
+
+            await context.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
+
+            // Only apply counts after successful commit
+            job.SuccessCount += batchSuccessCount;
+            job.ErrorCount += batchErrorCount;
+            errors.AddRange(batchErrors);
+            job.ProcessedRows += batch.Count;
+            await context.SaveChangesAsync(ct);
+
+            logger.LogInformation(
+                "Processed batch for import job {JobId}: {ProcessedRows}/{TotalRows}",
+                job.Id,
+                job.ProcessedRows,
+                job.TotalRows);
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync(ct);
+
+            logger.LogError(ex, "Batch processing failed for import job {JobId}, rolling back", job.Id);
+
+            // Entire batch failed - don't use aborted in-loop counters
+            job.ProcessedRows += batch.Count;
+            job.ErrorCount += batch.Count;
+            errors.Add(new ImportRowError
+            {
+                Row = startRowNumber,
+                Column = "Batch",
+                Value = string.Empty,
+                Message = $"Batch processing failed: {ex.Message}"
+            });
+        }
+    }
+
+    private CreateFamilyRequest? MapRowToFamilyRequest(
+        Dictionary<string, string> row,
+        Dictionary<string, string> fieldMappings,
+        int rowNumber,
+        List<ImportRowError> errors)
+    {
+        // Get mapped value from CSV row
+        string GetMappedValue(string fieldName)
+        {
+            if (!fieldMappings.TryGetValue(fieldName, out var csvColumn))
+            {
+                return string.Empty;
+            }
+
+            return row.TryGetValue(csvColumn, out var value) ? value.Trim() : string.Empty;
+        }
+
+        // Validate required fields
+        var name = GetMappedValue("Name");
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            errors.Add(new ImportRowError
+            {
+                Row = rowNumber,
+                Column = "Name",
+                Value = name,
+                Message = "Name is required"
+            });
+            return null;
+        }
+
+        // Parse optional fields
+        var description = GetMappedValue("Description");
+        var campusId = GetMappedValue("CampusId");
+        var street1 = GetMappedValue("Street1");
+        var street2 = GetMappedValue("Street2");
+        var city = GetMappedValue("City");
+        var state = GetMappedValue("State");
+        var postalCode = GetMappedValue("PostalCode");
+        var country = GetMappedValue("Country");
+
+        // Build address if street1, city, state, and postalCode are provided
+        CreateFamilyAddressRequest? address = null;
+        if (!string.IsNullOrWhiteSpace(street1) &&
+            !string.IsNullOrWhiteSpace(city) &&
+            !string.IsNullOrWhiteSpace(state) &&
+            !string.IsNullOrWhiteSpace(postalCode))
+        {
+            address = new CreateFamilyAddressRequest
+            {
+                Street1 = street1,
+                Street2 = string.IsNullOrWhiteSpace(street2) ? null : street2,
+                City = city,
+                State = state,
+                PostalCode = postalCode,
+                Country = string.IsNullOrWhiteSpace(country) ? null : country
+            };
+        }
+
+        return new CreateFamilyRequest
+        {
+            Name = name,
+            Description = string.IsNullOrWhiteSpace(description) ? null : description,
+            CampusId = string.IsNullOrWhiteSpace(campusId) ? null : campusId,
+            Address = address
+        };
+    }
+
+    private async Task<bool> CheckFamilyDuplicateAsync(
+        CreateFamilyRequest request,
+        CancellationToken ct)
+    {
+        // Check for exact name match (case-insensitive)
+        var existingFamily = await context.Families
+            .AsNoTracking()
+            .Where(f => f.Name.ToLower() == request.Name.ToLower() && f.IsActive)
+            .FirstOrDefaultAsync(ct);
+
+        return existingFamily != null;
+    }
+
     private CreatePersonRequest? MapRowToPersonRequest(
         Dictionary<string, string> row,
         Dictionary<string, string> fieldMappings,
@@ -697,6 +1000,7 @@ public class DataImportService(
         return importType switch
         {
             ImportType.People => new[] { "FirstName", "LastName" },
+            ImportType.Families => new[] { "Name" },
             _ => Array.Empty<string>()
         };
     }
@@ -737,7 +1041,8 @@ public class DataImportService(
             Errors = errors,
             StartedAt = job.StartedAt,
             CompletedAt = job.CompletedAt,
-            CreatedDateTime = job.CreatedDateTime
+            CreatedDateTime = job.CreatedDateTime,
+            BackgroundJobId = job.BackgroundJobId
         };
     }
 
@@ -796,5 +1101,151 @@ public class DataImportService(
     private class ErrorWrapper
     {
         public List<ImportRowError> Errors { get; set; } = new();
+    }
+
+    // Background job processing
+
+    /// <summary>
+    /// Processes an import job in the background (called by Hangfire).
+    /// This method retrieves the stored file, processes it, and updates job status.
+    /// </summary>
+    public async Task ProcessImportJobAsync(string jobIdKey, string fieldMappingsJson, CancellationToken ct = default)
+    {
+        if (!IdKeyHelper.TryDecode(jobIdKey, out int jobId))
+        {
+            logger.LogError("Background job processing failed: Invalid IdKey {JobIdKey}", jobIdKey);
+            return;
+        }
+
+        var job = await context.ImportJobs.FindAsync(new object[] { jobId }, ct);
+
+        if (job == null)
+        {
+            logger.LogError("Background job processing failed: ImportJob {JobId} not found", jobId);
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(job.StorageKey))
+        {
+            logger.LogError("Background job processing failed: ImportJob {JobId} has no storage key", jobId);
+            job.Status = ImportJobStatus.Failed;
+            job.CompletedAt = DateTime.UtcNow;
+            job.ErrorDetails = SerializeErrors(new List<ImportRowError>
+            {
+                new()
+                {
+                    Row = 0,
+                    Column = "System",
+                    Value = string.Empty,
+                    Message = "File not found for background processing"
+                }
+            });
+            await context.SaveChangesAsync(ct);
+            return;
+        }
+
+        try
+        {
+            // Update status to processing
+            job.Status = ImportJobStatus.Processing;
+            job.StartedAt = DateTime.UtcNow;
+            await context.SaveChangesAsync(ct);
+
+            logger.LogInformation(
+                "Starting background processing for import job {JobId}: {FileName}",
+                job.Id,
+                job.FileName);
+
+            // Retrieve file from storage
+            var fileStream = await fileStorageService.GetFileAsync(job.StorageKey, ct);
+
+            if (fileStream == null)
+            {
+                throw new InvalidOperationException($"File not found in storage: {job.StorageKey}");
+            }
+
+            // Deserialize field mappings
+            var fieldMappings = JsonSerializer.Deserialize<Dictionary<string, string>>(fieldMappingsJson)
+                ?? new Dictionary<string, string>();
+
+            var errors = new List<ImportRowError>();
+
+            // Process based on import type
+            switch (job.ImportType)
+            {
+                case ImportType.People:
+                    await ProcessPeopleImportAsync(job, fileStream, fieldMappings, errors, ct);
+                    break;
+                case ImportType.Families:
+                    await ProcessFamiliesImportAsync(job, fileStream, fieldMappings, errors, ct);
+                    break;
+                default:
+                    errors.Add(new ImportRowError
+                    {
+                        Row = 0,
+                        Column = "ImportType",
+                        Value = job.ImportType.ToString(),
+                        Message = $"Import type {job.ImportType} is not yet implemented"
+                    });
+                    job.ErrorCount = 1;
+                    break;
+            }
+
+            // Update job completion status
+            job.Status = errors.Count > 0 && job.SuccessCount == 0
+                ? ImportJobStatus.Failed
+                : ImportJobStatus.Completed;
+            job.CompletedAt = DateTime.UtcNow;
+            job.ErrorDetails = errors.Count > 0 ? SerializeErrors(errors) : null;
+
+            await context.SaveChangesAsync(ct);
+
+            logger.LogInformation(
+                "Completed background import job {JobId}: {SuccessCount} succeeded, {ErrorCount} failed",
+                job.Id,
+                job.SuccessCount,
+                job.ErrorCount);
+
+            // Clean up stored file
+            await fileStorageService.DeleteFileAsync(job.StorageKey, ct);
+            job.StorageKey = null;
+            await context.SaveChangesAsync(ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Background import job {JobId} failed with exception", job.Id);
+
+            job.Status = ImportJobStatus.Failed;
+            job.CompletedAt = DateTime.UtcNow;
+            job.ErrorDetails = SerializeErrors(new List<ImportRowError>
+            {
+                new()
+                {
+                    Row = 0,
+                    Column = "System",
+                    Value = string.Empty,
+                    Message = $"Background import failed: {ex.Message}"
+                }
+            });
+
+            await context.SaveChangesAsync(ct);
+
+            // Attempt to clean up file even on failure
+            if (!string.IsNullOrWhiteSpace(job.StorageKey))
+            {
+                try
+                {
+                    await fileStorageService.DeleteFileAsync(job.StorageKey, ct);
+                    job.StorageKey = null;
+                    await context.SaveChangesAsync(ct);
+                }
+                catch (Exception cleanupEx)
+                {
+                    logger.LogWarning(cleanupEx, "Failed to clean up file for import job {JobId}", job.Id);
+                }
+            }
+
+            throw; // Re-throw so Hangfire can mark job as failed
+        }
     }
 }

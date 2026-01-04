@@ -55,10 +55,30 @@ public interface IDataImportService
     /// </summary>
     Task<Result<ImportJobDto>> GetImportStatusAsync(string jobIdKey, CancellationToken ct = default);
 
+    /// <summary>
+    /// Gets a paginated list of import jobs, optionally filtered by import type.
+    /// </summary>
+    /// <param name="page">Page number (1-based)</param>
+    /// <param name="pageSize">Number of items per page</param>
+    /// <param name="importType">Optional filter by import type</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Paginated list of import jobs</returns>
+    Task<PagedResult<ImportJobDto>> GetImportJobsAsync(int page, int pageSize, ImportType? importType = null, CancellationToken ct = default);
+
     // Error handling
 
     /// <summary>
     /// Generates a CSV error report for a completed import job.
     /// </summary>
     Task<Result<Stream>> GenerateErrorReportAsync(string jobIdKey, CancellationToken ct = default);
+
+    // Background job processing
+
+    /// <summary>
+    /// Processes an import job in the background (called by Hangfire).
+    /// </summary>
+    /// <param name="jobIdKey">Import job IdKey</param>
+    /// <param name="fieldMappingsJson">JSON-serialized field mappings</param>
+    /// <param name="ct">Cancellation token</param>
+    Task ProcessImportJobAsync(string jobIdKey, string fieldMappingsJson, CancellationToken ct = default);
 }

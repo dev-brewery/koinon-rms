@@ -336,6 +336,57 @@ public class ImportController : ControllerBase
     }
 
     /// <summary>
+    /// Get paginated list of import jobs with optional filtering by import type.
+    /// </summary>
+    /// <param name="page">Page number (default: 1)</param>
+    /// <param name="pageSize">Items per page (default: 20, max: 100)</param>
+    /// <param name="importType">Optional filter by import type (people, families, attendance, giving)</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Paginated list of import jobs</returns>
+    /// <response code="200">Returns paginated job list</response>
+    /// <response code="400">Invalid import type specified</response>
+    [HttpGet("jobs")]
+    [Authorize]
+    [ProducesResponseType(typeof(PagedResult<ImportJobDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetImportJobs(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? importType = null,
+        CancellationToken ct = default)
+    {
+        // Validate and constrain pagination
+        if (page < 1)
+        {
+            page = 1;
+        }
+
+        if (pageSize < 1)
+        {
+            pageSize = 20;
+        }
+        else if (pageSize > 100)
+        {
+            pageSize = 100;
+        }
+
+        // Parse import type if provided
+        ImportType? filter = null;
+        if (!string.IsNullOrEmpty(importType))
+        {
+            if (!Enum.TryParse<ImportType>(importType, true, out var parsed))
+            {
+                return BadRequest(new { error = "Invalid import type. Must be one of: People, Families, Attendance, Giving" });
+            }
+            filter = parsed;
+        }
+
+        var result = await _importService.GetImportJobsAsync(page, pageSize, filter, ct);
+
+        return Ok(new { data = result });
+    }
+
+    /// <summary>
     /// Get the status and progress of an import job.
     /// </summary>
     /// <param name="idKey">Encoded job ID</param>

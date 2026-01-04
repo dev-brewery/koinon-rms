@@ -147,6 +147,25 @@ export async function executeImport(
 // ============================================================================
 
 /**
+ * Gets all import jobs, optionally filtered by type.
+ * Requires authentication
+ */
+export async function getImportJobs(
+  type?: string
+): Promise<ImportJobDto[]> {
+  const params = new URLSearchParams();
+  if (type) {
+    params.set('type', type);
+  }
+
+  const queryString = params.toString();
+  const url = `/import/jobs${queryString ? `?${queryString}` : ''}`;
+
+  const response = await get<{ data: ImportJobDto[] }>(url);
+  return response.data;
+}
+
+/**
  * Gets the status and progress of an import job.
  * Requires authentication
  */

@@ -64,6 +64,18 @@ public class ImportJob : Entity
     /// </summary>
     public DateTime? CompletedAt { get; set; }
 
+    /// <summary>
+    /// Storage key for the uploaded CSV file (used for background job processing).
+    /// Null for synchronous imports or after file cleanup.
+    /// </summary>
+    public string? StorageKey { get; set; }
+
+    /// <summary>
+    /// Hangfire job ID for tracking background job execution.
+    /// Null for synchronous imports.
+    /// </summary>
+    public string? BackgroundJobId { get; set; }
+
     // Navigation properties
 
     /// <summary>

@@ -95,6 +95,14 @@ public class ImportJobConfiguration : IEntityTypeConfiguration<ImportJob>
         builder.Property(e => e.CompletedAt)
             .HasColumnName("completed_at");
 
+        builder.Property(e => e.StorageKey)
+            .HasColumnName("storage_key")
+            .HasMaxLength(500);
+
+        builder.Property(e => e.BackgroundJobId)
+            .HasColumnName("background_job_id")
+            .HasMaxLength(100);
+
         // Indexes
         builder.HasIndex(e => e.Status)
             .HasDatabaseName("ix_import_job_status");

@@ -19,4 +19,6 @@ public record ImportJobDto
     public DateTime? StartedAt { get; init; }
     public DateTime? CompletedAt { get; init; }
     public required DateTime CreatedDateTime { get; init; }
+    public string? BackgroundJobId { get; init; }
+    public bool IsBackgroundJob => !string.IsNullOrWhiteSpace(BackgroundJobId);
 }
