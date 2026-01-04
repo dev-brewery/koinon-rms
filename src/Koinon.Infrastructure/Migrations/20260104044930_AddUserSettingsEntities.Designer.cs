@@ -3,6 +3,7 @@ using System;
 using Koinon.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using NpgsqlTypes;
@@ -12,9 +13,11 @@ using NpgsqlTypes;
 namespace Koinon.Infrastructure.Migrations
 {
     [DbContext(typeof(KoinonDbContext))]
-    partial class KoinonDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260104044930_AddUserSettingsEntities")]
+    partial class AddUserSettingsEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -4928,8 +4931,7 @@ namespace Koinon.Infrastructure.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<int?>("CreatedByPersonAliasId")
-                        .HasColumnType("integer")
-                        .HasColumnName("created_by_person_alias_id");
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedDateTime")
                         .HasColumnType("timestamp with time zone")
@@ -4948,8 +4950,7 @@ namespace Koinon.Infrastructure.Migrations
                         .HasColumnName("is_enabled");
 
                     b.Property<int?>("ModifiedByPersonAliasId")
-                        .HasColumnType("integer")
-                        .HasColumnName("modified_by_person_alias_id");
+                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("ModifiedDateTime")
                         .HasColumnType("timestamp with time zone")
@@ -4993,8 +4994,7 @@ namespace Koinon.Infrastructure.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<int?>("CreatedByPersonAliasId")
-                        .HasColumnType("integer")
-                        .HasColumnName("created_by_person_alias_id");
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedDateTime")
                         .HasColumnType("timestamp with time zone")
@@ -5011,8 +5011,7 @@ namespace Koinon.Infrastructure.Migrations
                         .HasColumnName("guid");
 
                     b.Property<int?>("ModifiedByPersonAliasId")
-                        .HasColumnType("integer")
-                        .HasColumnName("modified_by_person_alias_id");
+                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("ModifiedDateTime")
                         .HasColumnType("timestamp with time zone")
@@ -5055,8 +5054,7 @@ namespace Koinon.Infrastructure.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<int?>("CreatedByPersonAliasId")
-                        .HasColumnType("integer")
-                        .HasColumnName("created_by_person_alias_id");
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedDateTime")
                         .HasColumnType("timestamp with time zone")
@@ -5091,8 +5089,7 @@ namespace Koinon.Infrastructure.Migrations
                         .HasColumnName("location");
 
                     b.Property<int?>("ModifiedByPersonAliasId")
-                        .HasColumnType("integer")
-                        .HasColumnName("modified_by_person_alias_id");
+                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("ModifiedDateTime")
                         .HasColumnType("timestamp with time zone")

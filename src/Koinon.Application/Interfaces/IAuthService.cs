@@ -40,4 +40,13 @@ public interface IAuthService
     /// <param name="password">The plaintext password to hash</param>
     /// <returns>Base64-encoded hash with embedded salt</returns>
     Task<string> HashPasswordAsync(string password);
+
+    /// <summary>
+    /// Verifies a password against a stored hash.
+    /// </summary>
+    /// <param name="password">The plaintext password to verify</param>
+    /// <param name="storedHash">The stored password hash (Base64-encoded with embedded salt)</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>True if password matches, false otherwise</returns>
+    Task<bool> VerifyPasswordAsync(string password, string storedHash, CancellationToken cancellationToken = default);
 }

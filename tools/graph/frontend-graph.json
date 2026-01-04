@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-01-04T01:10:02.973Z",
+  "generated_at": "2026-01-04T06:08:30.902Z",
   "types": {
     "AttendanceAnalyticsDto": {
       "name": "AttendanceAnalyticsDto",
@@ -2183,6 +2183,95 @@
         "reason": "string"
       },
       "path": "types/room-capacity.ts"
+    },
+    "UserPreferenceDto": {
+      "name": "UserPreferenceDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "theme": "Theme",
+        "dateFormat": "string",
+        "timeZone": "string",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "types/settings.ts"
+    },
+    "UpdateUserPreferenceRequest": {
+      "name": "UpdateUserPreferenceRequest",
+      "kind": "interface",
+      "properties": {
+        "theme": "Theme",
+        "dateFormat": "string",
+        "timeZone": "string"
+      },
+      "path": "types/settings.ts"
+    },
+    "UserSessionDto": {
+      "name": "UserSessionDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "deviceInfo": "string | null",
+        "ipAddress": "string",
+        "location": "string | null",
+        "lastActivityAt": "DateTime",
+        "isActive": "boolean",
+        "isCurrentSession": "boolean",
+        "createdDateTime": "DateTime"
+      },
+      "path": "types/settings.ts"
+    },
+    "ChangePasswordRequest": {
+      "name": "ChangePasswordRequest",
+      "kind": "interface",
+      "properties": {
+        "currentPassword": "string",
+        "newPassword": "string",
+        "confirmPassword": "string"
+      },
+      "path": "types/settings.ts"
+    },
+    "TwoFactorSetupDto": {
+      "name": "TwoFactorSetupDto",
+      "kind": "interface",
+      "properties": {
+        "secretKey": "string",
+        "qrCodeUri": "string",
+        "recoveryCodes": "string[]"
+      },
+      "path": "types/settings.ts"
+    },
+    "TwoFactorStatusDto": {
+      "name": "TwoFactorStatusDto",
+      "kind": "interface",
+      "properties": {
+        "isEnabled": "boolean",
+        "enabledAt": "DateTime"
+      },
+      "path": "types/settings.ts"
+    },
+    "TwoFactorVerifyRequest": {
+      "name": "TwoFactorVerifyRequest",
+      "kind": "interface",
+      "properties": {
+        "code": "string"
+      },
+      "path": "types/settings.ts"
+    },
+    "TwoFactorDisableRequest": {
+      "name": "TwoFactorDisableRequest",
+      "kind": "interface",
+      "properties": {
+        "code": "string"
+      },
+      "path": "types/settings.ts"
+    },
+    "Theme": {
+      "name": "Theme",
+      "kind": "enum",
+      "properties": {},
+      "path": "types/settings.ts"
     },
     "PaginationMeta": {
       "name": "PaginationMeta",
@@ -4433,6 +4522,69 @@
       "endpoint": "/schedules/${idKey}",
       "method": "DELETE",
       "responseType": "void"
+    },
+    "getPreferences": {
+      "name": "getPreferences",
+      "path": "services/api/settings.ts",
+      "endpoint": "/my-settings/preferences",
+      "method": "GET",
+      "responseType": "UserPreferenceDto"
+    },
+    "updatePreferences": {
+      "name": "updatePreferences",
+      "path": "services/api/settings.ts",
+      "endpoint": "/my-settings/preferences",
+      "method": "PUT",
+      "responseType": "UserPreferenceDto"
+    },
+    "getSessions": {
+      "name": "getSessions",
+      "path": "services/api/settings.ts",
+      "endpoint": "/my-settings/sessions",
+      "method": "GET",
+      "responseType": "UserSessionDto[]"
+    },
+    "revokeSession": {
+      "name": "revokeSession",
+      "path": "services/api/settings.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "void"
+    },
+    "changePassword": {
+      "name": "changePassword",
+      "path": "services/api/settings.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "void"
+    },
+    "getTwoFactorStatus": {
+      "name": "getTwoFactorStatus",
+      "path": "services/api/settings.ts",
+      "endpoint": "/my-settings/two-factor",
+      "method": "GET",
+      "responseType": "TwoFactorStatusDto"
+    },
+    "setupTwoFactor": {
+      "name": "setupTwoFactor",
+      "path": "services/api/settings.ts",
+      "endpoint": "/my-settings/two-factor/setup",
+      "method": "POST",
+      "responseType": "TwoFactorSetupDto"
+    },
+    "verifyTwoFactor": {
+      "name": "verifyTwoFactor",
+      "path": "services/api/settings.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "void"
+    },
+    "disableTwoFactor": {
+      "name": "disableTwoFactor",
+      "path": "services/api/settings.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "void"
     }
   },
   "hooks": {
@@ -5978,6 +6130,123 @@
         "deleteSchedule"
       ]
     },
+    "usePreferences": {
+      "name": "usePreferences",
+      "path": "hooks/useSettings.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "settings"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getPreferences"
+      ]
+    },
+    "useUpdatePreferences": {
+      "name": "useUpdatePreferences",
+      "path": "hooks/useSettings.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "settings"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "updatePreferences"
+      ]
+    },
+    "useSessions": {
+      "name": "useSessions",
+      "path": "hooks/useSettings.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "settings"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getSessions"
+      ]
+    },
+    "useRevokeSession": {
+      "name": "useRevokeSession",
+      "path": "hooks/useSettings.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "settings"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "revokeSession"
+      ]
+    },
+    "useChangePassword": {
+      "name": "useChangePassword",
+      "path": "hooks/useSettings.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "changepassword"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "changePassword"
+      ]
+    },
+    "useTwoFactorStatus": {
+      "name": "useTwoFactorStatus",
+      "path": "hooks/useSettings.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "settings"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getTwoFactorStatus"
+      ]
+    },
+    "useSetupTwoFactor": {
+      "name": "useSetupTwoFactor",
+      "path": "hooks/useSettings.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "setuptwofactor"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "setupTwoFactor"
+      ]
+    },
+    "useVerifyTwoFactor": {
+      "name": "useVerifyTwoFactor",
+      "path": "hooks/useSettings.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "settings"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "verifyTwoFactor"
+      ]
+    },
+    "useDisableTwoFactor": {
+      "name": "useDisableTwoFactor",
+      "path": "hooks/useSettings.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "settings"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "disableTwoFactor"
+      ]
+    },
     "useSupervisorAttendance": {
       "name": "useSupervisorAttendance",
       "path": "hooks/useSupervisorAttendance.ts",
@@ -6711,6 +6980,55 @@
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
+    "DisplaySettingsSection": {
+      "name": "DisplaySettingsSection",
+      "path": "components/settings/DisplaySettingsSection.tsx",
+      "hooksUsed": [
+        "usePreferences",
+        "useUpdatePreferences"
+      ],
+      "apiCallsDirectly": false
+    },
+    "NotificationSettingsSection": {
+      "name": "NotificationSettingsSection",
+      "path": "components/settings/NotificationSettingsSection.tsx",
+      "hooksUsed": [
+        "useAuth",
+        "useCommunicationPreferences",
+        "useBulkUpdateCommunicationPreferences"
+      ],
+      "apiCallsDirectly": false
+    },
+    "ProfileSettingsSection": {
+      "name": "ProfileSettingsSection",
+      "path": "components/settings/ProfileSettingsSection.tsx",
+      "hooksUsed": [
+        "useMyProfile",
+        "useUpdateMyProfile"
+      ],
+      "apiCallsDirectly": false
+    },
+    "SecuritySettingsSection": {
+      "name": "SecuritySettingsSection",
+      "path": "components/settings/SecuritySettingsSection.tsx",
+      "hooksUsed": [
+        "useChangePassword",
+        "useTwoFactorStatus",
+        "useSetupTwoFactor",
+        "useVerifyTwoFactor",
+        "useDisableTwoFactor"
+      ],
+      "apiCallsDirectly": false
+    },
+    "SessionsSettingsSection": {
+      "name": "SessionsSettingsSection",
+      "path": "components/settings/SessionsSettingsSection.tsx",
+      "hooksUsed": [
+        "useSessions",
+        "useRevokeSession"
+      ],
+      "apiCallsDirectly": false
+    },
     "Button": {
       "name": "Button",
       "path": "components/ui/Button.tsx",
@@ -6756,6 +7074,12 @@
     "PhoneInput": {
       "name": "PhoneInput",
       "path": "components/ui/PhoneInput.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "Select": {
+      "name": "Select",
+      "path": "components/ui/Select.tsx",
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
@@ -6996,6 +7320,76 @@
     {
       "from": "ProfileEditor",
       "to": "useUpdateMyProfile",
+      "type": "uses_hook"
+    },
+    {
+      "from": "DisplaySettingsSection",
+      "to": "usePreferences",
+      "type": "uses_hook"
+    },
+    {
+      "from": "DisplaySettingsSection",
+      "to": "useUpdatePreferences",
+      "type": "uses_hook"
+    },
+    {
+      "from": "NotificationSettingsSection",
+      "to": "useAuth",
+      "type": "uses_hook"
+    },
+    {
+      "from": "NotificationSettingsSection",
+      "to": "useCommunicationPreferences",
+      "type": "uses_hook"
+    },
+    {
+      "from": "NotificationSettingsSection",
+      "to": "useBulkUpdateCommunicationPreferences",
+      "type": "uses_hook"
+    },
+    {
+      "from": "ProfileSettingsSection",
+      "to": "useMyProfile",
+      "type": "uses_hook"
+    },
+    {
+      "from": "ProfileSettingsSection",
+      "to": "useUpdateMyProfile",
+      "type": "uses_hook"
+    },
+    {
+      "from": "SecuritySettingsSection",
+      "to": "useChangePassword",
+      "type": "uses_hook"
+    },
+    {
+      "from": "SecuritySettingsSection",
+      "to": "useTwoFactorStatus",
+      "type": "uses_hook"
+    },
+    {
+      "from": "SecuritySettingsSection",
+      "to": "useSetupTwoFactor",
+      "type": "uses_hook"
+    },
+    {
+      "from": "SecuritySettingsSection",
+      "to": "useVerifyTwoFactor",
+      "type": "uses_hook"
+    },
+    {
+      "from": "SecuritySettingsSection",
+      "to": "useDisableTwoFactor",
+      "type": "uses_hook"
+    },
+    {
+      "from": "SessionsSettingsSection",
+      "to": "useSessions",
+      "type": "uses_hook"
+    },
+    {
+      "from": "SessionsSettingsSection",
+      "to": "useRevokeSession",
       "type": "uses_hook"
     }
   ]

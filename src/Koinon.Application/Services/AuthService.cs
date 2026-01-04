@@ -158,18 +158,32 @@ public class AuthService(
             return false;
         }
 
+        return await VerifyPasswordAsync(password, person.PasswordHash, ct);
+    }
+
+    /// <summary>
+    /// Verifies a password against a stored hash.
+    /// Uses Argon2id for secure password verification with constant-time comparison.
+    /// </summary>
+    public async Task<bool> VerifyPasswordAsync(string password, string storedHash, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrEmpty(storedHash))
+        {
+            return false;
+        }
+
         try
         {
-            var combined = Convert.FromBase64String(person.PasswordHash);
+            var combined = Convert.FromBase64String(storedHash);
             if (combined.Length < 48) // 16 salt + 32 hash minimum
             {
                 return false;
             }
 
             var salt = new byte[16];
-            var storedHash = new byte[combined.Length - 16];
+            var hash = new byte[combined.Length - 16];
             Buffer.BlockCopy(combined, 0, salt, 0, 16);
-            Buffer.BlockCopy(combined, 16, storedHash, 0, combined.Length - 16);
+            Buffer.BlockCopy(combined, 16, hash, 0, combined.Length - 16);
 
             using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(password))
             {
@@ -180,11 +194,11 @@ public class AuthService(
             };
 
             var computedHash = await argon2.GetBytesAsync(32);
-            return CryptographicOperations.FixedTimeEquals(storedHash, computedHash);
+            return CryptographicOperations.FixedTimeEquals(hash, computedHash);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Password validation error");
+            logger.LogError(ex, "Password verification error");
             return false;
         }
     }
