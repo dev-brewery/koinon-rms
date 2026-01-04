@@ -39,6 +39,17 @@ public class HangfireRecurringJobsService : IHostedService
                 TimeZone = TimeZoneInfo.Utc
             });
 
+        // Register scheduled communication processor recurring job
+        // Runs every minute to check for scheduled communications that need to be sent
+        _recurringJobManager.AddOrUpdate<IScheduledCommunicationProcessor>(
+            "scheduled-communication-processor",
+            processor => processor.ProcessScheduledCommunicationsAsync(CancellationToken.None),
+            "* * * * *", // Every minute
+            new RecurringJobOptions
+            {
+                TimeZone = TimeZoneInfo.Utc
+            });
+
         return Task.CompletedTask;
     }
 
