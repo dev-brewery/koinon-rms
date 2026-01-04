@@ -56,6 +56,20 @@ public class TwilioOptions
     public int CostPerMmsCents { get; set; } = 2;
 
     /// <summary>
+    /// Enable webhook signature validation for inbound Twilio requests.
+    /// Default: true. Set to false in development if needed.
+    /// </summary>
+    public bool EnableWebhookValidation { get; set; } = true;
+
+    /// <summary>
+    /// Optional IP address ranges allowed to send webhooks.
+    /// Format: CIDR notation (e.g., "54.172.60.0/23", "54.244.51.0/24").
+    /// If null or empty, only signature validation is performed.
+    /// Twilio IP ranges: https://www.twilio.com/docs/iam/ip-addresses
+    /// </summary>
+    public string[]? AllowedIpRanges { get; set; }
+
+    /// <summary>
     /// Validates that all required options are configured.
     /// </summary>
     public bool IsValid =>
