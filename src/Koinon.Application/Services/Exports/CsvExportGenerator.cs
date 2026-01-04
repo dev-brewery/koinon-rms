@@ -26,7 +26,7 @@ public class CsvExportGenerator(ILogger<CsvExportGenerator> logger) : IExportFor
             exportName, fields.Count, data.Count);
 
         var stream = new MemoryStream();
-        
+
         // Use UTF-8 with BOM for Excel compatibility
         var encoding = new UTF8Encoding(true);
         using var writer = new StreamWriter(stream, encoding, leaveOpen: true);
@@ -39,7 +39,7 @@ public class CsvExportGenerator(ILogger<CsvExportGenerator> logger) : IExportFor
         foreach (var row in data)
         {
             var values = new List<string>();
-            
+
             foreach (var field in fields)
             {
                 var value = row.TryGetValue(field, out var val) ? val : null;

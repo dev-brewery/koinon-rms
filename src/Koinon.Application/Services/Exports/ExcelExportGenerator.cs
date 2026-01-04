@@ -46,7 +46,7 @@ public class ExcelExportGenerator(ILogger<ExcelExportGenerator> logger) : IExpor
             {
                 var field = fields[col];
                 var value = dataRow.TryGetValue(field, out var val) ? val : null;
-                
+
                 var cell = worksheet.Cell(row, col + 1);
                 SetCellValue(cell, value);
             }
@@ -127,7 +127,7 @@ public class ExcelExportGenerator(ILogger<ExcelExportGenerator> logger) : IExpor
         // Excel worksheet names cannot exceed 31 characters and cannot contain: \ / ? * [ ]
         var sanitized = name;
         var invalidChars = new[] { '\\', '/', '?', '*', '[', ']' };
-        
+
         foreach (var c in invalidChars)
         {
             sanitized = sanitized.Replace(c, '_');

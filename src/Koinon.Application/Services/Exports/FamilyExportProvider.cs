@@ -1,7 +1,7 @@
 using Koinon.Application.DTOs;
 using Koinon.Application.Interfaces;
-using Koinon.Domain.Enums;
 using Koinon.Domain.Data;
+using Koinon.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
