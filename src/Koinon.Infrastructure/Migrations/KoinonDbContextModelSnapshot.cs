@@ -1660,6 +1660,103 @@ namespace Koinon.Infrastructure.Migrations
                     b.ToTable("device", (string)null);
                 });
 
+            modelBuilder.Entity("Koinon.Domain.Entities.ExportJob", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completed_at");
+
+                    b.Property<int?>("CreatedByPersonAliasId")
+                        .HasColumnType("integer")
+                        .HasColumnName("created_by_person_alias_id");
+
+                    b.Property<DateTime>("CreatedDateTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_date_time");
+
+                    b.Property<string>("EntityType")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("entity_type");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("error_message");
+
+                    b.Property<int>("ExportType")
+                        .HasColumnType("integer")
+                        .HasColumnName("export_type");
+
+                    b.Property<Guid>("Guid")
+                        .HasColumnType("uuid")
+                        .HasColumnName("guid");
+
+                    b.Property<int?>("ModifiedByPersonAliasId")
+                        .HasColumnType("integer")
+                        .HasColumnName("modified_by_person_alias_id");
+
+                    b.Property<DateTime?>("ModifiedDateTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("modified_date_time");
+
+                    b.Property<int?>("OutputFileId")
+                        .HasColumnType("integer")
+                        .HasColumnName("output_file_id");
+
+                    b.Property<int>("OutputFormat")
+                        .HasColumnType("integer")
+                        .HasColumnName("output_format");
+
+                    b.Property<string>("Parameters")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("parameters");
+
+                    b.Property<int?>("RecordCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("record_count");
+
+                    b.Property<int?>("RequestedByPersonAliasId")
+                        .HasColumnType("integer")
+                        .HasColumnName("requested_by_person_alias_id");
+
+                    b.Property<DateTime?>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("status");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExportType")
+                        .HasDatabaseName("ix_export_job_export_type");
+
+                    b.HasIndex("Guid")
+                        .IsUnique()
+                        .HasDatabaseName("uix_export_job_guid");
+
+                    b.HasIndex("OutputFileId");
+
+                    b.HasIndex("RequestedByPersonAliasId");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_export_job_status");
+
+                    b.ToTable("export_job", (string)null);
+                });
+
             modelBuilder.Entity("Koinon.Domain.Entities.Family", b =>
                 {
                     b.Property<int>("Id")
@@ -5059,6 +5156,23 @@ namespace Koinon.Infrastructure.Migrations
                     b.Navigation("Campus");
 
                     b.Navigation("DeviceTypeValue");
+                });
+
+            modelBuilder.Entity("Koinon.Domain.Entities.ExportJob", b =>
+                {
+                    b.HasOne("Koinon.Domain.Entities.BinaryFile", "OutputFile")
+                        .WithMany()
+                        .HasForeignKey("OutputFileId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Koinon.Domain.Entities.PersonAlias", "RequestedByPersonAlias")
+                        .WithMany()
+                        .HasForeignKey("RequestedByPersonAliasId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("OutputFile");
+
+                    b.Navigation("RequestedByPersonAlias");
                 });
 
             modelBuilder.Entity("Koinon.Domain.Entities.Family", b =>

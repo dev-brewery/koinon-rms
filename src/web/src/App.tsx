@@ -54,6 +54,7 @@ import { TemplateFormPage } from './pages/communications/TemplateFormPage';
 import { MyProfilePage } from './pages/profile';
 import { RosterPage } from './pages/admin/RosterPage';
 import { BatchListPage, BatchDetailPage, BatchFormPage, StatementsPage } from './pages/admin/giving';
+import { DataExportsPage } from './features/admin/DataExportsPage';
 
 function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -264,6 +265,7 @@ function App() {
           <Route path="settings/campuses" element={<CampusesPage />} />
           <Route path="settings/locations" element={<LocationsPage />} />
           <Route path="settings/audit-logs" element={<AuditLogsPage />} />
+          <Route path="exports" element={<DataExportsPage />} />
         </Route>
 
         {/* Check-in route */}

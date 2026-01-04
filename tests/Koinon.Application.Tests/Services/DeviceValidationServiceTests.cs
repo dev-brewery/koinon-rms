@@ -284,6 +284,7 @@ public class DeviceValidationServiceTests : IDisposable
         public DbSet<ReportDefinition> ReportDefinitions { get; set; } = null!;
         public DbSet<ReportRun> ReportRuns { get; set; } = null!;
         public DbSet<ReportSchedule> ReportSchedules { get; set; } = null!;
+        public DbSet<ExportJob> ExportJobs { get; set; } = null!;
         public DbSet<Fund> Funds { get; set; } = null!;
         public DbSet<ContributionBatch> ContributionBatches { get; set; } = null!;
         public DbSet<Contribution> Contributions { get; set; } = null!;

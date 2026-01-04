@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-03T23:59:16.677781+00:00",
+  "generated_at": "2026-01-04T01:10:03.145237+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -344,6 +344,40 @@
         {
           "name": "CreatedDateTime",
           "target_entity": "DateTime",
+          "type": "one"
+        }
+      ]
+    },
+    "ExportJob": {
+      "name": "ExportJob",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "export_job",
+      "properties": {
+        "ExportType": "ExportType",
+        "EntityType": "string?",
+        "Status": "ReportStatus",
+        "OutputFormat": "ReportOutputFormat",
+        "OutputFileId": "int?",
+        "RequestedByPersonAliasId": "int?",
+        "StartedAt": "DateTime?",
+        "CompletedAt": "DateTime?",
+        "ErrorMessage": "string?",
+        "RecordCount": "int?"
+      },
+      "navigations": [
+        {
+          "name": "ExportType",
+          "target_entity": "ExportType",
+          "type": "one"
+        },
+        {
+          "name": "Status",
+          "target_entity": "ReportStatus",
+          "type": "one"
+        },
+        {
+          "name": "OutputFormat",
+          "target_entity": "ReportOutputFormat",
           "type": "one"
         }
       ]
@@ -1488,6 +1522,15 @@
       "namespace": "Koinon.Application.DTOs",
       "properties": {},
       "linked_entity": "Communication"
+    },
+    "ExportFieldDto": {
+      "name": "ExportFieldDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Description": "string?",
+        "IsDefaultField": "bool",
+        "IsRequired": "bool"
+      }
     },
     "FamilyDto": {
       "name": "FamilyDto",
@@ -3000,6 +3043,56 @@
         "ILogger<DashboardService>"
       ]
     },
+    "DataExportService": {
+      "name": "DataExportService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "DataExportService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetExportJobsAsync",
+          "return_type": "Task<PagedResult<ExportJobDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetExportJobAsync",
+          "return_type": "Task<ExportJobDto?>",
+          "is_async": false
+        },
+        {
+          "name": "StartExportAsync",
+          "return_type": "Task<Result<ExportJobDto>>",
+          "is_async": false
+        },
+        {
+          "name": "ProcessExportJobAsync",
+          "return_type": "Task",
+          "is_async": false
+        },
+        {
+          "name": "DownloadExportAsync",
+          "return_type": "Task<(Stream Stream, string FileName, string MimeType)?>",
+          "is_async": false
+        },
+        {
+          "name": "GetAvailableFields",
+          "return_type": "List<ExportFieldDto>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IMapper",
+        "IBackgroundJobService",
+        "IFileStorageService",
+        "IEnumerable<IExportDataProvider>",
+        "IEnumerable<IExportFormatGenerator>",
+        "ILogger<DataExportService>"
+      ]
+    },
     "DataImportService": {
       "name": "DataImportService",
       "namespace": "Koinon.Application.Services",
@@ -4190,6 +4283,12 @@
       "methods": [],
       "dependencies": []
     },
+    "IDataExportService": {
+      "name": "IDataExportService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
     "IDataImportService": {
       "name": "IDataImportService",
       "namespace": "Koinon.Application.Interfaces",
@@ -4975,6 +5074,50 @@
       "dependencies": [
         "IDashboardService",
         "ILogger<DashboardController>"
+      ]
+    },
+    "ExportsController": {
+      "name": "ExportsController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/exports",
+      "endpoints": [
+        {
+          "name": "GetExport",
+          "method": "GET",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "DownloadExport",
+          "method": "GET",
+          "route": "{idKey}/download",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetAvailableFields",
+          "method": "GET",
+          "route": "fields/{exportType}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": true,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "IDataExportService",
+        "ILogger<ExportsController>"
       ]
     },
     "FamiliesController": {
@@ -9916,6 +10059,11 @@
       "relationship": "depends_on"
     },
     {
+      "source": "ExportsController",
+      "target": "IDataExportService",
+      "relationship": "depends_on"
+    },
+    {
       "source": "FamiliesController",
       "target": "IFamilyService",
       "relationship": "depends_on"
@@ -10268,6 +10416,11 @@
     {
       "source": "DashboardService",
       "target": "DashboardStatsDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "DataExportService",
+      "target": "ExportFieldDto",
       "relationship": "returns"
     },
     {
@@ -11103,6 +11256,7 @@
     "dto:UpcomingScheduleDto": "type:UpcomingScheduleDto",
     "dto:GivingStatsDto": "type:GivingStats",
     "dto:CommunicationsStatsDto": "type:CommunicationsStats",
+    "dto:ExportFieldDto": "type:ExportFieldDto",
     "dto:FamilyDto": "type:FamilyDto",
     "dto:FamilyMemberDto": "type:FamilyMemberDto",
     "dto:AddressDto": "type:AddressDto",
@@ -11153,14 +11307,14 @@
     "dto:SupervisorInfoDto": "type:SupervisorInfoDto"
   },
   "stats": {
-    "entities": 50,
-    "dtos": 94,
-    "services": 92,
-    "controllers": 30,
-    "types": 268,
+    "entities": 51,
+    "dtos": 95,
+    "services": 94,
+    "controllers": 31,
+    "types": 274,
     "api_functions": 146,
     "hooks": 121,
     "components": 118,
-    "total_edges": 291
+    "total_edges": 293
   }
 }

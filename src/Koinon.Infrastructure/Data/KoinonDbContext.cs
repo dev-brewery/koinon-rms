@@ -103,6 +103,9 @@ public class KoinonDbContext : DbContext, IApplicationDbContext
     public DbSet<ReportRun> ReportRuns => Set<ReportRun>();
     public DbSet<ReportSchedule> ReportSchedules => Set<ReportSchedule>();
 
+    // Export entities
+    public DbSet<ExportJob> ExportJobs => Set<ExportJob>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
