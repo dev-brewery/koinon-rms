@@ -188,6 +188,8 @@
         "DeliveredDateTime": "DateTime?",
         "OpenedDateTime": "DateTime?",
         "ErrorMessage": "string?",
+        "ExternalMessageId": "string?",
+        "ErrorCode": "int?",
         "GroupId": "int?"
       },
       "navigations": [
@@ -4457,6 +4459,12 @@
       "methods": [],
       "dependencies": []
     },
+    "ISmsDeliveryStatusService": {
+      "name": "ISmsDeliveryStatusService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
     "ISmsQueueService": {
       "name": "ISmsQueueService",
       "namespace": "Koinon.Application.Interfaces",
@@ -6406,7 +6414,8 @@
         "result_pattern": false
       },
       "dependencies": [
-        "ILogger<TwilioWebhookController>"
+        "ILogger<TwilioWebhookController>",
+        "ISmsDeliveryStatusService"
       ]
     }
   },
@@ -10164,6 +10173,11 @@
       "relationship": "depends_on"
     },
     {
+      "source": "TwilioWebhookController",
+      "target": "ISmsDeliveryStatusService",
+      "relationship": "depends_on"
+    },
+    {
       "source": "AttendanceAnalyticsService",
       "target": "AttendanceAnalyticsDto",
       "relationship": "returns"
@@ -11309,12 +11323,12 @@
   "stats": {
     "entities": 51,
     "dtos": 95,
-    "services": 94,
+    "services": 95,
     "controllers": 31,
     "types": 274,
     "api_functions": 146,
     "hooks": 121,
     "components": 118,
-    "total_edges": 293
+    "total_edges": 294
   }
 }

@@ -14,6 +14,7 @@ public class CommunicationSender(
     ISmsService smsService,
     IEmailSender emailSender,
     IMergeFieldService mergeFieldService,
+    ISmsDeliveryStatusService smsDeliveryStatusService,
     ILogger<CommunicationSender> logger) : ICommunicationSender
 {
     /// <summary>
@@ -101,6 +102,7 @@ public class CommunicationSender(
 
             bool success;
             string? errorMessage = null;
+            string? messageId = null;
 
             try
             {
@@ -132,8 +134,8 @@ public class CommunicationSender(
 
                 if (communication.CommunicationType == CommunicationType.Sms)
                 {
-                    // CRITICAL FIX #2: Capture error message from SMS service
-                    (success, errorMessage) = await SendSmsToRecipientAsync(
+                    // Capture message ID for webhook correlation
+                    (success, messageId, errorMessage) = await SendSmsToRecipientAsync(
                         recipient.Address,
                         personalizedBody,
                         cancellationToken);
@@ -171,10 +173,27 @@ public class CommunicationSender(
                 recipient.ErrorMessage = null;
                 deliveredCount++;
 
-                logger.LogDebug(
-                    "Successfully sent {Type} to {Address}",
-                    communication.CommunicationType,
-                    recipient.Address);
+                // Persist external message ID for SMS webhook correlation
+                if (communication.CommunicationType == CommunicationType.Sms && !string.IsNullOrEmpty(messageId))
+                {
+                    await smsDeliveryStatusService.SetExternalMessageIdAsync(
+                        recipient.Id,
+                        messageId,
+                        cancellationToken);
+
+                    logger.LogDebug(
+                        "Successfully sent {Type} to {Address} (MessageId: {MessageId})",
+                        communication.CommunicationType,
+                        recipient.Address,
+                        messageId);
+                }
+                else
+                {
+                    logger.LogDebug(
+                        "Successfully sent {Type} to {Address}",
+                        communication.CommunicationType,
+                        recipient.Address);
+                }
             }
             else
             {
@@ -217,15 +236,15 @@ public class CommunicationSender(
 
     /// <summary>
     /// Sends an SMS to a single recipient.
-    /// Returns success status and error message if failed.
+    /// Returns success status, message ID, and error message if failed.
     /// </summary>
-    private async Task<(bool Success, string? ErrorMessage)> SendSmsToRecipientAsync(
+    private async Task<(bool Success, string? MessageId, string? ErrorMessage)> SendSmsToRecipientAsync(
         string phoneNumber,
         string message,
         CancellationToken cancellationToken)
     {
         var result = await smsService.SendSmsAsync(phoneNumber, message, cancellationToken);
-        return (result.Success, result.ErrorMessage);
+        return (result.Success, result.MessageId, result.ErrorMessage);
     }
 
     /// <summary>

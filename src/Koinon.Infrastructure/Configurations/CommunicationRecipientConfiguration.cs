@@ -77,6 +77,13 @@ public class CommunicationRecipientConfiguration : IEntityTypeConfiguration<Comm
             .HasColumnName("error_message")
             .HasMaxLength(1000);
 
+        builder.Property(e => e.ExternalMessageId)
+            .HasColumnName("external_message_id")
+            .HasMaxLength(64);
+
+        builder.Property(e => e.ErrorCode)
+            .HasColumnName("error_code");
+
         builder.Property(e => e.GroupId)
             .HasColumnName("group_id");
 
@@ -92,6 +99,9 @@ public class CommunicationRecipientConfiguration : IEntityTypeConfiguration<Comm
 
         builder.HasIndex(e => e.GroupId)
             .HasDatabaseName("ix_communication_recipient_group_id");
+
+        builder.HasIndex(e => e.ExternalMessageId)
+            .HasDatabaseName("ix_communication_recipient_external_message_id");
 
         // Relationships
         builder.HasOne(e => e.Communication)

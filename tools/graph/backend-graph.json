@@ -188,6 +188,8 @@
         "DeliveredDateTime": "DateTime?",
         "OpenedDateTime": "DateTime?",
         "ErrorMessage": "string?",
+        "ExternalMessageId": "string?",
+        "ErrorCode": "int?",
         "GroupId": "int?"
       },
       "navigations": [
@@ -4457,6 +4459,12 @@
       "methods": [],
       "dependencies": []
     },
+    "ISmsDeliveryStatusService": {
+      "name": "ISmsDeliveryStatusService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
     "ISmsQueueService": {
       "name": "ISmsQueueService",
       "namespace": "Koinon.Application.Interfaces",
@@ -6406,7 +6414,8 @@
         "result_pattern": false
       },
       "dependencies": [
-        "ILogger<TwilioWebhookController>"
+        "ILogger<TwilioWebhookController>",
+        "ISmsDeliveryStatusService"
       ]
     }
   },
@@ -6824,6 +6833,11 @@
     {
       "source": "SchedulesController",
       "target": "IScheduleService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "TwilioWebhookController",
+      "target": "ISmsDeliveryStatusService",
       "relationship": "depends_on"
     },
     {
@@ -7660,8 +7674,8 @@
   "summary": {
     "total_entities": 51,
     "total_dtos": 95,
-    "total_services": 94,
+    "total_services": 95,
     "total_controllers": 31,
-    "total_relationships": 249
+    "total_relationships": 250
   }
 }

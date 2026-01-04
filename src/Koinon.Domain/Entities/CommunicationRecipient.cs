@@ -49,6 +49,16 @@ public class CommunicationRecipient : Entity
     public string? ErrorMessage { get; set; }
 
     /// <summary>
+    /// External message identifier (e.g., Twilio MessageSid) for webhook correlation.
+    /// </summary>
+    public string? ExternalMessageId { get; set; }
+
+    /// <summary>
+    /// Error code from the external provider (e.g., Twilio) for failed deliveries.
+    /// </summary>
+    public int? ErrorCode { get; set; }
+
+    /// <summary>
     /// Optional foreign key to the Group this recipient was targeted through.
     /// </summary>
     public int? GroupId { get; set; }
