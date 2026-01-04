@@ -97,6 +97,9 @@ public static class ServiceCollectionExtensions
         // Register SMS service (Singleton - has shared rate-limiting state via SemaphoreSlim)
         services.AddSingleton<ISmsService, TwilioSmsService>();
 
+        // Register Twilio signature validator
+        services.AddScoped<ITwilioSignatureValidator, TwilioSignatureValidator>();
+
         // Register SMS queue service
         services.AddScoped<ISmsQueueService, SmsQueueService>();
 
@@ -197,6 +200,9 @@ public static class ServiceCollectionExtensions
 
         // Register SMS service (Singleton - has shared rate-limiting state via SemaphoreSlim)
         services.AddSingleton<ISmsService, TwilioSmsService>();
+
+        // Register Twilio signature validator
+        services.AddScoped<ITwilioSignatureValidator, TwilioSignatureValidator>();
 
         // Register SMS queue service
         services.AddScoped<ISmsQueueService, SmsQueueService>();

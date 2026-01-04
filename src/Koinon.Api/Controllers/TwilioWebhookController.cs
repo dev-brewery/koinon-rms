@@ -1,3 +1,4 @@
+using Koinon.Api.Filters;
 using Koinon.Application.DTOs.Communications;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,9 +9,15 @@ namespace Koinon.Api.Controllers;
 /// Controller for receiving Twilio webhook callbacks.
 /// Handles delivery status updates and other notifications from Twilio.
 /// </summary>
+/// <remarks>
+/// This controller uses [AllowAnonymous] because Twilio cannot provide JWT tokens.
+/// Security is enforced via [ValidateTwilioSignature] which validates the
+/// X-Twilio-Signature header to ensure requests are legitimately from Twilio.
+/// </remarks>
 [ApiController]
 [Route("api/v1/webhooks/twilio")]
 [AllowAnonymous] // Twilio cannot provide JWT tokens
+[ValidateTwilioSignature] // Validates X-Twilio-Signature header
 public class TwilioWebhookController(ILogger<TwilioWebhookController> logger) : ControllerBase
 {
     /// <summary>
@@ -21,7 +28,8 @@ public class TwilioWebhookController(ILogger<TwilioWebhookController> logger) : 
     /// <response code="204">Status callback received successfully</response>
     /// <remarks>
     /// Twilio sends status updates as application/x-www-form-urlencoded POST requests.
-    /// For security in production, we should validate the X-Twilio-Signature header.
+    /// The X-Twilio-Signature header is validated by the ValidateTwilioSignature filter
+    /// to ensure request authenticity.
     /// See: https://www.twilio.com/docs/usage/webhooks/webhooks-security
     /// </remarks>
     [HttpPost("status")]
@@ -47,7 +55,6 @@ public class TwilioWebhookController(ILogger<TwilioWebhookController> logger) : 
                 payload.ErrorMessage);
         }
 
-        // TODO(#400): Validate X-Twilio-Signature header to ensure request authenticity
         // TODO(#401): Persist status to CommunicationRecipient when integrated with communications feature
 
         // Twilio expects 2xx response to confirm receipt
