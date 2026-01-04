@@ -32,6 +32,9 @@ public interface IApplicationDbContext
     DbSet<AttendanceCode> AttendanceCodes { get; }
     DbSet<Device> Devices { get; }
     DbSet<RefreshToken> RefreshTokens { get; }
+    DbSet<UserPreference> UserPreferences { get; }
+    DbSet<UserSession> UserSessions { get; }
+    DbSet<TwoFactorConfig> TwoFactorConfigs { get; }
     DbSet<SupervisorSession> SupervisorSessions { get; }
     DbSet<SupervisorAuditLog> SupervisorAuditLogs { get; }
     DbSet<FollowUp> FollowUps { get; }

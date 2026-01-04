@@ -29,3 +29,4 @@ export * from './pager';
 export * from './person';
 export * from './profile';
 export * from './room-capacity';
+export * from './settings';

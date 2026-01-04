@@ -52,6 +52,7 @@ import { CommunicationDetailPage } from './pages/communications/CommunicationDet
 import { TemplatesPage } from './pages/communications/TemplatesPage';
 import { TemplateFormPage } from './pages/communications/TemplateFormPage';
 import { MyProfilePage } from './pages/profile';
+import { UserSettingsPage } from './pages/settings/UserSettingsPage';
 import { RosterPage } from './pages/admin/RosterPage';
 import { BatchListPage, BatchDetailPage, BatchFormPage, StatementsPage } from './pages/admin/giving';
 import { DataExportsPage } from './features/admin/DataExportsPage';
@@ -205,6 +206,16 @@ function App() {
           element={
             <ProtectedRoute>
               <MyProfilePage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* User Settings - Protected route for authenticated users */}
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <UserSettingsPage />
             </ProtectedRoute>
           }
         />

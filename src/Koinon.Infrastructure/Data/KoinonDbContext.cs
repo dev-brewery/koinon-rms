@@ -76,6 +76,11 @@ public class KoinonDbContext : DbContext, IApplicationDbContext
     public DbSet<CommunicationTemplate> CommunicationTemplates { get; set; } = null!;
     public DbSet<CommunicationPreference> CommunicationPreferences { get; set; } = null!;
 
+    // User settings entities
+    public DbSet<UserPreference> UserPreferences { get; set; } = null!;
+    public DbSet<UserSession> UserSessions { get; set; } = null!;
+    public DbSet<TwoFactorConfig> TwoFactorConfigs { get; set; } = null!;
+
     // Person merge and duplicate tracking entities
     public DbSet<PersonMergeHistory> PersonMergeHistories => Set<PersonMergeHistory>();
     public DbSet<PersonDuplicateIgnore> PersonDuplicateIgnores => Set<PersonDuplicateIgnore>();
