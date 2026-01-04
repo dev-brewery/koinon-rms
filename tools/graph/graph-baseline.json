@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-04T08:20:57.277909+00:00",
+  "generated_at": "2026-01-04T09:03:07.947752+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -1708,6 +1708,11 @@
         "CompletedDateTime": "DateTime?"
       },
       "linked_entity": "FollowUp"
+    },
+    "GlobalSearchResultDto": {
+      "name": "GlobalSearchResultDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {}
     },
     "GroupDto": {
       "name": "GroupDto",
@@ -3572,6 +3577,26 @@
         "ILogger<FollowUpService>"
       ]
     },
+    "GlobalSearchService": {
+      "name": "GlobalSearchService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "GlobalSearchService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "SearchAsync",
+          "return_type": "Task<GlobalSearchResponse>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "ILogger<GlobalSearchService>"
+      ]
+    },
     "GradeCalculationService": {
       "name": "GradeCalculationService",
       "namespace": "Koinon.Application.Services",
@@ -4637,6 +4662,12 @@
     },
     "IFollowUpService": {
       "name": "IFollowUpService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IGlobalSearchService": {
+      "name": "IGlobalSearchService",
       "namespace": "Koinon.Application.Interfaces",
       "methods": [],
       "dependencies": []
@@ -6785,6 +6816,22 @@
         "ILogger<SchedulesController>"
       ]
     },
+    "SearchController": {
+      "name": "SearchController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/[controller]",
+      "endpoints": [],
+      "patterns": {
+        "response_envelope": false,
+        "idkey_routes": false,
+        "problem_details": false,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "IGlobalSearchService",
+        "ILogger<SearchController>"
+      ]
+    },
     "TwilioWebhookController": {
       "name": "TwilioWebhookController",
       "namespace": "Koinon.Api.Controllers",
@@ -7691,6 +7738,17 @@
       "dependencies": [
         "downloadStatementPdf"
       ]
+    },
+    "useGlobalSearch": {
+      "name": "useGlobalSearch",
+      "path": "hooks/useGlobalSearch.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "globalsearch"
+      ],
+      "usesQuery": false,
+      "usesMutation": false,
+      "dependencies": []
     },
     "useGroupTypes": {
       "name": "useGroupTypes",
@@ -9771,6 +9829,13 @@
       "method": "DELETE",
       "responseType": "void"
     },
+    "globalSearch": {
+      "name": "globalSearch",
+      "path": "services/api/search.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "GlobalSearchResponse"
+    },
     "updatePreferences": {
       "name": "updatePreferences",
       "path": "services/api/settings.ts",
@@ -9867,6 +9932,14 @@
       "hooksUsed": [
         "useCreateCampus",
         "useUpdateCampus"
+      ],
+      "apiCallsDirectly": false
+    },
+    "GlobalSearchModal": {
+      "name": "GlobalSearchModal",
+      "path": "components/admin/GlobalSearchModal.tsx",
+      "hooksUsed": [
+        "useGlobalSearch"
       ],
       "apiCallsDirectly": false
     },
@@ -11139,6 +11212,11 @@
       "relationship": "depends_on"
     },
     {
+      "source": "SearchController",
+      "target": "IGlobalSearchService",
+      "relationship": "depends_on"
+    },
+    {
       "source": "TwilioWebhookController",
       "target": "ISmsDeliveryStatusService",
       "relationship": "depends_on"
@@ -12069,6 +12147,11 @@
       "type": "uses_hook"
     },
     {
+      "from": "GlobalSearchModal",
+      "to": "useGlobalSearch",
+      "type": "uses_hook"
+    },
+    {
       "from": "GroupTypeEditorModal",
       "to": "useGroupType",
       "type": "uses_hook"
@@ -12423,6 +12506,7 @@
     "dto:GroupTypeRoleDto": "type:GroupTypeRoleDto",
     "dto:FirstTimeVisitorDto": "type:FirstTimeVisitorDto",
     "dto:FollowUpDto": "type:FollowUpDto",
+    "dto:GlobalSearchResultDto": "type:GlobalSearchResult",
     "dto:GroupDto": "type:GroupDto",
     "dto:GroupSummaryDto": "type:GroupSummaryDto",
     "dto:GroupMemberDto": "type:GroupMemberDto",
@@ -12475,13 +12559,13 @@
   },
   "stats": {
     "entities": 56,
-    "dtos": 103,
-    "services": 99,
-    "controllers": 33,
-    "types": 289,
-    "api_functions": 163,
-    "hooks": 140,
-    "components": 128,
-    "total_edges": 335
+    "dtos": 104,
+    "services": 101,
+    "controllers": 34,
+    "types": 292,
+    "api_functions": 164,
+    "hooks": 141,
+    "components": 129,
+    "total_edges": 337
   }
 }

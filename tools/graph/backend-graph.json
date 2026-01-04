@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-04T08:20:56.906163+00:00",
+  "generated_at": "2026-01-04T09:03:07.565452+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -1708,6 +1708,11 @@
         "CompletedDateTime": "DateTime?"
       },
       "linked_entity": "FollowUp"
+    },
+    "GlobalSearchResultDto": {
+      "name": "GlobalSearchResultDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {}
     },
     "GroupDto": {
       "name": "GroupDto",
@@ -3572,6 +3577,26 @@
         "ILogger<FollowUpService>"
       ]
     },
+    "GlobalSearchService": {
+      "name": "GlobalSearchService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "GlobalSearchService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "SearchAsync",
+          "return_type": "Task<GlobalSearchResponse>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "ILogger<GlobalSearchService>"
+      ]
+    },
     "GradeCalculationService": {
       "name": "GradeCalculationService",
       "namespace": "Koinon.Application.Services",
@@ -4637,6 +4662,12 @@
     },
     "IFollowUpService": {
       "name": "IFollowUpService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IGlobalSearchService": {
+      "name": "IGlobalSearchService",
       "namespace": "Koinon.Application.Interfaces",
       "methods": [],
       "dependencies": []
@@ -6785,6 +6816,22 @@
         "ILogger<SchedulesController>"
       ]
     },
+    "SearchController": {
+      "name": "SearchController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/[controller]",
+      "endpoints": [],
+      "patterns": {
+        "response_envelope": false,
+        "idkey_routes": false,
+        "problem_details": false,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "IGlobalSearchService",
+        "ILogger<SearchController>"
+      ]
+    },
     "TwilioWebhookController": {
       "name": "TwilioWebhookController",
       "namespace": "Koinon.Api.Controllers",
@@ -7350,6 +7397,11 @@
     {
       "source": "SchedulesController",
       "target": "IScheduleService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "SearchController",
+      "target": "IGlobalSearchService",
       "relationship": "depends_on"
     },
     {
@@ -8260,9 +8312,9 @@
   ],
   "summary": {
     "total_entities": 56,
-    "total_dtos": 103,
-    "total_services": 99,
-    "total_controllers": 33,
-    "total_relationships": 269
+    "total_dtos": 104,
+    "total_services": 101,
+    "total_controllers": 34,
+    "total_relationships": 270
   }
 }

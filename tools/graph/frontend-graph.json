@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-01-04T08:20:57.116Z",
+  "generated_at": "2026-01-04T09:03:07.777Z",
   "types": {
     "AttendanceAnalyticsDto": {
       "name": "AttendanceAnalyticsDto",
@@ -2241,6 +2241,41 @@
         "reason": "string"
       },
       "path": "types/room-capacity.ts"
+    },
+    "GlobalSearchResult": {
+      "name": "GlobalSearchResult",
+      "kind": "interface",
+      "properties": {
+        "category": "'People' | 'Families' | 'Groups'",
+        "idKey": "string",
+        "title": "string",
+        "subtitle": "string | null",
+        "imageUrl": "string | null"
+      },
+      "path": "types/search.ts"
+    },
+    "GlobalSearchResponse": {
+      "name": "GlobalSearchResponse",
+      "kind": "interface",
+      "properties": {
+        "results": "GlobalSearchResult[]",
+        "totalCount": "number",
+        "pageNumber": "number",
+        "pageSize": "number",
+        "categoryCounts": "Record<string, number>"
+      },
+      "path": "types/search.ts"
+    },
+    "SearchParams": {
+      "name": "SearchParams",
+      "kind": "interface",
+      "properties": {
+        "query": "string",
+        "category": "'People' | 'Families' | 'Groups'",
+        "pageNumber": "number",
+        "pageSize": "number"
+      },
+      "path": "types/search.ts"
     },
     "UserPreferenceDto": {
       "name": "UserPreferenceDto",
@@ -4637,6 +4672,13 @@
       "method": "DELETE",
       "responseType": "void"
     },
+    "globalSearch": {
+      "name": "globalSearch",
+      "path": "services/api/search.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "GlobalSearchResponse"
+    },
     "updatePreferences": {
       "name": "updatePreferences",
       "path": "services/api/settings.ts",
@@ -5474,6 +5516,17 @@
       "dependencies": [
         "downloadStatementPdf"
       ]
+    },
+    "useGlobalSearch": {
+      "name": "useGlobalSearch",
+      "path": "hooks/useGlobalSearch.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "globalsearch"
+      ],
+      "usesQuery": false,
+      "usesMutation": false,
+      "dependencies": []
     },
     "useGroupTypes": {
       "name": "useGroupTypes",
@@ -6510,6 +6563,14 @@
       ],
       "apiCallsDirectly": false
     },
+    "GlobalSearchModal": {
+      "name": "GlobalSearchModal",
+      "path": "components/admin/GlobalSearchModal.tsx",
+      "hooksUsed": [
+        "useGlobalSearch"
+      ],
+      "apiCallsDirectly": false
+    },
     "GroupTypeCard": {
       "name": "GroupTypeCard",
       "path": "components/admin/GroupTypeCard.tsx",
@@ -7361,6 +7422,11 @@
     {
       "from": "CampusEditorModal",
       "to": "useUpdateCampus",
+      "type": "uses_hook"
+    },
+    {
+      "from": "GlobalSearchModal",
+      "to": "useGlobalSearch",
       "type": "uses_hook"
     },
     {

@@ -99,6 +99,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPersonMergeService, PersonMergeService>();
         services.AddScoped<IDuplicateIgnoreService, DuplicateIgnoreService>();
 
+        // Global search service
+        services.AddScoped<IGlobalSearchService, GlobalSearchService>();
+
         // Self-service profile service
         services.AddScoped<IMyProfileService, MyProfileService>();
 

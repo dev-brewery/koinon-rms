@@ -48,4 +48,5 @@ export * as profileApi from './profile';
 export * as publicGroupsApi from './publicGroups';
 export * as referenceApi from './reference';
 export * as schedulesApi from './schedules';
+export * as searchApi from './search';
 export * as settingsApi from './settings';

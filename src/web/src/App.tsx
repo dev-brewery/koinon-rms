@@ -59,6 +59,7 @@ import { DataExportsPage } from './features/admin/DataExportsPage';
 import { PeopleImportPage } from './pages/admin/import/PeopleImportPage';
 import { FamiliesImportPage } from './pages/admin/import/FamiliesImportPage';
 import { ImportHistoryPage } from './pages/admin/import/ImportHistoryPage';
+import { SearchResultsPage } from './pages/SearchResultsPage';
 
 function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -241,6 +242,7 @@ function App() {
           errorElement={<RouteErrorBoundary />}
         >
           <Route index element={<DashboardPage />} />
+          <Route path="search" element={<SearchResultsPage />} />
           <Route path="people" element={<PeopleListPage />} />
           <Route path="people/new" element={<PersonFormPage />} />
           <Route path="people/duplicates" element={<DuplicateReviewPage />} />
