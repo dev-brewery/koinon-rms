@@ -52,27 +52,38 @@ public class GlobalSearchService(
 
         // Get category counts (always return total counts regardless of pagination)
         var categoryCounts = new Dictionary<string, int>();
-        
+
         var shouldSearchPeople = string.IsNullOrEmpty(category) || category.Equals(CategoryPeople, StringComparison.OrdinalIgnoreCase);
         var shouldSearchFamilies = string.IsNullOrEmpty(category) || category.Equals(CategoryFamilies, StringComparison.OrdinalIgnoreCase);
         var shouldSearchGroups = string.IsNullOrEmpty(category) || category.Equals(CategoryGroups, StringComparison.OrdinalIgnoreCase);
 
         // Count results for each category
-        var peopleCount = shouldSearchPeople 
+        var peopleCount = shouldSearchPeople
             ? await CountPeopleAsync(searchTerm, normalizedPhone, cancellationToken)
             : 0;
-        
-        var familiesCount = shouldSearchFamilies 
+
+        var familiesCount = shouldSearchFamilies
             ? await CountFamiliesAsync(searchTerm, cancellationToken)
             : 0;
-        
-        var groupsCount = shouldSearchGroups 
+
+        var groupsCount = shouldSearchGroups
             ? await CountGroupsAsync(searchTerm, cancellationToken)
             : 0;
 
-        if (peopleCount > 0) categoryCounts[CategoryPeople] = peopleCount;
-        if (familiesCount > 0) categoryCounts[CategoryFamilies] = familiesCount;
-        if (groupsCount > 0) categoryCounts[CategoryGroups] = groupsCount;
+        if (peopleCount > 0)
+        {
+            categoryCounts[CategoryPeople] = peopleCount;
+        }
+
+        if (familiesCount > 0)
+        {
+            categoryCounts[CategoryFamilies] = familiesCount;
+        }
+
+        if (groupsCount > 0)
+        {
+            categoryCounts[CategoryGroups] = groupsCount;
+        }
 
         var totalCount = peopleCount + familiesCount + groupsCount;
 
@@ -300,7 +311,7 @@ public class GlobalSearchService(
 
         var truncated = description[..maxLength];
         var lastSpace = truncated.LastIndexOf(' ');
-        
+
         if (lastSpace > 0)
         {
             truncated = truncated[..lastSpace];
