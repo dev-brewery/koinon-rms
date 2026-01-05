@@ -1,10 +1,12 @@
 using FluentValidation;
 using Koinon.Application.DTOs.Auth;
 using Koinon.Application.Interfaces;
+using Koinon.Application.Interfaces.Reporting;
 using Koinon.Application.Services;
 using Koinon.Application.Services.Common;
 using Koinon.Application.Services.Exports;
 using Koinon.Application.Services.Reporting;
+using Koinon.Application.Services.Reporting.DataProviders;
 using Koinon.Application.Validators;
 using Microsoft.Extensions.DependencyInjection;
 using QuestPDF.Infrastructure;
@@ -134,6 +136,13 @@ public static class ServiceCollectionExtensions
         services.AddTransient<AttendanceSummaryReportGenerator>();
         services.AddTransient<GivingSummaryReportGenerator>();
         services.AddTransient<DirectoryReportGenerator>();
+
+        // Report Data Providers
+        services.AddScoped<ReportDataProviderFactory>();
+        services.AddScoped<IReportDataProvider, AttendanceSummaryDataProvider>();
+        services.AddScoped<IReportDataProvider, GivingSummaryDataProvider>();
+        services.AddScoped<IReportDataProvider, DirectoryDataProvider>();
+        services.AddScoped<IReportDataProvider, CustomSqlDataProvider>();
 
         // Data Export Services
         services.AddScoped<IDataExportService, DataExportService>();
