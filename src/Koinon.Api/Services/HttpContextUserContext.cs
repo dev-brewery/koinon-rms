@@ -36,6 +36,12 @@ public class HttpContextUserContext(IHttpContextAccessor httpContextAccessor) : 
 
     public bool IsAuthenticated => httpContextAccessor.HttpContext?.User.Identity?.IsAuthenticated ?? false;
 
+    public string? ClientIpAddress => 
+        httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
+
+    public string? ClientUserAgent => 
+        httpContextAccessor.HttpContext?.Request.Headers["User-Agent"].ToString();
+
     public bool IsInRole(string role)
     {
         return httpContextAccessor.HttpContext?.User.IsInRole(role) ?? false;

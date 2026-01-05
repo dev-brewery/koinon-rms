@@ -27,6 +27,18 @@ public class FakeUserContext : IUserContext
     public bool IsAuthenticated { get; set; } = true;
 
     /// <summary>
+    /// Gets or sets the IP address of the client making the request.
+    /// Default is null (simulating background job or test context).
+    /// </summary>
+    public string? ClientIpAddress { get; set; }
+
+    /// <summary>
+    /// Gets or sets the User-Agent header of the client making the request.
+    /// Default is null (simulating background job or test context).
+    /// </summary>
+    public string? ClientUserAgent { get; set; }
+
+    /// <summary>
     /// Checks if the current user is in the specified role.
     /// Default implementation returns true for all roles.
     /// </summary>
