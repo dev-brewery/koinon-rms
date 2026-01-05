@@ -388,12 +388,35 @@ public class ReportService(
                     $"No report generator found for output format: {outputFormat}");
             }
 
-            // Generate the report (this would call the actual report data query and generation logic)
-            // For now, we're just calling the generator with empty data
+            // Resolve the appropriate data provider for this report type
+            var providers = serviceProvider.GetServices<IReportDataProvider>();
+            // SYNC OK: DI service resolution
+            var provider = providers.FirstOrDefault(p => p.ReportType == run.ReportDefinition.ReportType);
+
+            IEnumerable<object> reportData;
+            if (provider != null)
+            {
+                logger.LogDebug(
+                    "Using data provider {ProviderType} for report type {ReportType}",
+                    provider.GetType().Name,
+                    run.ReportDefinition.ReportType);
+
+                var data = await provider.GetDataAsync(run.Parameters, ct);
+                reportData = data.Cast<object>();
+            }
+            else
+            {
+                logger.LogWarning(
+                    "No data provider found for report type {ReportType}, using empty data",
+                    run.ReportDefinition.ReportType);
+                reportData = Array.Empty<object>();
+            }
+
+            // Generate the report with the retrieved data
             var (stream, fileName, mimeType) = await generator.GenerateAsync(
                 run.ReportDefinition.Name,
                 run.ReportDefinition.ReportType,
-                Array.Empty<object>(), // TODO(#396): Implement report data providers
+                reportData,
                 run.Parameters,
                 ct);
 
