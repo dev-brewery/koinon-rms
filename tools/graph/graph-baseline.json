@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-04T09:03:07.947752+00:00",
+  "generated_at": "2026-01-05T03:20:14.880225+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -6956,6 +6956,3591 @@
         "IUserContext",
         "ILogger<UserSettingsController>"
       ]
+    }
+  },
+  "types": {
+    "AttendanceAnalyticsDto": {
+      "name": "AttendanceAnalyticsDto",
+      "kind": "interface",
+      "properties": {
+        "totalAttendance": "number",
+        "uniqueAttendees": "number",
+        "firstTimeVisitors": "number",
+        "returningVisitors": "number",
+        "averageAttendance": "number",
+        "startDate": "string",
+        "endDate": "string"
+      },
+      "path": "types/analytics.ts"
+    },
+    "AttendanceTrendDto": {
+      "name": "AttendanceTrendDto",
+      "kind": "interface",
+      "properties": {
+        "date": "string",
+        "count": "number",
+        "firstTime": "number",
+        "returning": "number"
+      },
+      "path": "types/analytics.ts"
+    },
+    "AttendanceByGroupDto": {
+      "name": "AttendanceByGroupDto",
+      "kind": "interface",
+      "properties": {
+        "groupIdKey": "string",
+        "groupName": "string",
+        "groupTypeName": "string",
+        "totalAttendance": "number",
+        "uniqueAttendees": "number"
+      },
+      "path": "types/analytics.ts"
+    },
+    "FirstTimeVisitorDto": {
+      "name": "FirstTimeVisitorDto",
+      "kind": "interface",
+      "properties": {
+        "personIdKey": "string",
+        "personName": "string",
+        "email": "string",
+        "phoneNumber": "string",
+        "checkInDateTime": "string",
+        "groupName": "string",
+        "groupTypeName": "string",
+        "campusName": "string",
+        "hasFollowUp": "boolean"
+      },
+      "path": "types/analytics.ts"
+    },
+    "AttendanceAnalyticsParams": {
+      "name": "AttendanceAnalyticsParams",
+      "kind": "interface",
+      "properties": {
+        "startDate": "string",
+        "endDate": "string",
+        "campusIdKey": "string",
+        "groupTypeIdKey": "string"
+      },
+      "path": "types/analytics.ts"
+    },
+    "AuthorizedPickupDto": {
+      "name": "AuthorizedPickupDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "childIdKey": "IdKey",
+        "childName": "string",
+        "authorizedPersonIdKey": "IdKey",
+        "authorizedPersonName": "string",
+        "name": "string",
+        "phoneNumber": "string",
+        "relationship": "PickupRelationship",
+        "authorizationLevel": "AuthorizationLevel",
+        "photoUrl": "string",
+        "isActive": "boolean"
+      },
+      "path": "types/authorized-pickup.ts"
+    },
+    "PickupVerificationResultDto": {
+      "name": "PickupVerificationResultDto",
+      "kind": "interface",
+      "properties": {
+        "isAuthorized": "boolean",
+        "authorizationLevel": "AuthorizationLevel",
+        "authorizedPickupIdKey": "IdKey",
+        "message": "string",
+        "requiresSupervisorOverride": "boolean"
+      },
+      "path": "types/authorized-pickup.ts"
+    },
+    "PickupLogDto": {
+      "name": "PickupLogDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "attendanceIdKey": "IdKey",
+        "childName": "string",
+        "pickupPersonName": "string",
+        "wasAuthorized": "boolean",
+        "supervisorOverride": "boolean",
+        "supervisorName": "string",
+        "checkoutDateTime": "DateTime",
+        "notes": "string"
+      },
+      "path": "types/authorized-pickup.ts"
+    },
+    "CreateAuthorizedPickupRequest": {
+      "name": "CreateAuthorizedPickupRequest",
+      "kind": "interface",
+      "properties": {
+        "authorizedPersonIdKey": "IdKey",
+        "name": "string",
+        "phoneNumber": "string",
+        "relationship": "PickupRelationship",
+        "authorizationLevel": "AuthorizationLevel",
+        "photoUrl": "string",
+        "custodyNotes": "string"
+      },
+      "path": "types/authorized-pickup.ts"
+    },
+    "UpdateAuthorizedPickupRequest": {
+      "name": "UpdateAuthorizedPickupRequest",
+      "kind": "interface",
+      "properties": {
+        "relationship": "PickupRelationship",
+        "authorizationLevel": "AuthorizationLevel",
+        "photoUrl": "string",
+        "custodyNotes": "string",
+        "isActive": "boolean"
+      },
+      "path": "types/authorized-pickup.ts"
+    },
+    "VerifyPickupRequest": {
+      "name": "VerifyPickupRequest",
+      "kind": "interface",
+      "properties": {
+        "attendanceIdKey": "IdKey",
+        "pickupPersonIdKey": "IdKey",
+        "pickupPersonName": "string",
+        "securityCode": "string"
+      },
+      "path": "types/authorized-pickup.ts"
+    },
+    "RecordPickupRequest": {
+      "name": "RecordPickupRequest",
+      "kind": "interface",
+      "properties": {
+        "attendanceIdKey": "IdKey",
+        "pickupPersonIdKey": "IdKey",
+        "pickupPersonName": "string",
+        "wasAuthorized": "boolean",
+        "authorizedPickupIdKey": "IdKey",
+        "supervisorOverride": "boolean",
+        "supervisorPersonIdKey": "IdKey",
+        "notes": "string"
+      },
+      "path": "types/authorized-pickup.ts"
+    },
+    "PickupRelationship": {
+      "name": "PickupRelationship",
+      "kind": "enum",
+      "properties": {},
+      "path": "types/authorized-pickup.ts"
+    },
+    "AuthorizationLevel": {
+      "name": "AuthorizationLevel",
+      "kind": "enum",
+      "properties": {},
+      "path": "types/authorized-pickup.ts"
+    },
+    "CampusSummaryDto": {
+      "name": "CampusSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "shortCode": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CampusDto": {
+      "name": "CampusDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "name": "string",
+        "description": "string",
+        "shortCode": "string",
+        "isActive": "boolean",
+        "order": "number",
+        "url": "string",
+        "phoneNumber": "string",
+        "serviceTimes": "string",
+        "timeZoneId": "string",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CreateCampusRequest": {
+      "name": "CreateCampusRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "shortCode": "string",
+        "description": "string",
+        "url": "string",
+        "phoneNumber": "string",
+        "timeZoneId": "string",
+        "serviceTimes": "string",
+        "order": "number"
+      },
+      "path": "types/campus.ts"
+    },
+    "UpdateCampusRequest": {
+      "name": "UpdateCampusRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "shortCode": "string",
+        "description": "string",
+        "isActive": "boolean",
+        "url": "string",
+        "phoneNumber": "string",
+        "timeZoneId": "string",
+        "serviceTimes": "string",
+        "order": "number"
+      },
+      "path": "types/campus.ts"
+    },
+    "MarkAttendanceResultDto": {
+      "name": "MarkAttendanceResultDto",
+      "kind": "interface",
+      "properties": {
+        "success": "boolean",
+        "errorMessage": "string",
+        "attendanceIdKey": "IdKey",
+        "isFirstTime": "boolean",
+        "presentDateTime": "DateTime"
+      },
+      "path": "types/checkin-extended.ts"
+    },
+    "BulkMarkAttendanceResultDto": {
+      "name": "BulkMarkAttendanceResultDto",
+      "kind": "interface",
+      "properties": {
+        "results": "MarkAttendanceResultDto[]",
+        "successCount": "number",
+        "failureCount": "number",
+        "allSucceeded": "boolean"
+      },
+      "path": "types/checkin-extended.ts"
+    },
+    "OccurrenceRosterEntryDto": {
+      "name": "OccurrenceRosterEntryDto",
+      "kind": "interface",
+      "properties": {
+        "personIdKey": "IdKey",
+        "fullName": "string",
+        "firstName": "string",
+        "lastName": "string",
+        "nickName": "string",
+        "age": "number",
+        "photoUrl": "string",
+        "isAttending": "boolean",
+        "attendanceIdKey": "IdKey",
+        "presentDateTime": "DateTime",
+        "isFirstTime": "boolean",
+        "note": "string"
+      },
+      "path": "types/checkin-extended.ts"
+    },
+    "FamilyRosterGroupDto": {
+      "name": "FamilyRosterGroupDto",
+      "kind": "interface",
+      "properties": {
+        "familyIdKey": "IdKey",
+        "familyName": "string",
+        "members": "OccurrenceRosterEntryDto[]",
+        "attendingCount": "number",
+        "totalCount": "number"
+      },
+      "path": "types/checkin-extended.ts"
+    },
+    "CheckinFamilySearchResultDto": {
+      "name": "CheckinFamilySearchResultDto",
+      "kind": "interface",
+      "properties": {
+        "familyIdKey": "IdKey",
+        "familyName": "string",
+        "addressSummary": "string",
+        "campusName": "string",
+        "members": "CheckinFamilyMemberDto[]",
+        "recentCheckInCount": "number"
+      },
+      "path": "types/checkin-extended.ts"
+    },
+    "CheckinFamilyMemberDto": {
+      "name": "CheckinFamilyMemberDto",
+      "kind": "interface",
+      "properties": {
+        "personIdKey": "IdKey",
+        "fullName": "string",
+        "firstName": "string",
+        "lastName": "string",
+        "nickName": "string",
+        "age": "number",
+        "gender": "string",
+        "photoUrl": "string",
+        "roleName": "string",
+        "isChild": "boolean",
+        "hasRecentCheckIn": "boolean",
+        "lastCheckIn": "DateTime",
+        "grade": "string",
+        "allergies": "string",
+        "hasCriticalAllergies": "boolean",
+        "specialNeeds": "string"
+      },
+      "path": "types/checkin-extended.ts"
+    },
+    "AttendanceSummaryDto": {
+      "name": "AttendanceSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "person": "CheckinPersonSummaryDtoCore",
+        "location": "CheckinLocationSummaryDtoCore",
+        "startDateTime": "DateTime",
+        "endDateTime": "DateTime",
+        "securityCode": "string",
+        "isFirstTime": "boolean",
+        "note": "string"
+      },
+      "path": "types/checkin-extended.ts"
+    },
+    "ExtendedCheckinRequestDto": {
+      "name": "ExtendedCheckinRequestDto",
+      "kind": "type",
+      "properties": {},
+      "path": "types/checkin-extended.ts"
+    },
+    "ExtendedBatchCheckinRequestDto": {
+      "name": "ExtendedBatchCheckinRequestDto",
+      "kind": "type",
+      "properties": {},
+      "path": "types/checkin-extended.ts"
+    },
+    "ExtendedCheckinResultDto": {
+      "name": "ExtendedCheckinResultDto",
+      "kind": "type",
+      "properties": {},
+      "path": "types/checkin-extended.ts"
+    },
+    "ExtendedBatchCheckinResultDto": {
+      "name": "ExtendedBatchCheckinResultDto",
+      "kind": "type",
+      "properties": {},
+      "path": "types/checkin-extended.ts"
+    },
+    "CheckinValidationResult": {
+      "name": "CheckinValidationResult",
+      "kind": "type",
+      "properties": {},
+      "path": "types/checkin-extended.ts"
+    },
+    "ExtendedCheckinConfigurationDto": {
+      "name": "ExtendedCheckinConfigurationDto",
+      "kind": "type",
+      "properties": {},
+      "path": "types/checkin-extended.ts"
+    },
+    "ExtendedCampusSummaryDto": {
+      "name": "ExtendedCampusSummaryDto",
+      "kind": "type",
+      "properties": {},
+      "path": "types/checkin-extended.ts"
+    },
+    "ExtendedCheckinAreaDto": {
+      "name": "ExtendedCheckinAreaDto",
+      "kind": "type",
+      "properties": {},
+      "path": "types/checkin-extended.ts"
+    },
+    "ExtendedCheckinLocationDto": {
+      "name": "ExtendedCheckinLocationDto",
+      "kind": "type",
+      "properties": {},
+      "path": "types/checkin-extended.ts"
+    },
+    "ExtendedScheduleDto": {
+      "name": "ExtendedScheduleDto",
+      "kind": "type",
+      "properties": {},
+      "path": "types/checkin-extended.ts"
+    },
+    "ExtendedGroupTypeSummaryDto": {
+      "name": "ExtendedGroupTypeSummaryDto",
+      "kind": "type",
+      "properties": {},
+      "path": "types/checkin-extended.ts"
+    },
+    "CheckinCampusSummaryDto": {
+      "name": "CheckinCampusSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "shortCode": "string"
+      },
+      "path": "types/checkin.ts"
+    },
+    "CheckinGroupTypeSummaryDto": {
+      "name": "CheckinGroupTypeSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "name": "string",
+        "description": "string",
+        "isFamilyGroupType": "boolean",
+        "allowMultipleLocations": "boolean",
+        "roles": "CheckinGroupTypeRoleDto[]"
+      },
+      "path": "types/checkin.ts"
+    },
+    "CheckinGroupTypeRoleDto": {
+      "name": "CheckinGroupTypeRoleDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "isLeader": "boolean"
+      },
+      "path": "types/checkin.ts"
+    },
+    "CheckinScheduleDto": {
+      "name": "CheckinScheduleDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "name": "string",
+        "description": "string",
+        "weeklyDayOfWeek": "number",
+        "09": "00:00\") for simple weekly schedules */\n  weeklyTimeOfDay?: string",
+        "checkInStartOffsetMinutes": "number",
+        "checkInEndOffsetMinutes": "number",
+        "isActive": "boolean",
+        "isCheckinActive": "boolean",
+        "checkinStartTime": "DateTime",
+        "checkinEndTime": "DateTime",
+        "isPublic": "boolean",
+        "order": "number",
+        "effectiveStartDate": "DateOnly",
+        "effectiveEndDate": "DateOnly",
+        "iCalendarContent": "string",
+        "autoInactivateWhenComplete": "boolean",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "types/checkin.ts"
+    },
+    "CheckinLocationDto": {
+      "name": "CheckinLocationDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "currentCount": "number",
+        "softThreshold": "number",
+        "firmThreshold": "number",
+        "isOpen": "boolean",
+        "schedules": "ScheduleDto[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckinAreaDto": {
+      "name": "CheckinAreaDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "groups": "CheckinGroupDto[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckinConfigurationDto": {
+      "name": "CheckinConfigurationDto",
+      "kind": "interface",
+      "properties": {
+        "campus": "CheckinCampusSummaryDto",
+        "areas": "CheckinAreaDto[]",
+        "activeSchedules": "CheckinScheduleDto[]",
+        "serverTime": "DateTime"
+      },
+      "path": "types/checkin.ts"
+    },
+    "CheckinRequestDto": {
+      "name": "CheckinRequestDto",
+      "kind": "interface",
+      "properties": {
+        "personIdKey": "IdKey",
+        "locationIdKey": "IdKey",
+        "scheduleIdKey": "IdKey",
+        "occurrenceDate": "DateOnly",
+        "deviceIdKey": "IdKey",
+        "generateSecurityCode": "boolean",
+        "note": "string"
+      },
+      "path": "types/checkin.ts"
+    },
+    "BatchCheckinRequestDto": {
+      "name": "BatchCheckinRequestDto",
+      "kind": "interface",
+      "properties": {
+        "checkIns": "CheckinRequestDto[]",
+        "deviceIdKey": "IdKey"
+      },
+      "path": "types/checkin.ts"
+    },
+    "CheckinResultDto": {
+      "name": "CheckinResultDto",
+      "kind": "interface",
+      "properties": {
+        "success": "boolean",
+        "errorMessage": "string",
+        "attendanceIdKey": "IdKey",
+        "securityCode": "string",
+        "checkInTime": "DateTime",
+        "person": "CheckinPersonSummaryDto",
+        "location": "CheckinLocationSummaryDto"
+      },
+      "path": "types/checkin.ts"
+    },
+    "BatchCheckinResultDto": {
+      "name": "BatchCheckinResultDto",
+      "kind": "interface",
+      "properties": {
+        "results": "CheckinResultDto[]",
+        "successCount": "number",
+        "failureCount": "number",
+        "allSucceeded": "boolean"
+      },
+      "path": "types/checkin.ts"
+    },
+    "CheckinPersonSummaryDto": {
+      "name": "CheckinPersonSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "fullName": "string",
+        "firstName": "string",
+        "lastName": "string",
+        "nickName": "string",
+        "age": "number",
+        "photoUrl": "string"
+      },
+      "path": "types/checkin.ts"
+    },
+    "CheckinLocationSummaryDto": {
+      "name": "CheckinLocationSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "fullPath": "string"
+      },
+      "path": "types/checkin.ts"
+    },
+    "CheckinValidationResultDto": {
+      "name": "CheckinValidationResultDto",
+      "kind": "interface",
+      "properties": {
+        "isAllowed": "boolean",
+        "reason": "string",
+        "isAlreadyCheckedIn": "boolean",
+        "isAtCapacity": "boolean",
+        "isOutsideSchedule": "boolean"
+      },
+      "path": "types/checkin.ts"
+    },
+    "CapacityStatusDto": {
+      "name": "CapacityStatusDto",
+      "kind": "enum",
+      "properties": {},
+      "path": "types/checkin.ts"
+    },
+    "CommunicationRecipientDto": {
+      "name": "CommunicationRecipientDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "personIdKey": "string",
+        "address": "string",
+        "recipientName": "string",
+        "status": "string",
+        "deliveredDateTime": "DateTime",
+        "openedDateTime": "DateTime",
+        "errorMessage": "string",
+        "groupIdKey": "string"
+      },
+      "path": "types/communication.ts"
+    },
+    "CommunicationDto": {
+      "name": "CommunicationDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "string",
+        "communicationType": "string",
+        "status": "string",
+        "subject": "string",
+        "body": "string",
+        "fromEmail": "string",
+        "fromName": "string",
+        "replyToEmail": "string",
+        "sentDateTime": "DateTime",
+        "scheduledDateTime": "DateTime",
+        "recipientCount": "number",
+        "deliveredCount": "number",
+        "failedCount": "number",
+        "openedCount": "number",
+        "note": "string",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime",
+        "recipients": "CommunicationRecipientDto[]"
+      },
+      "path": "types/communication.ts"
+    },
+    "CommunicationSummaryDto": {
+      "name": "CommunicationSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "communicationType": "string",
+        "status": "string",
+        "subject": "string",
+        "recipientCount": "number",
+        "deliveredCount": "number",
+        "failedCount": "number",
+        "createdDateTime": "DateTime",
+        "sentDateTime": "DateTime",
+        "scheduledDateTime": "DateTime"
+      },
+      "path": "types/communication.ts"
+    },
+    "CreateCommunicationDto": {
+      "name": "CreateCommunicationDto",
+      "kind": "interface",
+      "properties": {
+        "communicationType": "string",
+        "subject": "string",
+        "body": "string",
+        "fromEmail": "string",
+        "fromName": "string",
+        "replyToEmail": "string",
+        "note": "string",
+        "groupIdKeys": "string[]",
+        "scheduledDateTime": "string"
+      },
+      "path": "types/communication.ts"
+    },
+    "UpdateCommunicationDto": {
+      "name": "UpdateCommunicationDto",
+      "kind": "interface",
+      "properties": {
+        "subject": "string",
+        "body": "string",
+        "fromEmail": "string",
+        "fromName": "string",
+        "replyToEmail": "string",
+        "note": "string"
+      },
+      "path": "types/communication.ts"
+    },
+    "ScheduleCommunicationRequest": {
+      "name": "ScheduleCommunicationRequest",
+      "kind": "interface",
+      "properties": {
+        "scheduledDateTime": "string"
+      },
+      "path": "types/communication.ts"
+    },
+    "CommunicationsParams": {
+      "name": "CommunicationsParams",
+      "kind": "interface",
+      "properties": {
+        "page": "number",
+        "pageSize": "number",
+        "status": "string"
+      },
+      "path": "types/communication.ts"
+    },
+    "CommunicationTemplateDto": {
+      "name": "CommunicationTemplateDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "communicationType": "string",
+        "subject": "string",
+        "body": "string",
+        "description": "string",
+        "isActive": "boolean",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "types/communication.ts"
+    },
+    "CommunicationTemplateSummaryDto": {
+      "name": "CommunicationTemplateSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "communicationType": "string",
+        "isActive": "boolean"
+      },
+      "path": "types/communication.ts"
+    },
+    "CreateCommunicationTemplateDto": {
+      "name": "CreateCommunicationTemplateDto",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "communicationType": "string",
+        "subject": "string",
+        "body": "string",
+        "description": "string",
+        "isActive": "boolean"
+      },
+      "path": "types/communication.ts"
+    },
+    "UpdateCommunicationTemplateDto": {
+      "name": "UpdateCommunicationTemplateDto",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "subject": "string",
+        "body": "string",
+        "description": "string",
+        "isActive": "boolean"
+      },
+      "path": "types/communication.ts"
+    },
+    "CommunicationTemplatesParams": {
+      "name": "CommunicationTemplatesParams",
+      "kind": "interface",
+      "properties": {
+        "page": "number",
+        "pageSize": "number",
+        "type": "string",
+        "isActive": "boolean"
+      },
+      "path": "types/communication.ts"
+    },
+    "MergeFieldDto": {
+      "name": "MergeFieldDto",
+      "kind": "interface",
+      "properties": {
+        "name": "string"
+      },
+      "path": "types/communication.ts"
+    },
+    "CommunicationPreviewRequest": {
+      "name": "CommunicationPreviewRequest",
+      "kind": "interface",
+      "properties": {
+        "subject": "string",
+        "body": "string",
+        "personIdKey": "string"
+      },
+      "path": "types/communication.ts"
+    },
+    "CommunicationPreviewResponse": {
+      "name": "CommunicationPreviewResponse",
+      "kind": "interface",
+      "properties": {
+        "subject": "string",
+        "body": "string",
+        "personName": "string"
+      },
+      "path": "types/communication.ts"
+    },
+    "CommunicationPreferenceDto": {
+      "name": "CommunicationPreferenceDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "personIdKey": "string",
+        "communicationType": "'Email' | 'Sms'",
+        "isOptedOut": "boolean",
+        "optOutDateTime": "DateTime",
+        "optOutReason": "string"
+      },
+      "path": "types/communication.ts"
+    },
+    "UpdateCommunicationPreferenceDto": {
+      "name": "UpdateCommunicationPreferenceDto",
+      "kind": "interface",
+      "properties": {
+        "isOptedOut": "boolean",
+        "optOutReason": "string"
+      },
+      "path": "types/communication.ts"
+    },
+    "BulkUpdatePreferencesDto": {
+      "name": "BulkUpdatePreferencesDto",
+      "kind": "interface",
+      "properties": {
+        "preferences": "Array<{\n    communicationType: 'Email' | 'Sms'",
+        "isOptedOut": "boolean",
+        "optOutReason": "string"
+      },
+      "path": "types/communication.ts"
+    },
+    "CommunicationType": {
+      "name": "CommunicationType",
+      "kind": "enum",
+      "properties": {},
+      "path": "types/communication.ts"
+    },
+    "CommunicationStatus": {
+      "name": "CommunicationStatus",
+      "kind": "enum",
+      "properties": {},
+      "path": "types/communication.ts"
+    },
+    "CommunicationRecipientStatus": {
+      "name": "CommunicationRecipientStatus",
+      "kind": "enum",
+      "properties": {},
+      "path": "types/communication.ts"
+    },
+    "UpcomingScheduleDto": {
+      "name": "UpcomingScheduleDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "string",
+        "name": "string",
+        "nextOccurrence": "string",
+        "minutesUntilCheckIn": "number"
+      },
+      "path": "types/dashboard.ts"
+    },
+    "BatchSummary": {
+      "name": "BatchSummary",
+      "kind": "interface",
+      "properties": {
+        "idKey": "string",
+        "name": "string",
+        "batchDate": "string",
+        "status": "'Open' | 'Pending' | 'Closed'",
+        "total": "number"
+      },
+      "path": "types/dashboard.ts"
+    },
+    "GivingStats": {
+      "name": "GivingStats",
+      "kind": "interface",
+      "properties": {
+        "monthToDateTotal": "number",
+        "yearToDateTotal": "number",
+        "recentBatches": "BatchSummary[]"
+      },
+      "path": "types/dashboard.ts"
+    },
+    "CommunicationSummary": {
+      "name": "CommunicationSummary",
+      "kind": "interface",
+      "properties": {
+        "idKey": "string",
+        "subject": "string",
+        "type": "'Email' | 'SMS' | 'Push'",
+        "status": "'Draft' | 'Pending' | 'Sent' | 'Failed'",
+        "createdDateTime": "string"
+      },
+      "path": "types/dashboard.ts"
+    },
+    "CommunicationsStats": {
+      "name": "CommunicationsStats",
+      "kind": "interface",
+      "properties": {
+        "pendingCount": "number",
+        "sentThisWeekCount": "number",
+        "recentCommunications": "CommunicationSummary[]"
+      },
+      "path": "types/dashboard.ts"
+    },
+    "DashboardStatsDto": {
+      "name": "DashboardStatsDto",
+      "kind": "interface",
+      "properties": {
+        "totalPeople": "number",
+        "totalFamilies": "number",
+        "activeGroups": "number",
+        "todayCheckIns": "number",
+        "lastWeekCheckIns": "number",
+        "activeSchedules": "number",
+        "upcomingSchedules": "UpcomingScheduleDto[]",
+        "givingStats": "GivingStats",
+        "communicationsStats": "CommunicationsStats"
+      },
+      "path": "types/dashboard.ts"
+    },
+    "AddressDto": {
+      "name": "AddressDto",
+      "kind": "interface",
+      "properties": {
+        "street1": "string",
+        "street2": "string",
+        "city": "string",
+        "state": "string",
+        "postalCode": "string",
+        "country": "string",
+        "formattedAddress": "string",
+        "formattedHtmlAddress": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "FamilyMembershipDto": {
+      "name": "FamilyMembershipDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "person": "PersonSummaryDto",
+        "role": "GroupTypeRoleDto",
+        "status": "string",
+        "dateTimeAdded": "DateTime"
+      },
+      "path": "types/family.ts"
+    },
+    "FamilyDto": {
+      "name": "FamilyDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "name": "string",
+        "description": "string",
+        "isActive": "boolean",
+        "campus": "CampusSummaryDto",
+        "address": "AddressDto",
+        "members": "FamilyMembershipDto[]",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "types/family.ts"
+    },
+    "FileMetadataDto": {
+      "name": "FileMetadataDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "fileName": "string",
+        "mimeType": "string",
+        "fileSizeBytes": "number",
+        "width": "number",
+        "height": "number",
+        "binaryFileType": "DefinedValueDto",
+        "description": "string",
+        "createdDateTime": "DateTime",
+        "url": "string"
+      },
+      "path": "types/files.ts"
+    },
+    "UploadFileRequest": {
+      "name": "UploadFileRequest",
+      "kind": "interface",
+      "properties": {
+        "fileName": "string",
+        "contentType": "string",
+        "length": "number",
+        "description": "string",
+        "binaryFileTypeIdKey": "string"
+      },
+      "path": "types/files.ts"
+    },
+    "UploadFileOptions": {
+      "name": "UploadFileOptions",
+      "kind": "interface",
+      "properties": {
+        "description": "string",
+        "binaryFileTypeIdKey": "string"
+      },
+      "path": "types/files.ts"
+    },
+    "FollowUpDto": {
+      "name": "FollowUpDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "personIdKey": "IdKey",
+        "personName": "string",
+        "attendanceIdKey": "IdKey",
+        "status": "FollowUpStatus",
+        "notes": "string",
+        "assignedToIdKey": "IdKey",
+        "assignedToName": "string",
+        "contactedDateTime": "DateTime",
+        "completedDateTime": "DateTime",
+        "createdDateTime": "DateTime"
+      },
+      "path": "types/followup.ts"
+    },
+    "UpdateFollowUpStatusRequest": {
+      "name": "UpdateFollowUpStatusRequest",
+      "kind": "interface",
+      "properties": {
+        "status": "FollowUpStatus",
+        "notes": "string"
+      },
+      "path": "types/followup.ts"
+    },
+    "AssignFollowUpRequest": {
+      "name": "AssignFollowUpRequest",
+      "kind": "interface",
+      "properties": {
+        "assignedToIdKey": "IdKey"
+      },
+      "path": "types/followup.ts"
+    },
+    "FollowUpStatus": {
+      "name": "FollowUpStatus",
+      "kind": "enum",
+      "properties": {},
+      "path": "types/followup.ts"
+    },
+    "FundDto": {
+      "name": "FundDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "publicName": "string",
+        "isActive": "boolean",
+        "isPublic": "boolean"
+      },
+      "path": "types/giving.ts"
+    },
+    "ContributionBatchDto": {
+      "name": "ContributionBatchDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "batchDate": "DateTime",
+        "status": "string",
+        "controlAmount": "number",
+        "controlItemCount": "number",
+        "campusIdKey": "string",
+        "note": "string",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "types/giving.ts"
+    },
+    "BatchSummaryDto": {
+      "name": "BatchSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "status": "string",
+        "controlAmount": "number",
+        "controlItemCount": "number",
+        "actualAmount": "number",
+        "contributionCount": "number",
+        "itemCountVariance": "number",
+        "variance": "number",
+        "isBalanced": "boolean"
+      },
+      "path": "types/giving.ts"
+    },
+    "CreateBatchRequest": {
+      "name": "CreateBatchRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "batchDate": "DateTime",
+        "controlAmount": "number",
+        "controlItemCount": "number",
+        "campusIdKey": "string",
+        "note": "string"
+      },
+      "path": "types/giving.ts"
+    },
+    "ContributionDto": {
+      "name": "ContributionDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "personIdKey": "string",
+        "personName": "string",
+        "batchIdKey": "string",
+        "transactionDateTime": "DateTime",
+        "transactionCode": "string",
+        "transactionTypeValueIdKey": "string",
+        "sourceTypeValueIdKey": "string",
+        "summary": "string",
+        "campusIdKey": "string",
+        "details": "ContributionDetailDto[]",
+        "totalAmount": "number"
+      },
+      "path": "types/giving.ts"
+    },
+    "ContributionDetailDto": {
+      "name": "ContributionDetailDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "fundIdKey": "string",
+        "fundName": "string",
+        "amount": "number",
+        "summary": "string"
+      },
+      "path": "types/giving.ts"
+    },
+    "AddContributionRequest": {
+      "name": "AddContributionRequest",
+      "kind": "interface",
+      "properties": {
+        "personIdKey": "string",
+        "transactionDateTime": "DateTime",
+        "transactionCode": "string",
+        "transactionTypeValueIdKey": "string",
+        "details": "ContributionDetailRequest[]",
+        "summary": "string"
+      },
+      "path": "types/giving.ts"
+    },
+    "UpdateContributionRequest": {
+      "name": "UpdateContributionRequest",
+      "kind": "interface",
+      "properties": {
+        "personIdKey": "string",
+        "transactionDateTime": "DateTime",
+        "transactionCode": "string",
+        "transactionTypeValueIdKey": "string",
+        "details": "ContributionDetailRequest[]",
+        "summary": "string"
+      },
+      "path": "types/giving.ts"
+    },
+    "ContributionDetailRequest": {
+      "name": "ContributionDetailRequest",
+      "kind": "interface",
+      "properties": {
+        "fundIdKey": "string",
+        "amount": "number",
+        "summary": "string"
+      },
+      "path": "types/giving.ts"
+    },
+    "PersonLookupDto": {
+      "name": "PersonLookupDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "fullName": "string",
+        "email": "string"
+      },
+      "path": "types/giving.ts"
+    },
+    "ContributionStatementDto": {
+      "name": "ContributionStatementDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "personIdKey": "string",
+        "personName": "string",
+        "startDate": "DateTime",
+        "endDate": "DateTime",
+        "totalAmount": "number",
+        "contributionCount": "number",
+        "generatedDateTime": "DateTime"
+      },
+      "path": "types/giving.ts"
+    },
+    "StatementContributionDto": {
+      "name": "StatementContributionDto",
+      "kind": "interface",
+      "properties": {
+        "date": "DateTime",
+        "fundName": "string",
+        "amount": "number",
+        "checkNumber": "string"
+      },
+      "path": "types/giving.ts"
+    },
+    "GenerateStatementRequest": {
+      "name": "GenerateStatementRequest",
+      "kind": "interface",
+      "properties": {
+        "personIdKey": "string",
+        "startDate": "DateTime",
+        "endDate": "DateTime"
+      },
+      "path": "types/giving.ts"
+    },
+    "StatementPreviewDto": {
+      "name": "StatementPreviewDto",
+      "kind": "interface",
+      "properties": {
+        "personIdKey": "string",
+        "personName": "string",
+        "personAddress": "string",
+        "startDate": "DateTime",
+        "endDate": "DateTime",
+        "totalAmount": "number",
+        "contributions": "StatementContributionDto[]",
+        "churchName": "string",
+        "churchAddress": "string"
+      },
+      "path": "types/giving.ts"
+    },
+    "EligiblePersonDto": {
+      "name": "EligiblePersonDto",
+      "kind": "interface",
+      "properties": {
+        "personIdKey": "string",
+        "personName": "string",
+        "totalAmount": "number",
+        "contributionCount": "number"
+      },
+      "path": "types/giving.ts"
+    },
+    "BatchFilterParams": {
+      "name": "BatchFilterParams",
+      "kind": "interface",
+      "properties": {
+        "status": "string",
+        "campusIdKey": "string",
+        "startDate": "string",
+        "endDate": "string",
+        "page": "number",
+        "pageSize": "number"
+      },
+      "path": "types/giving.ts"
+    },
+    "BatchListResponse": {
+      "name": "BatchListResponse",
+      "kind": "interface",
+      "properties": {
+        "data": "ContributionBatchDto[]",
+        "meta": "{\n    page: number",
+        "pageSize": "number",
+        "totalCount": "number",
+        "totalPages": "number"
+      },
+      "path": "types/giving.ts"
+    },
+    "BatchStatus": {
+      "name": "BatchStatus",
+      "kind": "enum",
+      "properties": {},
+      "path": "types/giving.ts"
+    },
+    "GroupTypeRoleDto": {
+      "name": "GroupTypeRoleDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "isLeader": "boolean",
+        "order": "number"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupTypeSummaryDto": {
+      "name": "GroupTypeSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "iconCssClass": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupTypeDto": {
+      "name": "GroupTypeDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "name": "string",
+        "description": "string",
+        "groupTerm": "string",
+        "groupMemberTerm": "string",
+        "iconCssClass": "string",
+        "roles": "GroupTypeRoleDto[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupTypeDetailDto": {
+      "name": "GroupTypeDetailDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "name": "string",
+        "description": "string",
+        "iconCssClass": "string",
+        "color": "string",
+        "groupTerm": "string",
+        "groupMemberTerm": "string",
+        "takesAttendance": "boolean",
+        "allowSelfRegistration": "boolean",
+        "requiresMemberApproval": "boolean",
+        "defaultIsPublic": "boolean",
+        "defaultGroupCapacity": "number",
+        "showInGroupList": "boolean",
+        "showInNavigation": "boolean",
+        "attendanceCountsAsWeekendService": "boolean",
+        "sendAttendanceReminder": "boolean",
+        "allowMultipleLocations": "boolean",
+        "enableSpecificGroupRequirements": "boolean",
+        "allowGroupSync": "boolean",
+        "allowSpecificGroupMemberAttributes": "boolean",
+        "showConnectionStatus": "boolean",
+        "ignorePersonInactivated": "boolean",
+        "isSystem": "boolean",
+        "isArchived": "boolean",
+        "order": "number",
+        "groupCount": "number",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "types/group.ts"
+    },
+    "GroupSummaryDto": {
+      "name": "GroupSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "description": "string",
+        "groupType": "GroupTypeSummaryDto",
+        "campus": "CampusSummaryDto",
+        "memberCount": "number",
+        "isActive": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupDto": {
+      "name": "GroupDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "name": "string",
+        "description": "string",
+        "isActive": "boolean",
+        "isArchived": "boolean",
+        "isSecurityRole": "boolean",
+        "isPublic": "boolean",
+        "allowGuests": "boolean",
+        "groupCapacity": "number",
+        "order": "number",
+        "groupType": "GroupTypeSummaryDto",
+        "campus": "CampusSummaryDto",
+        "parentGroup": "GroupSummaryDto",
+        "members": "GroupMemberDto[]",
+        "childGroups": "GroupSummaryDto[]",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime",
+        "archivedDateTime": "DateTime"
+      },
+      "path": "types/group.ts"
+    },
+    "GroupMemberDto": {
+      "name": "GroupMemberDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "person": "PersonSummaryDto",
+        "role": "GroupTypeRoleDto",
+        "status": "string",
+        "dateTimeAdded": "DateTime",
+        "inactiveDateTime": "DateTime",
+        "note": "string"
+      },
+      "path": "types/group.ts"
+    },
+    "GroupMemberDetailDto": {
+      "name": "GroupMemberDetailDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "person": "PersonSummaryDto",
+        "role": "GroupTypeRoleDto",
+        "status": "GroupMemberStatus",
+        "dateAdded": "DateTime",
+        "note": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "PublicGroupDto": {
+      "name": "PublicGroupDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "string",
+        "name": "string",
+        "publicDescription": "string",
+        "groupTypeName": "string",
+        "campusIdKey": "string",
+        "campusName": "string",
+        "memberCount": "number",
+        "capacity": "number",
+        "hasOpenings": "boolean",
+        "meetingDay": "string",
+        "meetingTime": "string",
+        "meetingScheduleSummary": "string"
+      },
+      "path": "types/group.ts"
+    },
+    "PublicGroupSearchParams": {
+      "name": "PublicGroupSearchParams",
+      "kind": "interface",
+      "properties": {
+        "searchTerm": "string",
+        "groupTypeIdKey": "string",
+        "campusIdKey": "string",
+        "dayOfWeek": "number",
+        "timeOfDay": "0 | 1 | 2",
+        "hasOpenings": "boolean",
+        "pageNumber": "number",
+        "pageSize": "number"
+      },
+      "path": "types/group.ts"
+    },
+    "ValidationError": {
+      "name": "ValidationError",
+      "kind": "interface",
+      "properties": {
+        "rowNumber": "number",
+        "columnName": "string",
+        "value": "string",
+        "message": "string",
+        "severity": "ValidationSeverity"
+      },
+      "path": "types/import.ts"
+    },
+    "ImportProgress": {
+      "name": "ImportProgress",
+      "kind": "interface",
+      "properties": {
+        "processedRows": "number",
+        "totalRows": "number",
+        "successCount": "number",
+        "errorCount": "number",
+        "elapsedSeconds": "number",
+        "status": "ImportStatus"
+      },
+      "path": "types/import.ts"
+    },
+    "ImportRowErrorDto": {
+      "name": "ImportRowErrorDto",
+      "kind": "interface",
+      "properties": {
+        "row": "number",
+        "column": "string",
+        "value": "string",
+        "message": "string"
+      },
+      "path": "types/import.ts"
+    },
+    "CsvValidationErrorDto": {
+      "name": "CsvValidationErrorDto",
+      "kind": "interface",
+      "properties": {
+        "rowNumber": "number",
+        "columnName": "string",
+        "value": "string",
+        "errorMessage": "string"
+      },
+      "path": "types/import.ts"
+    },
+    "CsvPreviewDto": {
+      "name": "CsvPreviewDto",
+      "kind": "interface",
+      "properties": {
+        "headers": "string[]",
+        "sampleRows": "string[][]",
+        "totalRowCount": "number",
+        "detectedDelimiter": "string",
+        "detectedEncoding": "string"
+      },
+      "path": "types/import.ts"
+    },
+    "FieldMappingDto": {
+      "name": "FieldMappingDto",
+      "kind": "interface",
+      "properties": {
+        "sourceColumn": "string",
+        "targetField": "string"
+      },
+      "path": "types/import.ts"
+    },
+    "ImportTemplateDto": {
+      "name": "ImportTemplateDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "string",
+        "name": "string",
+        "description": "string",
+        "importType": "string",
+        "fieldMappings": "Record<string, string>",
+        "isActive": "boolean",
+        "isSystem": "boolean",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "types/import.ts"
+    },
+    "ImportJobDto": {
+      "name": "ImportJobDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "string",
+        "importTemplateIdKey": "string",
+        "importType": "string",
+        "status": "string",
+        "fileName": "string",
+        "totalRows": "number",
+        "processedRows": "number",
+        "successCount": "number",
+        "errorCount": "number",
+        "errors": "ImportRowErrorDto[]",
+        "startedAt": "DateTime",
+        "completedAt": "DateTime",
+        "createdDateTime": "DateTime"
+      },
+      "path": "types/import.ts"
+    },
+    "CreateImportTemplateRequest": {
+      "name": "CreateImportTemplateRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "description": "string",
+        "importType": "string",
+        "fieldMappings": "Record<string, string>"
+      },
+      "path": "types/import.ts"
+    },
+    "ValidateImportRequest": {
+      "name": "ValidateImportRequest",
+      "kind": "interface",
+      "properties": {
+        "fileName": "string",
+        "importType": "string",
+        "fieldMappings": "Record<string, string>"
+      },
+      "path": "types/import.ts"
+    },
+    "StartImportRequest": {
+      "name": "StartImportRequest",
+      "kind": "interface",
+      "properties": {
+        "fileName": "string",
+        "importType": "string",
+        "fieldMappings": "Record<string, string>",
+        "importTemplateIdKey": "string"
+      },
+      "path": "types/import.ts"
+    },
+    "ValidationSeverity": {
+      "name": "ValidationSeverity",
+      "kind": "type",
+      "properties": {},
+      "path": "types/import.ts"
+    },
+    "ImportStatus": {
+      "name": "ImportStatus",
+      "kind": "type",
+      "properties": {},
+      "path": "types/import.ts"
+    },
+    "ImportType": {
+      "name": "ImportType",
+      "kind": "enum",
+      "properties": {},
+      "path": "types/import.ts"
+    },
+    "ImportJobStatus": {
+      "name": "ImportJobStatus",
+      "kind": "enum",
+      "properties": {},
+      "path": "types/import.ts"
+    },
+    "LabelDto": {
+      "name": "LabelDto",
+      "kind": "interface",
+      "properties": {
+        "attendanceIdKey": "IdKey",
+        "labelType": "'Child' | 'Parent' | 'NameTag'",
+        "printData": "string",
+        "printerAddress": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "LabelSetDto": {
+      "name": "LabelSetDto",
+      "kind": "interface",
+      "properties": {
+        "attendanceIdKey": "IdKey",
+        "personIdKey": "IdKey",
+        "labels": "LabelDto[]"
+      },
+      "path": "types/labels.ts"
+    },
+    "LabelTemplateDto": {
+      "name": "LabelTemplateDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "type": "LabelType",
+        "format": "string",
+        "template": "string",
+        "widthMm": "number",
+        "heightMm": "number"
+      },
+      "path": "types/labels.ts"
+    },
+    "LabelRequestDto": {
+      "name": "LabelRequestDto",
+      "kind": "interface",
+      "properties": {
+        "attendanceIdKey": "IdKey",
+        "Optional": "additional custom fields for label templates */\n  customFields?: Record<string, string>"
+      },
+      "path": "types/labels.ts"
+    },
+    "BatchLabelRequestDto": {
+      "name": "BatchLabelRequestDto",
+      "kind": "interface",
+      "properties": {
+        "attendanceIdKeys": "IdKey[]",
+        "Optional": "additional custom fields for label templates */\n  customFields?: Record<string, string>"
+      },
+      "path": "types/labels.ts"
+    },
+    "LabelPreviewRequestDto": {
+      "name": "LabelPreviewRequestDto",
+      "kind": "interface",
+      "properties": {
+        "type": "LabelType",
+        "fields": "Record<string, string>",
+        "Optional": "specific template to use (default: system default for type) */\n  templateIdKey?: IdKey"
+      },
+      "path": "types/labels.ts"
+    },
+    "LabelPreviewDto": {
+      "name": "LabelPreviewDto",
+      "kind": "interface",
+      "properties": {
+        "type": "LabelType",
+        "previewHtml": "string",
+        "format": "string"
+      },
+      "path": "types/labels.ts"
+    },
+    "LabelType": {
+      "name": "LabelType",
+      "kind": "enum",
+      "properties": {},
+      "path": "types/labels.ts"
+    },
+    "LocationDto": {
+      "name": "LocationDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "string",
+        "guid": "string",
+        "name": "string",
+        "description": "string",
+        "isActive": "boolean",
+        "order": "number",
+        "parentLocationIdKey": "string",
+        "parentLocationName": "string",
+        "campusIdKey": "string",
+        "campusName": "string",
+        "locationTypeName": "string",
+        "softRoomThreshold": "number",
+        "firmRoomThreshold": "number",
+        "staffToChildRatio": "number",
+        "overflowLocationIdKey": "string",
+        "overflowLocationName": "string",
+        "autoAssignOverflow": "boolean",
+        "street1": "string",
+        "street2": "string",
+        "city": "string",
+        "state": "string",
+        "postalCode": "string",
+        "country": "string",
+        "latitude": "number",
+        "longitude": "number",
+        "isGeoPointLocked": "boolean",
+        "children": "LocationDto[]",
+        "createdDateTime": "string",
+        "modifiedDateTime": "string"
+      },
+      "path": "types/location.ts"
+    },
+    "LocationSummaryDto": {
+      "name": "LocationSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "string",
+        "name": "string",
+        "description": "string",
+        "isActive": "boolean",
+        "parentLocationName": "string",
+        "campusName": "string",
+        "locationTypeName": "string"
+      },
+      "path": "types/location.ts"
+    },
+    "CreateLocationRequest": {
+      "name": "CreateLocationRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "description": "string",
+        "parentLocationIdKey": "string",
+        "campusIdKey": "string",
+        "locationTypeValueIdKey": "string",
+        "softRoomThreshold": "number",
+        "firmRoomThreshold": "number",
+        "staffToChildRatio": "number",
+        "overflowLocationIdKey": "string",
+        "autoAssignOverflow": "boolean",
+        "street1": "string",
+        "street2": "string",
+        "city": "string",
+        "state": "string",
+        "postalCode": "string",
+        "country": "string",
+        "latitude": "number",
+        "longitude": "number",
+        "isGeoPointLocked": "boolean",
+        "order": "number"
+      },
+      "path": "types/location.ts"
+    },
+    "UpdateLocationRequest": {
+      "name": "UpdateLocationRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "description": "string",
+        "parentLocationIdKey": "string",
+        "campusIdKey": "string",
+        "locationTypeValueIdKey": "string",
+        "softRoomThreshold": "number",
+        "firmRoomThreshold": "number",
+        "staffToChildRatio": "number",
+        "overflowLocationIdKey": "string",
+        "autoAssignOverflow": "boolean",
+        "street1": "string",
+        "street2": "string",
+        "city": "string",
+        "state": "string",
+        "postalCode": "string",
+        "country": "string",
+        "latitude": "number",
+        "longitude": "number",
+        "isGeoPointLocked": "boolean",
+        "order": "number",
+        "isActive": "boolean"
+      },
+      "path": "types/location.ts"
+    },
+    "NotificationDto": {
+      "name": "NotificationDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "string",
+        "notificationType": "NotificationType",
+        "title": "string",
+        "message": "string",
+        "isRead": "boolean",
+        "readDateTime": "DateTime | null",
+        "actionUrl": "string | null",
+        "metadataJson": "string | null",
+        "createdDateTime": "DateTime"
+      },
+      "path": "types/notification.ts"
+    },
+    "NotificationPreferenceDto": {
+      "name": "NotificationPreferenceDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "notificationType": "NotificationType",
+        "isEnabled": "boolean"
+      },
+      "path": "types/notification.ts"
+    },
+    "UpdateNotificationPreferenceDto": {
+      "name": "UpdateNotificationPreferenceDto",
+      "kind": "interface",
+      "properties": {
+        "notificationType": "NotificationType",
+        "isEnabled": "boolean"
+      },
+      "path": "types/notification.ts"
+    },
+    "UnreadCountResponse": {
+      "name": "UnreadCountResponse",
+      "kind": "interface",
+      "properties": {
+        "count": "number"
+      },
+      "path": "types/notification.ts"
+    },
+    "MarkAllAsReadResponse": {
+      "name": "MarkAllAsReadResponse",
+      "kind": "interface",
+      "properties": {
+        "markedCount": "number"
+      },
+      "path": "types/notification.ts"
+    },
+    "NotificationType": {
+      "name": "NotificationType",
+      "kind": "enum",
+      "properties": {},
+      "path": "types/notification.ts"
+    },
+    "PagerAssignmentDto": {
+      "name": "PagerAssignmentDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "pagerNumber": "number",
+        "attendanceIdKey": "IdKey",
+        "childName": "string",
+        "groupName": "string",
+        "locationName": "string",
+        "parentPhoneNumber": "string",
+        "checkedInAt": "DateTime",
+        "messagesSentCount": "number"
+      },
+      "path": "types/pager.ts"
+    },
+    "PagerMessageDto": {
+      "name": "PagerMessageDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "messageType": "PagerMessageType",
+        "messageText": "string",
+        "status": "PagerMessageStatus",
+        "sentDateTime": "DateTime",
+        "deliveredDateTime": "DateTime",
+        "sentByPersonName": "string"
+      },
+      "path": "types/pager.ts"
+    },
+    "PageHistoryDto": {
+      "name": "PageHistoryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "pagerNumber": "number",
+        "childName": "string",
+        "parentPhoneNumber": "string",
+        "messages": "PagerMessageDto[]"
+      },
+      "path": "types/pager.ts"
+    },
+    "SendPageRequest": {
+      "name": "SendPageRequest",
+      "kind": "interface",
+      "properties": {
+        "pagerNumber": "string",
+        "messageType": "PagerMessageType",
+        "customMessage": "string"
+      },
+      "path": "types/pager.ts"
+    },
+    "PageSearchRequest": {
+      "name": "PageSearchRequest",
+      "kind": "interface",
+      "properties": {
+        "searchTerm": "string",
+        "campusId": "number",
+        "date": "DateTime"
+      },
+      "path": "types/pager.ts"
+    },
+    "PagerMessageType": {
+      "name": "PagerMessageType",
+      "kind": "enum",
+      "properties": {},
+      "path": "types/pager.ts"
+    },
+    "PagerMessageStatus": {
+      "name": "PagerMessageStatus",
+      "kind": "enum",
+      "properties": {},
+      "path": "types/pager.ts"
+    },
+    "DefinedValueDto": {
+      "name": "DefinedValueDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "value": "string",
+        "description": "string",
+        "isActive": "boolean",
+        "order": "number"
+      },
+      "path": "services/api/types.ts"
+    },
+    "PersonSummaryDto": {
+      "name": "PersonSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "firstName": "string",
+        "nickName": "string",
+        "lastName": "string",
+        "fullName": "string",
+        "email": "string",
+        "photoUrl": "string",
+        "age": "number",
+        "gender": "Gender",
+        "connectionStatus": "DefinedValueDto",
+        "recordStatus": "DefinedValueDto",
+        "primaryCampus": "CampusSummaryDto"
+      },
+      "path": "services/api/types.ts"
+    },
+    "PersonDto": {
+      "name": "PersonDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "firstName": "string",
+        "nickName": "string",
+        "middleName": "string",
+        "lastName": "string",
+        "fullName": "string",
+        "birthDate": "DateOnly",
+        "age": "number",
+        "gender": "string",
+        "email": "string",
+        "isEmailActive": "boolean",
+        "emailPreference": "string",
+        "phoneNumbers": "import('./profile').PhoneNumberDto[]",
+        "recordStatus": "DefinedValueDto",
+        "connectionStatus": "DefinedValueDto",
+        "primaryFamily": "import('./profile').FamilySummaryDto",
+        "primaryCampus": "import('./profile').CampusSummaryDto",
+        "photoUrl": "string",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "types/person.ts"
+    },
+    "PersonSearchParams": {
+      "name": "PersonSearchParams",
+      "kind": "interface",
+      "properties": {
+        "q": "string",
+        "firstName": "string",
+        "lastName": "string",
+        "email": "string",
+        "phone": "string",
+        "recordStatusId": "IdKey",
+        "connectionStatusId": "IdKey",
+        "campusId": "IdKey",
+        "includeInactive": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "DuplicateMatchDto": {
+      "name": "DuplicateMatchDto",
+      "kind": "interface",
+      "properties": {
+        "person1IdKey": "IdKey",
+        "person1Name": "string",
+        "person1Email": "string",
+        "person1Phone": "string",
+        "person1PhotoUrl": "string",
+        "person2IdKey": "IdKey",
+        "person2Name": "string",
+        "person2Email": "string",
+        "person2Phone": "string",
+        "person2PhotoUrl": "string",
+        "matchScore": "number",
+        "matchReasons": "string[]"
+      },
+      "path": "types/personMerge.ts"
+    },
+    "PersonComparisonDto": {
+      "name": "PersonComparisonDto",
+      "kind": "interface",
+      "properties": {
+        "person1": "PersonDto",
+        "person2": "PersonDto",
+        "person1AttendanceCount": "number",
+        "person2AttendanceCount": "number",
+        "person1GroupMembershipCount": "number",
+        "person2GroupMembershipCount": "number",
+        "person1ContributionTotal": "number",
+        "person2ContributionTotal": "number"
+      },
+      "path": "types/personMerge.ts"
+    },
+    "PersonMergeRequestDto": {
+      "name": "PersonMergeRequestDto",
+      "kind": "interface",
+      "properties": {
+        "survivorIdKey": "IdKey",
+        "mergedIdKey": "IdKey",
+        "fieldSelections": "Record<string, 'survivor' | 'merged'>",
+        "notes": "string"
+      },
+      "path": "types/personMerge.ts"
+    },
+    "PersonMergeResultDto": {
+      "name": "PersonMergeResultDto",
+      "kind": "interface",
+      "properties": {
+        "survivorIdKey": "IdKey",
+        "mergedIdKey": "IdKey",
+        "aliasesUpdated": "number",
+        "groupMembershipsUpdated": "number",
+        "familyMembershipsUpdated": "number",
+        "phoneNumbersUpdated": "number",
+        "authorizedPickupsUpdated": "number",
+        "communicationPreferencesUpdated": "number",
+        "refreshTokensUpdated": "number",
+        "securityRolesUpdated": "number",
+        "supervisorSessionsUpdated": "number",
+        "followUpsUpdated": "number",
+        "totalRecordsUpdated": "number",
+        "mergedDateTime": "DateTime"
+      },
+      "path": "types/personMerge.ts"
+    },
+    "PersonMergeHistoryDto": {
+      "name": "PersonMergeHistoryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "survivorIdKey": "IdKey",
+        "survivorName": "string",
+        "mergedIdKey": "IdKey",
+        "mergedName": "string",
+        "mergedByIdKey": "IdKey",
+        "mergedByName": "string",
+        "mergedDateTime": "DateTime",
+        "notes": "string"
+      },
+      "path": "types/personMerge.ts"
+    },
+    "IgnoreDuplicateRequestDto": {
+      "name": "IgnoreDuplicateRequestDto",
+      "kind": "interface",
+      "properties": {
+        "person1IdKey": "IdKey",
+        "person2IdKey": "IdKey",
+        "reason": "string"
+      },
+      "path": "types/personMerge.ts"
+    },
+    "PhoneNumberDto": {
+      "name": "PhoneNumberDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "number": "string",
+        "numberFormatted": "string",
+        "extension": "string",
+        "phoneType": "DefinedValueDto",
+        "isMessagingEnabled": "boolean",
+        "isUnlisted": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "PhoneNumberRequestDto": {
+      "name": "PhoneNumberRequestDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "number": "string",
+        "extension": "string",
+        "phoneTypeIdKey": "IdKey",
+        "isMessagingEnabled": "boolean",
+        "isUnlisted": "boolean"
+      },
+      "path": "types/profile.ts"
+    },
+    "FamilySummaryDto": {
+      "name": "FamilySummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "campus": "CampusSummaryDto",
+        "memberCount": "number",
+        "primaryAddress": "AddressDto"
+      },
+      "path": "services/api/types.ts"
+    },
+    "MyProfileDto": {
+      "name": "MyProfileDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "string",
+        "firstName": "string",
+        "nickName": "string",
+        "lastName": "string",
+        "fullName": "string",
+        "email": "string",
+        "isEmailActive": "boolean",
+        "emailPreference": "string",
+        "phoneNumbers": "PhoneNumberDto[]",
+        "birthDate": "DateOnly",
+        "age": "number",
+        "gender": "string",
+        "photoUrl": "string",
+        "primaryFamily": "FamilySummaryDto",
+        "primaryCampus": "CampusSummaryDto"
+      },
+      "path": "types/profile.ts"
+    },
+    "UpdateMyProfileRequest": {
+      "name": "UpdateMyProfileRequest",
+      "kind": "interface",
+      "properties": {
+        "nickName": "string",
+        "email": "string",
+        "emailPreference": "string",
+        "phoneNumbers": "PhoneNumberRequestDto[]"
+      },
+      "path": "types/profile.ts"
+    },
+    "FamilyMemberDto": {
+      "name": "FamilyMemberDto",
+      "kind": "interface",
+      "properties": {
+        "person": "PersonSummaryDto",
+        "role": "GroupTypeRoleDto",
+        "isPersonPrimaryFamily": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "UpdateFamilyMemberRequest": {
+      "name": "UpdateFamilyMemberRequest",
+      "kind": "interface",
+      "properties": {
+        "nickName": "string",
+        "allergies": "string",
+        "specialNeeds": "string"
+      },
+      "path": "types/profile.ts"
+    },
+    "GroupMembershipDto": {
+      "name": "GroupMembershipDto",
+      "kind": "interface",
+      "properties": {
+        "group": "GroupSummaryDto",
+        "role": "GroupTypeRoleDto",
+        "status": "GroupMemberStatus",
+        "dateAdded": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
+    "MyInvolvementDto": {
+      "name": "MyInvolvementDto",
+      "kind": "interface",
+      "properties": {
+        "groups": "GroupMembershipDto[]",
+        "recentAttendanceCount": "number",
+        "totalGroupsCount": "number"
+      },
+      "path": "types/profile.ts"
+    },
+    "RoomCapacityDto": {
+      "name": "RoomCapacityDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "string",
+        "name": "string",
+        "softCapacity": "number",
+        "hardCapacity": "number",
+        "currentCount": "number",
+        "capacityStatus": "CapacityStatus",
+        "percentageFull": "number",
+        "staffToChildRatio": "number",
+        "currentStaffCount": "number",
+        "requiredStaffCount": "number",
+        "meetsStaffRatio": "boolean",
+        "overflowLocationIdKey": "string",
+        "overflowLocationName": "string",
+        "autoAssignOverflow": "boolean",
+        "isActive": "boolean"
+      },
+      "path": "types/room-capacity.ts"
+    },
+    "UpdateCapacitySettingsDto": {
+      "name": "UpdateCapacitySettingsDto",
+      "kind": "interface",
+      "properties": {
+        "softCapacity": "number",
+        "hardCapacity": "number",
+        "staffToChildRatio": "number",
+        "overflowLocationIdKey": "string",
+        "autoAssignOverflow": "boolean"
+      },
+      "path": "types/room-capacity.ts"
+    },
+    "CapacityOverrideRequestDto": {
+      "name": "CapacityOverrideRequestDto",
+      "kind": "interface",
+      "properties": {
+        "locationIdKey": "string",
+        "supervisorPin": "string",
+        "reason": "string"
+      },
+      "path": "types/room-capacity.ts"
+    },
+    "GlobalSearchResult": {
+      "name": "GlobalSearchResult",
+      "kind": "interface",
+      "properties": {
+        "category": "'People' | 'Families' | 'Groups'",
+        "idKey": "string",
+        "title": "string",
+        "subtitle": "string | null",
+        "imageUrl": "string | null"
+      },
+      "path": "types/search.ts"
+    },
+    "GlobalSearchResponse": {
+      "name": "GlobalSearchResponse",
+      "kind": "interface",
+      "properties": {
+        "results": "GlobalSearchResult[]",
+        "totalCount": "number",
+        "pageNumber": "number",
+        "pageSize": "number",
+        "categoryCounts": "Record<string, number>"
+      },
+      "path": "types/search.ts"
+    },
+    "SearchParams": {
+      "name": "SearchParams",
+      "kind": "interface",
+      "properties": {
+        "query": "string",
+        "category": "'People' | 'Families' | 'Groups'",
+        "pageNumber": "number",
+        "pageSize": "number"
+      },
+      "path": "types/search.ts"
+    },
+    "UserPreferenceDto": {
+      "name": "UserPreferenceDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "theme": "Theme",
+        "dateFormat": "string",
+        "timeZone": "string",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "types/settings.ts"
+    },
+    "UpdateUserPreferenceRequest": {
+      "name": "UpdateUserPreferenceRequest",
+      "kind": "interface",
+      "properties": {
+        "theme": "Theme",
+        "dateFormat": "string",
+        "timeZone": "string"
+      },
+      "path": "types/settings.ts"
+    },
+    "UserSessionDto": {
+      "name": "UserSessionDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "deviceInfo": "string | null",
+        "ipAddress": "string",
+        "location": "string | null",
+        "lastActivityAt": "DateTime",
+        "isActive": "boolean",
+        "isCurrentSession": "boolean",
+        "createdDateTime": "DateTime"
+      },
+      "path": "types/settings.ts"
+    },
+    "ChangePasswordRequest": {
+      "name": "ChangePasswordRequest",
+      "kind": "interface",
+      "properties": {
+        "currentPassword": "string",
+        "newPassword": "string",
+        "confirmPassword": "string"
+      },
+      "path": "types/settings.ts"
+    },
+    "TwoFactorSetupDto": {
+      "name": "TwoFactorSetupDto",
+      "kind": "interface",
+      "properties": {
+        "secretKey": "string",
+        "qrCodeUri": "string",
+        "recoveryCodes": "string[]"
+      },
+      "path": "types/settings.ts"
+    },
+    "TwoFactorStatusDto": {
+      "name": "TwoFactorStatusDto",
+      "kind": "interface",
+      "properties": {
+        "isEnabled": "boolean",
+        "enabledAt": "DateTime"
+      },
+      "path": "types/settings.ts"
+    },
+    "TwoFactorVerifyRequest": {
+      "name": "TwoFactorVerifyRequest",
+      "kind": "interface",
+      "properties": {
+        "code": "string"
+      },
+      "path": "types/settings.ts"
+    },
+    "TwoFactorDisableRequest": {
+      "name": "TwoFactorDisableRequest",
+      "kind": "interface",
+      "properties": {
+        "code": "string"
+      },
+      "path": "types/settings.ts"
+    },
+    "Theme": {
+      "name": "Theme",
+      "kind": "enum",
+      "properties": {},
+      "path": "types/settings.ts"
+    },
+    "PaginationMeta": {
+      "name": "PaginationMeta",
+      "kind": "interface",
+      "properties": {
+        "page": "number",
+        "pageSize": "number",
+        "totalCount": "number",
+        "totalPages": "number"
+      },
+      "path": "services/api/types.ts"
+    },
+    "ApiError": {
+      "name": "ApiError",
+      "kind": "interface",
+      "properties": {
+        "error": "{\n    code: string",
+        "message": "string",
+        "details": "Record<string, string[]>",
+        "traceId": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "ProblemDetails": {
+      "name": "ProblemDetails",
+      "kind": "interface",
+      "properties": {
+        "type": "string",
+        "title": "string",
+        "status": "number",
+        "detail": "string",
+        "instance": "string",
+        "traceId": "string",
+        "extensions": "Record<string, unknown>"
+      },
+      "path": "services/api/types.ts"
+    },
+    "PaginationParams": {
+      "name": "PaginationParams",
+      "kind": "interface",
+      "properties": {
+        "page": "number",
+        "Default": "1\n  pageSize?: number"
+      },
+      "path": "services/api/types.ts"
+    },
+    "SortParams": {
+      "name": "SortParams",
+      "kind": "interface",
+      "properties": {
+        "sortBy": "string",
+        "sortDir": "'asc' | 'desc'"
+      },
+      "path": "services/api/types.ts"
+    },
+    "LoginRequest": {
+      "name": "LoginRequest",
+      "kind": "interface",
+      "properties": {
+        "email": "string",
+        "password": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "TokenResponse": {
+      "name": "TokenResponse",
+      "kind": "interface",
+      "properties": {
+        "accessToken": "string",
+        "refreshToken": "string",
+        "expiresAt": "DateTime",
+        "user": "UserSummaryDto"
+      },
+      "path": "services/api/types.ts"
+    },
+    "UserSummaryDto": {
+      "name": "UserSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "firstName": "string",
+        "lastName": "string",
+        "email": "string",
+        "photoUrl": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "RefreshRequest": {
+      "name": "RefreshRequest",
+      "kind": "interface",
+      "properties": {
+        "refreshToken": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "RefreshResponse": {
+      "name": "RefreshResponse",
+      "kind": "interface",
+      "properties": {
+        "accessToken": "string",
+        "refreshToken": "string",
+        "expiresAt": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
+    "LogoutRequest": {
+      "name": "LogoutRequest",
+      "kind": "interface",
+      "properties": {
+        "refreshToken": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "PersonDetailDto": {
+      "name": "PersonDetailDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "firstName": "string",
+        "nickName": "string",
+        "middleName": "string",
+        "lastName": "string",
+        "fullName": "string",
+        "title": "DefinedValueDto",
+        "suffix": "DefinedValueDto",
+        "birthDate": "DateOnly",
+        "age": "number",
+        "gender": "Gender",
+        "maritalStatus": "DefinedValueDto",
+        "anniversaryDate": "DateOnly",
+        "email": "string",
+        "isEmailActive": "boolean",
+        "emailPreference": "EmailPreference",
+        "phoneNumbers": "PhoneNumberDto[]",
+        "recordStatus": "DefinedValueDto",
+        "connectionStatus": "DefinedValueDto",
+        "isDeceased": "boolean",
+        "photoUrl": "string",
+        "photoId": "IdKey",
+        "primaryFamily": "FamilySummaryDto",
+        "primaryCampus": "CampusSummaryDto",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CreatePersonRequest": {
+      "name": "CreatePersonRequest",
+      "kind": "interface",
+      "properties": {
+        "firstName": "string",
+        "nickName": "string",
+        "middleName": "string",
+        "lastName": "string",
+        "titleValueId": "IdKey",
+        "suffixValueId": "IdKey",
+        "email": "string",
+        "gender": "Gender",
+        "birthDate": "DateOnly",
+        "maritalStatusValueId": "IdKey",
+        "connectionStatusValueId": "IdKey",
+        "Default": "Active\n\n  phoneNumbers?: CreatePhoneNumberRequest[]",
+        "familyId": "IdKey",
+        "familyRoleId": "IdKey",
+        "createFamily": "boolean",
+        "familyName": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CreatePhoneNumberRequest": {
+      "name": "CreatePhoneNumberRequest",
+      "kind": "interface",
+      "properties": {
+        "number": "string",
+        "extension": "string",
+        "phoneTypeValueId": "IdKey",
+        "Default": "Mobile\n  isMessagingEnabled?: boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "UpdatePersonRequest": {
+      "name": "UpdatePersonRequest",
+      "kind": "interface",
+      "properties": {
+        "firstName": "string",
+        "nickName": "string",
+        "middleName": "string",
+        "lastName": "string",
+        "titleValueId": "IdKey | null",
+        "suffixValueId": "IdKey | null",
+        "email": "string | null",
+        "isEmailActive": "boolean",
+        "emailPreference": "EmailPreference",
+        "gender": "Gender",
+        "birthDate": "DateOnly | null",
+        "maritalStatusValueId": "IdKey | null",
+        "anniversaryDate": "DateOnly | null",
+        "connectionStatusValueId": "IdKey",
+        "recordStatusValueId": "IdKey",
+        "primaryCampusId": "IdKey | null"
+      },
+      "path": "services/api/types.ts"
+    },
+    "FamiliesSearchParams": {
+      "name": "FamiliesSearchParams",
+      "kind": "interface",
+      "properties": {
+        "q": "string",
+        "campusId": "IdKey",
+        "includeInactive": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "FamilyDetailDto": {
+      "name": "FamilyDetailDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "name": "string",
+        "campus": "CampusSummaryDto",
+        "members": "FamilyMemberDto[]",
+        "addresses": "FamilyAddressDto[]",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
+    "FamilyAddressDto": {
+      "name": "FamilyAddressDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "locationType": "DefinedValueDto",
+        "address": "AddressDto",
+        "isMailingAddress": "boolean",
+        "isMappedAddress": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CreateFamilyRequest": {
+      "name": "CreateFamilyRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "campusId": "IdKey",
+        "members": "CreateFamilyMemberRequest[]",
+        "address": "CreateAddressRequest"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CreateFamilyMemberRequest": {
+      "name": "CreateFamilyMemberRequest",
+      "kind": "interface",
+      "properties": {
+        "personId": "IdKey",
+        "person": "CreatePersonRequest",
+        "roleId": "IdKey"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CreateAddressRequest": {
+      "name": "CreateAddressRequest",
+      "kind": "interface",
+      "properties": {
+        "street1": "string",
+        "street2": "string",
+        "city": "string",
+        "state": "string",
+        "postalCode": "string",
+        "country": "string",
+        "Default": "true\n  isMappedAddress?: boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "UpdateFamilyRequest": {
+      "name": "UpdateFamilyRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "campusId": "IdKey | null"
+      },
+      "path": "services/api/types.ts"
+    },
+    "AddFamilyMemberRequest": {
+      "name": "AddFamilyMemberRequest",
+      "kind": "interface",
+      "properties": {
+        "personId": "IdKey",
+        "person": "CreatePersonRequest",
+        "roleId": "IdKey",
+        "setAsPrimaryFamily": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "UpdateFamilyAddressRequest": {
+      "name": "UpdateFamilyAddressRequest",
+      "kind": "interface",
+      "properties": {
+        "street1": "string",
+        "street2": "string",
+        "city": "string",
+        "state": "string",
+        "postalCode": "string",
+        "country": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "RemoveFamilyMemberParams": {
+      "name": "RemoveFamilyMemberParams",
+      "kind": "interface",
+      "properties": {
+        "removeFromAllGroups": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupsSearchParams": {
+      "name": "GroupsSearchParams",
+      "kind": "interface",
+      "properties": {
+        "q": "string",
+        "groupTypeId": "IdKey",
+        "parentGroupId": "IdKey",
+        "campusId": "IdKey",
+        "includeInactive": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupDetailDto": {
+      "name": "GroupDetailDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "name": "string",
+        "description": "string",
+        "groupType": "GroupTypeSummaryDto",
+        "parentGroup": "GroupSummaryDto",
+        "campus": "CampusSummaryDto",
+        "capacity": "number",
+        "isActive": "boolean",
+        "isArchived": "boolean",
+        "schedule": "ScheduleDto",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupMembersParams": {
+      "name": "GroupMembersParams",
+      "kind": "interface",
+      "properties": {
+        "status": "'Active' | 'Inactive' | 'Pending' | 'All'",
+        "roleId": "IdKey"
+      },
+      "path": "services/api/types.ts"
+    },
+    "AddGroupMemberRequest": {
+      "name": "AddGroupMemberRequest",
+      "kind": "interface",
+      "properties": {
+        "personIdKey": "IdKey",
+        "roleIdKey": "IdKey",
+        "status": "GroupMemberStatus",
+        "Default": "Active\n  note?: string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "PersonGroupsParams": {
+      "name": "PersonGroupsParams",
+      "kind": "interface",
+      "properties": {
+        "groupTypeId": "IdKey",
+        "includeInactive": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "PersonFamilyResponse": {
+      "name": "PersonFamilyResponse",
+      "kind": "interface",
+      "properties": {
+        "family": "FamilyDetailDto",
+        "members": "FamilyMemberDto[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckinConfigParams": {
+      "name": "CheckinConfigParams",
+      "kind": "interface",
+      "properties": {
+        "kioskId": "IdKey",
+        "campusId": "IdKey"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckinConfigDto": {
+      "name": "CheckinConfigDto",
+      "kind": "interface",
+      "properties": {
+        "areas": "CheckinAreaDto[]",
+        "currentSchedules": "ScheduleDto[]",
+        "searchType": "CheckinSearchType",
+        "securityCodeLength": "number",
+        "securityCodeAlphanumeric": "boolean",
+        "autoSelectDaysBack": "number",
+        "autoSelectFamily": "boolean",
+        "preventDuplicateCheckin": "boolean",
+        "allowCheckout": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckinGroupDto": {
+      "name": "CheckinGroupDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "locations": "CheckinLocationDto[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "ScheduleDto": {
+      "name": "ScheduleDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "startTime": "string",
+        "09": "00\"\n  isActive: boolean",
+        "checkInWindowOpen": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckinSearchRequest": {
+      "name": "CheckinSearchRequest",
+      "kind": "interface",
+      "properties": {
+        "searchValue": "string",
+        "searchType": "'Phone' | 'Name' | 'Auto'"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckinFamilyDto": {
+      "name": "CheckinFamilyDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "members": "CheckinPersonDto[]",
+        "lastCheckIn": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckinPersonDto": {
+      "name": "CheckinPersonDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "firstName": "string",
+        "nickName": "string",
+        "lastName": "string",
+        "fullName": "string",
+        "age": "number",
+        "grade": "string",
+        "photoUrl": "string",
+        "lastCheckIn": "DateTime",
+        "allergies": "string",
+        "hasCriticalAllergies": "boolean",
+        "specialNeeds": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckinOpportunitiesParams": {
+      "name": "CheckinOpportunitiesParams",
+      "kind": "interface",
+      "properties": {
+        "scheduleId": "IdKey"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckinOpportunitiesResponse": {
+      "name": "CheckinOpportunitiesResponse",
+      "kind": "interface",
+      "properties": {
+        "family": "CheckinFamilyDto",
+        "opportunities": "PersonOpportunitiesDto[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "PersonOpportunitiesDto": {
+      "name": "PersonOpportunitiesDto",
+      "kind": "interface",
+      "properties": {
+        "person": "CheckinPersonDto",
+        "currentAttendance": "CurrentAttendanceDto[]",
+        "availableOptions": "CheckinOptionDto[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CurrentAttendanceDto": {
+      "name": "CurrentAttendanceDto",
+      "kind": "interface",
+      "properties": {
+        "attendanceIdKey": "IdKey",
+        "group": "string",
+        "location": "string",
+        "schedule": "string",
+        "securityCode": "string",
+        "checkInTime": "DateTime",
+        "canCheckOut": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckinOptionDto": {
+      "name": "CheckinOptionDto",
+      "kind": "interface",
+      "properties": {
+        "groupIdKey": "IdKey",
+        "groupName": "string",
+        "locations": "CheckinLocationOptionDto[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckinLocationOptionDto": {
+      "name": "CheckinLocationOptionDto",
+      "kind": "interface",
+      "properties": {
+        "locationIdKey": "IdKey",
+        "locationName": "string",
+        "schedules": "CheckinScheduleOptionDto[]",
+        "currentCount": "number",
+        "softThreshold": "number",
+        "firmThreshold": "number"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckinScheduleOptionDto": {
+      "name": "CheckinScheduleOptionDto",
+      "kind": "interface",
+      "properties": {
+        "scheduleIdKey": "IdKey",
+        "scheduleName": "string",
+        "startTime": "string",
+        "isSelected": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "RecordAttendanceRequest": {
+      "name": "RecordAttendanceRequest",
+      "kind": "interface",
+      "properties": {
+        "checkins": "CheckinRequestItem[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckinRequestItem": {
+      "name": "CheckinRequestItem",
+      "kind": "interface",
+      "properties": {
+        "personIdKey": "IdKey",
+        "groupIdKey": "IdKey",
+        "locationIdKey": "IdKey",
+        "scheduleIdKey": "IdKey"
+      },
+      "path": "services/api/types.ts"
+    },
+    "RecordAttendanceResponse": {
+      "name": "RecordAttendanceResponse",
+      "kind": "interface",
+      "properties": {
+        "attendances": "AttendanceResultDto[]",
+        "labels": "LabelDto[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "AttendanceResultDto": {
+      "name": "AttendanceResultDto",
+      "kind": "interface",
+      "properties": {
+        "attendanceIdKey": "IdKey",
+        "personIdKey": "IdKey",
+        "personName": "string",
+        "groupName": "string",
+        "locationName": "string",
+        "scheduleName": "string",
+        "securityCode": "string",
+        "checkInTime": "DateTime",
+        "isFirstTime": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckoutRequest": {
+      "name": "CheckoutRequest",
+      "kind": "interface",
+      "properties": {
+        "attendanceIdKey": "IdKey"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CheckoutResponse": {
+      "name": "CheckoutResponse",
+      "kind": "interface",
+      "properties": {
+        "attendanceIdKey": "IdKey",
+        "checkOutTime": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
+    "LabelParams": {
+      "name": "LabelParams",
+      "kind": "interface",
+      "properties": {
+        "labelType": "'Child' | 'Parent' | 'NameTag' | 'All'",
+        "format": "'ZPL' | 'PDF'"
+      },
+      "path": "services/api/types.ts"
+    },
+    "SupervisorLoginRequest": {
+      "name": "SupervisorLoginRequest",
+      "kind": "interface",
+      "properties": {
+        "pin": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "SupervisorLoginResponse": {
+      "name": "SupervisorLoginResponse",
+      "kind": "interface",
+      "properties": {
+        "sessionToken": "string",
+        "expiresAt": "DateTime",
+        "supervisor": "SupervisorInfoDto"
+      },
+      "path": "services/api/types.ts"
+    },
+    "SupervisorInfoDto": {
+      "name": "SupervisorInfoDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "fullName": "string",
+        "firstName": "string",
+        "lastName": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "DefinedTypeDto": {
+      "name": "DefinedTypeDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "name": "string",
+        "description": "string",
+        "values": "DefinedValueDto[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CampusesParams": {
+      "name": "CampusesParams",
+      "kind": "interface",
+      "properties": {
+        "includeInactive": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupTypeAdminDto": {
+      "name": "GroupTypeAdminDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "name": "string",
+        "description": "string",
+        "iconCssClass": "string",
+        "color": "string",
+        "groupTerm": "string",
+        "groupMemberTerm": "string",
+        "takesAttendance": "boolean",
+        "allowSelfRegistration": "boolean",
+        "requiresMemberApproval": "boolean",
+        "defaultIsPublic": "boolean",
+        "defaultGroupCapacity": "number",
+        "isSystem": "boolean",
+        "isArchived": "boolean",
+        "order": "number",
+        "groupCount": "number"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupTypeDetailAdminDto": {
+      "name": "GroupTypeDetailAdminDto",
+      "kind": "interface",
+      "properties": {
+        "showInGroupList": "boolean",
+        "showInNavigation": "boolean",
+        "attendanceCountsAsWeekendService": "boolean",
+        "sendAttendanceReminder": "boolean",
+        "allowMultipleLocations": "boolean",
+        "enableSpecificGroupRequirements": "boolean",
+        "allowGroupSync": "boolean",
+        "allowSpecificGroupMemberAttributes": "boolean",
+        "showConnectionStatus": "boolean",
+        "ignorePersonInactivated": "boolean",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CreateGroupTypeRequest": {
+      "name": "CreateGroupTypeRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "description": "string",
+        "iconCssClass": "string",
+        "color": "string",
+        "groupTerm": "string",
+        "groupMemberTerm": "string",
+        "takesAttendance": "boolean",
+        "allowSelfRegistration": "boolean",
+        "requiresMemberApproval": "boolean",
+        "defaultIsPublic": "boolean",
+        "defaultGroupCapacity": "number",
+        "showInGroupList": "boolean",
+        "showInNavigation": "boolean",
+        "order": "number"
+      },
+      "path": "services/api/types.ts"
+    },
+    "UpdateGroupTypeRequest": {
+      "name": "UpdateGroupTypeRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "description": "string",
+        "iconCssClass": "string",
+        "color": "string",
+        "groupTerm": "string",
+        "groupMemberTerm": "string",
+        "takesAttendance": "boolean",
+        "allowSelfRegistration": "boolean",
+        "requiresMemberApproval": "boolean",
+        "defaultIsPublic": "boolean",
+        "defaultGroupCapacity": "number",
+        "showInGroupList": "boolean",
+        "showInNavigation": "boolean",
+        "order": "number"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupTypeGroupDto": {
+      "name": "GroupTypeGroupDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "isActive": "boolean",
+        "isArchived": "boolean",
+        "memberCount": "number"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CreateGroupRequest": {
+      "name": "CreateGroupRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "description": "string",
+        "groupTypeId": "IdKey",
+        "parentGroupId": "IdKey",
+        "campusId": "IdKey",
+        "capacity": "number",
+        "isActive": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "UpdateGroupRequest": {
+      "name": "UpdateGroupRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "description": "string",
+        "campusId": "IdKey",
+        "capacity": "number",
+        "isActive": "boolean",
+        "order": "number"
+      },
+      "path": "services/api/types.ts"
+    },
+    "ScheduleSearchParams": {
+      "name": "ScheduleSearchParams",
+      "kind": "interface",
+      "properties": {
+        "query": "string",
+        "dayOfWeek": "number",
+        "includeInactive": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "ScheduleSummaryDto": {
+      "name": "ScheduleSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "description": "string",
+        "weeklyDayOfWeek": "number",
+        "weeklyTimeOfDay": "string",
+        "isActive": "boolean",
+        "order": "number"
+      },
+      "path": "services/api/types.ts"
+    },
+    "ScheduleDetailDto": {
+      "name": "ScheduleDetailDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "name": "string",
+        "description": "string",
+        "weeklyDayOfWeek": "number",
+        "weeklyTimeOfDay": "string",
+        "checkInStartOffsetMinutes": "number",
+        "checkInEndOffsetMinutes": "number",
+        "isActive": "boolean",
+        "isCheckinActive": "boolean",
+        "checkinStartTime": "DateTime",
+        "checkinEndTime": "DateTime",
+        "isPublic": "boolean",
+        "order": "number",
+        "effectiveStartDate": "DateOnly",
+        "effectiveEndDate": "DateOnly",
+        "iCalendarContent": "string",
+        "autoInactivateWhenComplete": "boolean",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
+    "ScheduleOccurrenceDto": {
+      "name": "ScheduleOccurrenceDto",
+      "kind": "interface",
+      "properties": {
+        "occurrenceDateTime": "DateTime",
+        "dayOfWeekName": "string",
+        "formattedTime": "string",
+        "checkInWindowStart": "DateTime",
+        "checkInWindowEnd": "DateTime",
+        "isCheckInWindowOpen": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CreateScheduleRequest": {
+      "name": "CreateScheduleRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "description": "string",
+        "weeklyDayOfWeek": "number",
+        "weeklyTimeOfDay": "string",
+        "checkInStartOffsetMinutes": "number",
+        "checkInEndOffsetMinutes": "number",
+        "isActive": "boolean",
+        "isPublic": "boolean",
+        "order": "number",
+        "effectiveStartDate": "DateOnly",
+        "effectiveEndDate": "DateOnly",
+        "autoInactivateWhenComplete": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "UpdateScheduleRequest": {
+      "name": "UpdateScheduleRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "description": "string",
+        "weeklyDayOfWeek": "number",
+        "weeklyTimeOfDay": "string",
+        "checkInStartOffsetMinutes": "number",
+        "checkInEndOffsetMinutes": "number",
+        "isActive": "boolean",
+        "isPublic": "boolean",
+        "order": "number",
+        "effectiveStartDate": "DateOnly | null",
+        "effectiveEndDate": "DateOnly | null",
+        "autoInactivateWhenComplete": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupScheduleDto": {
+      "name": "GroupScheduleDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "schedule": "ScheduleSummaryDto",
+        "order": "number"
+      },
+      "path": "services/api/types.ts"
+    },
+    "AddGroupScheduleRequest": {
+      "name": "AddGroupScheduleRequest",
+      "kind": "interface",
+      "properties": {
+        "scheduleIdKey": "IdKey",
+        "order": "number"
+      },
+      "path": "services/api/types.ts"
+    },
+    "RosterChildDto": {
+      "name": "RosterChildDto",
+      "kind": "interface",
+      "properties": {
+        "attendanceIdKey": "IdKey",
+        "personIdKey": "IdKey",
+        "fullName": "string",
+        "firstName": "string",
+        "lastName": "string",
+        "nickName": "string",
+        "photoUrl": "string",
+        "age": "number",
+        "grade": "string",
+        "allergies": "string",
+        "hasCriticalAllergies": "boolean",
+        "specialNeeds": "string",
+        "securityCode": "string",
+        "checkInTime": "DateTime",
+        "parentName": "string",
+        "parentMobilePhone": "string",
+        "isFirstTime": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "RoomRosterDto": {
+      "name": "RoomRosterDto",
+      "kind": "interface",
+      "properties": {
+        "locationIdKey": "IdKey",
+        "locationName": "string",
+        "children": "RosterChildDto[]",
+        "totalCount": "number",
+        "capacity": "number",
+        "generatedAt": "DateTime",
+        "isAtCapacity": "boolean",
+        "isNearCapacity": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "MyGroupDto": {
+      "name": "MyGroupDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "string",
+        "name": "string",
+        "description": "string",
+        "groupTypeName": "string",
+        "isActive": "boolean",
+        "memberCount": "number",
+        "groupCapacity": "number",
+        "lastMeetingDate": "DateTime",
+        "campus": "CampusSummaryDto",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
+    "MyGroupMemberDetailDto": {
+      "name": "MyGroupMemberDetailDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "personIdKey": "IdKey",
+        "firstName": "string",
+        "lastName": "string",
+        "fullName": "string",
+        "email": "string",
+        "phone": "string",
+        "photoUrl": "string",
+        "age": "number",
+        "gender": "string",
+        "role": "GroupTypeRoleDto",
+        "status": "string",
+        "dateTimeAdded": "DateTime",
+        "inactiveDateTime": "DateTime",
+        "note": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "UpdateGroupMemberRequest": {
+      "name": "UpdateGroupMemberRequest",
+      "kind": "interface",
+      "properties": {
+        "roleId": "IdKey",
+        "status": "string",
+        "note": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "RecordGroupAttendanceRequest": {
+      "name": "RecordGroupAttendanceRequest",
+      "kind": "interface",
+      "properties": {
+        "occurrenceDate": "DateOnly",
+        "attendedPersonIds": "IdKey[]",
+        "notes": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupMemberRequestDto": {
+      "name": "GroupMemberRequestDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "requester": "PersonSummaryDto",
+        "group": "GroupSummaryDto",
+        "status": "MembershipRequestStatus",
+        "requestNote": "string",
+        "responseNote": "string",
+        "processedByPerson": "PersonSummaryDto",
+        "processedDateTime": "DateTime",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
+    "SubmitMembershipRequestRequest": {
+      "name": "SubmitMembershipRequestRequest",
+      "kind": "interface",
+      "properties": {
+        "note": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "ProcessMembershipRequestRequest": {
+      "name": "ProcessMembershipRequestRequest",
+      "kind": "interface",
+      "properties": {
+        "status": "'Approved' | 'Denied'",
+        "note": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "AuditLogDto": {
+      "name": "AuditLogDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "actionType": "AuditAction",
+        "entityType": "string",
+        "entityIdKey": "IdKey",
+        "personIdKey": "IdKey",
+        "personName": "string",
+        "timestamp": "DateTime",
+        "oldValues": "string",
+        "newValues": "string",
+        "ipAddress": "string",
+        "userAgent": "string",
+        "changedProperties": "string[]",
+        "additionalInfo": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "AuditLogSearchParams": {
+      "name": "AuditLogSearchParams",
+      "kind": "interface",
+      "properties": {
+        "startDate": "DateTime",
+        "endDate": "DateTime",
+        "entityType": "string",
+        "actionType": "AuditAction",
+        "personIdKey": "IdKey",
+        "entityIdKey": "IdKey"
+      },
+      "path": "services/api/types.ts"
+    },
+    "AuditLogExportParams": {
+      "name": "AuditLogExportParams",
+      "kind": "interface",
+      "properties": {
+        "startDate": "DateTime",
+        "endDate": "DateTime",
+        "entityType": "string",
+        "actionType": "AuditAction",
+        "personIdKey": "IdKey",
+        "format": "ExportFormat"
+      },
+      "path": "services/api/types.ts"
+    },
+    "DataExportJobDto": {
+      "name": "DataExportJobDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "exportType": "DataExportType",
+        "outputFormat": "DataExportFormat",
+        "status": "DataExportStatus",
+        "recordCount": "number",
+        "createdDateTime": "DateTime",
+        "completedDateTime": "DateTime",
+        "errorMessage": "string",
+        "fileName": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CreateDataExportRequest": {
+      "name": "CreateDataExportRequest",
+      "kind": "interface",
+      "properties": {
+        "exportType": "DataExportType",
+        "outputFormat": "DataExportFormat",
+        "selectedFields": "string[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "ExportFieldDto": {
+      "name": "ExportFieldDto",
+      "kind": "interface",
+      "properties": {
+        "fieldName": "string",
+        "displayName": "string",
+        "dataType": "string",
+        "isRequired": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "IdKey": {
+      "name": "IdKey",
+      "kind": "type",
+      "properties": {},
+      "path": "services/api/types.ts"
+    },
+    "DateOnly": {
+      "name": "DateOnly",
+      "kind": "type",
+      "properties": {},
+      "path": "services/api/types.ts"
+    },
+    "DateTime": {
+      "name": "DateTime",
+      "kind": "type",
+      "properties": {},
+      "path": "services/api/types.ts"
+    },
+    "Guid": {
+      "name": "Guid",
+      "kind": "type",
+      "properties": {},
+      "path": "services/api/types.ts"
+    },
+    "Gender": {
+      "name": "Gender",
+      "kind": "type",
+      "properties": {},
+      "path": "services/api/types.ts"
+    },
+    "EmailPreference": {
+      "name": "EmailPreference",
+      "kind": "type",
+      "properties": {},
+      "path": "services/api/types.ts"
+    },
+    "GroupMemberStatus": {
+      "name": "GroupMemberStatus",
+      "kind": "type",
+      "properties": {},
+      "path": "services/api/types.ts"
+    },
+    "CheckinSearchType": {
+      "name": "CheckinSearchType",
+      "kind": "type",
+      "properties": {},
+      "path": "services/api/types.ts"
+    },
+    "MembershipRequestStatus": {
+      "name": "MembershipRequestStatus",
+      "kind": "type",
+      "properties": {},
+      "path": "services/api/types.ts"
+    },
+    "DataExportType": {
+      "name": "DataExportType",
+      "kind": "type",
+      "properties": {},
+      "path": "services/api/types.ts"
+    },
+    "DataExportStatus": {
+      "name": "DataExportStatus",
+      "kind": "type",
+      "properties": {},
+      "path": "services/api/types.ts"
+    },
+    "DataExportFormat": {
+      "name": "DataExportFormat",
+      "kind": "type",
+      "properties": {},
+      "path": "services/api/types.ts"
+    },
+    "CapacityStatus": {
+      "name": "CapacityStatus",
+      "kind": "enum",
+      "properties": {},
+      "path": "services/api/types.ts"
+    },
+    "AuditAction": {
+      "name": "AuditAction",
+      "kind": "enum",
+      "properties": {},
+      "path": "services/api/types.ts"
+    },
+    "ExportFormat": {
+      "name": "ExportFormat",
+      "kind": "enum",
+      "properties": {},
+      "path": "services/api/types.ts"
     }
   },
   "hooks": {

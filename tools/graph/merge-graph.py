@@ -239,6 +239,7 @@ class GraphMerger:
         )
 
         # Copy all frontend sections
+        self.merged_graph["types"] = self.frontend_graph.get("types", {})
         self.merged_graph["hooks"] = self.frontend_graph.get("hooks", {})
         self.merged_graph["api_functions"] = self.frontend_graph.get(
             "api_functions", {}
