@@ -1,8 +1,10 @@
 using System.Globalization;
+using System.IO;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using ClosedXML.Excel;
 using AutoMapper;
 using Koinon.Application.Common;
 using Koinon.Application.DTOs;
@@ -195,7 +197,7 @@ public class AuditService(
         {
             ExportFormat.Csv => GenerateCsvExport(maskedLogs),
             ExportFormat.Json => GenerateJsonExport(maskedLogs),
-            ExportFormat.Excel => throw new NotImplementedException("Excel export not yet implemented"),
+            ExportFormat.Excel => GenerateExcelExport(maskedLogs),
             _ => throw new ArgumentException($"Unsupported export format: {request.Format}", nameof(request))
         };
     }
@@ -438,5 +440,51 @@ public class AuditService(
         });
 
         return Encoding.UTF8.GetBytes(json);
+    }
+
+    private byte[] GenerateExcelExport(List<AuditLog> auditLogs)
+    {
+        using var workbook = new XLWorkbook();
+        var worksheet = workbook.Worksheets.Add("Audit Logs");
+
+        // Header
+        worksheet.Cell(1, 1).Value = "Timestamp";
+        worksheet.Cell(1, 2).Value = "Action";
+        worksheet.Cell(1, 3).Value = "Entity Type";
+        worksheet.Cell(1, 4).Value = "Entity ID";
+        worksheet.Cell(1, 5).Value = "Person";
+        worksheet.Cell(1, 6).Value = "IP Address";
+        worksheet.Cell(1, 7).Value = "User Agent";
+        worksheet.Cell(1, 8).Value = "Changed Properties";
+        worksheet.Cell(1, 9).Value = "Additional Info";
+
+        // Format header
+        var headerRow = worksheet.Row(1);
+        headerRow.Style.Font.Bold = true;
+        headerRow.Style.Fill.BackgroundColor = XLColor.LightGray;
+
+        // Rows
+        for (int i = 0; i < auditLogs.Count; i++)
+        {
+            var log = auditLogs[i];
+            var row = i + 2;
+
+            worksheet.Cell(row, 1).Value = log.Timestamp;
+            worksheet.Cell(row, 2).Value = log.ActionType.ToString();
+            worksheet.Cell(row, 3).Value = log.EntityType;
+            worksheet.Cell(row, 4).Value = log.EntityIdKey;
+            worksheet.Cell(row, 5).Value = log.Person?.FullName ?? "System";
+            worksheet.Cell(row, 6).Value = log.IpAddress ?? "";
+            worksheet.Cell(row, 7).Value = log.UserAgent ?? "";
+            worksheet.Cell(row, 8).Value = log.ChangedProperties ?? "";
+            worksheet.Cell(row, 9).Value = log.AdditionalInfo ?? "";
+        }
+
+        // Auto-fit columns
+        worksheet.Columns().AdjustToContents();
+
+        using var stream = new MemoryStream();
+        workbook.SaveAs(stream);
+        return stream.ToArray();
     }
 }
