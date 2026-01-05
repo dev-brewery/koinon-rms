@@ -9,6 +9,7 @@ export interface ValidationPreviewProps {
   onFixErrors?: () => void;
   onImportAnyway: () => void;
   onCancel: () => void;
+  onDownloadReport?: () => void;
 }
 
 type SeverityFilter = 'all' | ValidationSeverity;
@@ -18,6 +19,7 @@ export function ValidationPreview({
   onFixErrors,
   onImportAnyway,
   onCancel,
+  onDownloadReport,
 }: ValidationPreviewProps) {
   const [severityFilter, setSeverityFilter] = useState<SeverityFilter>('all');
   const [sortBy, setSortBy] = useState<'row' | 'severity'>('row');
@@ -235,6 +237,11 @@ export function ValidationPreview({
           {onFixErrors && severityCounts.error > 0 && (
             <Button onClick={onFixErrors} variant="primary">
               Fix Errors
+            </Button>
+          )}
+          {onDownloadReport && (
+            <Button onClick={onDownloadReport} variant="outline">
+              Download Report
             </Button>
           )}
           <Button

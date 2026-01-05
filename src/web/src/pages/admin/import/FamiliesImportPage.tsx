@@ -12,7 +12,8 @@ import { FieldMappingEditor } from '@/components/import/FieldMappingEditor';
 import { ValidationPreview } from '@/components/import/ValidationPreview';
 import { ImportProgress } from '@/components/import/ImportProgress';
 import { useImport } from '@/hooks/useImport';
-import { validateImport, executeImport } from '@/services/api/import';
+import { validateImport, executeImport, downloadImportErrors } from '@/services/api/import';
+import { triggerFileDownload } from '@/utils/fileUtils';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import type { ValidationError, ImportJobDto } from '@/types/import';
@@ -22,11 +23,11 @@ import type { TargetField } from '@/components/import/targetFields';
 const FAMILY_TARGET_FIELDS: TargetField[] = [
   // Required
   { value: 'FamilyName', label: 'Family Name', group: 'Required', required: true },
-  
+
   // Contact
   { value: 'Email', label: 'Family Email', group: 'Contact' },
   { value: 'Phone', label: 'Family Phone', group: 'Contact' },
-  
+
   // Address
   { value: 'Street1', label: 'Street Address 1', group: 'Address' },
   { value: 'Street2', label: 'Street Address 2', group: 'Address' },
@@ -34,7 +35,7 @@ const FAMILY_TARGET_FIELDS: TargetField[] = [
   { value: 'State', label: 'State', group: 'Address' },
   { value: 'PostalCode', label: 'Postal Code', group: 'Address' },
   { value: 'Country', label: 'Country', group: 'Address' },
-  
+
   // Status
   { value: 'Campus', label: 'Campus', group: 'Status' },
 ];
@@ -60,7 +61,7 @@ export function FamiliesImportPage() {
   const validateMutation = useMutation({
     mutationFn: async () => {
       if (!file) throw new Error('No file selected');
-      
+
       const mappingsRecord: Record<string, string> = {};
       fieldMappings.forEach((mapping) => {
         if (mapping.targetField) {
@@ -70,9 +71,18 @@ export function FamiliesImportPage() {
 
       return validateImport(file, 'Families', mappingsRecord);
     },
-    onSuccess: () => {
-      // TODO(#408): Map validation errors from ImportJobDto when backend is ready
-      setValidationErrors([]);
+    onSuccess: (data) => {
+      // Map validation errors from ImportJobDto
+      const errors: ValidationError[] = (data.errors || []).map((err) => ({
+        rowNumber: err.row,
+        columnName: err.column,
+        value: err.value,
+        message: err.message,
+        severity: 'error',
+      }));
+
+      setValidationErrors(errors);
+      setImportJob(data);
       goToStep('validation');
     },
     onError: (error) => {
@@ -87,7 +97,7 @@ export function FamiliesImportPage() {
   const executeMutation = useMutation({
     mutationFn: async () => {
       if (!file) throw new Error('No file selected');
-      
+
       const mappingsRecord: Record<string, string> = {};
       fieldMappings.forEach((mapping) => {
         if (mapping.targetField) {
@@ -121,6 +131,20 @@ export function FamiliesImportPage() {
     if (window.confirm('Are you sure you want to cancel this import?')) {
       reset();
       navigate('/admin/import/history');
+    }
+  };
+
+  const handleDownloadReport = async () => {
+    if (!importJob?.idKey) return;
+
+    try {
+      const blob = await downloadImportErrors(importJob.idKey);
+      triggerFileDownload(blob, `families-import-errors-${importJob.idKey}.csv`);
+    } catch (error) {
+      toast.error(
+        'Download Failed',
+        error instanceof Error ? error.message : 'An error occurred while downloading the report'
+      );
     }
   };
 
@@ -177,10 +201,9 @@ export function FamiliesImportPage() {
                     <div
                       className={`
                         w-10 h-10 rounded-full flex items-center justify-center font-semibold
-                        ${
-                          isActive
-                            ? 'bg-blue-600 text-white'
-                            : isCompleted
+                        ${isActive
+                          ? 'bg-blue-600 text-white'
+                          : isCompleted
                             ? 'bg-green-600 text-white'
                             : 'bg-gray-200 text-gray-600'
                         }
@@ -189,18 +212,16 @@ export function FamiliesImportPage() {
                       {isCompleted ? '✓' : index + 1}
                     </div>
                     <span
-                      className={`ml-3 text-sm font-medium ${
-                        isActive ? 'text-blue-600' : 'text-gray-600'
-                      }`}
+                      className={`ml-3 text-sm font-medium ${isActive ? 'text-blue-600' : 'text-gray-600'
+                        }`}
                     >
                       {stepLabels[step]}
                     </span>
                   </div>
                   {index < 3 && (
                     <div
-                      className={`flex-1 h-0.5 mx-4 ${
-                        isCompleted ? 'bg-green-600' : 'bg-gray-200'
-                      }`}
+                      className={`flex-1 h-0.5 mx-4 ${isCompleted ? 'bg-green-600' : 'bg-gray-200'
+                        }`}
                     />
                   )}
                 </div>
@@ -248,6 +269,7 @@ export function FamiliesImportPage() {
             onFixErrors={() => goToStep('mapping')}
             onImportAnyway={handleStartImport}
             onCancel={handleCancel}
+            onDownloadReport={validationErrors.length > 0 ? handleDownloadReport : undefined}
           />
           <div className="flex justify-between">
             <Button variant="outline" onClick={() => goToStep('mapping')}>
@@ -270,9 +292,10 @@ export function FamiliesImportPage() {
               importJob.status === 'Completed'
                 ? 'completed'
                 : importJob.status === 'Failed'
-                ? 'failed'
-                : 'importing'
+                  ? 'failed'
+                  : 'importing'
             }
+            onDownloadReport={importJob.errorCount > 0 ? handleDownloadReport : undefined}
           />
           {importJob.status === 'Completed' && (
             <div className="flex justify-center">
