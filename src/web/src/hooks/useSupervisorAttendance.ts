@@ -105,10 +105,8 @@ export function extractLocationIdKeys(
   const locationIdKeys = new Set<string>();
 
   for (const area of areas) {
-    for (const group of area.groups) {
-      for (const location of group.locations) {
-        locationIdKeys.add(location.idKey);
-      }
+    for (const location of area.locations) {
+      locationIdKeys.add(location.idKey);
     }
   }
 

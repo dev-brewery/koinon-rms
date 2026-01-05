@@ -10,8 +10,9 @@ import type {
   CheckinFamilyDto,
   CheckinOpportunitiesParams,
   CheckinOpportunitiesResponse,
-  RecordAttendanceRequest,
-  RecordAttendanceResponse,
+  BatchCheckinRequest,
+  BatchCheckinResultDto,
+  CheckinRequestItem,
   LabelDto,
   LabelParams,
   SupervisorLoginRequest,
@@ -66,16 +67,37 @@ export async function getCheckinOpportunities(
 }
 
 /**
- * Record check-in attendance for one or more people
+ * Record check-in attendance for one or more people.
+ *
+ * Accepts UI-friendly CheckinRequestItem array and transforms to
+ * backend BatchCheckinRequest format.
+ *
+ * @param items - Array of check-in items from UI selection
+ * @param deviceIdKey - Optional kiosk device ID
+ * @returns Batch check-in result with individual results and labels
  */
 export async function recordAttendance(
-  request: RecordAttendanceRequest
-): Promise<RecordAttendanceResponse> {
-  const response = await post<{ data: RecordAttendanceResponse }>(
+  items: CheckinRequestItem[],
+  deviceIdKey?: string
+): Promise<BatchCheckinResultDto> {
+  // Transform UI items to backend BatchCheckinRequest format
+  const request: BatchCheckinRequest = {
+    checkIns: items.map(item => ({
+      personIdKey: item.personIdKey,
+      locationIdKey: item.locationIdKey,
+      scheduleIdKey: item.scheduleIdKey,
+      // Default to generating security codes for children's ministry
+      generateSecurityCode: true,
+    })),
+    deviceIdKey,
+  };
+
+  // Backend returns result directly (not wrapped in data envelope for this endpoint)
+  const response = await post<BatchCheckinResultDto>(
     '/checkin/attendance',
     request
   );
-  return response.data;
+  return response;
 }
 
 /**

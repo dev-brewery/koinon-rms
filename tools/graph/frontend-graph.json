@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-01-05T03:13:08.849Z",
+  "generated_at": "2026-01-05T12:41:16.429Z",
   "types": {
     "AttendanceAnalyticsDto": {
       "name": "AttendanceAnalyticsDto",
@@ -451,7 +451,7 @@
         "name": "string",
         "description": "string",
         "weeklyDayOfWeek": "number",
-        "09": "00:00\") for simple weekly schedules */\n  weeklyTimeOfDay?: string",
+        "weeklyTimeOfDay": "string",
         "checkInStartOffsetMinutes": "number",
         "checkInEndOffsetMinutes": "number",
         "isActive": "boolean",
@@ -475,9 +475,19 @@
       "properties": {
         "idKey": "IdKey",
         "name": "string",
+        "fullPath": "string",
         "currentCount": "number",
         "softThreshold": "number",
         "firmThreshold": "number",
+        "softCapacity": "number",
+        "hardCapacity": "number",
+        "capacityStatus": "CapacityStatus",
+        "isActive": "boolean",
+        "printerDeviceIdKey": "string",
+        "percentageFull": "number",
+        "overflowLocationIdKey": "string",
+        "overflowLocationName": "string",
+        "autoAssignOverflow": "boolean",
         "isOpen": "boolean",
         "schedules": "ScheduleDto[]"
       },
@@ -488,8 +498,18 @@
       "kind": "interface",
       "properties": {
         "idKey": "IdKey",
+        "guid": "Guid",
         "name": "string",
-        "groups": "CheckinGroupDto[]"
+        "description": "string",
+        "groupType": "GroupTypeSummaryDto",
+        "locations": "CheckinLocationDto[]",
+        "schedule": "ScheduleDto",
+        "isActive": "boolean",
+        "capacityStatus": "CapacityStatus",
+        "minAgeMonths": "number",
+        "maxAgeMonths": "number",
+        "minGrade": "number",
+        "maxGrade": "number"
       },
       "path": "services/api/types.ts"
     },
@@ -539,7 +559,7 @@
         "person": "CheckinPersonSummaryDto",
         "location": "CheckinLocationSummaryDto"
       },
-      "path": "types/checkin.ts"
+      "path": "services/api/types.ts"
     },
     "BatchCheckinResultDto": {
       "name": "BatchCheckinResultDto",
@@ -550,7 +570,7 @@
         "failureCount": "number",
         "allSucceeded": "boolean"
       },
-      "path": "types/checkin.ts"
+      "path": "services/api/types.ts"
     },
     "CheckinPersonSummaryDto": {
       "name": "CheckinPersonSummaryDto",
@@ -564,7 +584,7 @@
         "age": "number",
         "photoUrl": "string"
       },
-      "path": "types/checkin.ts"
+      "path": "services/api/types.ts"
     },
     "CheckinLocationSummaryDto": {
       "name": "CheckinLocationSummaryDto",
@@ -574,7 +594,7 @@
         "name": "string",
         "fullPath": "string"
       },
-      "path": "types/checkin.ts"
+      "path": "services/api/types.ts"
     },
     "CheckinValidationResultDto": {
       "name": "CheckinValidationResultDto",
@@ -705,6 +725,7 @@
       "kind": "interface",
       "properties": {
         "idKey": "IdKey",
+        "guid": "string",
         "name": "string",
         "communicationType": "string",
         "subject": "string",
@@ -748,6 +769,7 @@
         "subject": "string",
         "body": "string",
         "description": "string",
+        "communicationType": "string",
         "isActive": "boolean"
       },
       "path": "types/communication.ts"
@@ -767,7 +789,9 @@
       "name": "MergeFieldDto",
       "kind": "interface",
       "properties": {
-        "name": "string"
+        "name": "string",
+        "token": "string",
+        "description": "string"
       },
       "path": "types/communication.ts"
     },
@@ -916,6 +940,7 @@
       "name": "AddressDto",
       "kind": "interface",
       "properties": {
+        "idKey": "IdKey",
         "street1": "string",
         "street2": "string",
         "city": "string",
@@ -1281,8 +1306,13 @@
       "kind": "interface",
       "properties": {
         "idKey": "IdKey",
+        "guid": "Guid",
         "name": "string",
-        "iconCssClass": "string"
+        "description": "string",
+        "iconCssClass": "string",
+        "isFamilyGroupType": "boolean",
+        "allowMultipleLocations": "boolean",
+        "roles": "GroupTypeRoleDto[]"
       },
       "path": "services/api/types.ts"
     },
@@ -1297,6 +1327,16 @@
         "groupTerm": "string",
         "groupMemberTerm": "string",
         "iconCssClass": "string",
+        "color": "string",
+        "takesAttendance": "boolean",
+        "allowSelfRegistration": "boolean",
+        "requiresMemberApproval": "boolean",
+        "defaultIsPublic": "boolean",
+        "defaultGroupCapacity": "number",
+        "isSystem": "boolean",
+        "isArchived": "boolean",
+        "order": "number",
+        "groupCount": "number",
         "roles": "GroupTypeRoleDto[]"
       },
       "path": "services/api/types.ts"
@@ -1345,9 +1385,11 @@
         "name": "string",
         "description": "string",
         "groupType": "GroupTypeSummaryDto",
+        "groupTypeName": "string",
         "campus": "CampusSummaryDto",
         "memberCount": "number",
-        "isActive": "boolean"
+        "isActive": "boolean",
+        "isArchived": "boolean"
       },
       "path": "services/api/types.ts"
     },
@@ -1396,11 +1438,22 @@
       "kind": "interface",
       "properties": {
         "idKey": "IdKey",
+        "personIdKey": "IdKey",
+        "firstName": "string",
+        "lastName": "string",
+        "fullName": "string",
+        "gender": "string",
         "person": "PersonSummaryDto",
         "role": "GroupTypeRoleDto",
         "status": "GroupMemberStatus",
         "dateAdded": "DateTime",
-        "note": "string"
+        "note": "string",
+        "email": "string",
+        "phone": "string",
+        "photoUrl": "string",
+        "age": "number",
+        "dateTimeAdded": "DateTime",
+        "inactiveDateTime": "DateTime"
       },
       "path": "services/api/types.ts"
     },
@@ -1540,7 +1593,8 @@
         "errors": "ImportRowErrorDto[]",
         "startedAt": "DateTime",
         "completedAt": "DateTime",
-        "createdDateTime": "DateTime"
+        "createdDateTime": "DateTime",
+        "backgroundJobId": "string"
       },
       "path": "types/import.ts"
     },
@@ -1604,10 +1658,10 @@
       "name": "LabelDto",
       "kind": "interface",
       "properties": {
-        "attendanceIdKey": "IdKey",
-        "labelType": "'Child' | 'Parent' | 'NameTag'",
-        "printData": "string",
-        "printerAddress": "string"
+        "type": "LabelType",
+        "content": "string",
+        "format": "string",
+        "fields": "Record<string, string>"
       },
       "path": "services/api/types.ts"
     },
@@ -1640,7 +1694,8 @@
       "kind": "interface",
       "properties": {
         "attendanceIdKey": "IdKey",
-        "Optional": "additional custom fields for label templates */\n  customFields?: Record<string, string>"
+        "labelTypes": "LabelType[]",
+        "customFields": "Record<string, string>"
       },
       "path": "types/labels.ts"
     },
@@ -1649,7 +1704,8 @@
       "kind": "interface",
       "properties": {
         "attendanceIdKeys": "IdKey[]",
-        "Optional": "additional custom fields for label templates */\n  customFields?: Record<string, string>"
+        "labelTypes": "LabelType[]",
+        "customFields": "Record<string, string>"
       },
       "path": "types/labels.ts"
     },
@@ -1659,7 +1715,7 @@
       "properties": {
         "type": "LabelType",
         "fields": "Record<string, string>",
-        "Optional": "specific template to use (default: system default for type) */\n  templateIdKey?: IdKey"
+        "templateIdKey": "IdKey"
       },
       "path": "types/labels.ts"
     },
@@ -2130,6 +2186,7 @@
         "idKey": "IdKey",
         "guid": "string",
         "firstName": "string",
+        "middleName": "string",
         "nickName": "string",
         "lastName": "string",
         "fullName": "string",
@@ -2142,7 +2199,9 @@
         "gender": "string",
         "photoUrl": "string",
         "primaryFamily": "FamilySummaryDto",
-        "primaryCampus": "CampusSummaryDto"
+        "primaryCampus": "CampusSummaryDto",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
       },
       "path": "types/profile.ts"
     },
@@ -2161,18 +2220,36 @@
       "name": "FamilyMemberDto",
       "kind": "interface",
       "properties": {
+        "idKey": "IdKey",
         "person": "PersonSummaryDto",
         "role": "GroupTypeRoleDto",
-        "isPersonPrimaryFamily": "boolean"
+        "status": "string",
+        "isPersonPrimaryFamily": "boolean",
+        "dateTimeAdded": "DateTime"
       },
       "path": "services/api/types.ts"
+    },
+    "UpdatePhoneNumberRequest": {
+      "name": "UpdatePhoneNumberRequest",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "number": "string",
+        "extension": "string",
+        "phoneTypeIdKey": "IdKey",
+        "isMessagingEnabled": "boolean",
+        "isUnlisted": "boolean"
+      },
+      "path": "types/profile.ts"
     },
     "UpdateFamilyMemberRequest": {
       "name": "UpdateFamilyMemberRequest",
       "kind": "interface",
       "properties": {
         "nickName": "string",
+        "phoneNumbers": "UpdatePhoneNumberRequest[]",
         "allergies": "string",
+        "hasCriticalAllergies": "boolean",
         "specialNeeds": "string"
       },
       "path": "types/profile.ts"
@@ -2407,7 +2484,7 @@
       "kind": "interface",
       "properties": {
         "page": "number",
-        "Default": "1\n  pageSize?: number"
+        "pageSize": "number"
       },
       "path": "services/api/types.ts"
     },
@@ -2527,11 +2604,13 @@
         "birthDate": "DateOnly",
         "maritalStatusValueId": "IdKey",
         "connectionStatusValueId": "IdKey",
-        "Default": "Active\n\n  phoneNumbers?: CreatePhoneNumberRequest[]",
+        "recordStatusValueId": "IdKey",
+        "phoneNumbers": "CreatePhoneNumberRequest[]",
         "familyId": "IdKey",
         "familyRoleId": "IdKey",
         "createFamily": "boolean",
-        "familyName": "string"
+        "familyName": "string",
+        "campusId": "IdKey"
       },
       "path": "services/api/types.ts"
     },
@@ -2542,7 +2621,7 @@
         "number": "string",
         "extension": "string",
         "phoneTypeValueId": "IdKey",
-        "Default": "Mobile\n  isMessagingEnabled?: boolean"
+        "isMessagingEnabled": "boolean"
       },
       "path": "services/api/types.ts"
     },
@@ -2611,6 +2690,7 @@
       "kind": "interface",
       "properties": {
         "name": "string",
+        "description": "string",
         "campusId": "IdKey",
         "members": "CreateFamilyMemberRequest[]",
         "address": "CreateAddressRequest"
@@ -2637,7 +2717,9 @@
         "state": "string",
         "postalCode": "string",
         "country": "string",
-        "Default": "true\n  isMappedAddress?: boolean"
+        "locationTypeValueId": "IdKey",
+        "isMailingAddress": "boolean",
+        "isMappedAddress": "boolean"
       },
       "path": "services/api/types.ts"
     },
@@ -2727,10 +2809,10 @@
       "name": "AddGroupMemberRequest",
       "kind": "interface",
       "properties": {
-        "personIdKey": "IdKey",
-        "roleIdKey": "IdKey",
+        "personId": "IdKey",
+        "roleId": "IdKey",
         "status": "GroupMemberStatus",
-        "Default": "Active\n  note?: string"
+        "note": "string"
       },
       "path": "services/api/types.ts"
     },
@@ -2792,10 +2874,27 @@
       "kind": "interface",
       "properties": {
         "idKey": "IdKey",
+        "guid": "Guid",
         "name": "string",
+        "description": "string",
         "startTime": "string",
-        "09": "00\"\n  isActive: boolean",
-        "checkInWindowOpen": "boolean"
+        "isActive": "boolean",
+        "isCheckinActive": "boolean",
+        "checkInWindowOpen": "boolean",
+        "weeklyDayOfWeek": "number",
+        "weeklyTimeOfDay": "string",
+        "checkInStartOffsetMinutes": "number",
+        "checkInEndOffsetMinutes": "number",
+        "checkinStartTime": "DateTime",
+        "checkinEndTime": "DateTime",
+        "isPublic": "boolean",
+        "order": "number",
+        "effectiveStartDate": "string",
+        "effectiveEndDate": "string",
+        "iCalendarContent": "string",
+        "autoInactivateWhenComplete": "boolean",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
       },
       "path": "services/api/types.ts"
     },
@@ -2913,11 +3012,26 @@
       },
       "path": "services/api/types.ts"
     },
-    "RecordAttendanceRequest": {
-      "name": "RecordAttendanceRequest",
+    "CheckinRequest": {
+      "name": "CheckinRequest",
       "kind": "interface",
       "properties": {
-        "checkins": "CheckinRequestItem[]"
+        "personIdKey": "IdKey",
+        "locationIdKey": "IdKey",
+        "scheduleIdKey": "IdKey",
+        "occurrenceDate": "DateOnly",
+        "deviceIdKey": "IdKey",
+        "generateSecurityCode": "boolean",
+        "note": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "BatchCheckinRequest": {
+      "name": "BatchCheckinRequest",
+      "kind": "interface",
+      "properties": {
+        "checkIns": "CheckinRequest[]",
+        "deviceIdKey": "IdKey"
       },
       "path": "services/api/types.ts"
     },
@@ -2929,6 +3043,16 @@
         "groupIdKey": "IdKey",
         "locationIdKey": "IdKey",
         "scheduleIdKey": "IdKey"
+      },
+      "path": "services/api/types.ts"
+    },
+    "RecordAttendanceRequest": {
+      "name": "RecordAttendanceRequest",
+      "kind": "interface",
+      "properties": {
+        "occurrenceDate": "DateOnly",
+        "attendedPersonIds": "string[]",
+        "notes": "string"
       },
       "path": "services/api/types.ts"
     },
@@ -3138,8 +3262,11 @@
         "groupTypeId": "IdKey",
         "parentGroupId": "IdKey",
         "campusId": "IdKey",
-        "capacity": "number",
-        "isActive": "boolean"
+        "isActive": "boolean",
+        "isPublic": "boolean",
+        "allowGuests": "boolean",
+        "groupCapacity": "number",
+        "order": "number"
       },
       "path": "services/api/types.ts"
     },
@@ -3150,8 +3277,10 @@
         "name": "string",
         "description": "string",
         "campusId": "IdKey",
-        "capacity": "number",
         "isActive": "boolean",
+        "isPublic": "boolean",
+        "allowGuests": "boolean",
+        "groupCapacity": "number",
         "order": "number"
       },
       "path": "services/api/types.ts"
@@ -3171,6 +3300,7 @@
       "kind": "interface",
       "properties": {
         "idKey": "IdKey",
+        "guid": "Guid",
         "name": "string",
         "description": "string",
         "weeklyDayOfWeek": "number",
@@ -3235,6 +3365,7 @@
         "order": "number",
         "effectiveStartDate": "DateOnly",
         "effectiveEndDate": "DateOnly",
+        "iCalendarContent": "string",
         "autoInactivateWhenComplete": "boolean"
       },
       "path": "services/api/types.ts"
@@ -3254,6 +3385,7 @@
         "order": "number",
         "effectiveStartDate": "DateOnly | null",
         "effectiveEndDate": "DateOnly | null",
+        "iCalendarContent": "string",
         "autoInactivateWhenComplete": "boolean"
       },
       "path": "services/api/types.ts"
@@ -3490,8 +3622,10 @@
       "properties": {
         "fieldName": "string",
         "displayName": "string",
+        "description": "string",
         "dataType": "string",
-        "isRequired": "boolean"
+        "isRequired": "boolean",
+        "isDefaultField": "boolean"
       },
       "path": "services/api/types.ts"
     },

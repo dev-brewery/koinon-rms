@@ -176,6 +176,7 @@ export interface CommunicationsParams {
  */
 export interface CommunicationTemplateDto {
   idKey: IdKey;
+  guid: string;
   name: string;
   communicationType: string; // 'Email' | 'Sms'
   subject?: string;
@@ -216,6 +217,7 @@ export interface UpdateCommunicationTemplateDto {
   subject?: string;
   body?: string;
   description?: string;
+  communicationType?: string;
   isActive?: boolean;
 }
 

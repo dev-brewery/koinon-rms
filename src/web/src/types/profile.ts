@@ -48,6 +48,7 @@ export interface MyProfileDto {
   idKey: IdKey;
   guid: string;
   firstName: string;
+  middleName?: string;
   nickName?: string;
   lastName: string;
   fullName: string;
@@ -61,6 +62,8 @@ export interface MyProfileDto {
   photoUrl?: string;
   primaryFamily?: FamilySummaryDto;
   primaryCampus?: CampusSummaryDto;
+  createdDateTime: DateTime;
+  modifiedDateTime?: DateTime;
 }
 
 export interface UpdateMyProfileRequest {
@@ -93,9 +96,20 @@ export interface FamilyMemberDto {
   specialNeeds?: string;
 }
 
+export interface UpdatePhoneNumberRequest {
+  idKey?: IdKey;  // IdKey of existing phone (null/undefined for new)
+  number: string;
+  extension?: string;
+  phoneTypeIdKey?: IdKey;
+  isMessagingEnabled: boolean;
+  isUnlisted: boolean;
+}
+
 export interface UpdateFamilyMemberRequest {
   nickName?: string;
+  phoneNumbers?: UpdatePhoneNumberRequest[];
   allergies?: string;
+  hasCriticalAllergies?: boolean;
   specialNeeds?: string;
 }
 

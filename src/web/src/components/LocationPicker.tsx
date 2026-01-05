@@ -45,12 +45,9 @@ export function LocationPicker({
       const allLocations: CheckinLocationDto[] = [];
 
       config.areas.forEach((area: CheckinAreaDto) => {
-        // Areas contain groups, groups contain locations
-        area.groups.forEach((group) => {
-          // CRITICAL-2 FIX: Null coalescing prevents crash if locations is undefined/null
-          const activeLocations = (group.locations || []).filter((loc: CheckinLocationDto) => loc.isOpen);
-          allLocations.push(...activeLocations);
-        });
+        // Areas contain locations directly
+        const activeLocations = (area.locations || []).filter((loc: CheckinLocationDto) => loc.isActive);
+        allLocations.push(...activeLocations);
       });
 
       // Sort by name for better UX

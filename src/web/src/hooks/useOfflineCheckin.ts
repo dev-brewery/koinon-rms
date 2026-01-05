@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { RecordAttendanceRequest, RecordAttendanceResponse } from '@/services/api/types';
+import type { CheckinRequestItem, BatchCheckinResultDto } from '@/services/api/types';
 import { recordAttendance } from '@/services/api/checkin';
 import { offlineCheckinQueue, type SyncResult } from '@/services/offline/OfflineCheckinQueue';
 
@@ -21,7 +21,7 @@ export interface OfflineCheckinState {
 }
 
 export interface UseOfflineCheckinResult {
-  recordCheckin: (request: RecordAttendanceRequest) => Promise<RecordAttendanceResponse | void>;
+  recordCheckin: (items: CheckinRequestItem[]) => Promise<BatchCheckinResultDto | void>;
   state: OfflineCheckinState;
   syncQueue: () => Promise<void>;
   clearQueue: () => Promise<void>;
@@ -45,7 +45,7 @@ export function useOfflineCheckin(): UseOfflineCheckinResult {
 
   // Online check-in mutation
   const onlineCheckinMutation = useMutation({
-    mutationFn: (request: RecordAttendanceRequest) => recordAttendance(request),
+    mutationFn: (items: CheckinRequestItem[]) => recordAttendance(items),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['checkin', 'opportunities'] });
     },
@@ -118,23 +118,23 @@ export function useOfflineCheckin(): UseOfflineCheckinResult {
    * Record check-in (online or offline)
    */
   const recordCheckin = useCallback(
-    async (request: RecordAttendanceRequest): Promise<RecordAttendanceResponse | void> => {
+    async (items: CheckinRequestItem[]): Promise<BatchCheckinResultDto | void> => {
       if (isOnline) {
         // Try online check-in first
         try {
-          const response = await onlineCheckinMutation.mutateAsync(request);
+          const response = await onlineCheckinMutation.mutateAsync(items);
           return response;
         } catch (error) {
           // If online check-in fails, fall back to queue
           console.warn('Online check-in failed, adding to queue:', error);
-          await offlineCheckinQueue.addToQueue(request);
+          await offlineCheckinQueue.addToQueue(items);
           await updateQueuedCount();
           // Don't throw - let caller know it was queued
           return undefined;
         }
       } else {
         // Offline - add to queue
-        await offlineCheckinQueue.addToQueue(request);
+        await offlineCheckinQueue.addToQueue(items);
         await updateQueuedCount();
         return undefined;
       }

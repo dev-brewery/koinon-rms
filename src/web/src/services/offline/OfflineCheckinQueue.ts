@@ -4,7 +4,7 @@
  */
 
 import { openDB, type IDBPDatabase } from 'idb';
-import type { RecordAttendanceRequest, RecordAttendanceResponse } from '@/services/api/types';
+import type { CheckinRequestItem, BatchCheckinResultDto } from '@/services/api/types';
 import { recordAttendance } from '@/services/api/checkin';
 import { ApiClientError } from '@/services/api/client';
 
@@ -16,7 +16,7 @@ export type QueueStatus = 'pending' | 'syncing' | 'failed' | 'success';
 
 export interface QueuedCheckin {
   id: string; // UUID for deduplication
-  request: RecordAttendanceRequest;
+  items: CheckinRequestItem[];
   timestamp: number;
   attempts: number;
   status: QueueStatus;
@@ -27,7 +27,7 @@ export interface QueuedCheckin {
 export interface SyncResult {
   id: string;
   success: boolean;
-  response?: RecordAttendanceResponse;
+  response?: BatchCheckinResultDto;
   error?: string;
   isDuplicate?: boolean; // True if server returned 409 Conflict
 }
@@ -73,11 +73,11 @@ class OfflineCheckinQueue {
   }
 
   /**
-   * Add check-in request to queue
+   * Add check-in items to queue
    * @returns ID of queued item
    * @throws Error if queue is full (max 100 items)
    */
-  async addToQueue(request: RecordAttendanceRequest): Promise<string> {
+  async addToQueue(items: CheckinRequestItem[]): Promise<string> {
     const db = await this.getDB();
 
     // Check queue size limit
@@ -90,7 +90,7 @@ class OfflineCheckinQueue {
 
     const queuedItem: QueuedCheckin = {
       id,
-      request,
+      items,
       timestamp: Date.now(),
       attempts: 0,
       status: 'pending',
@@ -192,7 +192,7 @@ class OfflineCheckinQueue {
 
       try {
         // Attempt to sync with server
-        const response = await recordAttendance(item.request);
+        const response = await recordAttendance(item.items);
 
         // Success - mark for removal on next processQueue call
         results.push({

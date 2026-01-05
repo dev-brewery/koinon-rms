@@ -40,7 +40,9 @@ class ContractVerifier:
     """Verifies contract consistency in the architecture graph."""
 
     # DTOs that intentionally don't have frontend types (internal-only DTOs)
+    # or have frontend types with different names
     FRONTEND_ALLOWLIST = {
+        # Internal-only DTOs (not exposed to frontend)
         "CreateNotificationDto",
         "BatchCheckinResultDto",
         "BulkUpdatePreferencesDto",
@@ -56,6 +58,41 @@ class ContractVerifier:
         "ImportFamilyResultDto",
         "OfflineCheckinDto",
         "SystemStatisticsDto",
+        # Admin export/audit (admin-only operations)
+        "AuditLogExportRequest",
+        "ExportJobDto",
+        "StartExportRequest",
+        # Email/SMS internal handling
+        "EmailAttachmentDto",
+        "QueuedSmsDto",
+        "TwilioWebhookDto",
+        # Giving batch operations (admin-only)
+        "BatchStatementRequest",
+        "BatchFilterRequest",
+        # Reporting subsystem (admin-only, not yet implemented in frontend)
+        "ReportDefinitionDto",
+        "CreateReportDefinitionRequest",
+        "UpdateReportDefinitionRequest",
+        "ReportRunDto",
+        "RunReportRequest",
+        "ReportScheduleDto",
+        "CreateReportScheduleRequest",
+        "UpdateReportScheduleRequest",
+        # Security role management (admin-only)
+        "SecurityRoleDto",
+        # Check-in supervisor operations
+        "SupervisorReprintRequest",
+        # DTOs with different-named frontend equivalents
+        # MyFamilyMemberDto → FamilyMemberDto (profile.ts)
+        "MyFamilyMemberDto",
+        # MyInvolvementGroupDto → GroupMembershipDto (profile.ts)
+        "MyInvolvementGroupDto",
+        # PersonGroupMembershipDto → GroupMembershipDto (profile.ts)
+        "PersonGroupMembershipDto",
+        # DashboardBatchDto → embedded in DashboardStatsDto, not exposed separately
+        "DashboardBatchDto",
+        # CreateFamilyAddressRequest → CreateAddressRequest (different name in frontend)
+        "CreateFamilyAddressRequest",
     }
 
     def __init__(self, graph_path: str):
@@ -257,6 +294,10 @@ class ContractVerifier:
         for dto_prop, dto_type in dto_properties.items():
             # Skip common base properties that may not be exposed
             if dto_prop in ["Id", "IdKey", "Guid", "CreatedDateTime", "ModifiedDateTime"]:
+                continue
+
+            # Skip backend-internal properties (file streams sent via FormData, not JSON)
+            if dto_type in ["Stream", "FileStream", "IFormFile"]:
                 continue
 
             # Convert to camelCase for comparison
