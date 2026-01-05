@@ -41,7 +41,7 @@ public class PagerDataLoader(IApplicationDbContext context, ILogger<PagerDataLoa
     private const string UsCountryCode = "+1";
 
     // Family role names that indicate adult guardians who can be paged
-    private static readonly string[] AdultRoleNames = ["Adult", "Parent", "Guardian"];
+    private static readonly string[] _adultRoleNames = ["Adult", "Parent", "Guardian"];
 
     /// <summary>
     /// Loads all pager assignments for a date with complete relationship graph.
@@ -232,7 +232,7 @@ public class PagerDataLoader(IApplicationDbContext context, ILogger<PagerDataLoa
                 .Where(fm => fm.FamilyId == membership.FamilyId &&
                             fm.Person != null &&
                             fm.FamilyRole != null &&
-                            AdultRoleNames.Any(role =>
+                            _adultRoleNames.Any(role =>
                                 fm.FamilyRole.Name.Equals(role, StringComparison.OrdinalIgnoreCase)))
                 .Select(fm => fm.Person!)
                 .ToList();
