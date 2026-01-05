@@ -135,7 +135,7 @@ public sealed class CustomSqlDataProvider(
         CancellationToken ct)
     {
         var connection = context.Database.GetDbConnection();
-        
+
         await using var command = connection.CreateCommand();
         command.CommandText = parameters.Query;
         command.CommandType = CommandType.Text;
