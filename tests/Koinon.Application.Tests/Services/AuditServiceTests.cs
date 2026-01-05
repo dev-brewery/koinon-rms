@@ -1,7 +1,7 @@
 using System.IO;
 using System.Text.Json;
-using ClosedXML.Excel;
 using AutoMapper;
+using ClosedXML.Excel;
 using FluentAssertions;
 using Koinon.Application.DTOs;
 using Koinon.Application.Interfaces;
