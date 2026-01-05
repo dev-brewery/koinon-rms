@@ -1,5 +1,7 @@
+using System.IO;
 using System.Text.Json;
 using AutoMapper;
+using ClosedXML.Excel;
 using FluentAssertions;
 using Koinon.Application.DTOs;
 using Koinon.Application.Interfaces;
@@ -685,6 +687,31 @@ public class AuditServiceTests : IDisposable
 
         exportedData.Should().NotBeNull();
         exportedData!.Should().HaveCount(2); // auditLog1 and auditLog2
+    }
+
+    [Fact]
+    public async Task ExportAsync_GeneratesExcelFile()
+    {
+        // Arrange
+        var request = new AuditLogExportRequest
+        {
+            Format = ExportFormat.Excel
+        };
+
+        // Act
+        var result = await _service.ExportAsync(request);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Should().NotBeEmpty();
+
+        // Verify it's a valid Excel file by trying to open it
+        using var stream = new MemoryStream(result);
+        using var workbook = new XLWorkbook(stream);
+        workbook.Worksheets.Count.Should().BeGreaterThan(0);
+        var worksheet = workbook.Worksheet("Audit Logs");
+        worksheet.Should().NotBeNull();
+        worksheet.Cell(1, 1).GetString().Should().Be("Timestamp");
     }
 
     public void Dispose()
