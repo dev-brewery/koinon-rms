@@ -3,7 +3,7 @@ import * as checkinApi from '@/services/api/checkin';
 import type {
   CheckinConfigParams,
   CheckinOpportunitiesParams,
-  RecordAttendanceRequest,
+  CheckinRequestItem,
   LabelParams,
 } from '@/services/api/types';
 
@@ -56,8 +56,8 @@ export function useRecordAttendance() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (request: RecordAttendanceRequest) =>
-      checkinApi.recordAttendance(request),
+    mutationFn: (items: CheckinRequestItem[]) =>
+      checkinApi.recordAttendance(items),
     onSuccess: () => {
       // Invalidate opportunities to refresh current attendance
       queryClient.invalidateQueries({ queryKey: ['checkin', 'opportunities'] });

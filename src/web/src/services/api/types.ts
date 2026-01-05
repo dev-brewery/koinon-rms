@@ -3,6 +3,10 @@
  * Generated from docs/reference/api-contracts.md
  */
 
+// Import and re-export types from other files for convenience
+import { LabelType } from '@/types/labels';
+export { LabelType };
+
 // ============================================================================
 // Common Types
 // ============================================================================
@@ -291,9 +295,12 @@ export interface FamilyDetailDto {
 }
 
 export interface FamilyMemberDto {
+  idKey: IdKey;
   person: PersonSummaryDto;
   role: GroupTypeRoleDto;
+  status: string;
   isPersonPrimaryFamily: boolean;
+  dateTimeAdded?: DateTime;
 }
 
 export interface FamilyAddressDto {
@@ -305,6 +312,7 @@ export interface FamilyAddressDto {
 }
 
 export interface AddressDto {
+  idKey: IdKey;
   street1: string;
   street2?: string;
   city: string;
@@ -317,6 +325,7 @@ export interface AddressDto {
 
 export interface CreateFamilyRequest {
   name: string;                   // Required
+  description?: string;
   campusId?: IdKey;
 
   members?: CreateFamilyMemberRequest[];
@@ -387,9 +396,11 @@ export interface GroupSummaryDto {
   name: string;
   description?: string;
   groupType: GroupTypeSummaryDto;
+  groupTypeName: string;
   campus?: CampusSummaryDto;
   memberCount: number;
   isActive: boolean;
+  isArchived: boolean;
 }
 
 export interface GroupDetailDto {
@@ -415,11 +426,22 @@ export interface GroupMembersParams extends PaginationParams {
 
 export interface GroupMemberDetailDto {
   idKey: IdKey;
+  personIdKey: IdKey;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  gender: string;
   person: PersonSummaryDto;
   role: GroupTypeRoleDto;
   status: GroupMemberStatus;
   dateAdded?: DateTime;
   note?: string;
+  email?: string;
+  phone?: string;
+  photoUrl?: string;
+  age?: number;
+  dateTimeAdded?: DateTime;
+  inactiveDateTime?: DateTime;
 }
 
 export interface GroupMembershipDto {
@@ -430,8 +452,8 @@ export interface GroupMembershipDto {
 }
 
 export interface AddGroupMemberRequest {
-  personIdKey: IdKey;
-  roleIdKey: IdKey;
+  personId: IdKey;
+  roleId: IdKey;
   status?: GroupMemberStatus;  // Default: Active
   note?: string;
 }
@@ -471,8 +493,18 @@ export interface CheckinConfigDto {
 
 export interface CheckinAreaDto {
   idKey: IdKey;
+  guid: Guid;
   name: string;
-  groups: CheckinGroupDto[];
+  description?: string;
+  groupType: GroupTypeSummaryDto;
+  locations: CheckinLocationDto[];
+  schedule?: ScheduleDto;
+  isActive: boolean;
+  capacityStatus: CapacityStatus;
+  minAgeMonths?: number;
+  maxAgeMonths?: number;
+  minGrade?: number;
+  maxGrade?: number;
 }
 
 export interface CheckinGroupDto {
@@ -484,19 +516,46 @@ export interface CheckinGroupDto {
 export interface CheckinLocationDto {
   idKey: IdKey;
   name: string;
+  fullPath: string;
   currentCount: number;
   softThreshold?: number;
   firmThreshold?: number;
+  softCapacity?: number;
+  hardCapacity?: number;
+  capacityStatus: CapacityStatus;
+  isActive: boolean;
+  printerDeviceIdKey?: string;
+  percentageFull: number;
+  overflowLocationIdKey?: string;
+  overflowLocationName?: string;
+  autoAssignOverflow: boolean;
   isOpen: boolean;
   schedules: ScheduleDto[];
 }
 
 export interface ScheduleDto {
   idKey: IdKey;
+  guid: Guid;
   name: string;
+  description?: string;
   startTime: string;             // "09:00"
   isActive: boolean;
+  isCheckinActive: boolean;
   checkInWindowOpen: boolean;
+  weeklyDayOfWeek?: number;
+  weeklyTimeOfDay?: string;
+  checkInStartOffsetMinutes?: number;
+  checkInEndOffsetMinutes?: number;
+  checkinStartTime?: DateTime;
+  checkinEndTime?: DateTime;
+  isPublic: boolean;
+  order: number;
+  effectiveStartDate?: string;
+  effectiveEndDate?: string;
+  iCalendarContent?: string;
+  autoInactivateWhenComplete: boolean;
+  createdDateTime: DateTime;
+  modifiedDateTime?: DateTime;
 }
 
 export interface CheckinSearchRequest {
@@ -573,17 +632,108 @@ export interface CheckinScheduleOptionDto {
   isSelected: boolean;           // Auto-selected based on config
 }
 
-export interface RecordAttendanceRequest {
-  checkins: CheckinRequestItem[];
+// =============================================================================
+// Kiosk Check-in Types (for /checkin/attendance endpoint)
+// =============================================================================
+
+/**
+ * Request to check in a single person.
+ * Matches backend CheckinRequestDto.
+ */
+export interface CheckinRequest {
+  personIdKey: IdKey;
+  locationIdKey: IdKey;
+  scheduleIdKey?: IdKey;
+  occurrenceDate?: DateOnly;
+  deviceIdKey?: IdKey;
+  generateSecurityCode?: boolean;
+  note?: string;
 }
 
+/**
+ * Request to check in multiple people at once (family batch check-in).
+ * Matches backend BatchCheckinRequestDto.
+ */
+export interface BatchCheckinRequest {
+  checkIns: CheckinRequest[];
+  deviceIdKey?: IdKey;
+}
+
+/**
+ * Result of a single check-in operation.
+ * Matches backend CheckinResultDto.
+ */
+export interface CheckinResultDto {
+  success: boolean;
+  errorMessage?: string;
+  attendanceIdKey?: IdKey;
+  securityCode?: string;
+  checkInTime?: DateTime;
+  person?: CheckinPersonSummaryDto;
+  location?: CheckinLocationSummaryDto;
+}
+
+/**
+ * Minimal person summary for check-in operations.
+ */
+export interface CheckinPersonSummaryDto {
+  idKey: IdKey;
+  fullName: string;
+  firstName: string;
+  lastName: string;
+  nickName?: string;
+  age?: number;
+  photoUrl?: string;
+}
+
+/**
+ * Minimal location summary for check-in operations.
+ */
+export interface CheckinLocationSummaryDto {
+  idKey: IdKey;
+  name: string;
+  fullPath: string;
+}
+
+/**
+ * Result of a batch check-in operation.
+ * Matches backend BatchCheckinResultDto.
+ */
+export interface BatchCheckinResultDto {
+  results: CheckinResultDto[];
+  successCount: number;
+  failureCount: number;
+  allSucceeded: boolean;
+}
+
+/**
+ * Extended check-in request item for UI state management.
+ * Includes group info for display purposes (not sent to backend).
+ */
 export interface CheckinRequestItem {
   personIdKey: IdKey;
-  groupIdKey: IdKey;
+  groupIdKey: IdKey;         // For UI display only
   locationIdKey: IdKey;
   scheduleIdKey: IdKey;
 }
 
+// =============================================================================
+// Group Attendance Types (for /mygroups/attendance endpoint)
+// =============================================================================
+
+/**
+ * Request to record attendance for a group meeting.
+ * Matches backend RecordAttendanceRequest.
+ */
+export interface RecordAttendanceRequest {
+  occurrenceDate: DateOnly;
+  attendedPersonIds: string[];
+  notes?: string;
+}
+
+/**
+ * Response from kiosk check-in. Contains attendance results and labels.
+ */
 export interface RecordAttendanceResponse {
   attendances: AttendanceResultDto[];
   labels: LabelDto[];
@@ -602,10 +752,10 @@ export interface AttendanceResultDto {
 }
 
 export interface LabelDto {
-  attendanceIdKey: IdKey;
-  labelType: 'Child' | 'Parent' | 'NameTag';
-  printData: string;             // ZPL or other format
-  printerAddress?: string;       // IP or device name
+  type: LabelType;
+  content: string;
+  format: string;
+  fields: Record<string, string>;
 }
 
 export interface CheckoutRequest {
@@ -701,13 +851,28 @@ export interface GroupTypeDto {
   groupTerm: string;
   groupMemberTerm: string;
   iconCssClass?: string;
+  color?: string;
+  takesAttendance: boolean;
+  allowSelfRegistration: boolean;
+  requiresMemberApproval: boolean;
+  defaultIsPublic: boolean;
+  defaultGroupCapacity?: number;
+  isSystem: boolean;
+  isArchived: boolean;
+  order: number;
+  groupCount: number;
   roles: GroupTypeRoleDto[];
 }
 
 export interface GroupTypeSummaryDto {
   idKey: IdKey;
+  guid: Guid;
   name: string;
+  description?: string;
   iconCssClass?: string;
+  isFamilyGroupType: boolean;
+  allowMultipleLocations: boolean;
+  roles: GroupTypeRoleDto[];
 }
 
 export interface GroupTypeRoleDto {
@@ -808,16 +973,21 @@ export interface CreateGroupRequest {
   groupTypeId: IdKey;
   parentGroupId?: IdKey;
   campusId?: IdKey;
-  capacity?: number;
   isActive?: boolean;
+  isPublic?: boolean;
+  allowGuests?: boolean;
+  groupCapacity?: number;
+  order?: number;
 }
 
 export interface UpdateGroupRequest {
   name?: string;
   description?: string;
   campusId?: IdKey;
-  capacity?: number;
   isActive?: boolean;
+  isPublic?: boolean;
+  allowGuests?: boolean;
+  groupCapacity?: number;
   order?: number;
 }
 
@@ -833,6 +1003,7 @@ export interface ScheduleSearchParams extends PaginationParams {
 
 export interface ScheduleSummaryDto {
   idKey: IdKey;
+  guid: Guid;
   name: string;
   description?: string;
   weeklyDayOfWeek?: number;
@@ -885,6 +1056,7 @@ export interface CreateScheduleRequest {
   order?: number;
   effectiveStartDate?: DateOnly;
   effectiveEndDate?: DateOnly;
+  iCalendarContent?: string;
   autoInactivateWhenComplete?: boolean;
 }
 
@@ -900,6 +1072,7 @@ export interface UpdateScheduleRequest {
   order?: number;
   effectiveStartDate?: DateOnly | null;
   effectiveEndDate?: DateOnly | null;
+  iCalendarContent?: string;
   autoInactivateWhenComplete?: boolean;
 }
 
@@ -1126,6 +1299,8 @@ export interface CreateDataExportRequest {
 export interface ExportFieldDto {
   fieldName: string;
   displayName: string;
+  description?: string;
   dataType: string;
   isRequired: boolean;
+  isDefaultField: boolean;
 }

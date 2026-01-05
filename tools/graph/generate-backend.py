@@ -52,13 +52,121 @@ class CSharpParser:
         """Extract public properties from class."""
         properties = {}
         # Match public property declarations: public Type PropertyName { get; set; }
-        pattern = r'public\s+([^\s{]+(?:<[^>]+>)?)\s+([A-Za-z_][A-Za-z0-9_]*)\s*[{;]'
+        # Handle 'required' keyword and generic types with spaces (e.g., IDictionary<string, string>)
+        pattern = r'public\s+(?:required\s+)?(.+?)\s+([A-Za-z_][A-Za-z0-9_]*)\s*[{;]'
         for match in re.finditer(pattern, content):
             prop_type = match.group(1).strip()
             prop_name = match.group(2)
             # Skip if it's a method or other construct
             if prop_type not in ['class', 'record', 'enum', 'struct', 'interface']:
                 properties[prop_name] = prop_type
+        return properties
+
+    def extract_class_body(self, content: str, class_name: str) -> Optional[str]:
+        """Extract the body of a specific class/record from content.
+
+        Returns the content between the opening and closing braces of the
+        specified class/record definition, or None if not found.
+        """
+        # Match the class/record definition: record ClassName(...) { ... } or class ClassName { ... }
+        # Handle primary constructors: record ClassName(Type Prop, ...) { }
+        # Handle inheritance: class ClassName : BaseClass { }
+        pattern = rf'(?:public\s+)?(?:sealed\s+)?(?:abstract\s+)?(?:partial\s+)?(?:record|class|struct)\s+{re.escape(class_name)}\s*(?:\([^)]*\))?\s*(?::[^{{]+)?\s*{{'
+
+        match = re.search(pattern, content)
+        if not match:
+            return None
+
+        # Find matching closing brace
+        start_pos = match.end()
+        brace_count = 1
+        pos = start_pos
+
+        while pos < len(content) and brace_count > 0:
+            if content[pos] == '{':
+                brace_count += 1
+            elif content[pos] == '}':
+                brace_count -= 1
+            pos += 1
+
+        if brace_count == 0:
+            return content[start_pos:pos - 1]
+
+        return None
+
+    def _extract_balanced_parens(self, content: str, start_pos: int) -> str:
+        """Extract content between balanced parentheses starting at start_pos.
+
+        start_pos should point to the opening parenthesis.
+        Returns the content between the parens (not including the parens themselves).
+        """
+        if start_pos >= len(content) or content[start_pos] != '(':
+            return ""
+
+        paren_count = 1
+        pos = start_pos + 1
+
+        while pos < len(content) and paren_count > 0:
+            if content[pos] == '(':
+                paren_count += 1
+            elif content[pos] == ')':
+                paren_count -= 1
+            pos += 1
+
+        if paren_count == 0:
+            return content[start_pos + 1:pos - 1]
+        return ""
+
+    def _strip_comments(self, text: str) -> str:
+        """Remove C# single-line comments from text."""
+        lines = text.split('\n')
+        cleaned = []
+        for line in lines:
+            # Remove // comments
+            comment_idx = line.find('//')
+            if comment_idx >= 0:
+                line = line[:comment_idx]
+            cleaned.append(line)
+        return '\n'.join(cleaned)
+
+    def extract_record_properties(self, content: str, class_name: str) -> Dict[str, str]:
+        """Extract properties from a specific record/class.
+
+        For records with primary constructors (record Foo(Type Prop)), extracts
+        the constructor parameters as properties. Also extracts body properties.
+        """
+        properties = {}
+
+        # Pattern 1: Primary constructor parameters for records
+        # Find the record definition and extract balanced parentheses
+        record_start_pattern = rf'(?:public\s+)?(?:sealed\s+)?record\s+{re.escape(class_name)}\s*\('
+        match = re.search(record_start_pattern, content)
+        if match:
+            # Find the opening paren position
+            paren_pos = match.end() - 1
+            params_str = self._extract_balanced_parens(content, paren_pos)
+            # Strip comments before parsing
+            params_str = self._strip_comments(params_str)
+            params = self._split_parameters(params_str)
+            for param in params:
+                param = param.strip()
+                if not param:
+                    continue
+                # Parse: Type PropName or required Type PropName
+                # Handle nullable types like string? and generic types like List<string>
+                param_match = re.match(r'(?:required\s+)?([A-Za-z0-9_?<>,\[\]\s]+?)\s+([A-Za-z_][A-Za-z0-9_]*)\s*(?:=.*)?$', param)
+                if param_match:
+                    prop_type = param_match.group(1).strip()
+                    prop_name = param_match.group(2).strip()
+                    if prop_type and prop_name:
+                        properties[prop_name] = prop_type
+
+        # Pattern 2: Body properties (public Type PropName { get; set; })
+        class_body = self.extract_class_body(content, class_name)
+        if class_body:
+            body_props = self.extract_properties(class_body)
+            properties.update(body_props)
+
         return properties
 
     def extract_navigations(self, content: str) -> List[Dict[str, str]]:
@@ -258,21 +366,23 @@ class BackendGraphGenerator:
             print(f"Warning: DTO directory not found: {dto_dir}", file=sys.stderr)
             return
 
-        for file_path in sorted(dto_dir.glob('*.cs')):
+        for file_path in sorted(dto_dir.glob('**/*.cs')):
             content = self.parser.read_file(file_path)
             if not content:
                 continue
 
-            class_name = self.parser.extract_class_name_from_file(file_path)
+            namespace = self.parser.extract_namespace(content)
+            if not namespace:
+                continue
+
             # Handle multiple DTOs in one file (e.g., PersonDto, PersonSummaryDto)
-            pattern = r'(?:public\s+)?(?:record|class|struct)\s+([A-Za-z0-9]+Dto)\b'
+            # Match any record/class ending in Dto, Request, or Response
+            pattern = r'(?:public\s+)?(?:sealed\s+)?(?:record|class|struct)\s+([A-Za-z0-9]+(?:Dto|Request|Response))\b'
             for match in re.finditer(pattern, content):
                 dto_name = match.group(1)
-                namespace = self.parser.extract_namespace(content)
-                if not namespace:
-                    continue
 
-                properties = self.parser.extract_properties(content)
+                # Extract properties only for this specific DTO
+                properties = self.parser.extract_record_properties(content, dto_name)
                 linked_entity = self._infer_entity_from_dto_name(dto_name)
 
                 self.dtos[dto_name] = {

@@ -118,7 +118,7 @@ export function GroupFormPage() {
         name,
         description: description || undefined,
         campusId: campusId || undefined,
-        capacity: capacity ? parseInt(capacity) : undefined,
+        groupCapacity: capacity ? parseInt(capacity) : undefined,
         isActive,
       };
 
@@ -136,7 +136,7 @@ export function GroupFormPage() {
         groupTypeId,
         parentGroupId: parentGroupId || undefined,
         campusId: campusId || undefined,
-        capacity: capacity ? parseInt(capacity) : undefined,
+        groupCapacity: capacity ? parseInt(capacity) : undefined,
         isActive,
       };
 

@@ -153,6 +153,7 @@ export interface ImportJobDto {
   startedAt?: DateTime;
   completedAt?: DateTime;
   createdDateTime: DateTime;
+  backgroundJobId?: string;
 }
 
 // ============================================================================

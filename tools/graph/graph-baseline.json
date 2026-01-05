@@ -1,16 +1,22 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-05T03:20:14.880225+00:00",
+  "generated_at": "2026-01-05T12:41:16.750538+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
       "namespace": "Koinon.Domain.Entities",
       "table": "attendance",
       "properties": {
+        "Entity": "class Attendance :",
+        "OccurrenceId": "int",
+        "Occurrence": "virtual AttendanceOccurrence?",
         "PersonAliasId": "int?",
+        "PersonAlias": "virtual PersonAlias?",
         "DeviceId": "int?",
         "AttendanceCodeId": "int?",
+        "AttendanceCode": "virtual AttendanceCode?",
         "QualifierValueId": "int?",
+        "StartDateTime": "DateTime",
         "EndDateTime": "DateTime?",
         "RSVP": "RSVP",
         "DidAttend": "bool?",
@@ -40,7 +46,11 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "attendance_code",
       "properties": {
-        "IssueDate": "DateOnly"
+        "Entity": "class AttendanceCode :",
+        "IssueDateTime": "DateTime",
+        "IssueDate": "DateOnly",
+        "Code": "string",
+        "Attendances": "virtual ICollection<Attendance>"
       },
       "navigations": [
         {
@@ -55,16 +65,23 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "attendance_occurrence",
       "properties": {
+        "Entity": "class AttendanceOccurrence :",
         "GroupId": "int?",
+        "Group": "virtual Group?",
         "LocationId": "int?",
+        "Location": "virtual Location?",
         "ScheduleId": "int?",
+        "Schedule": "virtual Schedule?",
+        "OccurrenceDate": "DateOnly",
         "DidNotOccur": "bool?",
+        "SundayDate": "DateOnly",
         "Notes": "string?",
         "AnonymousAttendanceCount": "int?",
         "AttendanceTypeValueId": "int?",
         "DeclineConfirmationMessage": "string?",
         "ShowDeclineReasons": "bool",
-        "AcceptConfirmationMessage": "string?"
+        "AcceptConfirmationMessage": "string?",
+        "Attendances": "virtual ICollection<Attendance>"
       },
       "navigations": []
     },
@@ -73,13 +90,19 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "audit_log",
       "properties": {
+        "Entity": "class AuditLog :",
+        "ActionType": "AuditAction",
+        "EntityType": "string",
+        "EntityIdKey": "string",
         "PersonId": "int?",
+        "Timestamp": "DateTime",
         "OldValues": "string?",
         "NewValues": "string?",
         "IpAddress": "string?",
         "UserAgent": "string?",
         "ChangedProperties": "string?",
-        "AdditionalInfo": "string?"
+        "AdditionalInfo": "string?",
+        "Person": "virtual Person?"
       },
       "navigations": []
     },
@@ -88,14 +111,19 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "authorized_pickup",
       "properties": {
+        "Entity": "class AuthorizedPickup :",
+        "ChildPersonId": "int",
+        "ChildPerson": "virtual Person?",
         "AuthorizedPersonId": "int?",
+        "AuthorizedPerson": "virtual Person?",
         "Name": "string?",
         "PhoneNumber": "string?",
         "Relationship": "PickupRelationship",
         "AuthorizationLevel": "AuthorizationLevel",
         "PhotoUrl": "string?",
         "CustodyNotes": "string?",
-        "IsActive": "bool"
+        "IsActive": "bool",
+        "PickupLogs": "virtual ICollection<PickupLog>"
       },
       "navigations": [
         {
@@ -115,11 +143,16 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "binary_file",
       "properties": {
+        "Entity": "class BinaryFile :",
+        "FileName": "string",
+        "MimeType": "string",
+        "StorageKey": "string",
         "FileSizeBytes": "long",
         "Width": "int?",
         "Height": "int?",
         "BinaryFileTypeId": "int?",
-        "Description": "string?"
+        "Description": "string?",
+        "BinaryFileType": "virtual DefinedValue?"
       },
       "navigations": []
     },
@@ -128,6 +161,8 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "campus",
       "properties": {
+        "Entity": "class Campus :",
+        "Name": "string",
         "ShortCode": "string?",
         "Description": "string?",
         "IsActive": "bool",
@@ -137,7 +172,9 @@
         "CampusStatusValueId": "int?",
         "LeaderPersonAliasId": "int?",
         "ServiceTimes": "string?",
-        "Order": "int"
+        "Order": "int",
+        "CampusStatusValue": "virtual DefinedValue?",
+        "Groups": "virtual ICollection<Group>"
       },
       "navigations": []
     },
@@ -146,9 +183,12 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "communication",
       "properties": {
+        "Entity": "class Communication :",
+        "CommunicationType": "CommunicationType",
         "Status": "CommunicationStatus",
         "ScheduledDateTime": "DateTime?",
         "Subject": "string?",
+        "Body": "string",
         "FromEmail": "string?",
         "FromName": "string?",
         "ReplyToEmail": "string?",
@@ -158,7 +198,8 @@
         "FailedCount": "int",
         "OpenedCount": "int",
         "Note": "string?",
-        "RowVersion": "byte[]?"
+        "RowVersion": "byte[]?",
+        "Recipients": "virtual ICollection<CommunicationRecipient>"
       },
       "navigations": [
         {
@@ -173,8 +214,13 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "communication_preference",
       "properties": {
+        "Entity": "class CommunicationPreference :",
+        "PersonId": "int",
+        "CommunicationType": "CommunicationType",
+        "IsOptedOut": "bool",
         "OptOutDateTime": "DateTime?",
-        "OptOutReason": "string?"
+        "OptOutReason": "string?",
+        "Person": "virtual Person?"
       },
       "navigations": []
     },
@@ -183,6 +229,10 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "communication_recipient",
       "properties": {
+        "Entity": "class CommunicationRecipient :",
+        "CommunicationId": "int",
+        "PersonId": "int",
+        "Address": "string",
         "RecipientName": "string?",
         "Status": "CommunicationRecipientStatus",
         "DeliveredDateTime": "DateTime?",
@@ -190,7 +240,10 @@
         "ErrorMessage": "string?",
         "ExternalMessageId": "string?",
         "ErrorCode": "int?",
-        "GroupId": "int?"
+        "GroupId": "int?",
+        "Communication": "virtual Communication?",
+        "Person": "virtual Person?",
+        "Group": "virtual Group?"
       },
       "navigations": [
         {
@@ -205,7 +258,11 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "communication_template",
       "properties": {
+        "Entity": "class CommunicationTemplate :",
+        "Name": "string",
+        "CommunicationType": "CommunicationType",
         "Subject": "string?",
+        "Body": "string",
         "Description": "string?",
         "IsActive": "bool"
       },
@@ -216,11 +273,21 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "contribution",
       "properties": {
+        "Entity": "class Contribution :",
         "PersonAliasId": "int?",
         "BatchId": "int?",
+        "TransactionDateTime": "DateTime",
         "TransactionCode": "string?",
+        "TransactionTypeValueId": "int",
+        "SourceTypeValueId": "int",
         "Summary": "string?",
-        "CampusId": "int?"
+        "CampusId": "int?",
+        "PersonAlias": "virtual PersonAlias?",
+        "TransactionTypeValue": "virtual DefinedValue?",
+        "SourceTypeValue": "virtual DefinedValue?",
+        "Campus": "virtual Campus?",
+        "Batch": "virtual ContributionBatch?",
+        "ContributionDetails": "virtual ICollection<ContributionDetail>"
       },
       "navigations": []
     },
@@ -229,11 +296,16 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "contribution_batch",
       "properties": {
+        "Entity": "class ContributionBatch :",
+        "Name": "string",
+        "BatchDate": "DateTime",
         "Status": "BatchStatus",
         "ControlAmount": "decimal?",
         "ControlItemCount": "int?",
         "CampusId": "int?",
-        "Note": "string?"
+        "Note": "string?",
+        "Campus": "virtual Campus?",
+        "Contributions": "virtual ICollection<Contribution>"
       },
       "navigations": [
         {
@@ -248,7 +320,13 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "contribution_detail",
       "properties": {
-        "Summary": "string?"
+        "Entity": "class ContributionDetail :",
+        "ContributionId": "int",
+        "FundId": "int",
+        "Amount": "decimal",
+        "Summary": "string?",
+        "Contribution": "virtual Contribution?",
+        "Fund": "virtual Fund?"
       },
       "navigations": []
     },
@@ -257,13 +335,16 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "contribution_statement",
       "properties": {
+        "Entity": "class ContributionStatement :",
         "PersonId": "int",
         "StartDate": "DateTime",
         "EndDate": "DateTime",
         "TotalAmount": "decimal",
         "ContributionCount": "int",
         "GeneratedDateTime": "DateTime",
-        "BinaryFileId": "int?"
+        "BinaryFileId": "int?",
+        "Person": "virtual Person",
+        "BinaryFile": "virtual BinaryFile?"
       },
       "navigations": [
         {
@@ -288,12 +369,15 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "defined_type",
       "properties": {
+        "Entity": "class DefinedType :",
+        "Name": "string",
         "Description": "string?",
         "Category": "string?",
         "HelpText": "string?",
         "IsSystem": "bool",
         "Order": "int",
-        "FieldTypeAssemblyName": "string?"
+        "FieldTypeAssemblyName": "string?",
+        "DefinedValues": "virtual ICollection<DefinedValue>"
       },
       "navigations": []
     },
@@ -302,9 +386,13 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "defined_value",
       "properties": {
+        "Entity": "class DefinedValue :",
+        "DefinedTypeId": "int",
+        "Value": "string",
         "Description": "string?",
         "Order": "int",
-        "IsActive": "bool"
+        "IsActive": "bool",
+        "DefinedType": "virtual DefinedType?"
       },
       "navigations": []
     },
@@ -313,6 +401,8 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "device",
       "properties": {
+        "Entity": "class Device :",
+        "Name": "string",
         "Description": "string?",
         "DeviceTypeValueId": "int?",
         "IpAddress": "string?",
@@ -321,7 +411,10 @@
         "Locations": "string?",
         "IsActive": "bool",
         "KioskToken": "string?",
-        "KioskTokenExpiresAt": "DateTime?"
+        "KioskTokenExpiresAt": "DateTime?",
+        "DeviceTypeValue": "virtual DefinedValue?",
+        "Campus": "virtual Campus?",
+        "Attendances": "virtual ICollection<Attendance>"
       },
       "navigations": []
     },
@@ -330,6 +423,7 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "entity",
       "properties": {
+        "IAuditable": "abstract class Entity : IEntity,",
         "Id": "int",
         "Guid": "Guid",
         "CreatedDateTime": "DateTime",
@@ -355,16 +449,20 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "export_job",
       "properties": {
+        "Entity": "class ExportJob :",
         "ExportType": "ExportType",
         "EntityType": "string?",
         "Status": "ReportStatus",
+        "Parameters": "string",
         "OutputFormat": "ReportOutputFormat",
         "OutputFileId": "int?",
         "RequestedByPersonAliasId": "int?",
         "StartedAt": "DateTime?",
         "CompletedAt": "DateTime?",
         "ErrorMessage": "string?",
-        "RecordCount": "int?"
+        "RecordCount": "int?",
+        "OutputFile": "virtual BinaryFile?",
+        "RequestedByPersonAlias": "virtual PersonAlias?"
       },
       "navigations": [
         {
@@ -389,8 +487,12 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "family",
       "properties": {
+        "Entity": "class Family :",
+        "Name": "string",
         "CampusId": "int?",
-        "IsActive": "bool"
+        "IsActive": "bool",
+        "Campus": "virtual Campus?",
+        "Members": "virtual ICollection<FamilyMember>"
       },
       "navigations": []
     },
@@ -399,11 +501,15 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "family_member",
       "properties": {
+        "Entity": "class FamilyMember :",
         "FamilyId": "int",
         "PersonId": "int",
         "FamilyRoleId": "int",
         "IsPrimary": "bool",
-        "DateAdded": "DateTime"
+        "DateAdded": "DateTime",
+        "Family": "virtual Family",
+        "Person": "virtual Person",
+        "FamilyRole": "virtual GroupTypeRole"
       },
       "navigations": [
         {
@@ -421,10 +527,13 @@
         "Id": "long",
         "PersonId": "int",
         "ActionType": "FinancialAuditAction",
+        "EntityType": "string",
+        "EntityIdKey": "string",
         "IpAddress": "string?",
         "UserAgent": "string?",
         "Details": "string?",
-        "Timestamp": "DateTime"
+        "Timestamp": "DateTime",
+        "Person": "virtual Person"
       },
       "navigations": [
         {
@@ -444,11 +553,15 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "follow_up",
       "properties": {
+        "Entity": "class FollowUp :",
         "PersonId": "int",
+        "Person": "virtual Person?",
         "AttendanceId": "int?",
+        "Attendance": "virtual Attendance?",
         "Status": "FollowUpStatus",
         "Notes": "string?",
         "AssignedToPersonId": "int?",
+        "AssignedToPerson": "virtual Person?",
         "ContactedDateTime": "DateTime?",
         "CompletedDateTime": "DateTime?"
       },
@@ -465,6 +578,8 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "fund",
       "properties": {
+        "Entity": "class Fund :",
+        "Name": "string",
         "PublicName": "string?",
         "Description": "string?",
         "GlCode": "string?",
@@ -475,7 +590,10 @@
         "EndDate": "DateTime?",
         "Order": "int",
         "ParentFundId": "int?",
-        "CampusId": "int?"
+        "CampusId": "int?",
+        "ParentFund": "virtual Fund?",
+        "ChildFunds": "virtual ICollection<Fund>",
+        "Campus": "virtual Campus?"
       },
       "navigations": []
     },
@@ -484,9 +602,12 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "group",
       "properties": {
+        "Entity": "class Group :",
         "IsSystem": "bool",
+        "GroupTypeId": "int",
         "ParentGroupId": "int?",
         "CampusId": "int?",
+        "Name": "string",
         "Description": "string?",
         "IsSecurityRole": "bool",
         "IsActive": "bool",
@@ -506,7 +627,15 @@
         "MinAgeMonths": "int?",
         "MaxAgeMonths": "int?",
         "MinGrade": "int?",
-        "MaxGrade": "int?"
+        "MaxGrade": "int?",
+        "GroupType": "virtual GroupType?",
+        "Schedule": "virtual Schedule?",
+        "Campus": "virtual Campus?",
+        "ParentGroup": "virtual Group?",
+        "ChildGroups": "virtual ICollection<Group>",
+        "Members": "virtual ICollection<GroupMember>",
+        "GroupSchedules": "virtual ICollection<GroupSchedule>",
+        "MemberRequests": "virtual ICollection<GroupMemberRequest>"
       },
       "navigations": []
     },
@@ -515,7 +644,11 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "group_member",
       "properties": {
+        "Entity": "class GroupMember :",
         "IsSystem": "bool",
+        "PersonId": "int",
+        "GroupId": "int",
+        "GroupRoleId": "int",
         "GroupMemberStatus": "GroupMemberStatus",
         "DateTimeAdded": "DateTime?",
         "InactiveDateTime": "DateTime?",
@@ -525,7 +658,10 @@
         "Note": "string?",
         "IsNotified": "bool",
         "CommunicationPreference": "int?",
-        "GuestCount": "int?"
+        "GuestCount": "int?",
+        "Person": "virtual Person?",
+        "Group": "virtual Group?",
+        "GroupRole": "virtual GroupTypeRole?"
       },
       "navigations": [
         {
@@ -540,10 +676,16 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "group_member_request",
       "properties": {
+        "Entity": "class GroupMemberRequest :",
+        "GroupId": "int",
+        "Group": "virtual Group?",
+        "PersonId": "int",
+        "Person": "virtual Person?",
         "Status": "GroupMemberRequestStatus",
         "RequestNote": "string?",
         "ResponseNote": "string?",
         "ProcessedByPersonId": "int?",
+        "ProcessedByPerson": "virtual Person?",
         "ProcessedDateTime": "DateTime?"
       },
       "navigations": [
@@ -559,8 +701,14 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "group_schedule",
       "properties": {
+        "Entity": "class GroupSchedule :",
+        "GroupId": "int",
+        "ScheduleId": "int",
         "LocationId": "int?",
-        "Order": "int"
+        "Order": "int",
+        "Group": "virtual Group?",
+        "Schedule": "virtual Schedule?",
+        "Location": "virtual Location?"
       },
       "navigations": []
     },
@@ -569,7 +717,9 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "group_type",
       "properties": {
+        "Entity": "class GroupType :",
         "IsSystem": "bool",
+        "Name": "string",
         "Description": "string?",
         "GroupTerm": "string",
         "GroupMemberTerm": "string",
@@ -595,7 +745,9 @@
         "IsArchived": "bool",
         "ArchivedByPersonAliasId": "int?",
         "ArchivedDateTime": "DateTime?",
-        "Order": "int"
+        "Order": "int",
+        "Roles": "virtual ICollection<GroupTypeRole>",
+        "Groups": "virtual ICollection<Group>"
       },
       "navigations": []
     },
@@ -604,7 +756,10 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "group_type_role",
       "properties": {
+        "Entity": "class GroupTypeRole :",
         "IsSystem": "bool",
+        "GroupTypeId": "int",
+        "Name": "string",
         "Description": "string?",
         "IsLeader": "bool",
         "CanView": "bool",
@@ -614,7 +769,8 @@
         "Order": "int",
         "MaxCount": "int?",
         "MinCount": "int?",
-        "IsArchived": "bool"
+        "IsArchived": "bool",
+        "GroupType": "virtual GroupType?"
       },
       "navigations": []
     },
@@ -623,9 +779,15 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "location",
       "properties": {
+        "Entity": "class Location :",
         "ParentLocationId": "int?",
+        "ParentLocation": "virtual Location?",
+        "ChildLocations": "virtual ICollection<Location>",
+        "Name": "string",
         "LocationTypeValueId": "int?",
+        "LocationTypeValue": "virtual DefinedValue?",
         "CampusId": "int?",
+        "Campus": "virtual Campus?",
         "IsActive": "bool",
         "Description": "string?",
         "PrinterDeviceId": "int?",
@@ -644,6 +806,7 @@
         "Order": "int",
         "StaffToChildRatio": "int?",
         "OverflowLocationId": "int?",
+        "OverflowLocation": "virtual Location?",
         "AutoAssignOverflow": "bool"
       },
       "navigations": []
@@ -653,11 +816,16 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "notification",
       "properties": {
+        "Entity": "class Notification :",
+        "PersonId": "int",
         "NotificationType": "NotificationType",
+        "Title": "string",
+        "Message": "string",
         "IsRead": "bool",
         "ReadDateTime": "DateTime?",
         "ActionUrl": "string?",
-        "MetadataJson": "string?"
+        "MetadataJson": "string?",
+        "Person": "virtual Person?"
       },
       "navigations": [
         {
@@ -672,8 +840,11 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "notification_preference",
       "properties": {
+        "Entity": "class NotificationPreference :",
+        "PersonId": "int",
         "NotificationType": "NotificationType",
-        "IsEnabled": "bool"
+        "IsEnabled": "bool",
+        "Person": "virtual Person?"
       },
       "navigations": [
         {
@@ -688,8 +859,15 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "pager_assignment",
       "properties": {
+        "Entity": "class PagerAssignment :",
+        "AttendanceId": "int",
+        "Attendance": "virtual Attendance?",
+        "PagerNumber": "int",
         "CampusId": "int?",
-        "LocationId": "int?"
+        "Campus": "virtual Campus?",
+        "LocationId": "int?",
+        "Location": "virtual Location?",
+        "Messages": "virtual ICollection<PagerMessage>"
       },
       "navigations": []
     },
@@ -698,6 +876,14 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "pager_message",
       "properties": {
+        "Entity": "class PagerMessage :",
+        "PagerAssignmentId": "int",
+        "PagerAssignment": "virtual PagerAssignment?",
+        "SentByPersonId": "int",
+        "SentByPerson": "virtual Person?",
+        "MessageType": "PagerMessageType",
+        "MessageText": "string",
+        "PhoneNumber": "string",
         "TwilioMessageSid": "string?",
         "Status": "PagerMessageStatus",
         "SentDateTime": "DateTime?",
@@ -717,6 +903,7 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "person",
       "properties": {
+        "Entity": "class Person :",
         "IsSystem": "bool",
         "RecordTypeValueId": "int?",
         "RecordStatusValueId": "int?",
@@ -725,8 +912,10 @@
         "ReviewReasonNote": "string?",
         "IsDeceased": "bool",
         "TitleValueId": "int?",
+        "FirstName": "string",
         "NickName": "string?",
         "MiddleName": "string?",
+        "LastName": "string",
         "SuffixValueId": "int?",
         "PhotoId": "int?",
         "PasswordHash": "string?",
@@ -752,7 +941,15 @@
         "HasCriticalAllergies": "bool",
         "SpecialNeeds": "string?",
         "FullName": "string",
-        "FullNameReversed": "string"
+        "FullNameReversed": "string",
+        "RecordStatusValue": "virtual DefinedValue?",
+        "ConnectionStatusValue": "virtual DefinedValue?",
+        "PrimaryCampus": "virtual Campus?",
+        "Photo": "virtual BinaryFile?",
+        "GroupMemberships": "virtual ICollection<GroupMember>",
+        "PhoneNumbers": "virtual ICollection<PhoneNumber>",
+        "PersonAliases": "virtual ICollection<PersonAlias>",
+        "FamilyMemberships": "virtual ICollection<FamilyMember>"
       },
       "navigations": [
         {
@@ -772,10 +969,12 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "person_alias",
       "properties": {
+        "Entity": "class PersonAlias :",
         "PersonId": "int?",
         "Name": "string?",
         "AliasPersonId": "int?",
-        "AliasPersonGuid": "Guid?"
+        "AliasPersonGuid": "Guid?",
+        "Person": "virtual Person?"
       },
       "navigations": []
     },
@@ -784,8 +983,15 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "person_duplicate_ignore",
       "properties": {
+        "Entity": "class PersonDuplicateIgnore :",
+        "PersonId1": "int",
+        "PersonId2": "int",
         "MarkedByPersonId": "int?",
-        "Reason": "string?"
+        "MarkedDateTime": "DateTime",
+        "Reason": "string?",
+        "Person1": "virtual Person?",
+        "Person2": "virtual Person?",
+        "MarkedByPerson": "virtual Person?"
       },
       "navigations": []
     },
@@ -794,8 +1000,15 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "person_merge_history",
       "properties": {
+        "Entity": "class PersonMergeHistory :",
+        "SurvivorPersonId": "int",
+        "MergedPersonId": "int",
         "MergedByPersonId": "int?",
-        "Notes": "string?"
+        "MergedDateTime": "DateTime",
+        "Notes": "string?",
+        "SurvivorPerson": "virtual Person?",
+        "MergedPerson": "virtual Person?",
+        "MergedByPerson": "virtual Person?"
       },
       "navigations": []
     },
@@ -804,9 +1017,12 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "person_security_role",
       "properties": {
+        "Entity": "class PersonSecurityRole :",
         "PersonId": "int",
         "SecurityRoleId": "int",
-        "ExpiresDateTime": "DateTime?"
+        "ExpiresDateTime": "DateTime?",
+        "Person": "virtual Person",
+        "SecurityRole": "virtual SecurityRole"
       },
       "navigations": []
     },
@@ -815,14 +1031,18 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "phone_number",
       "properties": {
+        "Entity": "class PhoneNumber :",
         "PersonId": "int",
+        "Number": "string",
         "NumberNormalized": "string",
         "CountryCode": "string?",
         "Extension": "string?",
         "NumberTypeValueId": "int?",
         "IsMessagingEnabled": "bool",
         "IsUnlisted": "bool",
-        "Description": "string?"
+        "Description": "string?",
+        "Person": "virtual Person?",
+        "NumberTypeValue": "virtual DefinedValue?"
       },
       "navigations": []
     },
@@ -831,12 +1051,21 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "pickup_log",
       "properties": {
+        "Entity": "class PickupLog :",
+        "AttendanceId": "int",
+        "Attendance": "virtual Attendance?",
+        "ChildPersonId": "int",
+        "ChildPerson": "virtual Person?",
         "PickupPersonId": "int?",
+        "PickupPerson": "virtual Person?",
         "PickupPersonName": "string?",
         "WasAuthorized": "bool",
         "AuthorizedPickupId": "int?",
+        "AuthorizedPickup": "virtual AuthorizedPickup?",
         "SupervisorOverride": "bool",
         "SupervisorPersonId": "int?",
+        "SupervisorPerson": "virtual Person?",
+        "CheckoutDateTime": "DateTime",
         "Notes": "string?"
       },
       "navigations": []
@@ -846,12 +1075,15 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "refresh_token",
       "properties": {
+        "Entity": "class RefreshToken :",
         "PersonId": "int",
-        "ExpiresAt": "DateTime",
+        "Token": "string",
+        "ExpiresAt": "bool IsActive => RevokedAt == null && DateTime.UtcNow <",
         "RevokedAt": "DateTime?",
         "ReplacedByToken": "string?",
         "CreatedByIp": "string?",
-        "RevokedByIp": "string?"
+        "RevokedByIp": "string?",
+        "Person": "virtual Person?"
       },
       "navigations": [
         {
@@ -866,8 +1098,13 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "report_definition",
       "properties": {
+        "Entity": "class ReportDefinition :",
+        "Name": "string",
         "Description": "string?",
+        "ReportType": "ReportType",
+        "ParameterSchema": "string",
         "DefaultParameters": "string?",
+        "OutputFormat": "ReportOutputFormat",
         "IsActive": "bool",
         "IsSystem": "bool"
       },
@@ -878,13 +1115,18 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "report_run",
       "properties": {
+        "Entity": "class ReportRun :",
         "ReportDefinitionId": "int",
         "Status": "ReportStatus",
+        "Parameters": "string",
         "OutputFileId": "int?",
         "StartedAt": "DateTime?",
         "CompletedAt": "DateTime?",
         "ErrorMessage": "string?",
-        "RequestedByPersonAliasId": "int?"
+        "RequestedByPersonAliasId": "int?",
+        "ReportDefinition": "virtual ReportDefinition",
+        "OutputFile": "virtual BinaryFile?",
+        "RequestedByPersonAlias": "virtual PersonAlias?"
       },
       "navigations": [
         {
@@ -899,12 +1141,17 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "report_schedule",
       "properties": {
+        "Entity": "class ReportSchedule :",
         "ReportDefinitionId": "int",
+        "CronExpression": "string",
         "TimeZone": "string",
+        "Parameters": "string",
+        "RecipientPersonAliasIds": "string",
         "OutputFormat": "ReportOutputFormat",
         "IsActive": "bool",
         "LastRunAt": "DateTime?",
-        "NextRunAt": "DateTime?"
+        "NextRunAt": "DateTime?",
+        "ReportDefinition": "virtual ReportDefinition"
       },
       "navigations": [
         {
@@ -919,9 +1166,12 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "role_security_claim",
       "properties": {
+        "Entity": "class RoleSecurityClaim :",
         "SecurityRoleId": "int",
         "SecurityClaimId": "int",
-        "AllowOrDeny": "char"
+        "AllowOrDeny": "char",
+        "SecurityRole": "virtual SecurityRole",
+        "SecurityClaim": "virtual SecurityClaim"
       },
       "navigations": []
     },
@@ -930,6 +1180,8 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "schedule",
       "properties": {
+        "Entity": "class Schedule :",
+        "Name": "string",
         "Description": "string?",
         "ICalendarContent": "string?",
         "CheckInStartOffsetMinutes": "int?",
@@ -942,7 +1194,9 @@
         "Order": "int",
         "IsActive": "bool",
         "AutoInactivateWhenComplete": "bool",
-        "IsPublic": "bool"
+        "IsPublic": "bool",
+        "Groups": "virtual ICollection<Group>",
+        "GroupSchedules": "virtual ICollection<GroupSchedule>"
       },
       "navigations": []
     },
@@ -951,7 +1205,11 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "security_claim",
       "properties": {
-        "Description": "string?"
+        "Entity": "class SecurityClaim :",
+        "ClaimType": "string",
+        "ClaimValue": "string",
+        "Description": "string?",
+        "RoleClaims": "virtual ICollection<RoleSecurityClaim>"
       },
       "navigations": []
     },
@@ -960,9 +1218,13 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "security_role",
       "properties": {
+        "Entity": "class SecurityRole :",
+        "Name": "string",
         "Description": "string?",
         "IsSystemRole": "bool",
-        "IsActive": "bool"
+        "IsActive": "bool",
+        "PersonRoles": "virtual ICollection<PersonSecurityRole>",
+        "RoleClaims": "virtual ICollection<RoleSecurityClaim>"
       },
       "navigations": []
     },
@@ -971,13 +1233,17 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "supervisor_audit_log",
       "properties": {
+        "Entity": "class SupervisorAuditLog :",
         "PersonId": "int?",
         "SupervisorSessionId": "int?",
+        "ActionType": "string",
         "IpAddress": "string?",
         "EntityType": "string?",
         "EntityIdKey": "string?",
         "Success": "bool",
-        "Details": "string?"
+        "Details": "string?",
+        "Person": "virtual Person?",
+        "SupervisorSession": "virtual SupervisorSession?"
       },
       "navigations": []
     },
@@ -986,10 +1252,13 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "supervisor_session",
       "properties": {
+        "Entity": "class SupervisorSession :",
         "PersonId": "int",
+        "Token": "string",
         "ExpiresAt": "DateTime",
         "EndedAt": "DateTime?",
-        "CreatedByIp": "string?"
+        "CreatedByIp": "string?",
+        "Person": "virtual Person?"
       },
       "navigations": [
         {
@@ -1004,9 +1273,13 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "two_factor_config",
       "properties": {
+        "Entity": "class TwoFactorConfig :",
+        "PersonId": "int",
         "IsEnabled": "bool",
+        "SecretKey": "string",
         "RecoveryCodes": "string?",
-        "EnabledAt": "DateTime?"
+        "EnabledAt": "DateTime?",
+        "Person": "virtual Person?"
       },
       "navigations": []
     },
@@ -1015,7 +1288,12 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "user_preference",
       "properties": {
-        "Theme": "Theme"
+        "Entity": "class UserPreference :",
+        "PersonId": "int",
+        "Theme": "Theme",
+        "DateFormat": "string",
+        "TimeZone": "string",
+        "Person": "virtual Person?"
       },
       "navigations": [
         {
@@ -1030,10 +1308,16 @@
       "namespace": "Koinon.Domain.Entities",
       "table": "user_session",
       "properties": {
+        "Entity": "class UserSession :",
+        "PersonId": "int",
         "RefreshTokenId": "int?",
         "DeviceInfo": "string?",
+        "IpAddress": "string",
         "Location": "string?",
-        "IsActive": "bool"
+        "LastActivityAt": "DateTime",
+        "IsActive": "bool",
+        "Person": "virtual Person?",
+        "RefreshToken": "virtual RefreshToken?"
       },
       "navigations": []
     }
@@ -1042,75 +1326,166 @@
     "AttendanceAnalyticsDto": {
       "name": "AttendanceAnalyticsDto",
       "namespace": "Koinon.Application.DTOs",
-      "properties": {},
+      "properties": {
+        "TotalAttendance": "int",
+        "UniqueAttendees": "int",
+        "FirstTimeVisitors": "int",
+        "ReturningVisitors": "int",
+        "AverageAttendance": "decimal",
+        "StartDate": "DateOnly",
+        "EndDate": "DateOnly"
+      },
       "linked_entity": "Attendance"
     },
     "AttendanceByGroupDto": {
       "name": "AttendanceByGroupDto",
       "namespace": "Koinon.Application.DTOs",
-      "properties": {},
+      "properties": {
+        "GroupIdKey": "string",
+        "GroupName": "string",
+        "GroupTypeName": "string",
+        "TotalAttendance": "int",
+        "UniqueAttendees": "int"
+      },
       "linked_entity": "Attendance"
     },
     "MarkAttendanceResultDto": {
       "name": "MarkAttendanceResultDto",
       "namespace": "Koinon.Application.DTOs",
-      "properties": {}
+      "properties": {
+        "Success": "bool",
+        "ErrorMessage": "string?",
+        "AttendanceIdKey": "string?",
+        "IsFirstTime": "bool",
+        "PresentDateTime": "DateTime?"
+      }
     },
     "BulkMarkAttendanceResultDto": {
       "name": "BulkMarkAttendanceResultDto",
       "namespace": "Koinon.Application.DTOs",
-      "properties": {}
+      "properties": {
+        "Results": "List<MarkAttendanceResultDto>",
+        "SuccessCount": "int",
+        "FailureCount": "int",
+        "AllSucceeded": "bool"
+      }
     },
     "OccurrenceRosterEntryDto": {
       "name": "OccurrenceRosterEntryDto",
       "namespace": "Koinon.Application.DTOs",
-      "properties": {}
+      "properties": {
+        "PersonIdKey": "string",
+        "FullName": "string",
+        "FirstName": "string",
+        "LastName": "string",
+        "NickName": "string?",
+        "Age": "int?",
+        "PhotoUrl": "string?",
+        "IsAttending": "bool",
+        "AttendanceIdKey": "string?",
+        "PresentDateTime": "DateTime?",
+        "IsFirstTime": "bool",
+        "Note": "string?"
+      }
     },
     "FamilyRosterGroupDto": {
       "name": "FamilyRosterGroupDto",
       "namespace": "Koinon.Application.DTOs",
-      "properties": {},
+      "properties": {
+        "FamilyIdKey": "string",
+        "FamilyName": "string",
+        "Members": "List<OccurrenceRosterEntryDto>",
+        "AttendingCount": "int",
+        "TotalCount": "int"
+      },
       "linked_entity": "Family"
     },
     "AttendanceTrendDto": {
       "name": "AttendanceTrendDto",
       "namespace": "Koinon.Application.DTOs",
-      "properties": {},
+      "properties": {
+        "Date": "DateOnly",
+        "Count": "int",
+        "FirstTime": "int",
+        "Returning": "int"
+      },
       "linked_entity": "Attendance"
     },
     "AuditLogDto": {
       "name": "AuditLogDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
+        "ActionType": "AuditAction",
+        "EntityType": "string",
+        "EntityIdKey": "string",
         "PersonIdKey": "string?",
         "PersonName": "string?",
+        "Timestamp": "DateTime",
         "OldValues": "string?",
         "NewValues": "string?",
         "IpAddress": "string?",
         "UserAgent": "string?",
         "ChangedProperties": "List<string>?",
-        "AdditionalInfo": "string?",
+        "AdditionalInfo": "string?"
+      },
+      "linked_entity": "AuditLog"
+    },
+    "AuditLogExportRequest": {
+      "name": "AuditLogExportRequest",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
         "StartDate": "DateTime?",
         "EndDate": "DateTime?",
         "EntityType": "string?",
         "ActionType": "AuditAction?",
-        "EntityIdKey": "string?",
-        "Page": "int",
-        "PageSize": "int",
+        "PersonIdKey": "string?",
         "Format": "ExportFormat"
-      },
-      "linked_entity": "AuditLog"
+      }
+    },
+    "LoginRequest": {
+      "name": "LoginRequest",
+      "namespace": "Koinon.Application.DTOs.Auth",
+      "properties": {
+        "Email": "string",
+        "Password": "string"
+      }
+    },
+    "TokenResponse": {
+      "name": "TokenResponse",
+      "namespace": "Koinon.Application.DTOs.Auth",
+      "properties": {
+        "AccessToken": "string",
+        "RefreshToken": "string",
+        "ExpiresAt": "DateTime",
+        "User": "PersonSummaryDto"
+      }
     },
     "AuthorizedPickupDto": {
       "name": "AuthorizedPickupDto",
       "namespace": "Koinon.Application.DTOs",
-      "properties": {},
+      "properties": {
+        "IdKey": "string",
+        "ChildIdKey": "string",
+        "ChildName": "string",
+        "AuthorizedPersonIdKey": "string?",
+        "AuthorizedPersonName": "string?",
+        "Name": "string?",
+        "PhoneNumber": "string?",
+        "Relationship": "PickupRelationship",
+        "AuthorizationLevel": "AuthorizationLevel",
+        "PhotoUrl": "string?",
+        "IsActive": "bool"
+      },
       "linked_entity": "AuthorizedPickup"
     },
     "CampusDto": {
       "name": "CampusDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
+        "Guid": "Guid",
+        "Name": "string",
         "ShortCode": "string?",
         "Description": "string?",
         "IsActive": "bool",
@@ -1119,6 +1494,7 @@
         "TimeZoneId": "string?",
         "ServiceTimes": "string?",
         "Order": "int",
+        "CreatedDateTime": "DateTime",
         "ModifiedDateTime": "DateTime?"
       },
       "linked_entity": "Campus"
@@ -1127,6 +1503,8 @@
       "name": "CheckinRequestDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "PersonIdKey": "string",
+        "LocationIdKey": "string",
         "ScheduleIdKey": "string?",
         "OccurrenceDate": "DateOnly?",
         "DeviceIdKey": "string?",
@@ -1138,43 +1516,44 @@
       "name": "BatchCheckinRequestDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
-        "ScheduleIdKey": "string?",
-        "OccurrenceDate": "DateOnly?",
-        "DeviceIdKey": "string?",
-        "GenerateSecurityCode": "bool",
-        "Note": "string?"
+        "CheckIns": "List<CheckinRequestDto>",
+        "DeviceIdKey": "string?"
       }
     },
     "CheckinResultDto": {
       "name": "CheckinResultDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
-        "ScheduleIdKey": "string?",
-        "OccurrenceDate": "DateOnly?",
-        "DeviceIdKey": "string?",
-        "GenerateSecurityCode": "bool",
-        "Note": "string?"
+        "Success": "bool",
+        "ErrorMessage": "string?",
+        "AttendanceIdKey": "string?",
+        "SecurityCode": "string?",
+        "CheckInTime": "DateTime?",
+        "Person": "CheckinPersonSummaryDto?",
+        "Location": "CheckinLocationSummaryDto?"
       }
     },
     "BatchCheckinResultDto": {
       "name": "BatchCheckinResultDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
-        "ScheduleIdKey": "string?",
-        "OccurrenceDate": "DateOnly?",
-        "DeviceIdKey": "string?",
-        "GenerateSecurityCode": "bool",
-        "Note": "string?"
+        "Results": "List<CheckinResultDto>",
+        "SuccessCount": "int",
+        "FailureCount": "int",
+        "AllSucceeded": "bool"
       }
     },
     "AttendanceSummaryDto": {
       "name": "AttendanceSummaryDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
-        "ScheduleIdKey": "string?",
-        "OccurrenceDate": "DateOnly?",
-        "DeviceIdKey": "string?",
-        "GenerateSecurityCode": "bool",
+        "IdKey": "string",
+        "Person": "CheckinPersonSummaryDto",
+        "Location": "CheckinLocationSummaryDto",
+        "StartDateTime": "DateTime",
+        "EndDateTime": "DateTime?",
+        "SecurityCode": "string?",
+        "IsFirstTime": "bool",
         "Note": "string?"
       },
       "linked_entity": "Attendance"
@@ -1183,144 +1562,86 @@
       "name": "CheckinPersonSummaryDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
-        "ScheduleIdKey": "string?",
-        "OccurrenceDate": "DateOnly?",
-        "DeviceIdKey": "string?",
-        "GenerateSecurityCode": "bool",
-        "Note": "string?"
+        "IdKey": "string",
+        "FullName": "string",
+        "FirstName": "string",
+        "LastName": "string",
+        "NickName": "string?",
+        "Age": "int?",
+        "PhotoUrl": "string?"
       }
     },
     "CheckinLocationSummaryDto": {
       "name": "CheckinLocationSummaryDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
-        "ScheduleIdKey": "string?",
-        "OccurrenceDate": "DateOnly?",
-        "DeviceIdKey": "string?",
-        "GenerateSecurityCode": "bool",
-        "Note": "string?"
+        "IdKey": "string",
+        "Name": "string",
+        "FullPath": "string"
       }
     },
     "CheckinConfigurationDto": {
       "name": "CheckinConfigurationDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
-        "Description": "string?",
-        "Schedule": "ScheduleDto?",
-        "MinAgeMonths": "int?",
-        "MaxAgeMonths": "int?",
-        "MinGrade": "int?",
-        "MaxGrade": "int?",
-        "SoftCapacity": "int?",
-        "HardCapacity": "int?",
-        "PrinterDeviceIdKey": "string?",
-        "PercentageFull": "int",
-        "OverflowLocationIdKey": "string?",
-        "OverflowLocationName": "string?",
-        "AutoAssignOverflow": "bool",
-        "WeeklyDayOfWeek": "DayOfWeek?",
-        "WeeklyTimeOfDay": "TimeSpan?",
-        "CheckInStartOffsetMinutes": "int?",
-        "CheckInEndOffsetMinutes": "int?",
-        "CheckinStartTime": "DateTime?",
-        "CheckinEndTime": "DateTime?",
-        "IsPublic": "bool",
-        "Order": "int",
-        "EffectiveStartDate": "DateOnly?",
-        "EffectiveEndDate": "DateOnly?",
-        "ICalendarContent": "string?",
-        "AutoInactivateWhenComplete": "bool",
-        "CreatedDateTime": "DateTime",
-        "ModifiedDateTime": "DateTime?"
+        "Campus": "CampusSummaryDto",
+        "Areas": "IReadOnlyList<CheckinAreaDto>",
+        "ActiveSchedules": "IReadOnlyList<ScheduleDto>",
+        "ServerTime": "DateTime"
       }
     },
     "CheckinAreaDto": {
       "name": "CheckinAreaDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
+        "Guid": "Guid",
+        "Name": "string",
         "Description": "string?",
+        "GroupType": "GroupTypeSummaryDto",
+        "Locations": "IReadOnlyList<CheckinLocationDto>",
         "Schedule": "ScheduleDto?",
+        "IsActive": "bool",
+        "CapacityStatus": "CapacityStatus",
         "MinAgeMonths": "int?",
         "MaxAgeMonths": "int?",
         "MinGrade": "int?",
-        "MaxGrade": "int?",
-        "SoftCapacity": "int?",
-        "HardCapacity": "int?",
-        "PrinterDeviceIdKey": "string?",
-        "PercentageFull": "int",
-        "OverflowLocationIdKey": "string?",
-        "OverflowLocationName": "string?",
-        "AutoAssignOverflow": "bool",
-        "WeeklyDayOfWeek": "DayOfWeek?",
-        "WeeklyTimeOfDay": "TimeSpan?",
-        "CheckInStartOffsetMinutes": "int?",
-        "CheckInEndOffsetMinutes": "int?",
-        "CheckinStartTime": "DateTime?",
-        "CheckinEndTime": "DateTime?",
-        "IsPublic": "bool",
-        "Order": "int",
-        "EffectiveStartDate": "DateOnly?",
-        "EffectiveEndDate": "DateOnly?",
-        "ICalendarContent": "string?",
-        "AutoInactivateWhenComplete": "bool",
-        "CreatedDateTime": "DateTime",
-        "ModifiedDateTime": "DateTime?"
+        "MaxGrade": "int?"
       }
     },
     "CheckinLocationDto": {
       "name": "CheckinLocationDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
-        "Description": "string?",
-        "Schedule": "ScheduleDto?",
-        "MinAgeMonths": "int?",
-        "MaxAgeMonths": "int?",
-        "MinGrade": "int?",
-        "MaxGrade": "int?",
+        "IdKey": "string",
+        "Name": "string",
+        "FullPath": "string",
         "SoftCapacity": "int?",
         "HardCapacity": "int?",
+        "CurrentCount": "int",
+        "CapacityStatus": "CapacityStatus",
+        "IsActive": "bool",
         "PrinterDeviceIdKey": "string?",
         "PercentageFull": "int",
         "OverflowLocationIdKey": "string?",
         "OverflowLocationName": "string?",
-        "AutoAssignOverflow": "bool",
-        "WeeklyDayOfWeek": "DayOfWeek?",
-        "WeeklyTimeOfDay": "TimeSpan?",
-        "CheckInStartOffsetMinutes": "int?",
-        "CheckInEndOffsetMinutes": "int?",
-        "CheckinStartTime": "DateTime?",
-        "CheckinEndTime": "DateTime?",
-        "IsPublic": "bool",
-        "Order": "int",
-        "EffectiveStartDate": "DateOnly?",
-        "EffectiveEndDate": "DateOnly?",
-        "ICalendarContent": "string?",
-        "AutoInactivateWhenComplete": "bool",
-        "CreatedDateTime": "DateTime",
-        "ModifiedDateTime": "DateTime?"
+        "AutoAssignOverflow": "bool"
       }
     },
     "ScheduleDto": {
       "name": "ScheduleDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
+        "Guid": "Guid",
+        "Name": "string",
         "Description": "string?",
-        "Schedule": "ScheduleDto?",
-        "MinAgeMonths": "int?",
-        "MaxAgeMonths": "int?",
-        "MinGrade": "int?",
-        "MaxGrade": "int?",
-        "SoftCapacity": "int?",
-        "HardCapacity": "int?",
-        "PrinterDeviceIdKey": "string?",
-        "PercentageFull": "int",
-        "OverflowLocationIdKey": "string?",
-        "OverflowLocationName": "string?",
-        "AutoAssignOverflow": "bool",
         "WeeklyDayOfWeek": "DayOfWeek?",
         "WeeklyTimeOfDay": "TimeSpan?",
         "CheckInStartOffsetMinutes": "int?",
         "CheckInEndOffsetMinutes": "int?",
+        "IsActive": "bool",
+        "IsCheckinActive": "bool",
         "CheckinStartTime": "DateTime?",
         "CheckinEndTime": "DateTime?",
         "IsPublic": "bool",
@@ -1338,31 +1659,27 @@
       "name": "CheckinFamilySearchResultDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "FamilyIdKey": "string",
+        "FamilyName": "string",
         "AddressSummary": "string?",
         "CampusName": "string?",
-        "RecentCheckInCount": "int",
-        "NickName": "string?",
-        "Age": "int?",
-        "PhotoUrl": "string?",
-        "IsChild": "bool",
-        "HasRecentCheckIn": "bool",
-        "LastCheckIn": "DateTime?",
-        "Grade": "string?",
-        "Allergies": "string?",
-        "HasCriticalAllergies": "bool",
-        "SpecialNeeds": "string?"
+        "Members": "IReadOnlyList<CheckinFamilyMemberDto>",
+        "RecentCheckInCount": "int"
       }
     },
     "CheckinFamilyMemberDto": {
       "name": "CheckinFamilyMemberDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
-        "AddressSummary": "string?",
-        "CampusName": "string?",
-        "RecentCheckInCount": "int",
+        "PersonIdKey": "string",
+        "FullName": "string",
+        "FirstName": "string",
+        "LastName": "string",
         "NickName": "string?",
         "Age": "int?",
+        "Gender": "string",
         "PhotoUrl": "string?",
+        "RoleName": "string",
         "IsChild": "bool",
         "HasRecentCheckIn": "bool",
         "LastCheckIn": "DateTime?",
@@ -1376,20 +1693,25 @@
       "name": "CommunicationDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
+        "Guid": "Guid",
+        "CommunicationType": "string",
+        "Status": "string",
         "Subject": "string?",
+        "Body": "string",
         "FromEmail": "string?",
         "FromName": "string?",
         "ReplyToEmail": "string?",
         "ScheduledDateTime": "DateTime?",
         "SentDateTime": "DateTime?",
+        "RecipientCount": "int",
+        "DeliveredCount": "int",
+        "FailedCount": "int",
+        "OpenedCount": "int",
         "Note": "string?",
+        "CreatedDateTime": "DateTime",
         "ModifiedDateTime": "DateTime?",
-        "RecipientName": "string?",
-        "DeliveredDateTime": "DateTime?",
-        "OpenedDateTime": "DateTime?",
-        "ErrorMessage": "string?",
-        "GroupIdKey": "string?",
-        "Body": "string?"
+        "Recipients": "IReadOnlyList<CommunicationRecipientDto>"
       },
       "linked_entity": "Communication"
     },
@@ -1397,20 +1719,16 @@
       "name": "CommunicationSummaryDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
+        "CommunicationType": "string",
+        "Status": "string",
         "Subject": "string?",
-        "FromEmail": "string?",
-        "FromName": "string?",
-        "ReplyToEmail": "string?",
+        "RecipientCount": "int",
+        "DeliveredCount": "int",
+        "FailedCount": "int",
         "ScheduledDateTime": "DateTime?",
-        "SentDateTime": "DateTime?",
-        "Note": "string?",
-        "ModifiedDateTime": "DateTime?",
-        "RecipientName": "string?",
-        "DeliveredDateTime": "DateTime?",
-        "OpenedDateTime": "DateTime?",
-        "ErrorMessage": "string?",
-        "GroupIdKey": "string?",
-        "Body": "string?"
+        "CreatedDateTime": "DateTime",
+        "SentDateTime": "DateTime?"
       },
       "linked_entity": "Communication"
     },
@@ -1418,20 +1736,15 @@
       "name": "CommunicationRecipientDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
-        "Subject": "string?",
-        "FromEmail": "string?",
-        "FromName": "string?",
-        "ReplyToEmail": "string?",
-        "ScheduledDateTime": "DateTime?",
-        "SentDateTime": "DateTime?",
-        "Note": "string?",
-        "ModifiedDateTime": "DateTime?",
+        "IdKey": "string",
+        "PersonIdKey": "string",
+        "Address": "string",
         "RecipientName": "string?",
+        "Status": "string",
         "DeliveredDateTime": "DateTime?",
         "OpenedDateTime": "DateTime?",
         "ErrorMessage": "string?",
-        "GroupIdKey": "string?",
-        "Body": "string?"
+        "GroupIdKey": "string?"
       },
       "linked_entity": "CommunicationRecipient"
     },
@@ -1439,20 +1752,15 @@
       "name": "CreateCommunicationDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "CommunicationType": "string",
         "Subject": "string?",
+        "Body": "string",
         "FromEmail": "string?",
         "FromName": "string?",
         "ReplyToEmail": "string?",
         "ScheduledDateTime": "DateTime?",
-        "SentDateTime": "DateTime?",
         "Note": "string?",
-        "ModifiedDateTime": "DateTime?",
-        "RecipientName": "string?",
-        "DeliveredDateTime": "DateTime?",
-        "OpenedDateTime": "DateTime?",
-        "ErrorMessage": "string?",
-        "GroupIdKey": "string?",
-        "Body": "string?"
+        "GroupIdKeys": "IReadOnlyList<string>"
       }
     },
     "UpdateCommunicationDto": {
@@ -1460,25 +1768,21 @@
       "namespace": "Koinon.Application.DTOs",
       "properties": {
         "Subject": "string?",
+        "Body": "string?",
         "FromEmail": "string?",
         "FromName": "string?",
         "ReplyToEmail": "string?",
-        "ScheduledDateTime": "DateTime?",
-        "SentDateTime": "DateTime?",
-        "Note": "string?",
-        "ModifiedDateTime": "DateTime?",
-        "RecipientName": "string?",
-        "DeliveredDateTime": "DateTime?",
-        "OpenedDateTime": "DateTime?",
-        "ErrorMessage": "string?",
-        "GroupIdKey": "string?",
-        "Body": "string?"
+        "Note": "string?"
       }
     },
     "CommunicationPreferenceDto": {
       "name": "CommunicationPreferenceDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
+        "PersonIdKey": "string",
+        "CommunicationType": "string",
+        "IsOptedOut": "bool",
         "OptOutDateTime": "DateTime?",
         "OptOutReason": "string?"
       },
@@ -1488,7 +1792,7 @@
       "name": "UpdateCommunicationPreferenceDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
-        "OptOutDateTime": "DateTime?",
+        "IsOptedOut": "bool",
         "OptOutReason": "string?"
       }
     },
@@ -1496,8 +1800,7 @@
       "name": "BulkUpdatePreferencesDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
-        "OptOutDateTime": "DateTime?",
-        "OptOutReason": "string?"
+        "Preferences": "List<PreferenceUpdateItem>"
       }
     },
     "CommunicationPreviewRequestDto": {
@@ -1505,6 +1808,7 @@
       "namespace": "Koinon.Application.DTOs",
       "properties": {
         "Subject": "string?",
+        "Body": "string",
         "PersonIdKey": "string?"
       },
       "linked_entity": "Communication"
@@ -1514,7 +1818,8 @@
       "namespace": "Koinon.Application.DTOs",
       "properties": {
         "Subject": "string?",
-        "PersonIdKey": "string?"
+        "Body": "string",
+        "PersonName": "string"
       },
       "linked_entity": "Communication"
     },
@@ -1522,13 +1827,16 @@
       "name": "CommunicationTemplateDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
+        "Guid": "Guid",
+        "Name": "string",
+        "CommunicationType": "string",
         "Subject": "string?",
+        "Body": "string",
         "Description": "string?",
-        "ModifiedDateTime": "DateTime?",
-        "IsActive": "bool?",
-        "Name": "string?",
-        "CommunicationType": "string?",
-        "Body": "string?"
+        "IsActive": "bool",
+        "CreatedDateTime": "DateTime",
+        "ModifiedDateTime": "DateTime?"
       },
       "linked_entity": "CommunicationTemplate"
     },
@@ -1536,13 +1844,10 @@
       "name": "CommunicationTemplateSummaryDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
-        "Subject": "string?",
-        "Description": "string?",
-        "ModifiedDateTime": "DateTime?",
-        "IsActive": "bool?",
-        "Name": "string?",
-        "CommunicationType": "string?",
-        "Body": "string?"
+        "IdKey": "string",
+        "Name": "string",
+        "CommunicationType": "string",
+        "IsActive": "bool"
       },
       "linked_entity": "Communication"
     },
@@ -1550,33 +1855,64 @@
       "name": "CreateCommunicationTemplateDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "Name": "string",
+        "CommunicationType": "string",
         "Subject": "string?",
+        "Body": "string",
         "Description": "string?",
-        "ModifiedDateTime": "DateTime?",
-        "IsActive": "bool?",
-        "Name": "string?",
-        "CommunicationType": "string?",
-        "Body": "string?"
+        "IsActive": "bool"
       }
     },
     "UpdateCommunicationTemplateDto": {
       "name": "UpdateCommunicationTemplateDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
-        "Subject": "string?",
-        "Description": "string?",
-        "ModifiedDateTime": "DateTime?",
-        "IsActive": "bool?",
         "Name": "string?",
         "CommunicationType": "string?",
-        "Body": "string?"
+        "Subject": "string?",
+        "Body": "string?",
+        "Description": "string?",
+        "IsActive": "bool?"
+      }
+    },
+    "EmailAttachmentDto": {
+      "name": "EmailAttachmentDto",
+      "namespace": "Koinon.Application.DTOs.Communications",
+      "properties": {
+        "FileName": "string",
+        "Content": "byte[]",
+        "ContentType": "string"
+      }
+    },
+    "QueuedSmsDto": {
+      "name": "QueuedSmsDto",
+      "namespace": "Koinon.Application.DTOs.Communications",
+      "properties": {
+        "ToPhoneNumber": "string",
+        "Message": "string",
+        "MediaUrls": "IEnumerable<string>?"
+      }
+    },
+    "TwilioWebhookDto": {
+      "name": "TwilioWebhookDto",
+      "namespace": "Koinon.Application.DTOs.Communications",
+      "properties": {
+        "MessageSid": "string?",
+        "MessageStatus": "string?",
+        "To": "string?",
+        "From": "string?",
+        "ErrorCode": "int?",
+        "ErrorMessage": "string?"
       }
     },
     "CreateNotificationDto": {
       "name": "CreateNotificationDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "PersonIdKey": "string",
         "NotificationType": "NotificationType",
+        "Title": "string",
+        "Message": "string",
         "ActionUrl": "string?",
         "MetadataJson": "string?"
       }
@@ -1584,53 +1920,116 @@
     "DashboardStatsDto": {
       "name": "DashboardStatsDto",
       "namespace": "Koinon.Application.DTOs",
-      "properties": {}
+      "properties": {
+        "TotalPeople": "int",
+        "TotalFamilies": "int",
+        "ActiveGroups": "int",
+        "TodayCheckIns": "int",
+        "LastWeekCheckIns": "int",
+        "ActiveSchedules": "int",
+        "UpcomingSchedules": "List<UpcomingScheduleDto>",
+        "GivingStats": "GivingStatsDto",
+        "CommunicationsStats": "CommunicationsStatsDto"
+      }
     },
     "UpcomingScheduleDto": {
       "name": "UpcomingScheduleDto",
       "namespace": "Koinon.Application.DTOs",
-      "properties": {}
+      "properties": {
+        "IdKey": "string",
+        "Name": "string",
+        "NextOccurrence": "DateTime",
+        "MinutesUntilCheckIn": "int"
+      }
     },
     "GivingStatsDto": {
       "name": "GivingStatsDto",
       "namespace": "Koinon.Application.DTOs",
-      "properties": {}
+      "properties": {
+        "MonthToDateTotal": "decimal",
+        "YearToDateTotal": "decimal",
+        "RecentBatches": "List<DashboardBatchDto>"
+      }
     },
     "DashboardBatchDto": {
       "name": "DashboardBatchDto",
       "namespace": "Koinon.Application.DTOs",
-      "properties": {}
+      "properties": {
+        "IdKey": "string",
+        "Name": "string",
+        "BatchDate": "DateTime",
+        "Status": "string",
+        "Total": "decimal"
+      }
     },
     "CommunicationsStatsDto": {
       "name": "CommunicationsStatsDto",
       "namespace": "Koinon.Application.DTOs",
-      "properties": {},
+      "properties": {
+        "PendingCount": "int",
+        "SentThisWeekCount": "int",
+        "RecentCommunications": "List<CommunicationSummaryDto>"
+      },
       "linked_entity": "Communication"
     },
     "ExportFieldDto": {
       "name": "ExportFieldDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "FieldName": "string",
+        "DisplayName": "string",
+        "DataType": "string",
         "Description": "string?",
         "IsDefaultField": "bool",
         "IsRequired": "bool"
+      }
+    },
+    "ExportJobDto": {
+      "name": "ExportJobDto",
+      "namespace": "Koinon.Application.DTOs.Exports",
+      "properties": {
+        "IdKey": "string",
+        "ExportType": "ExportType",
+        "EntityType": "string?",
+        "Status": "ReportStatus",
+        "OutputFormat": "ReportOutputFormat",
+        "Parameters": "string",
+        "RecordCount": "int?",
+        "StartedAt": "DateTime?",
+        "CompletedAt": "DateTime?",
+        "ErrorMessage": "string?",
+        "OutputFileIdKey": "string?",
+        "FileName": "string?",
+        "RequestedByPersonAliasIdKey": "string?",
+        "CreatedDateTime": "DateTime"
+      },
+      "linked_entity": "ExportJob"
+    },
+    "StartExportRequest": {
+      "name": "StartExportRequest",
+      "namespace": "Koinon.Application.DTOs.Exports",
+      "properties": {
+        "ExportType": "ExportType",
+        "EntityType": "string?",
+        "OutputFormat": "ReportOutputFormat",
+        "Fields": "List<string>?",
+        "Filters": "Dictionary<string, string>?"
       }
     },
     "FamilyDto": {
       "name": "FamilyDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
+        "Guid": "Guid",
+        "Name": "string",
         "Description": "string?",
+        "IsActive": "bool",
         "Campus": "CampusSummaryDto?",
         "Address": "AddressDto?",
-        "ModifiedDateTime": "DateTime?",
-        "DateTimeAdded": "DateTime?",
-        "Street1": "string?",
-        "Street2": "string?",
-        "City": "string?",
-        "State": "string?",
-        "PostalCode": "string?",
-        "Country": "string?"
+        "Members": "IReadOnlyList<FamilyMemberDto>",
+        "CreatedDateTime": "DateTime",
+        "ModifiedDateTime": "DateTime?"
       },
       "linked_entity": "Family"
     },
@@ -1638,17 +2037,11 @@
       "name": "FamilyMemberDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
-        "Description": "string?",
-        "Campus": "CampusSummaryDto?",
-        "Address": "AddressDto?",
-        "ModifiedDateTime": "DateTime?",
-        "DateTimeAdded": "DateTime?",
-        "Street1": "string?",
-        "Street2": "string?",
-        "City": "string?",
-        "State": "string?",
-        "PostalCode": "string?",
-        "Country": "string?"
+        "IdKey": "string",
+        "Person": "PersonSummaryDto",
+        "Role": "GroupTypeRoleDto",
+        "Status": "string",
+        "DateTimeAdded": "DateTime?"
       },
       "linked_entity": "FamilyMember"
     },
@@ -1656,78 +2049,286 @@
       "name": "AddressDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
-        "Description": "string?",
-        "Campus": "CampusSummaryDto?",
-        "Address": "AddressDto?",
-        "ModifiedDateTime": "DateTime?",
-        "DateTimeAdded": "DateTime?",
+        "IdKey": "string",
         "Street1": "string?",
         "Street2": "string?",
         "City": "string?",
         "State": "string?",
         "PostalCode": "string?",
-        "Country": "string?"
+        "Country": "string?",
+        "FormattedAddress": "string"
       }
     },
     "GroupTypeRoleDto": {
       "name": "GroupTypeRoleDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
-        "Description": "string?",
-        "Campus": "CampusSummaryDto?",
-        "Address": "AddressDto?",
-        "ModifiedDateTime": "DateTime?",
-        "DateTimeAdded": "DateTime?",
-        "Street1": "string?",
-        "Street2": "string?",
-        "City": "string?",
-        "State": "string?",
-        "PostalCode": "string?",
-        "Country": "string?"
+        "IdKey": "string",
+        "Name": "string",
+        "IsLeader": "bool"
       },
       "linked_entity": "GroupTypeRole"
+    },
+    "FileMetadataDto": {
+      "name": "FileMetadataDto",
+      "namespace": "Koinon.Application.DTOs.Files",
+      "properties": {
+        "IdKey": "string",
+        "FileName": "string",
+        "MimeType": "string",
+        "FileSizeBytes": "long",
+        "Width": "int?",
+        "Height": "int?",
+        "BinaryFileType": "DefinedValueDto?",
+        "Description": "string?",
+        "CreatedDateTime": "DateTime",
+        "Url": "string"
+      }
+    },
+    "UploadFileRequest": {
+      "name": "UploadFileRequest",
+      "namespace": "Koinon.Application.DTOs.Files",
+      "properties": {
+        "Stream": "Stream",
+        "FileName": "string",
+        "ContentType": "string",
+        "Length": "long",
+        "Description": "string?",
+        "BinaryFileTypeIdKey": "string?"
+      }
     },
     "FirstTimeVisitorDto": {
       "name": "FirstTimeVisitorDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "PersonIdKey": "string",
+        "PersonName": "string",
         "Email": "string?",
         "PhoneNumber": "string?",
-        "CampusName": "string?"
+        "CheckInDateTime": "DateTime",
+        "GroupName": "string",
+        "GroupTypeName": "string",
+        "CampusName": "string?",
+        "HasFollowUp": "bool"
       }
     },
     "FollowUpDto": {
       "name": "FollowUpDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
+        "PersonIdKey": "string",
+        "PersonName": "string",
         "AttendanceIdKey": "string?",
+        "Status": "FollowUpStatus",
         "Notes": "string?",
         "AssignedToIdKey": "string?",
         "AssignedToName": "string?",
         "ContactedDateTime": "DateTime?",
-        "CompletedDateTime": "DateTime?"
+        "CompletedDateTime": "DateTime?",
+        "CreatedDateTime": "DateTime"
       },
       "linked_entity": "FollowUp"
+    },
+    "BatchSummaryDto": {
+      "name": "BatchSummaryDto",
+      "namespace": "Koinon.Application.DTOs.Giving",
+      "properties": {
+        "IdKey": "string",
+        "Name": "string",
+        "Status": "string",
+        "ControlAmount": "decimal?",
+        "ControlItemCount": "int?",
+        "ActualAmount": "decimal",
+        "ContributionCount": "int",
+        "ItemCountVariance": "int?",
+        "Variance": "decimal",
+        "IsBalanced": "bool"
+      }
+    },
+    "ContributionBatchDto": {
+      "name": "ContributionBatchDto",
+      "namespace": "Koinon.Application.DTOs.Giving",
+      "properties": {
+        "IdKey": "string",
+        "Name": "string",
+        "BatchDate": "DateTime",
+        "Status": "string",
+        "ControlAmount": "decimal?",
+        "ControlItemCount": "int?",
+        "CampusIdKey": "string?",
+        "Note": "string?",
+        "CreatedDateTime": "DateTime",
+        "ModifiedDateTime": "DateTime?"
+      },
+      "linked_entity": "ContributionBatch"
+    },
+    "ContributionDetailDto": {
+      "name": "ContributionDetailDto",
+      "namespace": "Koinon.Application.DTOs.Giving",
+      "properties": {
+        "IdKey": "string",
+        "FundIdKey": "string",
+        "FundName": "string",
+        "Amount": "decimal",
+        "Summary": "string?"
+      },
+      "linked_entity": "ContributionDetail"
+    },
+    "ContributionDto": {
+      "name": "ContributionDto",
+      "namespace": "Koinon.Application.DTOs.Giving",
+      "properties": {
+        "IdKey": "string",
+        "PersonIdKey": "string?",
+        "PersonName": "string?",
+        "BatchIdKey": "string?",
+        "TransactionDateTime": "DateTime",
+        "TransactionCode": "string?",
+        "TransactionTypeValueIdKey": "string",
+        "SourceTypeValueIdKey": "string",
+        "Summary": "string?",
+        "CampusIdKey": "string?",
+        "Details": "List<ContributionDetailDto>",
+        "TotalAmount": "decimal"
+      },
+      "linked_entity": "Contribution"
+    },
+    "ContributionStatementDto": {
+      "name": "ContributionStatementDto",
+      "namespace": "Koinon.Application.DTOs.Giving",
+      "properties": {
+        "IdKey": "string",
+        "PersonIdKey": "string",
+        "PersonName": "string",
+        "StartDate": "DateTime",
+        "EndDate": "DateTime",
+        "TotalAmount": "decimal",
+        "ContributionCount": "int",
+        "GeneratedDateTime": "DateTime"
+      },
+      "linked_entity": "ContributionStatement"
+    },
+    "StatementContributionDto": {
+      "name": "StatementContributionDto",
+      "namespace": "Koinon.Application.DTOs.Giving",
+      "properties": {
+        "Date": "DateTime",
+        "FundName": "string",
+        "Amount": "decimal",
+        "CheckNumber": "string?"
+      }
+    },
+    "GenerateStatementRequest": {
+      "name": "GenerateStatementRequest",
+      "namespace": "Koinon.Application.DTOs.Giving",
+      "properties": {
+        "PersonIdKey": "string",
+        "StartDate": "DateTime",
+        "EndDate": "DateTime"
+      }
+    },
+    "BatchStatementRequest": {
+      "name": "BatchStatementRequest",
+      "namespace": "Koinon.Application.DTOs.Giving",
+      "properties": {
+        "StartDate": "DateTime",
+        "EndDate": "DateTime",
+        "MinimumAmount": "decimal"
+      }
+    },
+    "StatementPreviewDto": {
+      "name": "StatementPreviewDto",
+      "namespace": "Koinon.Application.DTOs.Giving",
+      "properties": {
+        "PersonIdKey": "string",
+        "PersonName": "string",
+        "PersonAddress": "string",
+        "StartDate": "DateTime",
+        "EndDate": "DateTime",
+        "TotalAmount": "decimal",
+        "Contributions": "List<StatementContributionDto>",
+        "ChurchName": "string",
+        "ChurchAddress": "string"
+      }
+    },
+    "EligiblePersonDto": {
+      "name": "EligiblePersonDto",
+      "namespace": "Koinon.Application.DTOs.Giving",
+      "properties": {
+        "PersonIdKey": "string",
+        "PersonName": "string",
+        "TotalAmount": "decimal",
+        "ContributionCount": "int"
+      }
+    },
+    "FundDto": {
+      "name": "FundDto",
+      "namespace": "Koinon.Application.DTOs.Giving",
+      "properties": {
+        "IdKey": "string",
+        "Name": "string",
+        "PublicName": "string?",
+        "IsActive": "bool",
+        "IsPublic": "bool"
+      },
+      "linked_entity": "Fund"
+    },
+    "PersonLookupDto": {
+      "name": "PersonLookupDto",
+      "namespace": "Koinon.Application.DTOs.Giving",
+      "properties": {
+        "IdKey": "string",
+        "FullName": "string",
+        "Email": "string?"
+      },
+      "linked_entity": "Person"
     },
     "GlobalSearchResultDto": {
       "name": "GlobalSearchResultDto",
       "namespace": "Koinon.Application.DTOs",
-      "properties": {}
+      "properties": {
+        "Category": "string",
+        "IdKey": "string",
+        "Title": "string",
+        "Subtitle": "string?",
+        "ImageUrl": "string?"
+      }
+    },
+    "GlobalSearchResponse": {
+      "name": "GlobalSearchResponse",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Results": "IReadOnlyList<GlobalSearchResultDto>",
+        "TotalCount": "int",
+        "PageNumber": "int",
+        "PageSize": "int",
+        "CategoryCounts": "Dictionary<string, int>"
+      }
     },
     "GroupDto": {
       "name": "GroupDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
+        "Guid": "Guid",
+        "Name": "string",
         "Description": "string?",
+        "IsActive": "bool",
+        "IsArchived": "bool",
+        "IsSecurityRole": "bool",
+        "IsPublic": "bool",
+        "AllowGuests": "bool",
         "GroupCapacity": "int?",
+        "Order": "int",
+        "GroupType": "GroupTypeSummaryDto",
         "Campus": "CampusSummaryDto?",
         "ParentGroup": "GroupSummaryDto?",
+        "Members": "IReadOnlyList<GroupMemberDto>",
+        "ChildGroups": "IReadOnlyList<GroupSummaryDto>",
+        "CreatedDateTime": "DateTime",
         "ModifiedDateTime": "DateTime?",
-        "ArchivedDateTime": "DateTime?",
-        "IsArchived": "bool",
-        "DateTimeAdded": "DateTime?",
-        "InactiveDateTime": "DateTime?",
-        "Note": "string?"
+        "ArchivedDateTime": "DateTime?"
       },
       "linked_entity": "Group"
     },
@@ -1735,16 +2336,13 @@
       "name": "GroupSummaryDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
+        "Name": "string",
         "Description": "string?",
-        "GroupCapacity": "int?",
-        "Campus": "CampusSummaryDto?",
-        "ParentGroup": "GroupSummaryDto?",
-        "ModifiedDateTime": "DateTime?",
-        "ArchivedDateTime": "DateTime?",
+        "IsActive": "bool",
         "IsArchived": "bool",
-        "DateTimeAdded": "DateTime?",
-        "InactiveDateTime": "DateTime?",
-        "Note": "string?"
+        "MemberCount": "int",
+        "GroupTypeName": "string"
       },
       "linked_entity": "Group"
     },
@@ -1752,13 +2350,10 @@
       "name": "GroupMemberDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
-        "Description": "string?",
-        "GroupCapacity": "int?",
-        "Campus": "CampusSummaryDto?",
-        "ParentGroup": "GroupSummaryDto?",
-        "ModifiedDateTime": "DateTime?",
-        "ArchivedDateTime": "DateTime?",
-        "IsArchived": "bool",
+        "IdKey": "string",
+        "Person": "PersonSummaryDto",
+        "Role": "GroupTypeRoleDto",
+        "Status": "string",
         "DateTimeAdded": "DateTime?",
         "InactiveDateTime": "DateTime?",
         "Note": "string?"
@@ -1769,10 +2364,18 @@
       "name": "GroupMemberDetailDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
+        "PersonIdKey": "string",
+        "FirstName": "string",
+        "LastName": "string",
+        "FullName": "string",
         "Email": "string?",
         "Phone": "string?",
         "PhotoUrl": "string?",
         "Age": "int?",
+        "Gender": "string",
+        "Role": "GroupTypeRoleDto",
+        "Status": "string",
         "DateTimeAdded": "DateTime?",
         "InactiveDateTime": "DateTime?",
         "Note": "string?"
@@ -1783,10 +2386,15 @@
       "name": "GroupMemberRequestDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
+        "Requester": "PersonSummaryDto",
+        "Group": "GroupSummaryDto",
+        "Status": "string",
         "RequestNote": "string?",
         "ResponseNote": "string?",
         "ProcessedByPerson": "PersonSummaryDto?",
         "ProcessedDateTime": "DateTime?",
+        "CreatedDateTime": "DateTime",
         "ModifiedDateTime": "DateTime?"
       },
       "linked_entity": "GroupMemberRequest"
@@ -1795,6 +2403,9 @@
       "name": "GroupScheduleDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
+        "Guid": "Guid",
+        "Schedule": "ScheduleSummaryDto",
         "Order": "int"
       },
       "linked_entity": "GroupSchedule"
@@ -1803,9 +2414,14 @@
       "name": "GroupTypeDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
+        "Guid": "Guid",
+        "Name": "string",
         "Description": "string?",
         "IconCssClass": "string?",
         "Color": "string?",
+        "GroupTerm": "string",
+        "GroupMemberTerm": "string",
         "TakesAttendance": "bool",
         "AllowSelfRegistration": "bool",
         "RequiresMemberApproval": "bool",
@@ -1814,19 +2430,7 @@
         "IsSystem": "bool",
         "IsArchived": "bool",
         "Order": "int",
-        "GroupCount": "int",
-        "ShowInGroupList": "bool",
-        "ShowInNavigation": "bool",
-        "AttendanceCountsAsWeekendService": "bool",
-        "SendAttendanceReminder": "bool",
-        "AllowMultipleLocations": "bool",
-        "EnableSpecificGroupRequirements": "bool",
-        "AllowGroupSync": "bool",
-        "AllowSpecificGroupMemberAttributes": "bool",
-        "ShowConnectionStatus": "bool",
-        "IgnorePersonInactivated": "bool",
-        "ModifiedDateTime": "DateTime?",
-        "IsFamilyGroupType": "bool"
+        "GroupCount": "int"
       },
       "linked_entity": "GroupType"
     },
@@ -1834,18 +2438,19 @@
       "name": "GroupTypeDetailDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
+        "Guid": "Guid",
+        "Name": "string",
         "Description": "string?",
         "IconCssClass": "string?",
         "Color": "string?",
+        "GroupTerm": "string",
+        "GroupMemberTerm": "string",
         "TakesAttendance": "bool",
         "AllowSelfRegistration": "bool",
         "RequiresMemberApproval": "bool",
         "DefaultIsPublic": "bool",
         "DefaultGroupCapacity": "int?",
-        "IsSystem": "bool",
-        "IsArchived": "bool",
-        "Order": "int",
-        "GroupCount": "int",
         "ShowInGroupList": "bool",
         "ShowInNavigation": "bool",
         "AttendanceCountsAsWeekendService": "bool",
@@ -1856,8 +2461,12 @@
         "AllowSpecificGroupMemberAttributes": "bool",
         "ShowConnectionStatus": "bool",
         "IgnorePersonInactivated": "bool",
-        "ModifiedDateTime": "DateTime?",
-        "IsFamilyGroupType": "bool"
+        "IsSystem": "bool",
+        "IsArchived": "bool",
+        "Order": "int",
+        "GroupCount": "int",
+        "CreatedDateTime": "DateTime",
+        "ModifiedDateTime": "DateTime?"
       },
       "linked_entity": "Group"
     },
@@ -1865,78 +2474,120 @@
       "name": "GroupTypeSummaryDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
+        "Guid": "Guid",
+        "Name": "string",
         "Description": "string?",
-        "IconCssClass": "string?",
-        "Color": "string?",
-        "TakesAttendance": "bool",
-        "AllowSelfRegistration": "bool",
-        "RequiresMemberApproval": "bool",
-        "DefaultIsPublic": "bool",
-        "DefaultGroupCapacity": "int?",
-        "IsSystem": "bool",
-        "IsArchived": "bool",
-        "Order": "int",
-        "GroupCount": "int",
-        "ShowInGroupList": "bool",
-        "ShowInNavigation": "bool",
-        "AttendanceCountsAsWeekendService": "bool",
-        "SendAttendanceReminder": "bool",
+        "IsFamilyGroupType": "bool",
         "AllowMultipleLocations": "bool",
-        "EnableSpecificGroupRequirements": "bool",
-        "AllowGroupSync": "bool",
-        "AllowSpecificGroupMemberAttributes": "bool",
-        "ShowConnectionStatus": "bool",
-        "IgnorePersonInactivated": "bool",
-        "ModifiedDateTime": "DateTime?",
-        "IsFamilyGroupType": "bool"
+        "Roles": "IReadOnlyList<GroupTypeRoleDto>"
       },
       "linked_entity": "Group"
+    },
+    "CsvPreviewDto": {
+      "name": "CsvPreviewDto",
+      "namespace": "Koinon.Application.DTOs.Import",
+      "properties": {
+        "Headers": "IReadOnlyList<string>",
+        "SampleRows": "IReadOnlyList<IReadOnlyList<string>>",
+        "TotalRowCount": "int",
+        "DetectedDelimiter": "string",
+        "DetectedEncoding": "string"
+      }
+    },
+    "ImportJobDto": {
+      "name": "ImportJobDto",
+      "namespace": "Koinon.Application.DTOs.Import",
+      "properties": {
+        "IdKey": "string",
+        "Guid": "Guid",
+        "ImportTemplateIdKey": "string?",
+        "ImportType": "string",
+        "Status": "string",
+        "FileName": "string",
+        "TotalRows": "int",
+        "ProcessedRows": "int",
+        "SuccessCount": "int",
+        "ErrorCount": "int",
+        "Errors": "List<ImportRowError>?",
+        "StartedAt": "DateTime?",
+        "CompletedAt": "DateTime?",
+        "CreatedDateTime": "DateTime",
+        "BackgroundJobId": "string?"
+      }
+    },
+    "ImportTemplateDto": {
+      "name": "ImportTemplateDto",
+      "namespace": "Koinon.Application.DTOs.Import",
+      "properties": {
+        "IdKey": "string",
+        "Guid": "Guid",
+        "Name": "string",
+        "Description": "string?",
+        "ImportType": "string",
+        "FieldMappings": "Dictionary<string, string>",
+        "IsActive": "bool",
+        "IsSystem": "bool",
+        "CreatedDateTime": "DateTime",
+        "ModifiedDateTime": "DateTime?"
+      }
     },
     "LabelSetDto": {
       "name": "LabelSetDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
-        "LabelTypes": "IReadOnlyList<LabelType>?",
-        "TemplateIdKey": "string?"
+        "AttendanceIdKey": "string",
+        "PersonIdKey": "string",
+        "Labels": "IReadOnlyList<LabelDto>"
       }
     },
     "LabelDto": {
       "name": "LabelDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
-        "LabelTypes": "IReadOnlyList<LabelType>?",
-        "TemplateIdKey": "string?"
+        "Type": "LabelType",
+        "Content": "string",
+        "Format": "string",
+        "Fields": "IDictionary<string, string>"
       }
     },
     "LabelTemplateDto": {
       "name": "LabelTemplateDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
-        "LabelTypes": "IReadOnlyList<LabelType>?",
-        "TemplateIdKey": "string?"
+        "IdKey": "string",
+        "Name": "string",
+        "Type": "LabelType",
+        "Format": "string",
+        "Template": "string",
+        "WidthMm": "int",
+        "HeightMm": "int"
       }
     },
     "LabelRequestDto": {
       "name": "LabelRequestDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "AttendanceIdKey": "string",
         "LabelTypes": "IReadOnlyList<LabelType>?",
-        "TemplateIdKey": "string?"
+        "CustomFields": "IDictionary<string, string>?"
       }
     },
     "BatchLabelRequestDto": {
       "name": "BatchLabelRequestDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "AttendanceIdKeys": "IReadOnlyList<string>",
         "LabelTypes": "IReadOnlyList<LabelType>?",
-        "TemplateIdKey": "string?"
+        "CustomFields": "IDictionary<string, string>?"
       }
     },
     "LabelPreviewRequestDto": {
       "name": "LabelPreviewRequestDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
-        "LabelTypes": "IReadOnlyList<LabelType>?",
+        "Type": "LabelType",
+        "Fields": "IDictionary<string, string>",
         "TemplateIdKey": "string?"
       }
     },
@@ -1944,17 +2595,24 @@
       "name": "LabelPreviewDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
-        "LabelTypes": "IReadOnlyList<LabelType>?",
-        "TemplateIdKey": "string?"
+        "Type": "LabelType",
+        "PreviewHtml": "string",
+        "Format": "string"
       }
     },
     "LocationDto": {
       "name": "LocationDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
+        "Guid": "Guid",
+        "Name": "string",
         "Description": "string?",
+        "IsActive": "bool",
+        "Order": "int",
         "ParentLocationIdKey": "string?",
         "ParentLocationName": "string?",
+        "Children": "IReadOnlyList<LocationDto>",
         "CampusIdKey": "string?",
         "CampusName": "string?",
         "LocationTypeName": "string?",
@@ -1973,6 +2631,7 @@
         "Latitude": "double?",
         "Longitude": "double?",
         "IsGeoPointLocked": "bool",
+        "CreatedDateTime": "DateTime",
         "ModifiedDateTime": "DateTime?"
       },
       "linked_entity": "Location"
@@ -1981,45 +2640,41 @@
       "name": "LocationSummaryDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
+        "Name": "string",
         "Description": "string?",
-        "ParentLocationIdKey": "string?",
+        "IsActive": "bool",
         "ParentLocationName": "string?",
-        "CampusIdKey": "string?",
         "CampusName": "string?",
-        "LocationTypeName": "string?",
-        "SoftRoomThreshold": "int?",
-        "FirmRoomThreshold": "int?",
-        "StaffToChildRatio": "int?",
-        "OverflowLocationIdKey": "string?",
-        "OverflowLocationName": "string?",
-        "AutoAssignOverflow": "bool",
-        "Street1": "string?",
-        "Street2": "string?",
-        "City": "string?",
-        "State": "string?",
-        "PostalCode": "string?",
-        "Country": "string?",
-        "Latitude": "double?",
-        "Longitude": "double?",
-        "IsGeoPointLocked": "bool",
-        "ModifiedDateTime": "DateTime?"
+        "LocationTypeName": "string?"
       },
       "linked_entity": "Location"
     },
     "MergeFieldDto": {
       "name": "MergeFieldDto",
       "namespace": "Koinon.Application.DTOs",
-      "properties": {}
+      "properties": {
+        "Name": "string",
+        "Token": "string",
+        "Description": "string"
+      }
     },
     "MyFamilyMemberDto": {
       "name": "MyFamilyMemberDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
+        "FirstName": "string",
         "NickName": "string?",
+        "LastName": "string",
+        "FullName": "string",
         "BirthDate": "DateOnly?",
         "Age": "int?",
+        "Gender": "string",
         "Email": "string?",
+        "PhoneNumbers": "IReadOnlyList<PhoneNumberDto>",
         "PhotoUrl": "string?",
+        "FamilyRole": "string",
         "CanEdit": "bool",
         "Allergies": "string?",
         "HasCriticalAllergies": "bool",
@@ -2030,10 +2685,17 @@
       "name": "MyGroupDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
+        "Guid": "Guid",
+        "Name": "string",
         "Description": "string?",
+        "GroupTypeName": "string",
+        "IsActive": "bool",
+        "MemberCount": "int",
         "GroupCapacity": "int?",
         "LastMeetingDate": "DateTime?",
         "Campus": "CampusSummaryDto?",
+        "CreatedDateTime": "DateTime",
         "ModifiedDateTime": "DateTime?"
       }
     },
@@ -2041,22 +2703,20 @@
       "name": "MyInvolvementDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "Groups": "IReadOnlyList<MyInvolvementGroupDto>",
         "RecentAttendanceCount": "int",
-        "TotalGroupsCount": "int",
-        "Description": "string?",
-        "IsLeader": "bool",
-        "LastAttendanceDate": "DateTime?",
-        "JoinedDate": "DateTime?",
-        "Campus": "CampusSummaryDto?"
+        "TotalGroupsCount": "int"
       }
     },
     "MyInvolvementGroupDto": {
       "name": "MyInvolvementGroupDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
-        "RecentAttendanceCount": "int",
-        "TotalGroupsCount": "int",
+        "IdKey": "string",
+        "GroupName": "string",
         "Description": "string?",
+        "GroupTypeName": "string",
+        "Role": "string",
         "IsLeader": "bool",
         "LastAttendanceDate": "DateTime?",
         "JoinedDate": "DateTime?",
@@ -2067,15 +2727,24 @@
       "name": "MyProfileDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
+        "Guid": "Guid",
+        "FirstName": "string",
         "NickName": "string?",
         "MiddleName": "string?",
+        "LastName": "string",
+        "FullName": "string",
         "BirthDate": "DateOnly?",
         "Age": "int?",
+        "Gender": "string",
         "Email": "string?",
         "IsEmailActive": "bool",
+        "EmailPreference": "string",
+        "PhoneNumbers": "IReadOnlyList<PhoneNumberDto>",
         "PrimaryFamily": "FamilySummaryDto?",
         "PrimaryCampus": "CampusSummaryDto?",
         "PhotoUrl": "string?",
+        "CreatedDateTime": "DateTime",
         "ModifiedDateTime": "DateTime?"
       }
     },
@@ -2083,7 +2752,11 @@
       "name": "NotificationDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
+        "Guid": "Guid",
         "NotificationType": "NotificationType",
+        "Title": "string",
+        "Message": "string",
         "IsRead": "bool",
         "ReadDateTime": "DateTime?",
         "ActionUrl": "string?",
@@ -2096,6 +2769,7 @@
       "name": "NotificationPreferenceDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
         "NotificationType": "NotificationType",
         "IsEnabled": "bool"
       },
@@ -2104,45 +2778,69 @@
     "PagerAssignmentDto": {
       "name": "PagerAssignmentDto",
       "namespace": "Koinon.Application.DTOs",
-      "properties": {},
+      "properties": {
+        "IdKey": "string",
+        "PagerNumber": "int",
+        "AttendanceIdKey": "string",
+        "ChildName": "string",
+        "GroupName": "string",
+        "LocationName": "string",
+        "ParentPhoneNumber": "string?",
+        "CheckedInAt": "DateTime",
+        "MessagesSentCount": "int"
+      },
       "linked_entity": "PagerAssignment"
     },
     "PagerMessageDto": {
       "name": "PagerMessageDto",
       "namespace": "Koinon.Application.DTOs",
-      "properties": {},
+      "properties": {
+        "IdKey": "string",
+        "MessageType": "PagerMessageType",
+        "MessageText": "string",
+        "Status": "PagerMessageStatus",
+        "SentDateTime": "DateTime",
+        "DeliveredDateTime": "DateTime?",
+        "SentByPersonName": "string"
+      },
       "linked_entity": "PagerMessage"
     },
     "PageHistoryDto": {
       "name": "PageHistoryDto",
       "namespace": "Koinon.Application.DTOs",
-      "properties": {}
+      "properties": {
+        "IdKey": "string",
+        "PagerNumber": "int",
+        "ChildName": "string",
+        "ParentPhoneNumber": "string",
+        "Messages": "List<PagerMessageDto>"
+      }
     },
     "PersonDto": {
       "name": "PersonDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
+        "Guid": "Guid",
+        "FirstName": "string",
         "NickName": "string?",
         "MiddleName": "string?",
+        "LastName": "string",
+        "FullName": "string",
         "BirthDate": "DateOnly?",
         "Age": "int?",
+        "Gender": "string",
         "Email": "string?",
         "IsEmailActive": "bool",
+        "EmailPreference": "string",
+        "PhoneNumbers": "IReadOnlyList<PhoneNumberDto>",
         "RecordStatus": "DefinedValueDto?",
         "ConnectionStatus": "DefinedValueDto?",
         "PrimaryFamily": "FamilySummaryDto?",
         "PrimaryCampus": "CampusSummaryDto?",
         "PhotoUrl": "string?",
-        "ModifiedDateTime": "DateTime?",
-        "Extension": "string?",
-        "PhoneType": "DefinedValueDto?",
-        "IsMessagingEnabled": "bool",
-        "IsUnlisted": "bool",
-        "Description": "string?",
-        "IsActive": "bool",
-        "Order": "int",
-        "MemberCount": "int",
-        "ShortCode": "string?"
+        "CreatedDateTime": "DateTime",
+        "ModifiedDateTime": "DateTime?"
       },
       "linked_entity": "Person"
     },
@@ -2150,27 +2848,17 @@
       "name": "PersonSummaryDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
+        "FirstName": "string",
         "NickName": "string?",
-        "MiddleName": "string?",
-        "BirthDate": "DateOnly?",
-        "Age": "int?",
+        "LastName": "string",
+        "FullName": "string",
         "Email": "string?",
-        "IsEmailActive": "bool",
-        "RecordStatus": "DefinedValueDto?",
-        "ConnectionStatus": "DefinedValueDto?",
-        "PrimaryFamily": "FamilySummaryDto?",
-        "PrimaryCampus": "CampusSummaryDto?",
         "PhotoUrl": "string?",
-        "ModifiedDateTime": "DateTime?",
-        "Extension": "string?",
-        "PhoneType": "DefinedValueDto?",
-        "IsMessagingEnabled": "bool",
-        "IsUnlisted": "bool",
-        "Description": "string?",
-        "IsActive": "bool",
-        "Order": "int",
-        "MemberCount": "int",
-        "ShortCode": "string?"
+        "Age": "int?",
+        "Gender": "string",
+        "ConnectionStatus": "DefinedValueDto?",
+        "RecordStatus": "DefinedValueDto?"
       },
       "linked_entity": "Person"
     },
@@ -2178,27 +2866,13 @@
       "name": "PhoneNumberDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
-        "NickName": "string?",
-        "MiddleName": "string?",
-        "BirthDate": "DateOnly?",
-        "Age": "int?",
-        "Email": "string?",
-        "IsEmailActive": "bool",
-        "RecordStatus": "DefinedValueDto?",
-        "ConnectionStatus": "DefinedValueDto?",
-        "PrimaryFamily": "FamilySummaryDto?",
-        "PrimaryCampus": "CampusSummaryDto?",
-        "PhotoUrl": "string?",
-        "ModifiedDateTime": "DateTime?",
+        "IdKey": "string",
+        "Number": "string",
+        "NumberFormatted": "string",
         "Extension": "string?",
         "PhoneType": "DefinedValueDto?",
         "IsMessagingEnabled": "bool",
-        "IsUnlisted": "bool",
-        "Description": "string?",
-        "IsActive": "bool",
-        "Order": "int",
-        "MemberCount": "int",
-        "ShortCode": "string?"
+        "IsUnlisted": "bool"
       },
       "linked_entity": "PhoneNumber"
     },
@@ -2206,27 +2880,12 @@
       "name": "DefinedValueDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
-        "NickName": "string?",
-        "MiddleName": "string?",
-        "BirthDate": "DateOnly?",
-        "Age": "int?",
-        "Email": "string?",
-        "IsEmailActive": "bool",
-        "RecordStatus": "DefinedValueDto?",
-        "ConnectionStatus": "DefinedValueDto?",
-        "PrimaryFamily": "FamilySummaryDto?",
-        "PrimaryCampus": "CampusSummaryDto?",
-        "PhotoUrl": "string?",
-        "ModifiedDateTime": "DateTime?",
-        "Extension": "string?",
-        "PhoneType": "DefinedValueDto?",
-        "IsMessagingEnabled": "bool",
-        "IsUnlisted": "bool",
+        "IdKey": "string",
+        "Guid": "Guid",
+        "Value": "string",
         "Description": "string?",
         "IsActive": "bool",
-        "Order": "int",
-        "MemberCount": "int",
-        "ShortCode": "string?"
+        "Order": "int"
       },
       "linked_entity": "DefinedValue"
     },
@@ -2234,27 +2893,9 @@
       "name": "FamilySummaryDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
-        "NickName": "string?",
-        "MiddleName": "string?",
-        "BirthDate": "DateOnly?",
-        "Age": "int?",
-        "Email": "string?",
-        "IsEmailActive": "bool",
-        "RecordStatus": "DefinedValueDto?",
-        "ConnectionStatus": "DefinedValueDto?",
-        "PrimaryFamily": "FamilySummaryDto?",
-        "PrimaryCampus": "CampusSummaryDto?",
-        "PhotoUrl": "string?",
-        "ModifiedDateTime": "DateTime?",
-        "Extension": "string?",
-        "PhoneType": "DefinedValueDto?",
-        "IsMessagingEnabled": "bool",
-        "IsUnlisted": "bool",
-        "Description": "string?",
-        "IsActive": "bool",
-        "Order": "int",
-        "MemberCount": "int",
-        "ShortCode": "string?"
+        "IdKey": "string",
+        "Name": "string",
+        "MemberCount": "int"
       },
       "linked_entity": "Family"
     },
@@ -2262,26 +2903,8 @@
       "name": "CampusSummaryDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
-        "NickName": "string?",
-        "MiddleName": "string?",
-        "BirthDate": "DateOnly?",
-        "Age": "int?",
-        "Email": "string?",
-        "IsEmailActive": "bool",
-        "RecordStatus": "DefinedValueDto?",
-        "ConnectionStatus": "DefinedValueDto?",
-        "PrimaryFamily": "FamilySummaryDto?",
-        "PrimaryCampus": "CampusSummaryDto?",
-        "PhotoUrl": "string?",
-        "ModifiedDateTime": "DateTime?",
-        "Extension": "string?",
-        "PhoneType": "DefinedValueDto?",
-        "IsMessagingEnabled": "bool",
-        "IsUnlisted": "bool",
-        "Description": "string?",
-        "IsActive": "bool",
-        "Order": "int",
-        "MemberCount": "int",
+        "IdKey": "string",
+        "Name": "string",
         "ShortCode": "string?"
       },
       "linked_entity": "Campus"
@@ -2290,43 +2913,848 @@
       "name": "PersonGroupMembershipDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
+        "Guid": "Guid",
+        "GroupIdKey": "string",
+        "GroupName": "string",
+        "GroupTypeIdKey": "string",
+        "GroupTypeName": "string",
+        "RoleIdKey": "string",
+        "RoleName": "string",
+        "MemberStatus": "string",
         "CreatedDateTime": "DateTime",
         "ModifiedDateTime": "DateTime?"
+      },
+      "linked_entity": "Person"
+    },
+    "DuplicateMatchDto": {
+      "name": "DuplicateMatchDto",
+      "namespace": "Koinon.Application.DTOs.PersonMerge",
+      "properties": {
+        "Person1IdKey": "string",
+        "Person1Name": "string",
+        "Person1Email": "string?",
+        "Person1Phone": "string?",
+        "Person1PhotoUrl": "string?",
+        "Person2IdKey": "string",
+        "Person2Name": "string",
+        "Person2Email": "string?",
+        "Person2Phone": "string?",
+        "Person2PhotoUrl": "string?",
+        "MatchScore": "int",
+        "MatchReasons": "List<string>"
+      }
+    },
+    "IgnoreDuplicateRequestDto": {
+      "name": "IgnoreDuplicateRequestDto",
+      "namespace": "Koinon.Application.DTOs.PersonMerge",
+      "properties": {
+        "Person1IdKey": "string",
+        "Person2IdKey": "string",
+        "Reason": "string?"
+      }
+    },
+    "PersonComparisonDto": {
+      "name": "PersonComparisonDto",
+      "namespace": "Koinon.Application.DTOs.PersonMerge",
+      "properties": {
+        "Person1": "PersonDto",
+        "Person2": "PersonDto",
+        "Person1AttendanceCount": "int",
+        "Person2AttendanceCount": "int",
+        "Person1GroupMembershipCount": "int",
+        "Person2GroupMembershipCount": "int",
+        "Person1ContributionTotal": "decimal",
+        "Person2ContributionTotal": "decimal"
+      },
+      "linked_entity": "Person"
+    },
+    "PersonMergeHistoryDto": {
+      "name": "PersonMergeHistoryDto",
+      "namespace": "Koinon.Application.DTOs.PersonMerge",
+      "properties": {
+        "IdKey": "string",
+        "SurvivorIdKey": "string",
+        "SurvivorName": "string",
+        "MergedIdKey": "string",
+        "MergedName": "string",
+        "MergedByIdKey": "string?",
+        "MergedByName": "string?",
+        "MergedDateTime": "DateTime",
+        "Notes": "string?"
+      },
+      "linked_entity": "PersonMergeHistory"
+    },
+    "PersonMergeRequestDto": {
+      "name": "PersonMergeRequestDto",
+      "namespace": "Koinon.Application.DTOs.PersonMerge",
+      "properties": {
+        "SurvivorIdKey": "string",
+        "MergedIdKey": "string",
+        "FieldSelections": "Dictionary<string, string>?",
+        "Notes": "string?"
+      },
+      "linked_entity": "Person"
+    },
+    "PersonMergeResultDto": {
+      "name": "PersonMergeResultDto",
+      "namespace": "Koinon.Application.DTOs.PersonMerge",
+      "properties": {
+        "SurvivorIdKey": "string",
+        "MergedIdKey": "string",
+        "AliasesUpdated": "int",
+        "GroupMembershipsUpdated": "int",
+        "FamilyMembershipsUpdated": "int",
+        "PhoneNumbersUpdated": "int",
+        "AuthorizedPickupsUpdated": "int",
+        "CommunicationPreferencesUpdated": "int",
+        "RefreshTokensUpdated": "int",
+        "SecurityRolesUpdated": "int",
+        "SupervisorSessionsUpdated": "int",
+        "FollowUpsUpdated": "int",
+        "TotalRecordsUpdated": "int",
+        "MergedDateTime": "DateTime"
       },
       "linked_entity": "Person"
     },
     "PickupLogDto": {
       "name": "PickupLogDto",
       "namespace": "Koinon.Application.DTOs",
-      "properties": {},
+      "properties": {
+        "IdKey": "string",
+        "AttendanceIdKey": "string",
+        "ChildName": "string",
+        "PickupPersonName": "string",
+        "WasAuthorized": "bool",
+        "SupervisorOverride": "bool",
+        "SupervisorName": "string?",
+        "CheckoutDateTime": "DateTime",
+        "Notes": "string?"
+      },
       "linked_entity": "PickupLog"
     },
     "PickupVerificationResultDto": {
       "name": "PickupVerificationResultDto",
       "namespace": "Koinon.Application.DTOs",
-      "properties": {}
+      "properties": {
+        "IsAuthorized": "bool",
+        "AuthorizationLevel": "AuthorizationLevel?",
+        "AuthorizedPickupIdKey": "string?",
+        "Message": "string",
+        "RequiresSupervisorOverride": "bool"
+      }
     },
     "PublicGroupDto": {
       "name": "PublicGroupDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
+        "Name": "string",
         "PublicDescription": "string?",
         "GroupTypeName": "string?",
         "CampusIdKey": "string?",
         "CampusName": "string?",
         "MemberCount": "int",
-        "Capacity": "int?",
+        "Capacity": "bool HasOpenings => Capacity == null || MemberCount <",
         "MeetingDay": "string?",
         "MeetingTime": "TimeOnly?",
         "MeetingScheduleSummary": "string?"
+      }
+    },
+    "ReportDefinitionDto": {
+      "name": "ReportDefinitionDto",
+      "namespace": "Koinon.Application.DTOs.Reports",
+      "properties": {
+        "IdKey": "string",
+        "Name": "string",
+        "Description": "string?",
+        "ReportType": "ReportType",
+        "ParameterSchema": "string?",
+        "DefaultParameters": "string?",
+        "OutputFormat": "ReportOutputFormat",
+        "IsActive": "bool",
+        "IsSystem": "bool",
+        "CreatedDateTime": "DateTime",
+        "ModifiedDateTime": "DateTime?"
+      },
+      "linked_entity": "ReportDefinition"
+    },
+    "CreateReportDefinitionRequest": {
+      "name": "CreateReportDefinitionRequest",
+      "namespace": "Koinon.Application.DTOs.Reports",
+      "properties": {
+        "Name": "string",
+        "Description": "string?",
+        "ReportType": "ReportType",
+        "ParameterSchema": "string?",
+        "DefaultParameters": "string?",
+        "OutputFormat": "ReportOutputFormat"
+      }
+    },
+    "UpdateReportDefinitionRequest": {
+      "name": "UpdateReportDefinitionRequest",
+      "namespace": "Koinon.Application.DTOs.Reports",
+      "properties": {
+        "Name": "string?",
+        "Description": "string?",
+        "ParameterSchema": "string?",
+        "DefaultParameters": "string?",
+        "OutputFormat": "ReportOutputFormat?",
+        "IsActive": "bool?"
+      }
+    },
+    "ReportRunDto": {
+      "name": "ReportRunDto",
+      "namespace": "Koinon.Application.DTOs.Reports",
+      "properties": {
+        "IdKey": "string",
+        "ReportDefinitionIdKey": "string",
+        "ReportName": "string",
+        "Status": "ReportStatus",
+        "Parameters": "string?",
+        "OutputFileIdKey": "string?",
+        "StartedAt": "DateTime?",
+        "CompletedAt": "DateTime?",
+        "ErrorMessage": "string?",
+        "RequestedByName": "string?",
+        "CreatedDateTime": "DateTime"
+      },
+      "linked_entity": "ReportRun"
+    },
+    "RunReportRequest": {
+      "name": "RunReportRequest",
+      "namespace": "Koinon.Application.DTOs.Reports",
+      "properties": {
+        "ReportDefinitionIdKey": "string",
+        "Parameters": "string?",
+        "OutputFormat": "ReportOutputFormat?"
+      }
+    },
+    "ReportScheduleDto": {
+      "name": "ReportScheduleDto",
+      "namespace": "Koinon.Application.DTOs.Reports",
+      "properties": {
+        "IdKey": "string",
+        "ReportDefinitionIdKey": "string",
+        "ReportName": "string",
+        "CronExpression": "string",
+        "TimeZone": "string",
+        "Parameters": "string?",
+        "RecipientPersonAliasIds": "string?",
+        "OutputFormat": "ReportOutputFormat",
+        "IsActive": "bool",
+        "LastRunAt": "DateTime?",
+        "NextRunAt": "DateTime?"
+      },
+      "linked_entity": "ReportSchedule"
+    },
+    "CreateReportScheduleRequest": {
+      "name": "CreateReportScheduleRequest",
+      "namespace": "Koinon.Application.DTOs.Reports",
+      "properties": {
+        "ReportDefinitionIdKey": "string",
+        "CronExpression": "string",
+        "TimeZone": "string",
+        "Parameters": "string?",
+        "RecipientPersonAliasIds": "string?",
+        "OutputFormat": "ReportOutputFormat"
+      }
+    },
+    "UpdateReportScheduleRequest": {
+      "name": "UpdateReportScheduleRequest",
+      "namespace": "Koinon.Application.DTOs.Reports",
+      "properties": {
+        "CronExpression": "string?",
+        "TimeZone": "string?",
+        "Parameters": "string?",
+        "RecipientPersonAliasIds": "string?",
+        "OutputFormat": "ReportOutputFormat?",
+        "IsActive": "bool?"
+      }
+    },
+    "AddGroupScheduleRequest": {
+      "name": "AddGroupScheduleRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "ScheduleIdKey": "string",
+        "Order": "int"
+      }
+    },
+    "CreateAuthorizedPickupRequest": {
+      "name": "CreateAuthorizedPickupRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "AuthorizedPersonIdKey": "string?",
+        "Name": "string?",
+        "PhoneNumber": "string?",
+        "Relationship": "PickupRelationship",
+        "AuthorizationLevel": "AuthorizationLevel",
+        "PhotoUrl": "string?",
+        "CustodyNotes": "string?"
+      }
+    },
+    "UpdateAuthorizedPickupRequest": {
+      "name": "UpdateAuthorizedPickupRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Relationship": "PickupRelationship?",
+        "AuthorizationLevel": "AuthorizationLevel?",
+        "PhotoUrl": "string?",
+        "CustodyNotes": "string?",
+        "IsActive": "bool?"
+      }
+    },
+    "VerifyPickupRequest": {
+      "name": "VerifyPickupRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "AttendanceIdKey": "string",
+        "PickupPersonIdKey": "string?",
+        "PickupPersonName": "string?",
+        "SecurityCode": "string"
+      }
+    },
+    "RecordPickupRequest": {
+      "name": "RecordPickupRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "AttendanceIdKey": "string",
+        "PickupPersonIdKey": "string?",
+        "PickupPersonName": "string?",
+        "WasAuthorized": "bool",
+        "AuthorizedPickupIdKey": "string?",
+        "SupervisorOverride": "bool",
+        "SupervisorPersonIdKey": "string?",
+        "Notes": "string?"
+      }
+    },
+    "CreateBatchRequest": {
+      "name": "CreateBatchRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Name": "string",
+        "BatchDate": "DateTime",
+        "ControlAmount": "decimal?",
+        "ControlItemCount": "int?",
+        "CampusIdKey": "string?",
+        "Note": "string?"
+      }
+    },
+    "AddContributionRequest": {
+      "name": "AddContributionRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "PersonIdKey": "string?",
+        "TransactionDateTime": "DateTime",
+        "TransactionCode": "string?",
+        "TransactionTypeValueIdKey": "string",
+        "Details": "List<ContributionDetailRequest>",
+        "Summary": "string?"
+      }
+    },
+    "ContributionDetailRequest": {
+      "name": "ContributionDetailRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "FundIdKey": "string",
+        "Amount": "decimal",
+        "Summary": "string?"
+      }
+    },
+    "UpdateContributionRequest": {
+      "name": "UpdateContributionRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "PersonIdKey": "string?",
+        "TransactionDateTime": "DateTime",
+        "TransactionCode": "string?",
+        "TransactionTypeValueIdKey": "string",
+        "Details": "List<ContributionDetailRequest>",
+        "Summary": "string?"
+      }
+    },
+    "BatchFilterRequest": {
+      "name": "BatchFilterRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Status": "string?",
+        "CampusIdKey": "string?",
+        "StartDate": "DateTime?",
+        "EndDate": "DateTime?",
+        "PageNumber": "int",
+        "PageSize": "int"
+      }
+    },
+    "ChangePasswordRequest": {
+      "name": "ChangePasswordRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "CurrentPassword": "string",
+        "NewPassword": "string",
+        "ConfirmPassword": "string"
+      }
+    },
+    "ScheduleCommunicationRequest": {
+      "name": "ScheduleCommunicationRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "ScheduledDateTime": "DateTime"
+      }
+    },
+    "CreateCampusRequest": {
+      "name": "CreateCampusRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Name": "string",
+        "ShortCode": "string?",
+        "Description": "string?",
+        "Url": "string?",
+        "PhoneNumber": "string?",
+        "TimeZoneId": "string?",
+        "ServiceTimes": "string?",
+        "Order": "int"
+      }
+    },
+    "CreateFamilyRequest": {
+      "name": "CreateFamilyRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Name": "string",
+        "Description": "string?",
+        "CampusId": "string?",
+        "Address": "CreateFamilyAddressRequest?"
+      }
+    },
+    "AddFamilyMemberRequest": {
+      "name": "AddFamilyMemberRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "PersonId": "string",
+        "RoleId": "string"
+      }
+    },
+    "UpdateFamilyAddressRequest": {
+      "name": "UpdateFamilyAddressRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Street1": "string?",
+        "Street2": "string?",
+        "City": "string?",
+        "State": "string?",
+        "PostalCode": "string?",
+        "Country": "string?"
+      }
+    },
+    "CreateFamilyAddressRequest": {
+      "name": "CreateFamilyAddressRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Street1": "string",
+        "Street2": "string?",
+        "City": "string",
+        "State": "string",
+        "PostalCode": "string",
+        "Country": "string?"
+      }
+    },
+    "CreateGroupRequest": {
+      "name": "CreateGroupRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Name": "string",
+        "Description": "string?",
+        "GroupTypeId": "string",
+        "ParentGroupId": "string?",
+        "CampusId": "string?",
+        "IsActive": "bool",
+        "IsPublic": "bool",
+        "AllowGuests": "bool",
+        "GroupCapacity": "int?",
+        "Order": "int"
+      }
+    },
+    "UpdateGroupRequest": {
+      "name": "UpdateGroupRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Name": "string?",
+        "Description": "string?",
+        "CampusId": "string?",
+        "IsActive": "bool?",
+        "IsPublic": "bool?",
+        "AllowGuests": "bool?",
+        "GroupCapacity": "int?",
+        "Order": "int?"
+      }
+    },
+    "AddGroupMemberRequest": {
+      "name": "AddGroupMemberRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "PersonId": "string",
+        "RoleId": "string",
+        "Note": "string?"
+      }
+    },
+    "CreateGroupTypeRequest": {
+      "name": "CreateGroupTypeRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Name": "string",
+        "Description": "string?",
+        "IconCssClass": "string?",
+        "Color": "string?",
+        "GroupTerm": "string",
+        "GroupMemberTerm": "string",
+        "TakesAttendance": "bool",
+        "AllowSelfRegistration": "bool",
+        "RequiresMemberApproval": "bool",
+        "DefaultIsPublic": "bool",
+        "DefaultGroupCapacity": "int?",
+        "ShowInGroupList": "bool",
+        "ShowInNavigation": "bool",
+        "Order": "int"
+      }
+    },
+    "CreateImportTemplateRequest": {
+      "name": "CreateImportTemplateRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Name": "string",
+        "Description": "string?",
+        "ImportType": "string",
+        "FieldMappings": "Dictionary<string, string>"
+      }
+    },
+    "CreateLocationRequest": {
+      "name": "CreateLocationRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Name": "string",
+        "Description": "string?",
+        "ParentLocationIdKey": "string?",
+        "CampusIdKey": "string?",
+        "LocationTypeValueIdKey": "string?",
+        "SoftRoomThreshold": "int?",
+        "FirmRoomThreshold": "int?",
+        "StaffToChildRatio": "int?",
+        "OverflowLocationIdKey": "string?",
+        "AutoAssignOverflow": "bool",
+        "Street1": "string?",
+        "Street2": "string?",
+        "City": "string?",
+        "State": "string?",
+        "PostalCode": "string?",
+        "Country": "string?",
+        "Latitude": "double?",
+        "Longitude": "double?",
+        "IsGeoPointLocked": "bool",
+        "Order": "int"
+      }
+    },
+    "CreatePersonRequest": {
+      "name": "CreatePersonRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "FirstName": "string",
+        "NickName": "string?",
+        "MiddleName": "string?",
+        "LastName": "string",
+        "Email": "string?",
+        "Gender": "string?",
+        "BirthDate": "DateOnly?",
+        "ConnectionStatusValueId": "string?",
+        "RecordStatusValueId": "string?",
+        "PhoneNumbers": "IList<CreatePhoneNumberRequest>?",
+        "FamilyId": "string?",
+        "FamilyRoleId": "string?",
+        "CreateFamily": "bool?",
+        "FamilyName": "string?",
+        "CampusId": "string?"
+      }
+    },
+    "CreatePhoneNumberRequest": {
+      "name": "CreatePhoneNumberRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Number": "string",
+        "Extension": "string?",
+        "PhoneTypeValueId": "string?",
+        "IsMessagingEnabled": "bool?"
+      }
+    },
+    "UpdateFollowUpStatusRequest": {
+      "name": "UpdateFollowUpStatusRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Status": "FollowUpStatus",
+        "Notes": "string?"
+      }
+    },
+    "AssignFollowUpRequest": {
+      "name": "AssignFollowUpRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "AssignedToIdKey": "string"
+      }
+    },
+    "SendPageRequest": {
+      "name": "SendPageRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "PagerNumber": "string",
+        "MessageType": "PagerMessageType",
+        "CustomMessage": "string?"
+      }
+    },
+    "PageSearchRequest": {
+      "name": "PageSearchRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "SearchTerm": "string?",
+        "CampusId": "int?",
+        "Date": "DateTime?"
+      }
+    },
+    "ProcessMembershipRequestDto": {
+      "name": "ProcessMembershipRequestDto",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Status": "string",
+        "Note": "string?"
+      }
+    },
+    "RecordAttendanceRequest": {
+      "name": "RecordAttendanceRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "OccurrenceDate": "DateOnly",
+        "AttendedPersonIds": "IReadOnlyList<string>",
+        "Notes": "string?"
+      }
+    },
+    "CreateScheduleRequest": {
+      "name": "CreateScheduleRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Name": "string",
+        "Description": "string?",
+        "WeeklyDayOfWeek": "DayOfWeek?",
+        "WeeklyTimeOfDay": "TimeSpan?",
+        "CheckInStartOffsetMinutes": "int?",
+        "CheckInEndOffsetMinutes": "int?",
+        "EffectiveStartDate": "DateOnly?",
+        "EffectiveEndDate": "DateOnly?",
+        "IsActive": "bool",
+        "IsPublic": "bool",
+        "Order": "int",
+        "ICalendarContent": "string?",
+        "AutoInactivateWhenComplete": "bool"
+      }
+    },
+    "UpdateScheduleRequest": {
+      "name": "UpdateScheduleRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Name": "string?",
+        "Description": "string?",
+        "WeeklyDayOfWeek": "DayOfWeek?",
+        "WeeklyTimeOfDay": "TimeSpan?",
+        "CheckInStartOffsetMinutes": "int?",
+        "CheckInEndOffsetMinutes": "int?",
+        "EffectiveStartDate": "DateOnly?",
+        "EffectiveEndDate": "DateOnly?",
+        "IsActive": "bool?",
+        "IsPublic": "bool?",
+        "Order": "int?",
+        "ICalendarContent": "string?",
+        "AutoInactivateWhenComplete": "bool?"
+      }
+    },
+    "StartImportRequest": {
+      "name": "StartImportRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "FileStream": "Stream",
+        "FileName": "string",
+        "ImportType": "string",
+        "FieldMappings": "Dictionary<string, string>",
+        "ImportTemplateIdKey": "string?"
+      }
+    },
+    "SubmitMembershipRequestDto": {
+      "name": "SubmitMembershipRequestDto",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Note": "string?"
+      }
+    },
+    "TwoFactorVerifyRequest": {
+      "name": "TwoFactorVerifyRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Code": "string"
+      }
+    },
+    "UpdateCampusRequest": {
+      "name": "UpdateCampusRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Name": "string?",
+        "ShortCode": "string?",
+        "Description": "string?",
+        "Url": "string?",
+        "PhoneNumber": "string?",
+        "TimeZoneId": "string?",
+        "ServiceTimes": "string?",
+        "Order": "int?",
+        "IsActive": "bool?"
+      }
+    },
+    "UpdateFamilyMemberRequest": {
+      "name": "UpdateFamilyMemberRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "NickName": "string?",
+        "PhoneNumbers": "IReadOnlyList<UpdatePhoneNumberRequest>?",
+        "Allergies": "string?",
+        "HasCriticalAllergies": "bool?",
+        "SpecialNeeds": "string?"
+      }
+    },
+    "UpdateFamilyRequest": {
+      "name": "UpdateFamilyRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Name": "string?",
+        "CampusId": "string?"
+      }
+    },
+    "UpdateGroupMemberRequest": {
+      "name": "UpdateGroupMemberRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "RoleId": "string?",
+        "Status": "string?",
+        "Note": "string?"
+      }
+    },
+    "UpdateGroupTypeRequest": {
+      "name": "UpdateGroupTypeRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Name": "string?",
+        "Description": "string?",
+        "IconCssClass": "string?",
+        "Color": "string?",
+        "GroupTerm": "string?",
+        "GroupMemberTerm": "string?",
+        "TakesAttendance": "bool?",
+        "AllowSelfRegistration": "bool?",
+        "RequiresMemberApproval": "bool?",
+        "DefaultIsPublic": "bool?",
+        "DefaultGroupCapacity": "int?",
+        "ShowInGroupList": "bool?",
+        "ShowInNavigation": "bool?",
+        "Order": "int?"
+      }
+    },
+    "UpdateLocationRequest": {
+      "name": "UpdateLocationRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Name": "string?",
+        "Description": "string?",
+        "IsActive": "bool?",
+        "ParentLocationIdKey": "string?",
+        "CampusIdKey": "string?",
+        "LocationTypeValueIdKey": "string?",
+        "SoftRoomThreshold": "int?",
+        "FirmRoomThreshold": "int?",
+        "StaffToChildRatio": "int?",
+        "OverflowLocationIdKey": "string?",
+        "AutoAssignOverflow": "bool?",
+        "Street1": "string?",
+        "Street2": "string?",
+        "City": "string?",
+        "State": "string?",
+        "PostalCode": "string?",
+        "Country": "string?",
+        "Latitude": "double?",
+        "Longitude": "double?",
+        "IsGeoPointLocked": "bool?",
+        "Order": "int?"
+      }
+    },
+    "UpdateMyProfileRequest": {
+      "name": "UpdateMyProfileRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Email": "string?",
+        "EmailPreference": "string?",
+        "NickName": "string?",
+        "PhoneNumbers": "IReadOnlyList<UpdatePhoneNumberRequest>?"
+      }
+    },
+    "UpdatePhoneNumberRequest": {
+      "name": "UpdatePhoneNumberRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "IdKey": "string?",
+        "Number": "string",
+        "Extension": "string?",
+        "PhoneTypeIdKey": "string?",
+        "IsMessagingEnabled": "bool",
+        "IsUnlisted": "bool"
+      }
+    },
+    "UpdatePersonRequest": {
+      "name": "UpdatePersonRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "FirstName": "string?",
+        "NickName": "string?",
+        "MiddleName": "string?",
+        "LastName": "string?",
+        "Email": "string?",
+        "IsEmailActive": "bool?",
+        "EmailPreference": "string?",
+        "Gender": "string?",
+        "BirthDate": "DateOnly?",
+        "ConnectionStatusValueId": "string?",
+        "RecordStatusValueId": "string?",
+        "PrimaryCampusId": "string?"
+      }
+    },
+    "UpdateUserPreferenceRequest": {
+      "name": "UpdateUserPreferenceRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Theme": "Theme",
+        "DateFormat": "string",
+        "TimeZone": "string"
+      }
+    },
+    "ValidateImportRequest": {
+      "name": "ValidateImportRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "FileStream": "Stream",
+        "FileName": "string",
+        "ImportType": "string",
+        "FieldMappings": "Dictionary<string, string>"
       }
     },
     "RoomCapacityDto": {
       "name": "RoomCapacityDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
+        "Name": "string",
         "SoftCapacity": "int?",
         "HardCapacity": "int?",
+        "CurrentCount": "int",
+        "CapacityStatus": "CapacityStatus",
         "PercentageFull": "int",
         "StaffToChildRatio": "int?",
         "CurrentStaffCount": "int",
@@ -2334,7 +3762,8 @@
         "MeetsStaffRatio": "bool",
         "OverflowLocationIdKey": "string?",
         "OverflowLocationName": "string?",
-        "AutoAssignOverflow": "bool"
+        "AutoAssignOverflow": "bool",
+        "IsActive": "bool"
       }
     },
     "UpdateCapacitySettingsDto": {
@@ -2343,13 +3772,8 @@
       "properties": {
         "SoftCapacity": "int?",
         "HardCapacity": "int?",
-        "PercentageFull": "int",
         "StaffToChildRatio": "int?",
-        "CurrentStaffCount": "int",
-        "RequiredStaffCount": "int?",
-        "MeetsStaffRatio": "bool",
         "OverflowLocationIdKey": "string?",
-        "OverflowLocationName": "string?",
         "AutoAssignOverflow": "bool"
       }
     },
@@ -2357,42 +3781,69 @@
       "name": "CapacityOverrideRequestDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
-        "SoftCapacity": "int?",
-        "HardCapacity": "int?",
-        "PercentageFull": "int",
-        "StaffToChildRatio": "int?",
-        "CurrentStaffCount": "int",
-        "RequiredStaffCount": "int?",
-        "MeetsStaffRatio": "bool",
-        "OverflowLocationIdKey": "string?",
-        "OverflowLocationName": "string?",
-        "AutoAssignOverflow": "bool"
+        "LocationIdKey": "string",
+        "SupervisorPin": "string",
+        "Reason": "string"
       }
     },
     "RosterChildDto": {
       "name": "RosterChildDto",
       "namespace": "Koinon.Application.DTOs",
-      "properties": {}
+      "properties": {
+        "AttendanceIdKey": "string",
+        "PersonIdKey": "string",
+        "FullName": "string",
+        "FirstName": "string",
+        "LastName": "string",
+        "NickName": "string?",
+        "PhotoUrl": "string?",
+        "Age": "int?",
+        "Grade": "string?",
+        "Allergies": "string?",
+        "HasCriticalAllergies": "bool",
+        "SpecialNeeds": "string?",
+        "SecurityCode": "string?",
+        "CheckInTime": "DateTime",
+        "ParentName": "string?",
+        "ParentMobilePhone": "string?",
+        "IsFirstTime": "bool"
+      }
     },
     "RoomRosterDto": {
       "name": "RoomRosterDto",
       "namespace": "Koinon.Application.DTOs",
-      "properties": {}
+      "properties": {
+        "LocationIdKey": "string",
+        "LocationName": "string",
+        "Children": "List<RosterChildDto>",
+        "TotalCount": "int",
+        "Capacity": "int?",
+        "GeneratedAt": "DateTime",
+        "IsAtCapacity": "bool",
+        "IsNearCapacity": "bool"
+      }
     },
     "PrintableRosterRequestDto": {
       "name": "PrintableRosterRequestDto",
       "namespace": "Koinon.Application.DTOs",
-      "properties": {}
+      "properties": {
+        "LocationIdKey": "string",
+        "IncludePhotos": "bool",
+        "IncludeParentInfo": "bool",
+        "IncludeSpecialNeeds": "bool"
+      }
     },
     "ScheduleSummaryDto": {
       "name": "ScheduleSummaryDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
+        "Guid": "Guid",
+        "Name": "string",
         "Description": "string?",
         "WeeklyDayOfWeek": "DayOfWeek?",
         "WeeklyTimeOfDay": "TimeSpan?",
-        "CheckInWindowStart": "DateTime?",
-        "CheckInWindowEnd": "DateTime?"
+        "IsActive": "bool"
       },
       "linked_entity": "Schedule"
     },
@@ -2400,30 +3851,75 @@
       "name": "ScheduleOccurrenceDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
-        "Description": "string?",
-        "WeeklyDayOfWeek": "DayOfWeek?",
-        "WeeklyTimeOfDay": "TimeSpan?",
+        "OccurrenceDateTime": "DateTime",
+        "DayOfWeekName": "string",
+        "FormattedTime": "string",
         "CheckInWindowStart": "DateTime?",
-        "CheckInWindowEnd": "DateTime?"
+        "CheckInWindowEnd": "DateTime?",
+        "IsCheckInWindowOpen": "bool"
       },
       "linked_entity": "Schedule"
+    },
+    "SecurityRoleDto": {
+      "name": "SecurityRoleDto",
+      "namespace": "Koinon.Application.DTOs.Security",
+      "properties": {
+        "IdKey": "string",
+        "Name": "string",
+        "Description": "string?",
+        "IsActive": "bool",
+        "ExpiresDateTime": "DateTime?"
+      },
+      "linked_entity": "SecurityRole"
+    },
+    "SupervisorLoginRequest": {
+      "name": "SupervisorLoginRequest",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Pin": "string"
+      }
+    },
+    "SupervisorLoginResponse": {
+      "name": "SupervisorLoginResponse",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "SessionToken": "string",
+        "ExpiresAt": "DateTime",
+        "Supervisor": "SupervisorInfoDto"
+      }
     },
     "SupervisorInfoDto": {
       "name": "SupervisorInfoDto",
       "namespace": "Koinon.Application.DTOs",
-      "properties": {}
+      "properties": {
+        "IdKey": "string",
+        "FullName": "string",
+        "FirstName": "string",
+        "LastName": "string"
+      }
+    },
+    "SupervisorReprintRequest": {
+      "name": "SupervisorReprintRequest",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "SessionToken": "string",
+        "AttendanceIdKey": "string"
+      }
     },
     "TwoFactorSetupDto": {
       "name": "TwoFactorSetupDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
-        "EnabledAt": "DateTime?"
+        "SecretKey": "string",
+        "QrCodeUri": "string",
+        "RecoveryCodes": "IReadOnlyList<string>"
       }
     },
     "TwoFactorStatusDto": {
       "name": "TwoFactorStatusDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IsEnabled": "bool",
         "EnabledAt": "DateTime?"
       }
     },
@@ -2439,6 +3935,11 @@
       "name": "UserPreferenceDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
+        "Theme": "Theme",
+        "DateFormat": "string",
+        "TimeZone": "string",
+        "CreatedDateTime": "DateTime",
         "ModifiedDateTime": "DateTime?"
       },
       "linked_entity": "UserPreference"
@@ -2447,8 +3948,14 @@
       "name": "UserSessionDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
+        "IdKey": "string",
         "DeviceInfo": "string?",
-        "Location": "string?"
+        "IpAddress": "string",
+        "Location": "string?",
+        "LastActivityAt": "DateTime",
+        "IsActive": "bool",
+        "IsCurrentSession": "bool",
+        "CreatedDateTime": "DateTime"
       },
       "linked_entity": "UserSession"
     }
@@ -7408,7 +8915,7 @@
         "name": "string",
         "description": "string",
         "weeklyDayOfWeek": "number",
-        "09": "00:00\") for simple weekly schedules */\n  weeklyTimeOfDay?: string",
+        "weeklyTimeOfDay": "string",
         "checkInStartOffsetMinutes": "number",
         "checkInEndOffsetMinutes": "number",
         "isActive": "boolean",
@@ -7432,9 +8939,19 @@
       "properties": {
         "idKey": "IdKey",
         "name": "string",
+        "fullPath": "string",
         "currentCount": "number",
         "softThreshold": "number",
         "firmThreshold": "number",
+        "softCapacity": "number",
+        "hardCapacity": "number",
+        "capacityStatus": "CapacityStatus",
+        "isActive": "boolean",
+        "printerDeviceIdKey": "string",
+        "percentageFull": "number",
+        "overflowLocationIdKey": "string",
+        "overflowLocationName": "string",
+        "autoAssignOverflow": "boolean",
         "isOpen": "boolean",
         "schedules": "ScheduleDto[]"
       },
@@ -7445,8 +8962,18 @@
       "kind": "interface",
       "properties": {
         "idKey": "IdKey",
+        "guid": "Guid",
         "name": "string",
-        "groups": "CheckinGroupDto[]"
+        "description": "string",
+        "groupType": "GroupTypeSummaryDto",
+        "locations": "CheckinLocationDto[]",
+        "schedule": "ScheduleDto",
+        "isActive": "boolean",
+        "capacityStatus": "CapacityStatus",
+        "minAgeMonths": "number",
+        "maxAgeMonths": "number",
+        "minGrade": "number",
+        "maxGrade": "number"
       },
       "path": "services/api/types.ts"
     },
@@ -7496,7 +9023,7 @@
         "person": "CheckinPersonSummaryDto",
         "location": "CheckinLocationSummaryDto"
       },
-      "path": "types/checkin.ts"
+      "path": "services/api/types.ts"
     },
     "BatchCheckinResultDto": {
       "name": "BatchCheckinResultDto",
@@ -7507,7 +9034,7 @@
         "failureCount": "number",
         "allSucceeded": "boolean"
       },
-      "path": "types/checkin.ts"
+      "path": "services/api/types.ts"
     },
     "CheckinPersonSummaryDto": {
       "name": "CheckinPersonSummaryDto",
@@ -7521,7 +9048,7 @@
         "age": "number",
         "photoUrl": "string"
       },
-      "path": "types/checkin.ts"
+      "path": "services/api/types.ts"
     },
     "CheckinLocationSummaryDto": {
       "name": "CheckinLocationSummaryDto",
@@ -7531,7 +9058,7 @@
         "name": "string",
         "fullPath": "string"
       },
-      "path": "types/checkin.ts"
+      "path": "services/api/types.ts"
     },
     "CheckinValidationResultDto": {
       "name": "CheckinValidationResultDto",
@@ -7662,6 +9189,7 @@
       "kind": "interface",
       "properties": {
         "idKey": "IdKey",
+        "guid": "string",
         "name": "string",
         "communicationType": "string",
         "subject": "string",
@@ -7705,6 +9233,7 @@
         "subject": "string",
         "body": "string",
         "description": "string",
+        "communicationType": "string",
         "isActive": "boolean"
       },
       "path": "types/communication.ts"
@@ -7724,7 +9253,9 @@
       "name": "MergeFieldDto",
       "kind": "interface",
       "properties": {
-        "name": "string"
+        "name": "string",
+        "token": "string",
+        "description": "string"
       },
       "path": "types/communication.ts"
     },
@@ -7873,6 +9404,7 @@
       "name": "AddressDto",
       "kind": "interface",
       "properties": {
+        "idKey": "IdKey",
         "street1": "string",
         "street2": "string",
         "city": "string",
@@ -8238,8 +9770,13 @@
       "kind": "interface",
       "properties": {
         "idKey": "IdKey",
+        "guid": "Guid",
         "name": "string",
-        "iconCssClass": "string"
+        "description": "string",
+        "iconCssClass": "string",
+        "isFamilyGroupType": "boolean",
+        "allowMultipleLocations": "boolean",
+        "roles": "GroupTypeRoleDto[]"
       },
       "path": "services/api/types.ts"
     },
@@ -8254,6 +9791,16 @@
         "groupTerm": "string",
         "groupMemberTerm": "string",
         "iconCssClass": "string",
+        "color": "string",
+        "takesAttendance": "boolean",
+        "allowSelfRegistration": "boolean",
+        "requiresMemberApproval": "boolean",
+        "defaultIsPublic": "boolean",
+        "defaultGroupCapacity": "number",
+        "isSystem": "boolean",
+        "isArchived": "boolean",
+        "order": "number",
+        "groupCount": "number",
         "roles": "GroupTypeRoleDto[]"
       },
       "path": "services/api/types.ts"
@@ -8302,9 +9849,11 @@
         "name": "string",
         "description": "string",
         "groupType": "GroupTypeSummaryDto",
+        "groupTypeName": "string",
         "campus": "CampusSummaryDto",
         "memberCount": "number",
-        "isActive": "boolean"
+        "isActive": "boolean",
+        "isArchived": "boolean"
       },
       "path": "services/api/types.ts"
     },
@@ -8353,11 +9902,22 @@
       "kind": "interface",
       "properties": {
         "idKey": "IdKey",
+        "personIdKey": "IdKey",
+        "firstName": "string",
+        "lastName": "string",
+        "fullName": "string",
+        "gender": "string",
         "person": "PersonSummaryDto",
         "role": "GroupTypeRoleDto",
         "status": "GroupMemberStatus",
         "dateAdded": "DateTime",
-        "note": "string"
+        "note": "string",
+        "email": "string",
+        "phone": "string",
+        "photoUrl": "string",
+        "age": "number",
+        "dateTimeAdded": "DateTime",
+        "inactiveDateTime": "DateTime"
       },
       "path": "services/api/types.ts"
     },
@@ -8497,7 +10057,8 @@
         "errors": "ImportRowErrorDto[]",
         "startedAt": "DateTime",
         "completedAt": "DateTime",
-        "createdDateTime": "DateTime"
+        "createdDateTime": "DateTime",
+        "backgroundJobId": "string"
       },
       "path": "types/import.ts"
     },
@@ -8561,10 +10122,10 @@
       "name": "LabelDto",
       "kind": "interface",
       "properties": {
-        "attendanceIdKey": "IdKey",
-        "labelType": "'Child' | 'Parent' | 'NameTag'",
-        "printData": "string",
-        "printerAddress": "string"
+        "type": "LabelType",
+        "content": "string",
+        "format": "string",
+        "fields": "Record<string, string>"
       },
       "path": "services/api/types.ts"
     },
@@ -8597,7 +10158,8 @@
       "kind": "interface",
       "properties": {
         "attendanceIdKey": "IdKey",
-        "Optional": "additional custom fields for label templates */\n  customFields?: Record<string, string>"
+        "labelTypes": "LabelType[]",
+        "customFields": "Record<string, string>"
       },
       "path": "types/labels.ts"
     },
@@ -8606,7 +10168,8 @@
       "kind": "interface",
       "properties": {
         "attendanceIdKeys": "IdKey[]",
-        "Optional": "additional custom fields for label templates */\n  customFields?: Record<string, string>"
+        "labelTypes": "LabelType[]",
+        "customFields": "Record<string, string>"
       },
       "path": "types/labels.ts"
     },
@@ -8616,7 +10179,7 @@
       "properties": {
         "type": "LabelType",
         "fields": "Record<string, string>",
-        "Optional": "specific template to use (default: system default for type) */\n  templateIdKey?: IdKey"
+        "templateIdKey": "IdKey"
       },
       "path": "types/labels.ts"
     },
@@ -9087,6 +10650,7 @@
         "idKey": "IdKey",
         "guid": "string",
         "firstName": "string",
+        "middleName": "string",
         "nickName": "string",
         "lastName": "string",
         "fullName": "string",
@@ -9099,7 +10663,9 @@
         "gender": "string",
         "photoUrl": "string",
         "primaryFamily": "FamilySummaryDto",
-        "primaryCampus": "CampusSummaryDto"
+        "primaryCampus": "CampusSummaryDto",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
       },
       "path": "types/profile.ts"
     },
@@ -9118,18 +10684,36 @@
       "name": "FamilyMemberDto",
       "kind": "interface",
       "properties": {
+        "idKey": "IdKey",
         "person": "PersonSummaryDto",
         "role": "GroupTypeRoleDto",
-        "isPersonPrimaryFamily": "boolean"
+        "status": "string",
+        "isPersonPrimaryFamily": "boolean",
+        "dateTimeAdded": "DateTime"
       },
       "path": "services/api/types.ts"
+    },
+    "UpdatePhoneNumberRequest": {
+      "name": "UpdatePhoneNumberRequest",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "number": "string",
+        "extension": "string",
+        "phoneTypeIdKey": "IdKey",
+        "isMessagingEnabled": "boolean",
+        "isUnlisted": "boolean"
+      },
+      "path": "types/profile.ts"
     },
     "UpdateFamilyMemberRequest": {
       "name": "UpdateFamilyMemberRequest",
       "kind": "interface",
       "properties": {
         "nickName": "string",
+        "phoneNumbers": "UpdatePhoneNumberRequest[]",
         "allergies": "string",
+        "hasCriticalAllergies": "boolean",
         "specialNeeds": "string"
       },
       "path": "types/profile.ts"
@@ -9364,7 +10948,7 @@
       "kind": "interface",
       "properties": {
         "page": "number",
-        "Default": "1\n  pageSize?: number"
+        "pageSize": "number"
       },
       "path": "services/api/types.ts"
     },
@@ -9484,11 +11068,13 @@
         "birthDate": "DateOnly",
         "maritalStatusValueId": "IdKey",
         "connectionStatusValueId": "IdKey",
-        "Default": "Active\n\n  phoneNumbers?: CreatePhoneNumberRequest[]",
+        "recordStatusValueId": "IdKey",
+        "phoneNumbers": "CreatePhoneNumberRequest[]",
         "familyId": "IdKey",
         "familyRoleId": "IdKey",
         "createFamily": "boolean",
-        "familyName": "string"
+        "familyName": "string",
+        "campusId": "IdKey"
       },
       "path": "services/api/types.ts"
     },
@@ -9499,7 +11085,7 @@
         "number": "string",
         "extension": "string",
         "phoneTypeValueId": "IdKey",
-        "Default": "Mobile\n  isMessagingEnabled?: boolean"
+        "isMessagingEnabled": "boolean"
       },
       "path": "services/api/types.ts"
     },
@@ -9568,6 +11154,7 @@
       "kind": "interface",
       "properties": {
         "name": "string",
+        "description": "string",
         "campusId": "IdKey",
         "members": "CreateFamilyMemberRequest[]",
         "address": "CreateAddressRequest"
@@ -9594,7 +11181,9 @@
         "state": "string",
         "postalCode": "string",
         "country": "string",
-        "Default": "true\n  isMappedAddress?: boolean"
+        "locationTypeValueId": "IdKey",
+        "isMailingAddress": "boolean",
+        "isMappedAddress": "boolean"
       },
       "path": "services/api/types.ts"
     },
@@ -9684,10 +11273,10 @@
       "name": "AddGroupMemberRequest",
       "kind": "interface",
       "properties": {
-        "personIdKey": "IdKey",
-        "roleIdKey": "IdKey",
+        "personId": "IdKey",
+        "roleId": "IdKey",
         "status": "GroupMemberStatus",
-        "Default": "Active\n  note?: string"
+        "note": "string"
       },
       "path": "services/api/types.ts"
     },
@@ -9749,10 +11338,27 @@
       "kind": "interface",
       "properties": {
         "idKey": "IdKey",
+        "guid": "Guid",
         "name": "string",
+        "description": "string",
         "startTime": "string",
-        "09": "00\"\n  isActive: boolean",
-        "checkInWindowOpen": "boolean"
+        "isActive": "boolean",
+        "isCheckinActive": "boolean",
+        "checkInWindowOpen": "boolean",
+        "weeklyDayOfWeek": "number",
+        "weeklyTimeOfDay": "string",
+        "checkInStartOffsetMinutes": "number",
+        "checkInEndOffsetMinutes": "number",
+        "checkinStartTime": "DateTime",
+        "checkinEndTime": "DateTime",
+        "isPublic": "boolean",
+        "order": "number",
+        "effectiveStartDate": "string",
+        "effectiveEndDate": "string",
+        "iCalendarContent": "string",
+        "autoInactivateWhenComplete": "boolean",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
       },
       "path": "services/api/types.ts"
     },
@@ -9870,11 +11476,26 @@
       },
       "path": "services/api/types.ts"
     },
-    "RecordAttendanceRequest": {
-      "name": "RecordAttendanceRequest",
+    "CheckinRequest": {
+      "name": "CheckinRequest",
       "kind": "interface",
       "properties": {
-        "checkins": "CheckinRequestItem[]"
+        "personIdKey": "IdKey",
+        "locationIdKey": "IdKey",
+        "scheduleIdKey": "IdKey",
+        "occurrenceDate": "DateOnly",
+        "deviceIdKey": "IdKey",
+        "generateSecurityCode": "boolean",
+        "note": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "BatchCheckinRequest": {
+      "name": "BatchCheckinRequest",
+      "kind": "interface",
+      "properties": {
+        "checkIns": "CheckinRequest[]",
+        "deviceIdKey": "IdKey"
       },
       "path": "services/api/types.ts"
     },
@@ -9886,6 +11507,16 @@
         "groupIdKey": "IdKey",
         "locationIdKey": "IdKey",
         "scheduleIdKey": "IdKey"
+      },
+      "path": "services/api/types.ts"
+    },
+    "RecordAttendanceRequest": {
+      "name": "RecordAttendanceRequest",
+      "kind": "interface",
+      "properties": {
+        "occurrenceDate": "DateOnly",
+        "attendedPersonIds": "string[]",
+        "notes": "string"
       },
       "path": "services/api/types.ts"
     },
@@ -10095,8 +11726,11 @@
         "groupTypeId": "IdKey",
         "parentGroupId": "IdKey",
         "campusId": "IdKey",
-        "capacity": "number",
-        "isActive": "boolean"
+        "isActive": "boolean",
+        "isPublic": "boolean",
+        "allowGuests": "boolean",
+        "groupCapacity": "number",
+        "order": "number"
       },
       "path": "services/api/types.ts"
     },
@@ -10107,8 +11741,10 @@
         "name": "string",
         "description": "string",
         "campusId": "IdKey",
-        "capacity": "number",
         "isActive": "boolean",
+        "isPublic": "boolean",
+        "allowGuests": "boolean",
+        "groupCapacity": "number",
         "order": "number"
       },
       "path": "services/api/types.ts"
@@ -10128,6 +11764,7 @@
       "kind": "interface",
       "properties": {
         "idKey": "IdKey",
+        "guid": "Guid",
         "name": "string",
         "description": "string",
         "weeklyDayOfWeek": "number",
@@ -10192,6 +11829,7 @@
         "order": "number",
         "effectiveStartDate": "DateOnly",
         "effectiveEndDate": "DateOnly",
+        "iCalendarContent": "string",
         "autoInactivateWhenComplete": "boolean"
       },
       "path": "services/api/types.ts"
@@ -10211,6 +11849,7 @@
         "order": "number",
         "effectiveStartDate": "DateOnly | null",
         "effectiveEndDate": "DateOnly | null",
+        "iCalendarContent": "string",
         "autoInactivateWhenComplete": "boolean"
       },
       "path": "services/api/types.ts"
@@ -10447,8 +12086,10 @@
       "properties": {
         "fieldName": "string",
         "displayName": "string",
+        "description": "string",
         "dataType": "string",
-        "isRequired": "boolean"
+        "isRequired": "boolean",
+        "isDefaultField": "boolean"
       },
       "path": "services/api/types.ts"
     },
@@ -14447,6 +16088,11 @@
       "relationship": "maps_to"
     },
     {
+      "source": "ExportJobDto",
+      "target": "ExportJob",
+      "relationship": "maps_to"
+    },
+    {
       "source": "FamilyDto",
       "target": "Family",
       "relationship": "maps_to"
@@ -14464,6 +16110,36 @@
     {
       "source": "FollowUpDto",
       "target": "FollowUp",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "ContributionBatchDto",
+      "target": "ContributionBatch",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "ContributionDetailDto",
+      "target": "ContributionDetail",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "ContributionDto",
+      "target": "Contribution",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "ContributionStatementDto",
+      "target": "ContributionStatement",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "FundDto",
+      "target": "Fund",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "PersonLookupDto",
+      "target": "Person",
       "relationship": "maps_to"
     },
     {
@@ -14577,8 +16253,43 @@
       "relationship": "maps_to"
     },
     {
+      "source": "PersonComparisonDto",
+      "target": "Person",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "PersonMergeHistoryDto",
+      "target": "PersonMergeHistory",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "PersonMergeRequestDto",
+      "target": "Person",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "PersonMergeResultDto",
+      "target": "Person",
+      "relationship": "maps_to"
+    },
+    {
       "source": "PickupLogDto",
       "target": "PickupLog",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "ReportDefinitionDto",
+      "target": "ReportDefinition",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "ReportRunDto",
+      "target": "ReportRun",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "ReportScheduleDto",
+      "target": "ReportSchedule",
       "relationship": "maps_to"
     },
     {
@@ -14589,6 +16300,11 @@
     {
       "source": "ScheduleOccurrenceDto",
       "target": "Schedule",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "SecurityRoleDto",
+      "target": "SecurityRole",
       "relationship": "maps_to"
     },
     {
@@ -14862,6 +16578,16 @@
       "relationship": "returns"
     },
     {
+      "source": "AuthService",
+      "target": "TokenResponse",
+      "relationship": "returns"
+    },
+    {
+      "source": "AuthService",
+      "target": "TokenResponse",
+      "relationship": "returns"
+    },
+    {
       "source": "AuthorizedPickupService",
       "target": "AuthorizedPickupDto",
       "relationship": "returns"
@@ -14889,6 +16615,61 @@
     {
       "source": "AuthorizedPickupService",
       "target": "PickupLogDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "BatchDonationEntryService",
+      "target": "ContributionBatchDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "BatchDonationEntryService",
+      "target": "ContributionBatchDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "BatchDonationEntryService",
+      "target": "BatchSummaryDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "BatchDonationEntryService",
+      "target": "ContributionDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "BatchDonationEntryService",
+      "target": "ContributionDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "BatchDonationEntryService",
+      "target": "PersonLookupDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "BatchDonationEntryService",
+      "target": "FundDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "BatchDonationEntryService",
+      "target": "FundDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "BatchDonationEntryService",
+      "target": "ContributionBatchDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "BatchDonationEntryService",
+      "target": "ContributionDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "BatchDonationEntryService",
+      "target": "ContributionDto",
       "relationship": "returns"
     },
     {
@@ -15058,7 +16839,32 @@
     },
     {
       "source": "ContributionStatementService",
-      "target": "PersonDto",
+      "target": "ContributionStatementDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "ContributionStatementService",
+      "target": "ContributionStatementDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "ContributionStatementService",
+      "target": "StatementPreviewDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "ContributionStatementService",
+      "target": "ContributionStatementDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "ContributionStatementService",
+      "target": "EligiblePersonDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CsvParserService",
+      "target": "CsvPreviewDto",
       "relationship": "returns"
     },
     {
@@ -15068,7 +16874,72 @@
     },
     {
       "source": "DataExportService",
+      "target": "ExportJobDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "DataExportService",
+      "target": "ExportJobDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "DataExportService",
+      "target": "ExportJobDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "DataExportService",
       "target": "ExportFieldDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "DataImportService",
+      "target": "ImportTemplateDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "DataImportService",
+      "target": "ImportTemplateDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "DataImportService",
+      "target": "ImportTemplateDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "DataImportService",
+      "target": "ImportTemplateDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "DataImportService",
+      "target": "ImportJobDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "DataImportService",
+      "target": "ImportJobDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "DataImportService",
+      "target": "ImportJobDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "DataImportService",
+      "target": "ImportJobDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "DuplicateDetectionService",
+      "target": "DuplicateMatchDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "DuplicateDetectionService",
+      "target": "DuplicateMatchDto",
       "relationship": "returns"
     },
     {
@@ -15102,8 +16973,13 @@
       "relationship": "returns"
     },
     {
-      "source": "FirstTimeVisitorService",
-      "target": "FirstTimeVisitorDto",
+      "source": "FileService",
+      "target": "FileMetadataDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "FileService",
+      "target": "FileMetadataDto",
       "relationship": "returns"
     },
     {
@@ -15112,8 +16988,8 @@
       "relationship": "returns"
     },
     {
-      "source": "FollowUpService",
-      "target": "FollowUpDto",
+      "source": "FirstTimeVisitorService",
+      "target": "FirstTimeVisitorDto",
       "relationship": "returns"
     },
     {
@@ -15124,6 +17000,16 @@
     {
       "source": "FollowUpService",
       "target": "FollowUpDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "FollowUpService",
+      "target": "FollowUpDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "GlobalSearchService",
+      "target": "GlobalSearchResponse",
       "relationship": "returns"
     },
     {
@@ -15332,6 +17218,21 @@
       "relationship": "returns"
     },
     {
+      "source": "PersonMergeService",
+      "target": "PersonComparisonDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "PersonMergeService",
+      "target": "PersonMergeResultDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "PersonMergeService",
+      "target": "PersonMergeHistoryDto",
+      "relationship": "returns"
+    },
+    {
       "source": "PersonService",
       "target": "PersonDto",
       "relationship": "returns"
@@ -15402,6 +17303,46 @@
       "relationship": "returns"
     },
     {
+      "source": "ReportScheduleService",
+      "target": "ReportRunDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "ReportService",
+      "target": "ReportDefinitionDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "ReportService",
+      "target": "ReportDefinitionDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "ReportService",
+      "target": "ReportDefinitionDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "ReportService",
+      "target": "ReportDefinitionDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "ReportService",
+      "target": "ReportRunDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "ReportService",
+      "target": "ReportRunDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "ReportService",
+      "target": "ReportRunDto",
+      "relationship": "returns"
+    },
+    {
       "source": "RoomRosterService",
       "target": "RoomRosterDto",
       "relationship": "returns"
@@ -15444,6 +17385,16 @@
     {
       "source": "ScheduleService",
       "target": "ScheduleOccurrenceDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "SecurityClaimService",
+      "target": "SecurityRoleDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "SupervisorModeService",
+      "target": "SupervisorLoginResponse",
       "relationship": "returns"
     },
     {
@@ -16051,6 +18002,8 @@
     "dto:FamilyRosterGroupDto": "type:FamilyRosterGroupDto",
     "dto:AttendanceTrendDto": "type:AttendanceTrendDto",
     "dto:AuditLogDto": "type:AuditLogDto",
+    "dto:LoginRequest": "type:LoginRequest",
+    "dto:TokenResponse": "type:TokenResponse",
     "dto:AuthorizedPickupDto": "type:AuthorizedPickupDto",
     "dto:CampusDto": "type:CampusDto",
     "dto:CheckinRequestDto": "type:CheckinRequestDto",
@@ -16089,9 +18042,23 @@
     "dto:FamilyMemberDto": "type:FamilyMemberDto",
     "dto:AddressDto": "type:AddressDto",
     "dto:GroupTypeRoleDto": "type:GroupTypeRoleDto",
+    "dto:FileMetadataDto": "type:FileMetadataDto",
+    "dto:UploadFileRequest": "type:UploadFileRequest",
     "dto:FirstTimeVisitorDto": "type:FirstTimeVisitorDto",
     "dto:FollowUpDto": "type:FollowUpDto",
+    "dto:BatchSummaryDto": "type:BatchSummaryDto",
+    "dto:ContributionBatchDto": "type:ContributionBatchDto",
+    "dto:ContributionDetailDto": "type:ContributionDetailDto",
+    "dto:ContributionDto": "type:ContributionDto",
+    "dto:ContributionStatementDto": "type:ContributionStatementDto",
+    "dto:StatementContributionDto": "type:StatementContributionDto",
+    "dto:GenerateStatementRequest": "type:GenerateStatementRequest",
+    "dto:StatementPreviewDto": "type:StatementPreviewDto",
+    "dto:EligiblePersonDto": "type:EligiblePersonDto",
+    "dto:FundDto": "type:FundDto",
+    "dto:PersonLookupDto": "type:PersonLookupDto",
     "dto:GlobalSearchResultDto": "type:GlobalSearchResult",
+    "dto:GlobalSearchResponse": "type:GlobalSearchResponse",
     "dto:GroupDto": "type:GroupDto",
     "dto:GroupSummaryDto": "type:GroupSummaryDto",
     "dto:GroupMemberDto": "type:GroupMemberDto",
@@ -16101,6 +18068,9 @@
     "dto:GroupTypeDto": "type:GroupTypeDto",
     "dto:GroupTypeDetailDto": "type:GroupTypeDetailDto",
     "dto:GroupTypeSummaryDto": "type:GroupTypeSummaryDto",
+    "dto:CsvPreviewDto": "type:CsvPreviewDto",
+    "dto:ImportJobDto": "type:ImportJobDto",
+    "dto:ImportTemplateDto": "type:ImportTemplateDto",
     "dto:LabelSetDto": "type:LabelSetDto",
     "dto:LabelDto": "type:LabelDto",
     "dto:LabelTemplateDto": "type:LabelTemplateDto",
@@ -16125,9 +18095,58 @@
     "dto:DefinedValueDto": "type:DefinedValueDto",
     "dto:FamilySummaryDto": "type:FamilySummaryDto",
     "dto:CampusSummaryDto": "type:CampusSummaryDto",
+    "dto:DuplicateMatchDto": "type:DuplicateMatchDto",
+    "dto:IgnoreDuplicateRequestDto": "type:IgnoreDuplicateRequestDto",
+    "dto:PersonComparisonDto": "type:PersonComparisonDto",
+    "dto:PersonMergeHistoryDto": "type:PersonMergeHistoryDto",
+    "dto:PersonMergeRequestDto": "type:PersonMergeRequestDto",
+    "dto:PersonMergeResultDto": "type:PersonMergeResultDto",
     "dto:PickupLogDto": "type:PickupLogDto",
     "dto:PickupVerificationResultDto": "type:PickupVerificationResultDto",
     "dto:PublicGroupDto": "type:PublicGroupDto",
+    "dto:AddGroupScheduleRequest": "type:AddGroupScheduleRequest",
+    "dto:CreateAuthorizedPickupRequest": "type:CreateAuthorizedPickupRequest",
+    "dto:UpdateAuthorizedPickupRequest": "type:UpdateAuthorizedPickupRequest",
+    "dto:VerifyPickupRequest": "type:VerifyPickupRequest",
+    "dto:RecordPickupRequest": "type:RecordPickupRequest",
+    "dto:CreateBatchRequest": "type:CreateBatchRequest",
+    "dto:AddContributionRequest": "type:AddContributionRequest",
+    "dto:ContributionDetailRequest": "type:ContributionDetailRequest",
+    "dto:UpdateContributionRequest": "type:UpdateContributionRequest",
+    "dto:ChangePasswordRequest": "type:ChangePasswordRequest",
+    "dto:ScheduleCommunicationRequest": "type:ScheduleCommunicationRequest",
+    "dto:CreateCampusRequest": "type:CreateCampusRequest",
+    "dto:CreateFamilyRequest": "type:CreateFamilyRequest",
+    "dto:AddFamilyMemberRequest": "type:AddFamilyMemberRequest",
+    "dto:UpdateFamilyAddressRequest": "type:UpdateFamilyAddressRequest",
+    "dto:CreateGroupRequest": "type:CreateGroupRequest",
+    "dto:UpdateGroupRequest": "type:UpdateGroupRequest",
+    "dto:AddGroupMemberRequest": "type:AddGroupMemberRequest",
+    "dto:CreateGroupTypeRequest": "type:CreateGroupTypeRequest",
+    "dto:CreateImportTemplateRequest": "type:CreateImportTemplateRequest",
+    "dto:CreateLocationRequest": "type:CreateLocationRequest",
+    "dto:CreatePersonRequest": "type:CreatePersonRequest",
+    "dto:CreatePhoneNumberRequest": "type:CreatePhoneNumberRequest",
+    "dto:UpdateFollowUpStatusRequest": "type:UpdateFollowUpStatusRequest",
+    "dto:AssignFollowUpRequest": "type:AssignFollowUpRequest",
+    "dto:SendPageRequest": "type:SendPageRequest",
+    "dto:PageSearchRequest": "type:PageSearchRequest",
+    "dto:RecordAttendanceRequest": "type:RecordAttendanceRequest",
+    "dto:CreateScheduleRequest": "type:CreateScheduleRequest",
+    "dto:UpdateScheduleRequest": "type:UpdateScheduleRequest",
+    "dto:StartImportRequest": "type:StartImportRequest",
+    "dto:TwoFactorVerifyRequest": "type:TwoFactorVerifyRequest",
+    "dto:UpdateCampusRequest": "type:UpdateCampusRequest",
+    "dto:UpdateFamilyMemberRequest": "type:UpdateFamilyMemberRequest",
+    "dto:UpdateFamilyRequest": "type:UpdateFamilyRequest",
+    "dto:UpdateGroupMemberRequest": "type:UpdateGroupMemberRequest",
+    "dto:UpdateGroupTypeRequest": "type:UpdateGroupTypeRequest",
+    "dto:UpdateLocationRequest": "type:UpdateLocationRequest",
+    "dto:UpdateMyProfileRequest": "type:UpdateMyProfileRequest",
+    "dto:UpdatePhoneNumberRequest": "type:UpdatePhoneNumberRequest",
+    "dto:UpdatePersonRequest": "type:UpdatePersonRequest",
+    "dto:UpdateUserPreferenceRequest": "type:UpdateUserPreferenceRequest",
+    "dto:ValidateImportRequest": "type:ValidateImportRequest",
     "dto:RoomCapacityDto": "type:RoomCapacityDto",
     "dto:UpdateCapacitySettingsDto": "type:UpdateCapacitySettingsDto",
     "dto:CapacityOverrideRequestDto": "type:CapacityOverrideRequestDto",
@@ -16135,6 +18154,8 @@
     "dto:RoomRosterDto": "type:RoomRosterDto",
     "dto:ScheduleSummaryDto": "type:ScheduleSummaryDto",
     "dto:ScheduleOccurrenceDto": "type:ScheduleOccurrenceDto",
+    "dto:SupervisorLoginRequest": "type:SupervisorLoginRequest",
+    "dto:SupervisorLoginResponse": "type:SupervisorLoginResponse",
     "dto:SupervisorInfoDto": "type:SupervisorInfoDto",
     "dto:TwoFactorSetupDto": "type:TwoFactorSetupDto",
     "dto:TwoFactorStatusDto": "type:TwoFactorStatusDto",
@@ -16144,13 +18165,13 @@
   },
   "stats": {
     "entities": 56,
-    "dtos": 104,
+    "dtos": 195,
     "services": 101,
     "controllers": 34,
-    "types": 292,
+    "types": 295,
     "api_functions": 164,
     "hooks": 141,
     "components": 129,
-    "total_edges": 337
+    "total_edges": 399
   }
 }

@@ -31,8 +31,9 @@ import type {
   CheckinFamilyDto,
   CheckinRequestItem,
   LabelDto,
-  RecordAttendanceResponse,
+  BatchCheckinResultDto,
 } from '@/services/api/types';
+import { getLabels } from '@/services/api/checkin';
 import { createSelectionKey, getTotalActivitiesCount } from '@/utils/checkinHelpers';
 import { printBridgeClient, type PrinterInfo } from '@/services/printing/PrintBridgeClient';
 import { OfflineIndicator } from '@/components/pwa';
@@ -83,8 +84,9 @@ export function CheckinPage() {
     supervisorMode.isActive
   );
 
-  // Store attendance response for confirmation page
-  const recordAttendanceData = useRef<RecordAttendanceResponse | null>(null);
+  // Store check-in results and fetched labels for confirmation page
+  const checkinResultsRef = useRef<BatchCheckinResultDto | null>(null);
+  const checkinLabelsRef = useRef<LabelDto[]>([]);
 
   // Track reset timeout for cleanup
   const resetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -231,13 +233,33 @@ export function CheckinPage() {
     });
 
     try {
-      const response = await recordCheckin({ checkins });
+      const response = await recordCheckin(checkins);
       setCheckinError(null);
 
       // If we got a response (online mode), show confirmation with labels
       if (response) {
-        // Store response for confirmation page (create synthetic mutation data)
-        recordAttendanceData.current = response;
+        // Store results for confirmation page
+        checkinResultsRef.current = response;
+
+        // Fetch labels for successful check-ins
+        const successfulResults = response.results.filter(r => r.success && r.attendanceIdKey);
+        const allLabels: LabelDto[] = [];
+
+        for (const result of successfulResults) {
+          if (result.attendanceIdKey) {
+            try {
+              const labels = await getLabels(result.attendanceIdKey);
+              allLabels.push(...labels);
+            } catch (labelError) {
+              // Log but don't fail - check-in succeeded even if label fetch failed
+              if (import.meta.env.DEV) {
+                console.warn('Failed to fetch labels for', result.attendanceIdKey, labelError);
+              }
+            }
+          }
+        }
+
+        checkinLabelsRef.current = allLabels;
         setStep('confirmation');
       } else {
         // Offline mode - check-in was queued
@@ -274,7 +296,7 @@ export function CheckinPage() {
       return;
     }
 
-    const labelsToPrint = labels || recordAttendanceData.current?.labels;
+    const labelsToPrint = labels || checkinLabelsRef.current;
 
     if (!labelsToPrint || labelsToPrint.length === 0) {
       setPrintError('No labels to print');
@@ -287,7 +309,7 @@ export function CheckinPage() {
 
     try {
       // Extract ZPL content from labels
-      const zplContents = labelsToPrint.map(label => label.printData);
+      const zplContents = labelsToPrint.map(label => label.content);
 
       // Send to print bridge
       const result = await printBridgeClient.printBatch(printerAvailable.name, zplContents);
@@ -318,7 +340,8 @@ export function CheckinPage() {
     setCheckinError(null);
     setPrintStatus('idle');
     setPrintError(null);
-    recordAttendanceData.current = null;
+    checkinResultsRef.current = null;
+    checkinLabelsRef.current = [];
   };
 
   const handleDone = () => {
@@ -568,12 +591,24 @@ export function CheckinPage() {
       })()}
 
       {/* Step 4: Confirmation */}
-      {step === 'confirmation' && recordAttendanceData.current && (
+      {step === 'confirmation' && checkinResultsRef.current && (
         <CheckinConfirmation
-          attendances={recordAttendanceData.current.attendances}
+          attendances={checkinResultsRef.current.results
+            .filter(r => r.success)
+            .map(r => ({
+              attendanceIdKey: r.attendanceIdKey ?? '',
+              personIdKey: r.person?.idKey ?? '',
+              personName: r.person?.fullName ?? 'Unknown',
+              groupName: '', // Not available in CheckinResultDto
+              locationName: r.location?.name ?? '',
+              scheduleName: '', // Not available in CheckinResultDto
+              securityCode: r.securityCode ?? '',
+              checkInTime: r.checkInTime ?? new Date().toISOString(),
+              isFirstTime: false, // Not available in CheckinResultDto
+            }))}
           onDone={handleDone}
           onPrintLabels={
-            recordAttendanceData.current.labels.length > 0 && printerAvailable
+            checkinLabelsRef.current.length > 0 && printerAvailable
               ? () => handlePrintLabels()
               : undefined
           }

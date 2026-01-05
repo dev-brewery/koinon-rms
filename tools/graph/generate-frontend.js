@@ -56,6 +56,27 @@ const OUTPUT_FILE = path.join(OUTPUT_DIR, 'frontend-graph.json');
 // ============================================================================
 
 /**
+ * Extract the body of an interface/type with balanced braces
+ * @param {string} content - File content starting after opening brace
+ * @returns {string} The body content between braces
+ */
+function extractBalancedBody(content) {
+  let braceCount = 1;
+  let pos = 0;
+
+  while (pos < content.length && braceCount > 0) {
+    if (content[pos] === '{') {
+      braceCount++;
+    } else if (content[pos] === '}') {
+      braceCount--;
+    }
+    pos++;
+  }
+
+  return content.substring(0, pos - 1);
+}
+
+/**
  * Extract interface/type definitions from a TypeScript file
  * @param {string} content - File content
  * @param {string} filePath - Relative path for tracking
@@ -63,12 +84,14 @@ const OUTPUT_FILE = path.join(OUTPUT_DIR, 'frontend-graph.json');
 function parseTypes(content, filePath = 'services/api/types.ts') {
   const types = {};
 
-  // Match: export interface Name { properties }
-  const interfaceRegex = /export\s+interface\s+(\w+)\s*(?:extends\s+[\w<>,\s]+)?\s*\{([^}]+)\}/g;
+  // Match: export interface Name { ... } with balanced braces
+  const interfaceStartRegex = /export\s+interface\s+(\w+)\s*(?:extends\s+[\w<>,\s]+)?\s*\{/g;
   let match;
 
-  while ((match = interfaceRegex.exec(content)) !== null) {
-    const [, name, body] = match;
+  while ((match = interfaceStartRegex.exec(content)) !== null) {
+    const name = match[1];
+    const startPos = match.index + match[0].length;
+    const body = extractBalancedBody(content.substring(startPos));
     const properties = parseProperties(body);
 
     types[name] = {
@@ -146,17 +169,31 @@ function parseTypesFromDirectory(dir) {
 }
 
 /**
+ * Strip comments from TypeScript code
+ */
+function stripComments(code) {
+  // Remove block comments (/** ... */ and /* ... */)
+  let result = code.replace(/\/\*[\s\S]*?\*\//g, '');
+  // Remove single-line comments (// ...)
+  result = result.replace(/\/\/[^\n]*/g, '');
+  return result;
+}
+
+/**
  * Parse property declarations from object literal
  * Handles: propertyName: type; and propertyName?: type;
  */
 function parseProperties(body) {
   const properties = {};
 
+  // Strip comments before parsing to avoid matching text inside comments
+  const cleanBody = stripComments(body);
+
   // Match: propertyName?: type;
   const propRegex = /(\w+)\s*\??\s*:\s*([^;]+);/g;
   let match;
 
-  while ((match = propRegex.exec(body)) !== null) {
+  while ((match = propRegex.exec(cleanBody)) !== null) {
     const [, propName, typeStr] = match;
     const type = typeStr.trim();
     if (propName && type) {
