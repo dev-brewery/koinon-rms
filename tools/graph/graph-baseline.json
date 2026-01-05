@@ -4279,6 +4279,49 @@
         "ILogger<BatchDonationEntryService>"
       ]
     },
+    "CampusService": {
+      "name": "CampusService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "CampusService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetAllAsync",
+          "return_type": "Task<IReadOnlyList<CampusSummaryDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetByIdKeyAsync",
+          "return_type": "Task<Result<CampusDto>>",
+          "is_async": false
+        },
+        {
+          "name": "CreateAsync",
+          "return_type": "Task<Result<CampusDto>>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateAsync",
+          "return_type": "Task<Result<CampusDto>>",
+          "is_async": false
+        },
+        {
+          "name": "DeleteAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IMapper",
+        "IValidator<CreateCampusRequest>",
+        "IValidator<UpdateCampusRequest>",
+        "ILogger<CampusService>"
+      ]
+    },
     "CapacityService": {
       "name": "CapacityService",
       "namespace": "Koinon.Application.Services",
@@ -6047,6 +6090,12 @@
       "methods": [],
       "dependencies": []
     },
+    "ICampusService": {
+      "name": "ICampusService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
     "ICapacityService": {
       "name": "ICapacityService",
       "namespace": "Koinon.Application.Interfaces",
@@ -6576,7 +6625,7 @@
         "result_pattern": false
       },
       "dependencies": [
-        "IApplicationDbContext",
+        "ICampusService",
         "ILogger<CampusesController>"
       ]
     },
@@ -16343,6 +16392,11 @@
       "relationship": "depends_on"
     },
     {
+      "source": "CampusesController",
+      "target": "ICampusService",
+      "relationship": "depends_on"
+    },
+    {
       "source": "CheckinController",
       "target": "ICheckinConfigurationService",
       "relationship": "depends_on"
@@ -16670,6 +16724,26 @@
     {
       "source": "BatchDonationEntryService",
       "target": "ContributionDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CampusService",
+      "target": "CampusSummaryDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CampusService",
+      "target": "CampusDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CampusService",
+      "target": "CampusDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CampusService",
+      "target": "CampusDto",
       "relationship": "returns"
     },
     {
@@ -17458,6 +17532,21 @@
       "relationship": "uses"
     },
     {
+      "source": "CampusService",
+      "target": "Campus",
+      "relationship": "uses"
+    },
+    {
+      "source": "CampusService",
+      "target": "Campus",
+      "relationship": "uses"
+    },
+    {
+      "source": "CampusService",
+      "target": "Campus",
+      "relationship": "uses"
+    },
+    {
       "source": "CheckinAttendanceService",
       "target": "Attendance",
       "relationship": "uses"
@@ -18166,12 +18255,12 @@
   "stats": {
     "entities": 56,
     "dtos": 195,
-    "services": 101,
+    "services": 103,
     "controllers": 34,
     "types": 295,
     "api_functions": 164,
     "hooks": 141,
     "components": 129,
-    "total_edges": 399
+    "total_edges": 407
   }
 }

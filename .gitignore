@@ -219,3 +219,8 @@ issues.json
 list_bugs.sh
 view_issue.sh
 issue_429.txt
+issue_419.txt
+sprint_23_bugs.json
+test_output.txt
+build_output.txt
+build_errors.txt
