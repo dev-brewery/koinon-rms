@@ -879,8 +879,8 @@ public class BatchDonationEntryService(
             ActionType = action,
             EntityType = entityType,
             EntityIdKey = entityIdKey,
-            IpAddress = null, // TODO(#260): Inject IHttpContextAccessor for forensic data
-            UserAgent = null, // TODO(#260): Inject IHttpContextAccessor for forensic data
+            IpAddress = userContext.ClientIpAddress,
+            UserAgent = userContext.ClientUserAgent,
             Details = details != null ? JsonSerializer.Serialize(details) : null,
             Timestamp = DateTime.UtcNow
         };

@@ -24,6 +24,18 @@ public interface IUserContext
     bool IsAuthenticated { get; }
 
     /// <summary>
+    /// Gets the IP address of the client making the request.
+    /// Null when running in background jobs or when HttpContext is unavailable.
+    /// </summary>
+    string? ClientIpAddress { get; }
+
+    /// <summary>
+    /// Gets the User-Agent header of the client making the request.
+    /// Null when running in background jobs or when HttpContext is unavailable.
+    /// </summary>
+    string? ClientUserAgent { get; }
+
+    /// <summary>
     /// Checks if the current user is in the specified role.
     /// </summary>
     /// <param name="role">The role name to check.</param>

@@ -119,6 +119,7 @@ public static class ServiceCollectionExtensions
 
         // Giving/Financial services
         services.AddScoped<IContributionStatementService, ContributionStatementService>();
+        services.AddScoped<IBatchDonationEntryService, BatchDonationEntryService>();
         services.AddScoped<StatementPdfGenerator>();
 
         // Audit services
