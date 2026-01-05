@@ -51,6 +51,10 @@ public static class ServiceCollectionExtensions
         // Check-in common services (foundation classes for consistent patterns)
         services.AddScoped<CheckinDataLoader>();
         services.AddScoped<ConcurrentOperationHelper>();
+        services.AddScoped<GivingDataLoader>();
+        services.AddScoped<GroupDataLoader>();
+        services.AddScoped<NotificationDataLoader>();
+        services.AddScoped<PagerDataLoader>();
 
         // Grade calculation service
         services.AddScoped<IGradeCalculationService, GradeCalculationService>();
