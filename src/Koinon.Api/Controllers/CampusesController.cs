@@ -2,10 +2,8 @@ using Koinon.Api.Filters;
 using Koinon.Application.DTOs;
 using Koinon.Application.DTOs.Requests;
 using Koinon.Application.Interfaces;
-using Koinon.Domain.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Koinon.Api.Controllers;
 
@@ -18,7 +16,7 @@ namespace Koinon.Api.Controllers;
 [Authorize]
 [ValidateIdKey]
 public class CampusesController(
-    IApplicationDbContext context,
+    ICampusService campusService,
     ILogger<CampusesController> logger) : ControllerBase
 {
     /// <summary>
@@ -34,23 +32,7 @@ public class CampusesController(
         [FromQuery] bool includeInactive = false,
         CancellationToken ct = default)
     {
-        var query = context.Campuses.AsNoTracking();
-
-        if (!includeInactive)
-        {
-            query = query.Where(c => c.IsActive);
-        }
-
-        var campuses = await query
-            .OrderBy(c => c.Order)
-            .ThenBy(c => c.Name)
-            .Select(c => new CampusSummaryDto
-            {
-                IdKey = c.IdKey,
-                Name = c.Name,
-                ShortCode = c.ShortCode
-            })
-            .ToListAsync(ct);
+        var campuses = await campusService.GetAllAsync(includeInactive, ct);
 
         logger.LogInformation(
             "Retrieved {Count} campuses (includeInactive: {IncludeInactive})",
@@ -73,56 +55,24 @@ public class CampusesController(
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetByIdKey(string idKey, CancellationToken ct = default)
     {
-        if (!IdKeyHelper.TryDecode(idKey, out var id))
-        {
-            logger.LogDebug("Invalid IdKey format: {IdKey}", idKey);
+        var result = await campusService.GetByIdKeyAsync(idKey, ct);
 
-            return NotFound(new ProblemDetails
-            {
-                Title = "Campus not found",
-                Detail = $"Invalid IdKey format: '{idKey}'",
-                Status = StatusCodes.Status404NotFound,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
-        var campus = await context.Campuses
-            .AsNoTracking()
-            .Where(c => c.Id == id)
-            .Select(c => new CampusDto
-            {
-                IdKey = c.IdKey,
-                Guid = c.Guid,
-                Name = c.Name,
-                ShortCode = c.ShortCode,
-                Description = c.Description,
-                IsActive = c.IsActive,
-                Url = c.Url,
-                PhoneNumber = c.PhoneNumber,
-                TimeZoneId = c.TimeZoneId,
-                ServiceTimes = c.ServiceTimes,
-                Order = c.Order,
-                CreatedDateTime = c.CreatedDateTime,
-                ModifiedDateTime = c.ModifiedDateTime
-            })
-            .FirstOrDefaultAsync(ct);
-
-        if (campus == null)
+        if (result.IsFailure)
         {
             logger.LogDebug("Campus not found: IdKey={IdKey}", idKey);
 
             return NotFound(new ProblemDetails
             {
                 Title = "Campus not found",
-                Detail = $"No campus found with IdKey '{idKey}'",
+                Detail = result.Error!.Message,
                 Status = StatusCodes.Status404NotFound,
                 Instance = HttpContext.Request.Path
             });
         }
 
-        logger.LogDebug("Campus retrieved: IdKey={IdKey}, Name={Name}", idKey, campus.Name);
+        logger.LogDebug("Campus retrieved: IdKey={IdKey}, Name={Name}", idKey, result.Value!.Name);
 
-        return Ok(new { data = campus });
+        return Ok(new { data = result.Value });
     }
 
     /// <summary>
@@ -133,66 +83,54 @@ public class CampusesController(
     /// <returns>Created campus details</returns>
     /// <response code="201">Campus created successfully</response>
     /// <response code="400">Validation failed</response>
+    /// <response code="422">Business rule violation</response>
     [HttpPost]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(CampusDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> Create([FromBody] CreateCampusRequest request, CancellationToken ct = default)
     {
-        // Validate required fields
-        if (string.IsNullOrWhiteSpace(request.Name))
+        var result = await campusService.CreateAsync(request, ct);
+
+        if (result.IsFailure)
         {
-            return BadRequest(new ProblemDetails
+            logger.LogWarning(
+                "Failed to create campus: Code={Code}, Message={Message}",
+                result.Error!.Code, result.Error.Message);
+
+            return result.Error.Code switch
             {
-                Title = "Validation failed",
-                Detail = "Campus name is required",
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            });
+                "VALIDATION_ERROR" => BadRequest(new ProblemDetails
+                {
+                    Title = result.Error.Message,
+                    Detail = result.Error.Details != null
+                        ? string.Join("; ", result.Error.Details.SelectMany(kvp => kvp.Value))
+                        : null,
+                    Status = StatusCodes.Status400BadRequest,
+                    Instance = HttpContext.Request.Path,
+                    Extensions = { ["errors"] = result.Error.Details }
+                }),
+                _ => UnprocessableEntity(new ProblemDetails
+                {
+                    Title = result.Error.Code,
+                    Detail = result.Error.Message,
+                    Status = StatusCodes.Status422UnprocessableEntity,
+                    Instance = HttpContext.Request.Path
+                })
+            };
         }
 
-        var campus = new Domain.Entities.Campus
-        {
-            Name = request.Name,
-            ShortCode = request.ShortCode,
-            Description = request.Description,
-            IsActive = true,
-            Url = request.Url,
-            PhoneNumber = request.PhoneNumber,
-            TimeZoneId = request.TimeZoneId,
-            ServiceTimes = request.ServiceTimes,
-            Order = request.Order,
-            CreatedDateTime = DateTime.UtcNow
-        };
-
-        context.Campuses.Add(campus);
-        await context.SaveChangesAsync(ct);
-
-        var campusDto = new CampusDto
-        {
-            IdKey = campus.IdKey,
-            Guid = campus.Guid,
-            Name = campus.Name,
-            ShortCode = campus.ShortCode,
-            Description = campus.Description,
-            IsActive = campus.IsActive,
-            Url = campus.Url,
-            PhoneNumber = campus.PhoneNumber,
-            TimeZoneId = campus.TimeZoneId,
-            ServiceTimes = campus.ServiceTimes,
-            Order = campus.Order,
-            CreatedDateTime = campus.CreatedDateTime,
-            ModifiedDateTime = campus.ModifiedDateTime
-        };
+        var campus = result.Value!;
 
         logger.LogInformation(
             "Campus created successfully: IdKey={IdKey}, Name={Name}",
-            campusDto.IdKey, campusDto.Name);
+            campus.IdKey, campus.Name);
 
         return CreatedAtAction(
             nameof(GetByIdKey),
-            new { idKey = campusDto.IdKey },
-            new { data = campusDto });
+            new { idKey = campus.IdKey },
+            new { data = campus });
     }
 
     /// <summary>
@@ -205,128 +143,62 @@ public class CampusesController(
     /// <response code="200">Campus updated successfully</response>
     /// <response code="400">Validation failed</response>
     /// <response code="404">Campus not found</response>
+    /// <response code="422">Business rule violation</response>
     [HttpPut("{idKey}")]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(CampusDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> Update(
         string idKey,
         [FromBody] UpdateCampusRequest request,
         CancellationToken ct = default)
     {
-        if (!IdKeyHelper.TryDecode(idKey, out var id))
+        var result = await campusService.UpdateAsync(idKey, request, ct);
+
+        if (result.IsFailure)
         {
-            logger.LogDebug("Invalid IdKey format: {IdKey}", idKey);
+            logger.LogDebug(
+                "Failed to update campus: IdKey={IdKey}, Code={Code}, Message={Message}",
+                idKey, result.Error!.Code, result.Error.Message);
 
-            return NotFound(new ProblemDetails
+            return result.Error.Code switch
             {
-                Title = "Campus not found",
-                Detail = $"Invalid IdKey format: '{idKey}'",
-                Status = StatusCodes.Status404NotFound,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
-        var campus = await context.Campuses
-            .Where(c => c.Id == id)
-            .FirstOrDefaultAsync(ct);
-
-        if (campus == null)
-        {
-            logger.LogDebug("Campus not found: IdKey={IdKey}", idKey);
-
-            return NotFound(new ProblemDetails
-            {
-                Title = "Campus not found",
-                Detail = $"No campus found with IdKey '{idKey}'",
-                Status = StatusCodes.Status404NotFound,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
-        // Apply partial updates
-        if (request.Name != null)
-        {
-            if (string.IsNullOrWhiteSpace(request.Name))
-            {
-                return BadRequest(new ProblemDetails
+                "NOT_FOUND" => NotFound(new ProblemDetails
                 {
-                    Title = "Validation failed",
-                    Detail = "Campus name cannot be empty",
-                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Campus not found",
+                    Detail = result.Error.Message,
+                    Status = StatusCodes.Status404NotFound,
                     Instance = HttpContext.Request.Path
-                });
-            }
-            campus.Name = request.Name;
+                }),
+                "VALIDATION_ERROR" => BadRequest(new ProblemDetails
+                {
+                    Title = result.Error.Message,
+                    Detail = result.Error.Details != null
+                        ? string.Join("; ", result.Error.Details.SelectMany(kvp => kvp.Value))
+                        : null,
+                    Status = StatusCodes.Status400BadRequest,
+                    Instance = HttpContext.Request.Path,
+                    Extensions = { ["errors"] = result.Error.Details }
+                }),
+                _ => UnprocessableEntity(new ProblemDetails
+                {
+                    Title = result.Error.Code,
+                    Detail = result.Error.Message,
+                    Status = StatusCodes.Status422UnprocessableEntity,
+                    Instance = HttpContext.Request.Path
+                })
+            };
         }
 
-        if (request.ShortCode != null)
-        {
-            campus.ShortCode = request.ShortCode;
-        }
-
-        if (request.Description != null)
-        {
-            campus.Description = request.Description;
-        }
-
-        if (request.Url != null)
-        {
-            campus.Url = request.Url;
-        }
-
-        if (request.PhoneNumber != null)
-        {
-            campus.PhoneNumber = request.PhoneNumber;
-        }
-
-        if (request.TimeZoneId != null)
-        {
-            campus.TimeZoneId = request.TimeZoneId;
-        }
-
-        if (request.ServiceTimes != null)
-        {
-            campus.ServiceTimes = request.ServiceTimes;
-        }
-
-        if (request.Order.HasValue)
-        {
-            campus.Order = request.Order.Value;
-        }
-
-        if (request.IsActive.HasValue)
-        {
-            campus.IsActive = request.IsActive.Value;
-        }
-
-        campus.ModifiedDateTime = DateTime.UtcNow;
-
-        await context.SaveChangesAsync(ct);
-
-        var campusDto = new CampusDto
-        {
-            IdKey = campus.IdKey,
-            Guid = campus.Guid,
-            Name = campus.Name,
-            ShortCode = campus.ShortCode,
-            Description = campus.Description,
-            IsActive = campus.IsActive,
-            Url = campus.Url,
-            PhoneNumber = campus.PhoneNumber,
-            TimeZoneId = campus.TimeZoneId,
-            ServiceTimes = campus.ServiceTimes,
-            Order = campus.Order,
-            CreatedDateTime = campus.CreatedDateTime,
-            ModifiedDateTime = campus.ModifiedDateTime
-        };
+        var campus = result.Value!;
 
         logger.LogInformation(
             "Campus updated successfully: IdKey={IdKey}, Name={Name}",
-            campusDto.IdKey, campusDto.Name);
+            campus.IdKey, campus.Name);
 
-        return Ok(new { data = campusDto });
+        return Ok(new { data = campus });
     }
 
     /// <summary>
@@ -337,47 +209,40 @@ public class CampusesController(
     /// <returns>No content</returns>
     /// <response code="204">Campus deactivated successfully</response>
     /// <response code="404">Campus not found</response>
+    /// <response code="422">Business rule violation</response>
     [HttpDelete("{idKey}")]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> Delete(string idKey, CancellationToken ct = default)
     {
-        if (!IdKeyHelper.TryDecode(idKey, out var id))
+        var result = await campusService.DeleteAsync(idKey, ct);
+
+        if (result.IsFailure)
         {
-            logger.LogDebug("Invalid IdKey format: {IdKey}", idKey);
+            logger.LogDebug(
+                "Failed to deactivate campus: IdKey={IdKey}, Code={Code}, Message={Message}",
+                idKey, result.Error!.Code, result.Error.Message);
 
-            return NotFound(new ProblemDetails
+            return result.Error.Code switch
             {
-                Title = "Campus not found",
-                Detail = $"Invalid IdKey format: '{idKey}'",
-                Status = StatusCodes.Status404NotFound,
-                Instance = HttpContext.Request.Path
-            });
+                "NOT_FOUND" => NotFound(new ProblemDetails
+                {
+                    Title = "Campus not found",
+                    Detail = result.Error.Message,
+                    Status = StatusCodes.Status404NotFound,
+                    Instance = HttpContext.Request.Path
+                }),
+                _ => UnprocessableEntity(new ProblemDetails
+                {
+                    Title = result.Error.Code,
+                    Detail = result.Error.Message,
+                    Status = StatusCodes.Status422UnprocessableEntity,
+                    Instance = HttpContext.Request.Path
+                })
+            };
         }
-
-        var campus = await context.Campuses
-            .Where(c => c.Id == id)
-            .FirstOrDefaultAsync(ct);
-
-        if (campus == null)
-        {
-            logger.LogDebug("Campus not found: IdKey={IdKey}", idKey);
-
-            return NotFound(new ProblemDetails
-            {
-                Title = "Campus not found",
-                Detail = $"No campus found with IdKey '{idKey}'",
-                Status = StatusCodes.Status404NotFound,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
-        // Soft delete by setting IsActive to false
-        campus.IsActive = false;
-        campus.ModifiedDateTime = DateTime.UtcNow;
-
-        await context.SaveChangesAsync(ct);
 
         logger.LogInformation("Campus deactivated successfully: IdKey={IdKey}", idKey);
 
