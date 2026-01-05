@@ -12,6 +12,7 @@ export interface ImportProgressProps {
   elapsedSeconds: number;
   status: ImportStatus;
   onCancel?: () => void;
+  onDownloadReport?: () => void;
 }
 
 export function ImportProgress({
@@ -23,6 +24,7 @@ export function ImportProgress({
   elapsedSeconds,
   status,
   onCancel,
+  onDownloadReport,
 }: ImportProgressProps) {
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -77,10 +79,10 @@ export function ImportProgress({
                 status === 'completed'
                   ? 'bg-green-600'
                   : status === 'failed'
-                  ? 'bg-red-600'
-                  : status === 'cancelled'
-                  ? 'bg-yellow-600'
-                  : 'bg-blue-600'
+                    ? 'bg-red-600'
+                    : status === 'cancelled'
+                      ? 'bg-yellow-600'
+                      : 'bg-blue-600'
               )}
               style={{ width: Math.min(100, Math.max(0, progress)) + '%' }}
               role="progressbar"
@@ -128,20 +130,9 @@ export function ImportProgress({
             </Button>
           )}
 
-          {isCompleted && errorCount > 0 && (
+          {isCompleted && errorCount > 0 && onDownloadReport && (
             <Button
-              onClick={() => {
-                const errorReport = 'Import Error Report\n\nTotal Errors: ' + errorCount + '\nSuccessful: ' + successCount + '\nTotal Processed: ' + processedRows + '\n\nPlease review the import logs for details.';
-                const blob = new Blob([errorReport], { type: 'text/plain' });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = 'import-errors-' + new Date().toISOString().slice(0, 10) + '.txt';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
-              }}
+              onClick={onDownloadReport}
               variant="outline"
               size="md"
             >
