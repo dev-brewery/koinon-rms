@@ -4,6 +4,7 @@ using Koinon.Application.Common;
 using Koinon.Application.DTOs;
 using Koinon.Application.DTOs.Requests;
 using Koinon.Application.Interfaces;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -22,6 +23,10 @@ public class LocationsControllerTests
         _mockService = new Mock<ILocationService>();
         _mockLogger = new Mock<ILogger<LocationsController>>();
         _controller = new LocationsController(_mockService.Object, _mockLogger.Object);
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext()
+        };
     }
 
     [Fact]
