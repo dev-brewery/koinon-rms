@@ -28,7 +28,15 @@ public class LocationsControllerTests
     public async Task GetAll_ReturnsOkResult_WithLocations()
     {
         // Arrange
-        var locations = new List<LocationSummaryDto> { new() { Name = "Test Location" } };
+        var locations = new List<LocationSummaryDto> 
+        { 
+            new() 
+            { 
+                IdKey = "loc-1", 
+                Name = "Test Location", 
+                IsActive = true 
+            } 
+        };
         _mockService.Setup(x => x.GetAllAsync(It.IsAny<string?>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(locations);
 
@@ -38,9 +46,6 @@ public class LocationsControllerTests
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var value = okResult.Value;
-        // Using reflection or dynamic to access anonymous type property 'data' would be needed if we returned anonymous object
-        // But the controller returns new { data = result }
-        // So we can check generic structure
         value.Should().NotBeNull();
     }
 
@@ -48,7 +53,19 @@ public class LocationsControllerTests
     public async Task GetTree_ReturnsOkResult_WithTree()
     {
         // Arrange
-        var tree = new List<LocationDto> { new() { Name = "Root" } };
+        var tree = new List<LocationDto> 
+        { 
+            new() 
+            { 
+                IdKey = "root-1",
+                Guid = Guid.NewGuid(),
+                Name = "Root",
+                IsActive = true,
+                Order = 1,
+                CreatedDateTime = DateTime.UtcNow,
+                Children = new List<LocationDto>()
+            } 
+        };
         _mockService.Setup(x => x.GetTreeAsync(It.IsAny<string?>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<IReadOnlyList<LocationDto>>.Success(tree));
 
@@ -64,7 +81,16 @@ public class LocationsControllerTests
     public async Task GetByIdKey_WithValidId_ReturnsOkResult()
     {
         // Arrange
-        var location = new LocationDto { Name = "Test" };
+        var location = new LocationDto 
+        { 
+            IdKey = "valid-key",
+            Guid = Guid.NewGuid(),
+            Name = "Test",
+            IsActive = true,
+            Order = 1,
+            CreatedDateTime = DateTime.UtcNow,
+            Children = new List<LocationDto>()
+        };
         _mockService.Setup(x => x.GetByIdKeyAsync("valid-key", It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<LocationDto>.Success(location));
 
@@ -96,7 +122,16 @@ public class LocationsControllerTests
     {
         // Arrange
         var request = new CreateLocationRequest { Name = "New Location" };
-        var createdDto = new LocationDto { IdKey = "new-key", Name = "New Location" };
+        var createdDto = new LocationDto 
+        { 
+            IdKey = "new-key", 
+            Guid = Guid.NewGuid(),
+            Name = "New Location",
+            IsActive = true,
+            Order = 1,
+            CreatedDateTime = DateTime.UtcNow,
+            Children = new List<LocationDto>()
+        };
         
         _mockService.Setup(x => x.CreateAsync(request, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<LocationDto>.Success(createdDto));
@@ -115,7 +150,7 @@ public class LocationsControllerTests
     {
         // Arrange
         var request = new CreateLocationRequest { Name = "" };
-        var error = Error.Validation(new FluentValidation.Results.ValidationResult(new[] 
+        var error = Error.FromFluentValidation(new FluentValidation.Results.ValidationResult(new[] 
         { 
             new FluentValidation.Results.ValidationFailure("Name", "Required") 
         }));
@@ -136,7 +171,16 @@ public class LocationsControllerTests
     {
         // Arrange
         var request = new UpdateLocationRequest { Name = "Updated" };
-        var updatedDto = new LocationDto { IdKey = "key", Name = "Updated" };
+        var updatedDto = new LocationDto 
+        { 
+            IdKey = "key", 
+            Guid = Guid.NewGuid(),
+            Name = "Updated",
+            IsActive = true,
+            Order = 1,
+            CreatedDateTime = DateTime.UtcNow,
+            Children = new List<LocationDto>()
+        };
 
         _mockService.Setup(x => x.UpdateAsync("key", request, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<LocationDto>.Success(updatedDto));

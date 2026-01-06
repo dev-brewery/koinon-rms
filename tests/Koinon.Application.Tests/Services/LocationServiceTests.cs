@@ -65,7 +65,7 @@ public class LocationServiceTests : IDisposable
         _context.Campuses.Add(campus);
 
         // Add DefinedValue for Type
-        var locType = new DefinedValue { Id = 1, Value = "Building", IsActive = true };
+        var locType = new DefinedValue { Id = 1, Value = "Building", IsActive = true, DefinedTypeId = 1 };
         _context.DefinedValues.Add(locType);
 
         // Add Locations

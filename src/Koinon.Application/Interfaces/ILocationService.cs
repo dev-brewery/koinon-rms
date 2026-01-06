@@ -1,6 +1,8 @@
 using Koinon.Application.Common;
 using Koinon.Application.DTOs;
 using Koinon.Application.DTOs.Requests;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Koinon.Application.Interfaces;
 

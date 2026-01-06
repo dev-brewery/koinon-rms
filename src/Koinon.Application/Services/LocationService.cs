@@ -8,6 +8,10 @@ using Koinon.Domain.Data;
 using Koinon.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Koinon.Application.Services;
 
@@ -91,7 +95,7 @@ public class LocationService : ILocationService
         {
             if (!IdKeyHelper.TryDecode(campusIdKey, out var campusId))
             {
-                return Result<IReadOnlyList<LocationDto>>.Failure(Error.Validation(new FluentValidation.Results.ValidationResult(new[] { 
+                return Result<IReadOnlyList<LocationDto>>.Failure(Error.FromFluentValidation(new FluentValidation.Results.ValidationResult(new[] { 
                     new FluentValidation.Results.ValidationFailure("CampusIdKey", $"Invalid campus IdKey format: '{campusIdKey}'") 
                 })));
             }
@@ -142,7 +146,7 @@ public class LocationService : ILocationService
         var validationResult = await _createValidator.ValidateAsync(request, ct);
         if (!validationResult.IsValid)
         {
-            return Result<LocationDto>.Failure(Error.Validation(validationResult));
+            return Result<LocationDto>.Failure(Error.FromFluentValidation(validationResult));
         }
 
         // Parent Location Validation
@@ -266,7 +270,7 @@ public class LocationService : ILocationService
         var validationResult = await _updateValidator.ValidateAsync(request, ct);
         if (!validationResult.IsValid)
         {
-            return Result<LocationDto>.Failure(Error.Validation(validationResult));
+            return Result<LocationDto>.Failure(Error.FromFluentValidation(validationResult));
         }
 
         if (request.Name != null) location.Name = request.Name.Trim();

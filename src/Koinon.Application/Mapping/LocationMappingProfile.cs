@@ -1,6 +1,7 @@
 using AutoMapper;
 using Koinon.Application.DTOs;
 using Koinon.Domain.Entities;
+using System.Collections.Generic;
 
 namespace Koinon.Application.Mapping;
 
@@ -19,7 +20,7 @@ public class LocationMappingProfile : Profile
             .ForMember(d => d.CampusIdKey, opt => opt.MapFrom(s => s.Campus != null ? s.Campus.IdKey : null))
             .ForMember(d => d.OverflowLocationIdKey, opt => opt.MapFrom(s => s.OverflowLocation != null ? s.OverflowLocation.IdKey : null))
             // Children mapping - ignored here as it's typically handled manually or requires recursion
-            .ForMember(d => d.Children, opt => opt.Ignore());
+            .ForMember(d => d.Children, opt => opt.MapFrom(s => new List<LocationDto>()));
 
         CreateMap<Location, LocationSummaryDto>()
             .ForMember(d => d.IdKey, opt => opt.MapFrom(s => s.IdKey))
