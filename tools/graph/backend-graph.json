@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-05T17:20:41.718971+00:00",
+  "generated_at": "2026-01-06T15:29:14.331444+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -5370,6 +5370,43 @@
         "ILogger<LabelGenerationService>"
       ]
     },
+    "LocationService": {
+      "name": "LocationService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "GetAllAsync",
+          "return_type": "Task<IReadOnlyList<LocationSummaryDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetTreeAsync",
+          "return_type": "Task<Result<IReadOnlyList<LocationDto>>>",
+          "is_async": false
+        },
+        {
+          "name": "GetByIdKeyAsync",
+          "return_type": "Task<Result<LocationDto>>",
+          "is_async": false
+        },
+        {
+          "name": "CreateAsync",
+          "return_type": "Task<Result<LocationDto>>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateAsync",
+          "return_type": "Task<Result<LocationDto>>",
+          "is_async": false
+        },
+        {
+          "name": "DeleteAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        }
+      ],
+      "dependencies": []
+    },
     "MergeFieldService": {
       "name": "MergeFieldService",
       "namespace": "Koinon.Application.Services",
@@ -6254,6 +6291,12 @@
     },
     "ILabelGenerationService": {
       "name": "ILabelGenerationService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "ILocationService": {
+      "name": "ILocationService",
       "namespace": "Koinon.Application.Interfaces",
       "methods": [],
       "dependencies": []
@@ -7692,7 +7735,7 @@
         "result_pattern": false
       },
       "dependencies": [
-        "IApplicationDbContext",
+        "ILocationService",
         "ILogger<LocationsController>"
       ]
     },
@@ -8966,6 +9009,11 @@
       "relationship": "depends_on"
     },
     {
+      "source": "LocationsController",
+      "target": "ILocationService",
+      "relationship": "depends_on"
+    },
+    {
       "source": "MyGroupsController",
       "target": "IMyGroupsService",
       "relationship": "depends_on"
@@ -9671,6 +9719,31 @@
       "relationship": "returns"
     },
     {
+      "source": "LocationService",
+      "target": "LocationSummaryDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "LocationService",
+      "target": "LocationDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "LocationService",
+      "target": "LocationDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "LocationService",
+      "target": "LocationDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "LocationService",
+      "target": "LocationDto",
+      "relationship": "returns"
+    },
+    {
       "source": "MergeFieldService",
       "target": "MergeFieldDto",
       "relationship": "returns"
@@ -10219,8 +10292,8 @@
   "summary": {
     "total_entities": 56,
     "total_dtos": 195,
-    "total_services": 103,
+    "total_services": 105,
     "total_controllers": 34,
-    "total_relationships": 340
+    "total_relationships": 346
   }
 }
