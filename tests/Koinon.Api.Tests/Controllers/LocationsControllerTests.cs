@@ -58,10 +58,10 @@ public class LocationsControllerTests
     public async Task GetTree_ReturnsOkResult_WithTree()
     {
         // Arrange
-        var tree = new List<LocationDto> 
-        { 
-            new() 
-            { 
+        var tree = new List<LocationDto>
+        {
+            new()
+            {
                 IdKey = "root-1",
                 Guid = Guid.NewGuid(),
                 Name = "Root",
@@ -69,7 +69,7 @@ public class LocationsControllerTests
                 Order = 1,
                 CreatedDateTime = DateTime.UtcNow,
                 Children = new List<LocationDto>()
-            } 
+            }
         };
         _mockService.Setup(x => x.GetTreeAsync(It.IsAny<string?>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<IReadOnlyList<LocationDto>>.Success(tree));
@@ -86,8 +86,8 @@ public class LocationsControllerTests
     public async Task GetByIdKey_WithValidId_ReturnsOkResult()
     {
         // Arrange
-        var location = new LocationDto 
-        { 
+        var location = new LocationDto
+        {
             IdKey = "valid-key",
             Guid = Guid.NewGuid(),
             Name = "Test",
@@ -127,9 +127,9 @@ public class LocationsControllerTests
     {
         // Arrange
         var request = new CreateLocationRequest { Name = "New Location" };
-        var createdDto = new LocationDto 
-        { 
-            IdKey = "new-key", 
+        var createdDto = new LocationDto
+        {
+            IdKey = "new-key",
             Guid = Guid.NewGuid(),
             Name = "New Location",
             IsActive = true,
@@ -137,7 +137,6 @@ public class LocationsControllerTests
             CreatedDateTime = DateTime.UtcNow,
             Children = new List<LocationDto>()
         };
-        
         _mockService.Setup(x => x.CreateAsync(request, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<LocationDto>.Success(createdDto));
 
