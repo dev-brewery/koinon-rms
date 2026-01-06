@@ -33,14 +33,14 @@ public class LocationsControllerTests
     public async Task GetAll_ReturnsOkResult_WithLocations()
     {
         // Arrange
-        var locations = new List<LocationSummaryDto> 
-        { 
-            new() 
-            { 
-                IdKey = "loc-1", 
-                Name = "Test Location", 
-                IsActive = true 
-            } 
+        var locations = new List<LocationSummaryDto>
+        {
+            new()
+            {
+                IdKey = "loc-1",
+                Name = "Test Location",
+                IsActive = true
+            }
         };
         _mockService.Setup(x => x.GetAllAsync(It.IsAny<string?>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(locations);

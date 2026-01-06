@@ -120,10 +120,10 @@ public class LocationServiceTests : IDisposable
     public async Task GetTreeAsync_ReturnsHierarchicalStructure()
     {
         var result = await _service.GetTreeAsync(null, false);
-        
+
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().HaveCount(1); // Only root (Building A)
-        
+
         var root = result.Value![0];
         root.Name.Should().Be("Building A");
         root.Children.Should().HaveCount(1);
@@ -134,7 +134,7 @@ public class LocationServiceTests : IDisposable
     public async Task CreateAsync_WithValidParent_CreatesChildLocation()
     {
         var parent = await _context.Locations.FindAsync(1);
-        
+
         var request = new CreateLocationRequest
         {
             Name = "Room 102",

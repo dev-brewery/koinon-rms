@@ -39,7 +39,6 @@ public class LocationsController(
         CancellationToken ct = default)
     {
         var result = await _locationService.GetAllAsync(campusIdKey, includeInactive, ct);
-        
         _logger.LogInformation(
             "Retrieved {Count} locations (campusIdKey: {CampusIdKey}, includeInactive: {IncludeInactive})",
             result.Count,

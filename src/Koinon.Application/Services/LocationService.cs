@@ -95,8 +95,9 @@ public class LocationService : ILocationService
         {
             if (!IdKeyHelper.TryDecode(campusIdKey, out var campusId))
             {
-                return Result<IReadOnlyList<LocationDto>>.Failure(Error.FromFluentValidation(new FluentValidation.Results.ValidationResult(new[] { 
-                    new FluentValidation.Results.ValidationFailure("CampusIdKey", $"Invalid campus IdKey format: '{campusIdKey}'") 
+                return Result<IReadOnlyList<LocationDto>>.Failure(Error.FromFluentValidation(new FluentValidation.Results.ValidationResult(new[]
+                {
+                    new FluentValidation.Results.ValidationFailure("CampusIdKey", $"Invalid campus IdKey format: '{campusIdKey}'")
                 })));
             }
 
@@ -381,7 +382,7 @@ public class LocationService : ILocationService
         if (location.SoftRoomThreshold.HasValue && location.FirmRoomThreshold.HasValue &&
             location.SoftRoomThreshold.Value > location.FirmRoomThreshold.Value)
         {
-             return Result<LocationDto>.Failure(Error.UnprocessableEntity("Soft room threshold must be less than or equal to firm room threshold"));
+            return Result<LocationDto>.Failure(Error.UnprocessableEntity("Soft room threshold must be less than or equal to firm room threshold"));
         }
 
         // Overflow Update
