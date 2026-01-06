@@ -21,8 +21,14 @@ public record PersonDto
     public required IReadOnlyList<PhoneNumberDto> PhoneNumbers { get; init; }
     public DefinedValueDto? RecordStatus { get; init; }
     public DefinedValueDto? ConnectionStatus { get; init; }
+    public DefinedValueDto? Title { get; init; }
+    public DefinedValueDto? Suffix { get; init; }
+    public DefinedValueDto? MaritalStatus { get; init; }
+    public DateOnly? AnniversaryDate { get; init; }
+    public bool IsDeceased { get; init; }
     public FamilySummaryDto? PrimaryFamily { get; init; }
     public CampusSummaryDto? PrimaryCampus { get; init; }
+    public string? PhotoId { get; init; }
     public string? PhotoUrl { get; init; }
     public required DateTime CreatedDateTime { get; init; }
     public DateTime? ModifiedDateTime { get; init; }
@@ -44,6 +50,7 @@ public record PersonSummaryDto
     public required string Gender { get; init; }
     public DefinedValueDto? ConnectionStatus { get; init; }
     public DefinedValueDto? RecordStatus { get; init; }
+    public CampusSummaryDto? PrimaryCampus { get; init; }
 }
 
 /// <summary>

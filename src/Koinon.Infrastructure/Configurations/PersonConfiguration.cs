@@ -218,6 +218,36 @@ public class PersonConfiguration : IEntityTypeConfiguration<Person>
             .HasForeignKey(p => p.PhotoId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasOne(p => p.RecordStatusValue)
+            .WithMany()
+            .HasForeignKey(p => p.RecordStatusValueId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(p => p.ConnectionStatusValue)
+            .WithMany()
+            .HasForeignKey(p => p.ConnectionStatusValueId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(p => p.TitleValue)
+            .WithMany()
+            .HasForeignKey(p => p.TitleValueId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(p => p.SuffixValue)
+            .WithMany()
+            .HasForeignKey(p => p.SuffixValueId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(p => p.MaritalStatusValue)
+            .WithMany()
+            .HasForeignKey(p => p.MaritalStatusValueId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(p => p.PrimaryCampus)
+            .WithMany()
+            .HasForeignKey(p => p.PrimaryCampusId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         // Note: Full-text search vector configuration requires PostgreSQL-specific features
         // Implementation deferred until PostgreSQL provider setup is complete
     }

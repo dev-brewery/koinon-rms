@@ -251,6 +251,21 @@ public class Person : Entity
     public virtual DefinedValue? ConnectionStatusValue { get; set; }
 
     /// <summary>
+    /// Navigation property to the title defined value (Mr., Mrs., Dr., etc.).
+    /// </summary>
+    public virtual DefinedValue? TitleValue { get; set; }
+
+    /// <summary>
+    /// Navigation property to the suffix defined value (Jr., Sr., III, etc.).
+    /// </summary>
+    public virtual DefinedValue? SuffixValue { get; set; }
+
+    /// <summary>
+    /// Navigation property to the marital status defined value.
+    /// </summary>
+    public virtual DefinedValue? MaritalStatusValue { get; set; }
+
+    /// <summary>
     /// </summary>
     public virtual Campus? PrimaryCampus { get; set; }
 
