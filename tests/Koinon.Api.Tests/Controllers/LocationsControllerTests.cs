@@ -155,9 +155,9 @@ public class LocationsControllerTests
     {
         // Arrange
         var request = new CreateLocationRequest { Name = "" };
-        var error = Error.FromFluentValidation(new FluentValidation.Results.ValidationResult(new[] 
-        { 
-            new FluentValidation.Results.ValidationFailure("Name", "Required") 
+        var error = Error.FromFluentValidation(new FluentValidation.Results.ValidationResult(new[]
+        {
+            new FluentValidation.Results.ValidationFailure("Name", "Required")
         }));
 
         _mockService.Setup(x => x.CreateAsync(request, It.IsAny<CancellationToken>()))
@@ -176,9 +176,9 @@ public class LocationsControllerTests
     {
         // Arrange
         var request = new UpdateLocationRequest { Name = "Updated" };
-        var updatedDto = new LocationDto 
-        { 
-            IdKey = "key", 
+        var updatedDto = new LocationDto
+        {
+            IdKey = "key",
             Guid = Guid.NewGuid(),
             Name = "Updated",
             IsActive = true,

@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using AutoMapper;
 using FluentValidation;
 using Koinon.Application.Common;
@@ -8,10 +12,6 @@ using Koinon.Domain.Data;
 using Koinon.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Koinon.Application.Services;
 
@@ -273,9 +273,18 @@ public class LocationService : ILocationService
             return Result<LocationDto>.Failure(Error.FromFluentValidation(validationResult));
         }
 
-        if (request.Name != null) location.Name = request.Name.Trim();
-        if (request.Description != null) location.Description = request.Description.Trim();
-        if (request.IsActive.HasValue) location.IsActive = request.IsActive.Value;
+        if (request.Name != null)
+        {
+            location.Name = request.Name.Trim();
+        }
+        if (request.Description != null)
+        {
+            location.Description = request.Description.Trim();
+        }
+        if (request.IsActive.HasValue)
+        {
+            location.IsActive = request.IsActive.Value;
+        }
 
         // Parent Update
         if (request.ParentLocationIdKey != null)
@@ -351,10 +360,22 @@ public class LocationService : ILocationService
             }
         }
 
-        if (request.SoftRoomThreshold.HasValue) location.SoftRoomThreshold = request.SoftRoomThreshold.Value;
-        if (request.FirmRoomThreshold.HasValue) location.FirmRoomThreshold = request.FirmRoomThreshold.Value;
-        if (request.StaffToChildRatio.HasValue) location.StaffToChildRatio = request.StaffToChildRatio.Value;
-        if (request.AutoAssignOverflow.HasValue) location.AutoAssignOverflow = request.AutoAssignOverflow.Value;
+        if (request.SoftRoomThreshold.HasValue)
+        {
+            location.SoftRoomThreshold = request.SoftRoomThreshold.Value;
+        }
+        if (request.FirmRoomThreshold.HasValue)
+        {
+            location.FirmRoomThreshold = request.FirmRoomThreshold.Value;
+        }
+        if (request.StaffToChildRatio.HasValue)
+        {
+            location.StaffToChildRatio = request.StaffToChildRatio.Value;
+        }
+        if (request.AutoAssignOverflow.HasValue)
+        {
+            location.AutoAssignOverflow = request.AutoAssignOverflow.Value;
+        }
 
         // Relationships validation for thresholds
         if (location.SoftRoomThreshold.HasValue && location.FirmRoomThreshold.HasValue &&
@@ -386,16 +407,46 @@ public class LocationService : ILocationService
             }
         }
 
-        if (request.Street1 != null) location.Street1 = request.Street1.Trim();
-        if (request.Street2 != null) location.Street2 = request.Street2.Trim();
-        if (request.City != null) location.City = request.City.Trim();
-        if (request.State != null) location.State = request.State.Trim();
-        if (request.PostalCode != null) location.PostalCode = request.PostalCode.Trim();
-        if (request.Country != null) location.Country = request.Country.Trim();
-        if (request.Latitude.HasValue) location.Latitude = request.Latitude.Value;
-        if (request.Longitude.HasValue) location.Longitude = request.Longitude.Value;
-        if (request.IsGeoPointLocked.HasValue) location.IsGeoPointLocked = request.IsGeoPointLocked.Value;
-        if (request.Order.HasValue) location.Order = request.Order.Value;
+        if (request.Street1 != null)
+        {
+            location.Street1 = request.Street1.Trim();
+        }
+        if (request.Street2 != null)
+        {
+            location.Street2 = request.Street2.Trim();
+        }
+        if (request.City != null)
+        {
+            location.City = request.City.Trim();
+        }
+        if (request.State != null)
+        {
+            location.State = request.State.Trim();
+        }
+        if (request.PostalCode != null)
+        {
+            location.PostalCode = request.PostalCode.Trim();
+        }
+        if (request.Country != null)
+        {
+            location.Country = request.Country.Trim();
+        }
+        if (request.Latitude.HasValue)
+        {
+            location.Latitude = request.Latitude.Value;
+        }
+        if (request.Longitude.HasValue)
+        {
+            location.Longitude = request.Longitude.Value;
+        }
+        if (request.IsGeoPointLocked.HasValue)
+        {
+            location.IsGeoPointLocked = request.IsGeoPointLocked.Value;
+        }
+        if (request.Order.HasValue)
+        {
+            location.Order = request.Order.Value;
+        }
 
         location.ModifiedDateTime = DateTime.UtcNow;
 
@@ -457,7 +508,10 @@ public class LocationService : ILocationService
 
     private async Task<bool> WouldCreateCircularReferenceAsync(int locationId, int newParentId, CancellationToken ct)
     {
-        if (locationId == newParentId) return true;
+        if (locationId == newParentId)
+        {
+            return true;
+        }
 
         var currentId = newParentId;
         var visited = new HashSet<int> { newParentId };
@@ -469,11 +523,17 @@ public class LocationService : ILocationService
                 .Select(l => new { l.ParentLocationId })
                 .FirstOrDefaultAsync(ct);
 
-            if (parent?.ParentLocationId == null) return false;
+            if (parent?.ParentLocationId == null)
+            {
+                return false;
+            }
 
             currentId = parent.ParentLocationId.Value;
 
-            if (currentId == locationId) return true;
+            if (currentId == locationId)
+            {
+                return true;
+            }
 
             if (!visited.Add(currentId))
             {

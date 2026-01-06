@@ -1,7 +1,7 @@
+using System.Collections.Generic;
 using AutoMapper;
 using Koinon.Application.DTOs;
 using Koinon.Domain.Entities;
-using System.Collections.Generic;
 
 namespace Koinon.Application.Mapping;
 
