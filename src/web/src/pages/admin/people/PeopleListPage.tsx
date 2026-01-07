@@ -6,6 +6,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { usePeople } from '@/hooks/usePeople';
+import { useDefinedTypeValues } from '@/hooks/useDefinedTypes';
+import { useCampuses } from '@/hooks/useCampuses';
 import { PersonSearchBar } from '@/components/admin/people/PersonSearchBar';
 import { PersonCard } from '@/components/admin/people/PersonCard';
 import { Loading, EmptyState, ErrorState } from '@/components/ui';
@@ -19,6 +21,11 @@ export function PeopleListPage() {
   const [connectionStatusId, setConnectionStatusId] = useState<string | undefined>();
   const [recordStatusId, setRecordStatusId] = useState<string | undefined>();
   const [campusId, setCampusId] = useState<string | undefined>();
+
+  // Fetch filter options
+  const { data: connectionStatuses = [] } = useDefinedTypeValues('2e6540ea-63f0-40fe-be50-f2a84735e600');
+  const { data: recordStatuses = [] } = useDefinedTypeValues('8522badd-ebe0-41a9-9f1d-a132a9b9c80a');
+  const { data: campuses = [] } = useCampuses(false);
 
   const params: PersonSearchParams = {
     q: searchQuery || undefined,
@@ -83,7 +90,7 @@ export function PeopleListPage() {
             />
           </div>
 
-          {/* Filter dropdowns - simplified for now */}
+          {/* Filter dropdowns */}
           <div className="flex flex-wrap gap-4">
             <div className="w-48">
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -98,6 +105,11 @@ export function PeopleListPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="">All</option>
+                {connectionStatuses.map((status) => (
+                  <option key={status.idKey} value={status.idKey}>
+                    {status.value}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -114,6 +126,11 @@ export function PeopleListPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="">All</option>
+                {recordStatuses.map((status) => (
+                  <option key={status.idKey} value={status.idKey}>
+                    {status.value}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -130,6 +147,11 @@ export function PeopleListPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="">All</option>
+                {campuses.map((campus) => (
+                  <option key={campus.idKey} value={campus.idKey}>
+                    {campus.name}
+                  </option>
+                ))}
               </select>
             </div>
           </div>

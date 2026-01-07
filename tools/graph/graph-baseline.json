@@ -12808,6 +12808,32 @@
         "getDashboardStats"
       ]
     },
+    "useDefinedTypes": {
+      "name": "useDefinedTypes",
+      "path": "hooks/useDefinedTypes.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "defined-types"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getDefinedTypes"
+      ]
+    },
+    "useDefinedTypeValues": {
+      "name": "useDefinedTypeValues",
+      "path": "hooks/useDefinedTypes.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "defined-types"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getDefinedTypeValues"
+      ]
+    },
     "useErrorHandler": {
       "name": "useErrorHandler",
       "path": "hooks/useErrorHandler.ts",
@@ -18381,7 +18407,7 @@
     "controllers": 34,
     "types": 295,
     "api_functions": 164,
-    "hooks": 141,
+    "hooks": 143,
     "components": 129,
     "total_edges": 414
   }
