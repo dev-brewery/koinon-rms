@@ -40,27 +40,36 @@ public class SearchController(
         // Validate query is not empty
         if (string.IsNullOrWhiteSpace(q))
         {
-            return BadRequest(new
+            return BadRequest(new ProblemDetails
             {
-                error = "Query parameter 'q' is required."
+                Title = "Invalid request",
+                Detail = "Query parameter 'q' is required.",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
             });
         }
 
         // Validate minimum query length
         if (q.Trim().Length < 2)
         {
-            return BadRequest(new
+            return BadRequest(new ProblemDetails
             {
-                error = "Query must be at least 2 characters long."
+                Title = "Invalid request",
+                Detail = "Query must be at least 2 characters long.",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
             });
         }
 
         // Validate page number
         if (pageNumber < 1)
         {
-            return BadRequest(new
+            return BadRequest(new ProblemDetails
             {
-                error = "Page number must be at least 1."
+                Title = "Invalid request",
+                Detail = "Page number must be at least 1.",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
             });
         }
 
@@ -76,9 +85,12 @@ public class SearchController(
             var validCategories = new[] { "People", "Families", "Groups" };
             if (!validCategories.Contains(category, StringComparer.OrdinalIgnoreCase))
             {
-                return BadRequest(new
+                return BadRequest(new ProblemDetails
                 {
-                    error = $"Invalid category. Must be one of: {string.Join(", ", validCategories)}"
+                    Title = "Invalid request",
+                    Detail = $"Invalid category. Must be one of: {string.Join(", ", validCategories)}",
+                    Status = StatusCodes.Status400BadRequest,
+                    Instance = HttpContext.Request.Path
                 });
             }
         }
