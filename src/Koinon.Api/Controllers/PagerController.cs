@@ -187,13 +187,15 @@ public class PagerController(
     /// <summary>
     /// Gets the next available pager number for a campus.
     /// Used during check-in to assign pager numbers sequentially.
+    /// Restricted to Supervisor role.
     /// </summary>
     /// <param name="campusId">Optional campus IdKey for scoping</param>
     /// <param name="ct">Cancellation token</param>
     /// <returns>Next available pager number (starting at 100)</returns>
     /// <response code="200">Returns next available pager number</response>
-    /// <response code="401">Not authenticated</response>
+    /// <response code="401">Not authenticated or not authorized</response>
     [HttpGet("next-number")]
+    [Authorize(Roles = "Supervisor")]
     [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetNextPagerNumber(
