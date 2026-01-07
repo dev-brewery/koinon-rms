@@ -81,10 +81,9 @@ public class SearchControllerTests
 
         // Assert
         var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
-        var response = badRequestResult.Value!;
-        var errorProperty = response.GetType().GetProperty("error");
-        var error = errorProperty!.GetValue(response).Should().BeOfType<string>().Subject;
-        error.Should().Contain("Query parameter 'q' is required");
+        var problemDetails = badRequestResult.Value.Should().BeOfType<ProblemDetails>().Subject;
+        problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
+        problemDetails.Detail.Should().Contain("Query parameter 'q' is required");
     }
 
     [Fact]
@@ -98,10 +97,9 @@ public class SearchControllerTests
 
         // Assert
         var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
-        var response = badRequestResult.Value!;
-        var errorProperty = response.GetType().GetProperty("error");
-        var error = errorProperty!.GetValue(response).Should().BeOfType<string>().Subject;
-        error.Should().Contain("Query must be at least 2 characters long");
+        var problemDetails = badRequestResult.Value.Should().BeOfType<ProblemDetails>().Subject;
+        problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
+        problemDetails.Detail.Should().Contain("Query must be at least 2 characters long");
     }
 
     [Fact]
@@ -116,11 +114,10 @@ public class SearchControllerTests
 
         // Assert
         var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
-        var response = badRequestResult.Value!;
-        var errorProperty = response.GetType().GetProperty("error");
-        var error = errorProperty!.GetValue(response).Should().BeOfType<string>().Subject;
-        error.Should().Contain("Invalid category");
-        error.Should().Contain("People, Families, Groups");
+        var problemDetails = badRequestResult.Value.Should().BeOfType<ProblemDetails>().Subject;
+        problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
+        problemDetails.Detail.Should().Contain("Invalid category");
+        problemDetails.Detail.Should().Contain("People, Families, Groups");
     }
 
     [Fact]
@@ -174,10 +171,9 @@ public class SearchControllerTests
 
         // Assert
         var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
-        var response = badRequestResult.Value!;
-        var errorProperty = response.GetType().GetProperty("error");
-        var error = errorProperty!.GetValue(response).Should().BeOfType<string>().Subject;
-        error.Should().Contain("Page number must be at least 1");
+        var problemDetails = badRequestResult.Value.Should().BeOfType<ProblemDetails>().Subject;
+        problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
+        problemDetails.Detail.Should().Contain("Page number must be at least 1");
     }
 
     [Fact]
