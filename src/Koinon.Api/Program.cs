@@ -1,4 +1,5 @@
 using System.Text;
+using System.Threading.RateLimiting;
 using Hangfire;
 using Koinon.Api.Authorization;
 using Koinon.Api.Filters;
@@ -11,6 +12,8 @@ using Koinon.Infrastructure.Data;
 using Koinon.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -103,6 +106,39 @@ builder.Services.AddSingleton<IAuthorizationPolicyProvider, RequiresClaimPolicyP
 builder.Services.AddScoped<IAuthorizationHandler, RequiresClaimAuthorizationHandler>();
 builder.Services.AddAuthorization();
 
+// Add rate limiting for security-critical endpoints
+builder.Services.AddRateLimiter(options =>
+{
+    // Supervisor PIN authentication rate limiting
+    // Protects against brute force attacks on 4-6 digit PINs
+    options.AddFixedWindowLimiter("supervisor-login", limiterOptions =>
+    {
+        limiterOptions.PermitLimit = 5;           // 5 attempts
+        limiterOptions.Window = TimeSpan.FromMinutes(1); // per minute
+        limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        limiterOptions.QueueLimit = 0;            // No queuing - fail fast
+    });
+
+    // Global rejection response
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+
+        if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+        {
+            context.HttpContext.Response.Headers.RetryAfter = retryAfter.TotalSeconds.ToString();
+        }
+
+        await context.HttpContext.Response.WriteAsJsonAsync(new ProblemDetails
+        {
+            Status = StatusCodes.Status429TooManyRequests,
+            Title = "Too many requests",
+            Detail = "Rate limit exceeded. Please try again later.",
+            Instance = context.HttpContext.Request.Path
+        }, cancellationToken);
+    };
+});
+
 // Add infrastructure services (includes DbContext, SMS/Twilio configuration)
 builder.Services.AddKoinonInfrastructure(postgresConnectionString, builder.Configuration, options =>
 {
@@ -166,6 +202,9 @@ app.UseHttpsRedirection();
 // Authentication must come before authorization
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Rate limiting (after authentication to allow IP-based limiting)
+app.UseRateLimiter();
 
 app.MapControllers();
 

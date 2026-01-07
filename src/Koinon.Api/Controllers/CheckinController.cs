@@ -5,6 +5,7 @@ using Koinon.Application.DTOs;
 using Koinon.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Koinon.Api.Controllers;
 
@@ -349,6 +350,7 @@ public class CheckinController(
     /// <summary>
     /// Authenticates a supervisor using their PIN code.
     /// Creates a time-limited session for supervisor operations.
+    /// Rate limited to 5 attempts per minute per IP to prevent brute force attacks.
     /// </summary>
     /// <param name="request">PIN authentication request</param>
     /// <param name="ct">Cancellation token</param>
@@ -356,11 +358,14 @@ public class CheckinController(
     /// <response code="200">Login successful</response>
     /// <response code="400">Invalid PIN format</response>
     /// <response code="401">Missing or invalid kiosk authentication OR invalid PIN</response>
+    /// <response code="429">Too many login attempts - rate limit exceeded</response>
     [HttpPost("supervisor/login")]
     [KioskAuthorize]
+    [EnableRateLimiting("supervisor-login")]
     [ProducesResponseType(typeof(SupervisorLoginResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> SupervisorLogin(
         [FromBody] SupervisorLoginRequest request,
         CancellationToken ct = default)
