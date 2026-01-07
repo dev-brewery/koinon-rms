@@ -4,11 +4,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Koinon.Infrastructure.Migrations
+namespace Koinon.Infrastructure.Migrations;
+
+/// <inheritdoc />
+public partial class AddLabelTemplateTable : Migration
 {
-    /// <inheritdoc />
-    public partial class AddLabelTemplateTable : Migration
-    {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -168,11 +168,10 @@ namespace Koinon.Infrastructure.Migrations
                 });
         }
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropTable(
-                name: "label_template");
-        }
+    /// <inheritdoc />
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.DropTable(
+            name: "label_template");
     }
 }
