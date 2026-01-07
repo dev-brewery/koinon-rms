@@ -23,8 +23,7 @@ import { useToast } from '@/contexts/ToastContext';
 import { useQuery } from '@tanstack/react-query';
 import type { ContributionDto, AddContributionRequest, UpdateContributionRequest } from '@/types/giving';
 
-// TODO(#353): Replace with actual GUID from DefinedType table for Transaction Type
-const TRANSACTION_TYPE_GUID = 'TBD';
+const TRANSACTION_TYPE_GUID = '2AACBE45-9C69-4D47-9F30-DDCE7D39E1B4';
 
 export function BatchDetailPage() {
   const { idKey } = useParams<{ idKey: string }>();
