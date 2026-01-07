@@ -3,13 +3,18 @@
  * View detailed information about a person
  */
 
+import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { usePerson, usePersonFamily, usePersonGroups, useDeletePerson } from '@/hooks/usePeople';
 import { CommunicationPreferences } from '@/components/admin/people/CommunicationPreferences';
+import { useToast } from '@/contexts/ToastContext';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 export function PersonDetailPage() {
   const { idKey } = useParams<{ idKey: string }>();
   const navigate = useNavigate();
+  const toast = useToast();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const { data: person, isLoading, error } = usePerson(idKey);
   const { data: familyData } = usePersonFamily(idKey);
@@ -17,20 +22,20 @@ export function PersonDetailPage() {
 
   const deleteMutation = useDeletePerson();
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
     if (!idKey) return;
 
-    const confirmed = window.confirm(
-      `Are you sure you want to delete ${person?.fullName}? This will set their record status to Inactive.`
-    );
-
-    if (confirmed) {
-      try {
-        await deleteMutation.mutateAsync(idKey);
-        navigate('/admin/people');
-      } catch (err) {
-        alert('Failed to delete person. Please try again.');
-      }
+    try {
+      await deleteMutation.mutateAsync(idKey);
+      navigate('/admin/people');
+    } catch (err) {
+      toast.error('Error', 'Failed to delete person. Please try again.');
+    } finally {
+      setIsDeleteDialogOpen(false);
     }
   };
 
@@ -287,6 +292,18 @@ export function PersonDetailPage() {
           </ul>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={confirmDelete}
+        title="Delete Person"
+        description={`Are you sure you want to delete ${person?.fullName}? This will set their record status to Inactive.`}
+        confirmLabel="Delete"
+        variant="danger"
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   );
 }
