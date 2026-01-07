@@ -1,3 +1,4 @@
+using AutoMapper;
 using FluentAssertions;
 using Koinon.Application.DTOs;
 using Koinon.Application.Interfaces;
@@ -19,6 +20,7 @@ public class LabelGenerationServiceTests : IDisposable
     private readonly LabelGenerationService _sut;
     private readonly Mock<ILogger<LabelGenerationService>> _mockLogger;
     private readonly Mock<IUserContext> _mockUserContext;
+    private readonly Mock<IMapper> _mockMapper;
 
     public LabelGenerationServiceTests()
     {
@@ -34,18 +36,101 @@ public class LabelGenerationServiceTests : IDisposable
         _mockLogger = new Mock<ILogger<LabelGenerationService>>();
         _mockUserContext = new Mock<IUserContext>();
 
+        // Setup real AutoMapper configuration
+        var mapperConfig = new MapperConfiguration(cfg =>
+        {
+            cfg.AddProfile<Koinon.Application.Mapping.LabelMappingProfile>();
+        });
+        _mockMapper = new Mock<IMapper>();
+        _mockMapper.Setup(m => m.ConfigurationProvider).Returns(mapperConfig);
+
         // Setup default user context behavior for tests
         _mockUserContext.Setup(x => x.IsAuthenticated).Returns(true);
         _mockUserContext.Setup(x => x.CanAccessPerson(It.IsAny<int>())).Returns(true);
         _mockUserContext.Setup(x => x.CanAccessLocation(It.IsAny<int>())).Returns(true);
 
-        _sut = new LabelGenerationService(_context, _mockUserContext.Object, _mockLogger.Object);
+        // Seed test label templates
+        SeedLabelTemplates();
+
+        _sut = new LabelGenerationService(_context, _mockUserContext.Object, _mockMapper.Object, _mockLogger.Object);
     }
 
     public void Dispose()
     {
         _context.Database.EnsureDeleted();
         _context.Dispose();
+    }
+
+    private void SeedLabelTemplates()
+    {
+        var childNameTemplate = new LabelTemplate
+        {
+            Name = "Child Name Label (Standard)",
+            Type = LabelType.ChildName,
+            Format = "ZPL",
+            Template = "^XA^FO50,30^A0N,50,50^FD{NickName} {LastName}^FS^XZ",
+            WidthMm = 101,
+            HeightMm = 51,
+            IsActive = true,
+            IsSystem = true
+        };
+
+        var parentClaimTemplate = new LabelTemplate
+        {
+            Name = "Parent Claim Ticket (Standard)",
+            Type = LabelType.ParentClaim,
+            Format = "ZPL",
+            Template = "^XA^FO50,20^A0N,100,100^FD{SecurityCode}^FS^XZ",
+            WidthMm = 76,
+            HeightMm = 51,
+            IsActive = true,
+            IsSystem = true
+        };
+
+        var allergyTemplate = new LabelTemplate
+        {
+            Name = "Allergy Alert Label",
+            Type = LabelType.Allergy,
+            Format = "ZPL",
+            Template = "^XA^FO50,20^A0N,40,40^FDALLERGY ALERT^FS^XZ",
+            WidthMm = 101,
+            HeightMm = 51,
+            IsActive = true,
+            IsSystem = true
+        };
+
+        var securityTemplate = new LabelTemplate
+        {
+            Name = "Child Security Label",
+            Type = LabelType.ChildSecurity,
+            Format = "ZPL",
+            Template = "^XA^FO50,50^A0N,150,150^FD{SecurityCode}^FS^XZ",
+            WidthMm = 51,
+            HeightMm = 25,
+            IsActive = true,
+            IsSystem = true
+        };
+
+        var visitorTemplate = new LabelTemplate
+        {
+            Name = "Visitor Name Badge",
+            Type = LabelType.VisitorName,
+            Format = "ZPL",
+            Template = "^XA^FO50,30^A0N,60,60^FD{FullName}^FS^XZ",
+            WidthMm = 101,
+            HeightMm = 51,
+            IsActive = true,
+            IsSystem = true
+        };
+
+        _context.LabelTemplates.AddRange(
+            childNameTemplate,
+            parentClaimTemplate,
+            allergyTemplate,
+            securityTemplate,
+            visitorTemplate
+        );
+        _context.SaveChanges();
     }
 
     [Fact]

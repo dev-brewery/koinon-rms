@@ -774,6 +774,23 @@
       },
       "navigations": []
     },
+    "LabelTemplate": {
+      "name": "LabelTemplate",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "label_template",
+      "properties": {
+        "Entity": "class LabelTemplate :",
+        "Name": "string",
+        "Type": "LabelType",
+        "Format": "string",
+        "Template": "string",
+        "WidthMm": "int",
+        "HeightMm": "int",
+        "IsActive": "bool",
+        "IsSystem": "bool"
+      },
+      "navigations": []
+    },
     "Location": {
       "name": "Location",
       "namespace": "Koinon.Domain.Entities",
@@ -2565,7 +2582,8 @@
         "Template": "string",
         "WidthMm": "int",
         "HeightMm": "int"
-      }
+      },
+      "linked_entity": "LabelTemplate"
     },
     "LabelRequestDto": {
       "name": "LabelRequestDto",
@@ -5385,6 +5403,7 @@
       "dependencies": [
         "IApplicationDbContext",
         "IUserContext",
+        "IMapper",
         "ILogger<LabelGenerationService>"
       ]
     },
@@ -8767,6 +8786,11 @@
       "relationship": "maps_to"
     },
     {
+      "source": "LabelTemplateDto",
+      "target": "LabelTemplate",
+      "relationship": "maps_to"
+    },
+    {
       "source": "LocationDto",
       "target": "Location",
       "relationship": "maps_to"
@@ -10308,10 +10332,10 @@
     }
   ],
   "summary": {
-    "total_entities": 56,
+    "total_entities": 57,
     "total_dtos": 195,
     "total_services": 105,
     "total_controllers": 34,
-    "total_relationships": 346
+    "total_relationships": 347
   }
 }
