@@ -32,6 +32,9 @@ public class PersonService(
             .Include(p => p.PhoneNumbers)
             .Include(p => p.RecordStatusValue)
             .Include(p => p.ConnectionStatusValue)
+            .Include(p => p.TitleValue)
+            .Include(p => p.SuffixValue)
+            .Include(p => p.MaritalStatusValue)
             .Include(p => p.PrimaryCampus)
             .Include(p => p.Photo)
             .FirstOrDefaultAsync(p => p.Id == id, ct);
@@ -85,7 +88,8 @@ public class PersonService(
     {
         IQueryable<Person> query = context.People
             .AsNoTracking()
-            .Include(p => p.Photo);
+            .Include(p => p.Photo)
+            .Include(p => p.PrimaryCampus);
 
         // Apply full-text search if query provided
         if (!string.IsNullOrWhiteSpace(parameters.Query))
@@ -194,6 +198,32 @@ public class PersonService(
                 person.PrimaryCampusId = campusId;
             }
         }
+
+        if (!string.IsNullOrWhiteSpace(request.TitleValueId))
+        {
+            if (IdKeyHelper.TryDecode(request.TitleValueId, out int titleValueId))
+            {
+                person.TitleValueId = titleValueId;
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.SuffixValueId))
+        {
+            if (IdKeyHelper.TryDecode(request.SuffixValueId, out int suffixValueId))
+            {
+                person.SuffixValueId = suffixValueId;
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.MaritalStatusValueId))
+        {
+            if (IdKeyHelper.TryDecode(request.MaritalStatusValueId, out int maritalStatusValueId))
+            {
+                person.MaritalStatusValueId = maritalStatusValueId;
+            }
+        }
+
+        person.AnniversaryDate = request.AnniversaryDate;
 
         // Add phone numbers
         if (request.PhoneNumbers != null)
@@ -335,6 +365,32 @@ public class PersonService(
             {
                 person.PrimaryCampusId = campusId;
             }
+        }
+
+        if (request.TitleValueId != null)
+        {
+            person.TitleValueId = !string.IsNullOrEmpty(request.TitleValueId)
+                ? IdKeyHelper.Decode(request.TitleValueId)
+                : null;
+        }
+
+        if (request.SuffixValueId != null)
+        {
+            person.SuffixValueId = !string.IsNullOrEmpty(request.SuffixValueId)
+                ? IdKeyHelper.Decode(request.SuffixValueId)
+                : null;
+        }
+
+        if (request.MaritalStatusValueId != null)
+        {
+            person.MaritalStatusValueId = !string.IsNullOrEmpty(request.MaritalStatusValueId)
+                ? IdKeyHelper.Decode(request.MaritalStatusValueId)
+                : null;
+        }
+
+        if (request.AnniversaryDate.HasValue)
+        {
+            person.AnniversaryDate = request.AnniversaryDate.Value;
         }
 
         person.ModifiedDateTime = DateTime.UtcNow;

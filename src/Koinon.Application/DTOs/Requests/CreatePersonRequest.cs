@@ -9,9 +9,13 @@ public record CreatePersonRequest
     public string? NickName { get; init; }
     public string? MiddleName { get; init; }
     public required string LastName { get; init; }
+    public string? TitleValueId { get; init; }
+    public string? SuffixValueId { get; init; }
     public string? Email { get; init; }
     public string? Gender { get; init; }
     public DateOnly? BirthDate { get; init; }
+    public string? MaritalStatusValueId { get; init; }
+    public DateOnly? AnniversaryDate { get; init; }
     public string? ConnectionStatusValueId { get; init; }
     public string? RecordStatusValueId { get; init; }
     public IList<CreatePhoneNumberRequest>? PhoneNumbers { get; init; }

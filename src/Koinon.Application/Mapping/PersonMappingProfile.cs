@@ -2,6 +2,7 @@ using AutoMapper;
 using Koinon.Application.Constants;
 using Koinon.Application.DTOs;
 using Koinon.Application.DTOs.Requests;
+using Koinon.Domain.Data;
 using Koinon.Domain.Entities;
 using Koinon.Domain.Enums;
 
@@ -24,8 +25,14 @@ public class PersonMappingProfile : Profile
             .ForMember(d => d.PhoneNumbers, o => o.MapFrom(s => s.PhoneNumbers))
             .ForMember(d => d.RecordStatus, o => o.MapFrom(s => s.RecordStatusValue))
             .ForMember(d => d.ConnectionStatus, o => o.MapFrom(s => s.ConnectionStatusValue))
+            .ForMember(d => d.Title, o => o.MapFrom(s => s.TitleValue))
+            .ForMember(d => d.Suffix, o => o.MapFrom(s => s.SuffixValue))
+            .ForMember(d => d.MaritalStatus, o => o.MapFrom(s => s.MaritalStatusValue))
+            .ForMember(d => d.AnniversaryDate, o => o.MapFrom(s => s.AnniversaryDate))
+            .ForMember(d => d.IsDeceased, o => o.MapFrom(s => s.IsDeceased))
             .ForMember(d => d.PrimaryFamily, o => o.Ignore()) // Set in service layer via FamilyMember query
             .ForMember(d => d.PrimaryCampus, o => o.MapFrom(s => s.PrimaryCampus))
+            .ForMember(d => d.PhotoId, o => o.MapFrom(s => s.PhotoId.HasValue ? IdKeyHelper.Encode(s.PhotoId.Value) : null))
             .ForMember(d => d.PhotoUrl, o => o.MapFrom(s => s.Photo != null ? ApiPaths.GetFileUrl(s.Photo.IdKey) : null));
 
         CreateMap<Person, PersonSummaryDto>()
@@ -35,7 +42,8 @@ public class PersonMappingProfile : Profile
             .ForMember(d => d.Gender, o => o.MapFrom(s => s.Gender.ToString()))
             .ForMember(d => d.PhotoUrl, o => o.MapFrom(s => s.Photo != null ? ApiPaths.GetFileUrl(s.Photo.IdKey) : null))
             .ForMember(d => d.ConnectionStatus, o => o.Ignore())
-            .ForMember(d => d.RecordStatus, o => o.Ignore());
+            .ForMember(d => d.RecordStatus, o => o.Ignore())
+            .ForMember(d => d.PrimaryCampus, o => o.MapFrom(s => s.PrimaryCampus));
 
         CreateMap<PhoneNumber, PhoneNumberDto>()
             .ForMember(d => d.IdKey, o => o.MapFrom(s => s.IdKey))
@@ -63,8 +71,10 @@ public class PersonMappingProfile : Profile
             .ForMember(d => d.PhoneNumbers, o => o.Ignore())
             .ForMember(d => d.GroupMemberships, o => o.Ignore())
             .ForMember(d => d.PersonAliases, o => o.Ignore())
+            .ForMember(d => d.TitleValueId, o => o.Ignore()) // Set in service layer after IdKey decode
+            .ForMember(d => d.SuffixValueId, o => o.Ignore()) // Set in service layer after IdKey decode
+            .ForMember(d => d.MaritalStatusValueId, o => o.Ignore()) // Set in service layer after IdKey decode
             .ForMember(d => d.IsSystem, o => o.MapFrom(s => false))
-            .ForMember(d => d.IsDeceased, o => o.MapFrom(s => false))
             .ForMember(d => d.IsEmailActive, o => o.MapFrom(s => true));
 
         CreateMap<CreatePhoneNumberRequest, PhoneNumber>()

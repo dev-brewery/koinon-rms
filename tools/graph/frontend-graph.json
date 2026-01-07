@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-01-06T15:29:14.869Z",
+  "generated_at": "2026-01-07T14:33:35.102Z",
   "types": {
     "AttendanceAnalyticsDto": {
       "name": "AttendanceAnalyticsDto",
@@ -2015,22 +2015,28 @@
         "middleName": "string",
         "lastName": "string",
         "fullName": "string",
+        "title": "DefinedValueDto",
+        "suffix": "DefinedValueDto",
         "birthDate": "DateOnly",
         "age": "number",
-        "gender": "string",
+        "gender": "Gender",
+        "maritalStatus": "DefinedValueDto",
+        "anniversaryDate": "DateOnly",
         "email": "string",
         "isEmailActive": "boolean",
-        "emailPreference": "string",
-        "phoneNumbers": "import('./profile').PhoneNumberDto[]",
+        "emailPreference": "EmailPreference",
+        "phoneNumbers": "PhoneNumberDto[]",
         "recordStatus": "DefinedValueDto",
         "connectionStatus": "DefinedValueDto",
-        "primaryFamily": "import('./profile').FamilySummaryDto",
-        "primaryCampus": "import('./profile').CampusSummaryDto",
+        "isDeceased": "boolean",
         "photoUrl": "string",
+        "photoId": "IdKey",
+        "primaryFamily": "FamilySummaryDto",
+        "primaryCampus": "CampusSummaryDto",
         "createdDateTime": "DateTime",
         "modifiedDateTime": "DateTime"
       },
-      "path": "types/person.ts"
+      "path": "services/api/types.ts"
     },
     "PersonSearchParams": {
       "name": "PersonSearchParams",
@@ -2603,6 +2609,7 @@
         "gender": "Gender",
         "birthDate": "DateOnly",
         "maritalStatusValueId": "IdKey",
+        "anniversaryDate": "DateOnly",
         "connectionStatusValueId": "IdKey",
         "recordStatusValueId": "IdKey",
         "phoneNumbers": "CreatePhoneNumberRequest[]",

@@ -195,6 +195,56 @@ export interface PersonDetailDto {
   modifiedDateTime?: DateTime;
 }
 
+/**
+ * PersonDto matches the backend C# PersonDto exactly.
+ * Identical to PersonDetailDto - kept separate for backend/frontend type alignment.
+ */
+export interface PersonDto {
+  idKey: IdKey;
+  guid: Guid;
+
+  // Names
+  firstName: string;
+  nickName?: string;
+  middleName?: string;
+  lastName: string;
+  fullName: string;
+
+  // Title/Suffix
+  title?: DefinedValueDto;
+  suffix?: DefinedValueDto;
+
+  // Demographics
+  birthDate?: DateOnly;
+  age?: number;
+  gender: Gender;
+  maritalStatus?: DefinedValueDto;
+  anniversaryDate?: DateOnly;
+
+  // Contact
+  email?: string;
+  isEmailActive: boolean;
+  emailPreference: EmailPreference;
+  phoneNumbers: PhoneNumberDto[];
+
+  // Status
+  recordStatus?: DefinedValueDto;
+  connectionStatus?: DefinedValueDto;
+  isDeceased: boolean;
+
+  // Photo
+  photoUrl?: string;
+  photoId?: IdKey;
+
+  // Associations
+  primaryFamily?: FamilySummaryDto;
+  primaryCampus?: CampusSummaryDto;
+
+  // Metadata
+  createdDateTime: DateTime;
+  modifiedDateTime?: DateTime;
+}
+
 export interface PhoneNumberDto {
   idKey: IdKey;
   number: string;
@@ -218,6 +268,7 @@ export interface CreatePersonRequest {
   gender?: Gender;
   birthDate?: DateOnly;
   maritalStatusValueId?: IdKey;
+  anniversaryDate?: DateOnly;
 
   connectionStatusValueId?: IdKey;  // Default: Visitor
   recordStatusValueId?: IdKey;      // Default: Active

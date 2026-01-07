@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-06T15:29:14.331444+00:00",
+  "generated_at": "2026-01-07T14:33:34.884392+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -944,6 +944,9 @@
         "FullNameReversed": "string",
         "RecordStatusValue": "virtual DefinedValue?",
         "ConnectionStatusValue": "virtual DefinedValue?",
+        "TitleValue": "virtual DefinedValue?",
+        "SuffixValue": "virtual DefinedValue?",
+        "MaritalStatusValue": "virtual DefinedValue?",
         "PrimaryCampus": "virtual Campus?",
         "Photo": "virtual BinaryFile?",
         "GroupMemberships": "virtual ICollection<GroupMember>",
@@ -2836,8 +2839,14 @@
         "PhoneNumbers": "IReadOnlyList<PhoneNumberDto>",
         "RecordStatus": "DefinedValueDto?",
         "ConnectionStatus": "DefinedValueDto?",
+        "Title": "DefinedValueDto?",
+        "Suffix": "DefinedValueDto?",
+        "MaritalStatus": "DefinedValueDto?",
+        "AnniversaryDate": "DateOnly?",
+        "IsDeceased": "bool",
         "PrimaryFamily": "FamilySummaryDto?",
         "PrimaryCampus": "CampusSummaryDto?",
+        "PhotoId": "string?",
         "PhotoUrl": "string?",
         "CreatedDateTime": "DateTime",
         "ModifiedDateTime": "DateTime?"
@@ -2858,7 +2867,8 @@
         "Age": "int?",
         "Gender": "string",
         "ConnectionStatus": "DefinedValueDto?",
-        "RecordStatus": "DefinedValueDto?"
+        "RecordStatus": "DefinedValueDto?",
+        "PrimaryCampus": "CampusSummaryDto?"
       },
       "linked_entity": "Person"
     },
@@ -3460,9 +3470,13 @@
         "NickName": "string?",
         "MiddleName": "string?",
         "LastName": "string",
+        "TitleValueId": "string?",
+        "SuffixValueId": "string?",
         "Email": "string?",
         "Gender": "string?",
         "BirthDate": "DateOnly?",
+        "MaritalStatusValueId": "string?",
+        "AnniversaryDate": "DateOnly?",
         "ConnectionStatusValueId": "string?",
         "RecordStatusValueId": "string?",
         "PhoneNumbers": "IList<CreatePhoneNumberRequest>?",
@@ -3716,11 +3730,15 @@
         "NickName": "string?",
         "MiddleName": "string?",
         "LastName": "string?",
+        "TitleValueId": "string?",
+        "SuffixValueId": "string?",
         "Email": "string?",
         "IsEmailActive": "bool?",
         "EmailPreference": "string?",
         "Gender": "string?",
         "BirthDate": "DateOnly?",
+        "MaritalStatusValueId": "string?",
+        "AnniversaryDate": "DateOnly?",
         "ConnectionStatusValueId": "string?",
         "RecordStatusValueId": "string?",
         "PrimaryCampusId": "string?"
