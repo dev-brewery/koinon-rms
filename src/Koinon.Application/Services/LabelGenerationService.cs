@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Text;
 using System.Text.Encodings.Web;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Koinon.Application.DTOs;
 using Koinon.Application.Interfaces;
 using Koinon.Application.Services.Common;
@@ -19,6 +21,7 @@ namespace Koinon.Application.Services;
 public class LabelGenerationService(
     IApplicationDbContext context,
     IUserContext userContext,
+    IMapper mapper,
     ILogger<LabelGenerationService> logger)
     : AuthorizedCheckinService(context, userContext, logger), ILabelGenerationService
 {
@@ -183,60 +186,17 @@ public class LabelGenerationService(
         return results.AsReadOnly();
     }
 
-    public Task<IReadOnlyList<LabelTemplateDto>> GetTemplatesAsync(CancellationToken ct = default)
+    public async Task<IReadOnlyList<LabelTemplateDto>> GetTemplatesAsync(CancellationToken ct = default)
     {
-        // For MVP, return hardcoded templates
-        // In future, these could be stored in database and managed via admin UI
-        var templates = new List<LabelTemplateDto>
-        {
-            new(
-                IdKey: IdKeyHelper.Encode(1),
-                Name: "Child Name Label (Standard)",
-                Type: LabelType.ChildName,
-                Format: "ZPL",
-                Template: GetChildNameZplTemplate(),
-                WidthMm: ChildNameLabelWidth,
-                HeightMm: ChildNameLabelHeight
-            ),
-            new(
-                IdKey: IdKeyHelper.Encode(2),
-                Name: "Parent Claim Ticket (Standard)",
-                Type: LabelType.ParentClaim,
-                Format: "ZPL",
-                Template: GetParentClaimZplTemplate(),
-                WidthMm: ParentClaimLabelWidth,
-                HeightMm: ParentClaimLabelHeight
-            ),
-            new(
-                IdKey: IdKeyHelper.Encode(3),
-                Name: "Allergy Alert Label",
-                Type: LabelType.Allergy,
-                Format: "ZPL",
-                Template: GetAllergyAlertZplTemplate(),
-                WidthMm: ChildNameLabelWidth,
-                HeightMm: ChildNameLabelHeight
-            ),
-            new(
-                IdKey: IdKeyHelper.Encode(4),
-                Name: "Child Security Label",
-                Type: LabelType.ChildSecurity,
-                Format: "ZPL",
-                Template: GetChildSecurityZplTemplate(),
-                WidthMm: 51, // 2 inches
-                HeightMm: 25  // 1 inch
-            ),
-            new(
-                IdKey: IdKeyHelper.Encode(5),
-                Name: "Visitor Name Badge",
-                Type: LabelType.VisitorName,
-                Format: "ZPL",
-                Template: GetVisitorNameZplTemplate(),
-                WidthMm: ChildNameLabelWidth,
-                HeightMm: ChildNameLabelHeight
-            )
-        };
+        var templates = await Context.LabelTemplates
+            .AsNoTracking()
+            .Where(t => t.IsActive)
+            .OrderBy(t => t.Type)
+            .ThenBy(t => t.Name)
+            .ProjectTo<LabelTemplateDto>(mapper.ConfigurationProvider)
+            .ToListAsync(ct);
 
-        return Task.FromResult<IReadOnlyList<LabelTemplateDto>>(templates.AsReadOnly());
+        return templates.AsReadOnly();
     }
 
     public Task<LabelPreviewDto> PreviewLabelAsync(

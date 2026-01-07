@@ -31,6 +31,7 @@ public interface IApplicationDbContext
     DbSet<AttendanceOccurrence> AttendanceOccurrences { get; }
     DbSet<AttendanceCode> AttendanceCodes { get; }
     DbSet<Device> Devices { get; }
+    DbSet<LabelTemplate> LabelTemplates { get; }
     DbSet<RefreshToken> RefreshTokens { get; }
     DbSet<UserPreference> UserPreferences { get; }
     DbSet<UserSession> UserSessions { get; }
