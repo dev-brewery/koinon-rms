@@ -35,7 +35,7 @@ public class LabelGenerationServiceTests : IDisposable
 
         _mockLogger = new Mock<ILogger<LabelGenerationService>>();
         _mockUserContext = new Mock<IUserContext>();
-        
+
         // Setup real AutoMapper configuration
         var mapperConfig = new MapperConfiguration(cfg =>
         {
