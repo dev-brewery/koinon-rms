@@ -50,6 +50,11 @@ public static class SystemGuid
         /// Campus Status (Active, Inactive).
         /// </summary>
         public static readonly Guid CampusStatus = new("840C414E-A261-4D18-946B-0F9B14174B4E");
+
+        /// <summary>
+        /// Transaction Type (Contribution, Event Registration, etc.).
+        /// </summary>
+        public static readonly Guid TransactionType = new("2AACBE45-9C69-4D47-9F30-DDCE7D39E1B4");
     }
 
     /// <summary>
@@ -109,6 +114,27 @@ public static class SystemGuid
         /// Phone Type: Work.
         /// </summary>
         public static readonly Guid PhoneTypeWork = new("2CC66D5A-F61C-4B74-9AF9-590A9847C13C");
+
+        // Transaction Type Values
+        /// <summary>
+        /// Transaction Type: Contribution.
+        /// </summary>
+        public static readonly Guid TransactionTypeContribution = new("2D607262-52D6-4724-910D-424651F01C8B");
+
+        /// <summary>
+        /// Transaction Type: Event Registration.
+        /// </summary>
+        public static readonly Guid TransactionTypeEventRegistration = new("4B0B5C34-8E8A-4F1E-9D3A-5B7F8E2A3C4D");
+
+        /// <summary>
+        /// Transaction Type: Pledge.
+        /// </summary>
+        public static readonly Guid TransactionTypePledge = new("7C9E2F45-6A1B-4D8E-A2C3-8F7E9B4A5D6C");
+
+        /// <summary>
+        /// Transaction Type: Refund.
+        /// </summary>
+        public static readonly Guid TransactionTypeRefund = new("9E4D6B78-3C2A-4F5E-B1D7-6A8C9E3F2B5D");
     }
 
     /// <summary>
