@@ -79,7 +79,7 @@ Authenticate and receive JWT tokens.
 **Request:**
 ```typescript
 interface LoginRequest {
-  username: string;
+  email: string;
   password: string;
 }
 ```
