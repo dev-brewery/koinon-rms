@@ -8460,7 +8460,7 @@
       "patterns": {
         "response_envelope": false,
         "idkey_routes": false,
-        "problem_details": false,
+        "problem_details": true,
         "result_pattern": false
       },
       "dependencies": [
