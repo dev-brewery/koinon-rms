@@ -427,17 +427,18 @@ public class UserSettingsService(
 
     private static IReadOnlyList<string> GenerateRecoveryCodes(int count)
     {
+        const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Removed ambiguous chars (0, O, 1, I, L)
         var codes = new List<string>();
         for (int i = 0; i < count; i++)
         {
             // Generate 8-character alphanumeric code
-            var bytes = RandomNumberGenerator.GetBytes(6);
-            var code = Convert.ToBase64String(bytes)
-                .Replace("+", "")
-                .Replace("/", "")
-                .Replace("=", "")
-                .ToUpper();
-            codes.Add(code[..8]);
+            var bytes = RandomNumberGenerator.GetBytes(8);
+            var code = new char[8];
+            for (int j = 0; j < 8; j++)
+            {
+                code[j] = chars[bytes[j] % chars.Length];
+            }
+            codes.Add(new string(code));
         }
         return codes;
     }
