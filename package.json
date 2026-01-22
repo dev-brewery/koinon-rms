@@ -14,6 +14,11 @@
     "graph:verify": "python3 tools/graph/verify-contracts.py",
     "graph:validate": "npm run graph:update && npm run graph:verify && git diff --quiet tools/graph/graph-baseline.json || (echo 'Graph drift detected - run npm run graph:update and commit' && exit 1)",
     "test:graph": "cd tools/graph && .venv/bin/pytest tests/ && npm test",
+    "rag:install": "cd tools/rag && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt",
+    "rag:index": "cd tools/rag && .venv/bin/python index-codebase.py",
+    "rag:reindex": "cd tools/rag && .venv/bin/python reindex-changes.py",
+    "rag:validate": "cd tools/rag && .venv/bin/python validate.py",
+    "rag:query": "cd tools/rag && .venv/bin/python query.py",
     "build": "dotnet build",
     "test": "dotnet test && npm run --prefix src/web test",
     "typecheck": "npm run --prefix src/web typecheck",
@@ -26,5 +31,8 @@
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@qdrant/js-client-rest": "^1.16.2"
   }
 }

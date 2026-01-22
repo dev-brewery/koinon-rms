@@ -30,6 +30,7 @@ import {
 import { z } from 'zod';
 import * as fs from 'fs';
 import * as path from 'path';
+import { searchRag, getRagStatus, getRagImpactAnalysis } from './rag-client.js';
 
 // Configuration
 const PROJECT_ROOT = process.env.KOINON_PROJECT_ROOT || '/home/mbrewer/projects/koinon-rms';
@@ -96,6 +97,20 @@ const ImplementationTemplateSchema = z.object({
 
 const ImpactAnalysisSchema = z.object({
   file_path: z.string()
+});
+
+// RAG tool schemas
+const RagSearchSchema = z.object({
+  query: z.string(),
+  filter_layer: z.enum(['Domain', 'Application', 'Infrastructure', 'API', 'Frontend', 'all']).optional(),
+  filter_type: z.enum(['Entity', 'DTO', 'Service', 'Controller', 'Component', 'Hook', 'Other', 'all']).optional(),
+  limit: z.number().min(1).max(50).optional().default(10)
+});
+
+const RagImpactSchema = z.object({
+  file_path: z.string(),
+  change_description: z.string().optional(),
+  include_tests: z.boolean().optional().default(true)
 });
 
 // Type definitions for impact analysis
@@ -1205,8 +1220,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           },
           required: ['type', 'entityName']
         }
-      }
-         ,{
+      },
+      {
         name: 'get_impact_analysis',
         description: 'Analyzes the impact of changes to a file across layers and work units, showing dependent files and affected functionality',
         inputSchema: {
@@ -1219,8 +1234,68 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           },
           required: ['file_path']
         }
+      },
+      // RAG-powered semantic search tools
+      {
+        name: 'rag_search',
+        description: 'Semantic code search using RAG (Retrieval-Augmented Generation). Find similar patterns, related code, or answer architecture questions using natural language. Returns relevant code snippets with file paths, layers, and similarity scores. Gracefully degrades if RAG infrastructure is unavailable.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            query: {
+              type: 'string',
+              description: 'Natural language query (e.g., "person validation with email rules", "authentication service pattern")'
+            },
+            filter_layer: {
+              type: 'string',
+              enum: ['Domain', 'Application', 'Infrastructure', 'API', 'Frontend', 'all'],
+              description: 'Filter results by architectural layer (optional, default: all)'
+            },
+            filter_type: {
+              type: 'string',
+              enum: ['Entity', 'DTO', 'Service', 'Controller', 'Component', 'Hook', 'Other', 'all'],
+              description: 'Filter results by code type (optional, default: all)'
+            },
+            limit: {
+              type: 'number',
+              description: 'Maximum results to return (default: 10, max: 50)'
+            }
+          },
+          required: ['query']
+        }
+      },
+      {
+        name: 'rag_impact_analysis',
+        description: 'RAG-enhanced impact analysis. Finds semantically related code AND related tests for a file using vector similarity. Combines with structural graph analysis for comprehensive change impact assessment. Use before making changes to understand full-stack implications.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            file_path: {
+              type: 'string',
+              description: 'File path to analyze (e.g., src/Koinon.Domain/Entities/Person.cs)'
+            },
+            change_description: {
+              type: 'string',
+              description: 'Optional description of planned changes for better semantic matching (e.g., "adding email validation")'
+            },
+            include_tests: {
+              type: 'boolean',
+              description: 'Search for related tests (default: true)'
+            }
+          },
+          required: ['file_path']
+        }
+      },
+      {
+        name: 'rag_index_status',
+        description: 'Check RAG index health and statistics. Returns availability of Qdrant and Ollama, collection info, and chunk count. Use to diagnose RAG issues.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+          required: []
+        }
       }
-         ]
+    ]
   };
 });
 
@@ -1386,7 +1461,47 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
       }
 
+      // RAG tool handlers
+      case 'rag_search': {
+        const { query, filter_layer, filter_type, limit } = RagSearchSchema.parse(args);
+        const result = await searchRag(query, filter_layer, filter_type, limit);
 
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(result, null, 2)
+            }
+          ]
+        };
+      }
+
+      case 'rag_impact_analysis': {
+        const { file_path, change_description, include_tests } = RagImpactSchema.parse(args);
+        const result = await getRagImpactAnalysis(file_path, change_description, include_tests);
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(result, null, 2)
+            }
+          ]
+        };
+      }
+
+      case 'rag_index_status': {
+        const result = await getRagStatus();
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(result, null, 2)
+            }
+          ]
+        };
+      }
 
       default:
         throw new Error(`Unknown tool: ${name}`);

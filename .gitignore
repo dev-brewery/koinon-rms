@@ -83,6 +83,11 @@ __pycache__/
 htmlcov/
 .coverage
 
+# RAG system
+tools/rag/.venv/
+tools/rag/__pycache__/
+tools/rag/**/__pycache__/
+
 # Vite
 *.local
 
@@ -224,3 +229,8 @@ sprint_23_bugs.json
 test_output.txt
 build_output.txt
 build_errors.txt
+
+venv-rag/
+
+.kilocode/
+.kiloignore

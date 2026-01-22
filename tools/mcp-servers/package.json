@@ -4,6 +4,7 @@
   "description": "Local MCP server dependencies for koinon-rms project",
   "private": true,
   "dependencies": {
+    "@mhalder/qdrant-mcp-server": "^1.5.0",
     "@modelcontextprotocol/server-filesystem": "2025.11.25",
     "@modelcontextprotocol/server-memory": "2025.11.25"
   },

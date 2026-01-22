@@ -288,6 +288,89 @@ mcp__koinon-dev__get_impact_analysis({
 - **During code review:** Use `list_inconsistencies` to find pattern violations
 - **When scaffolding:** Use `get_implementation_template` for the correct starting point
 
+## RAG-Powered Code Discovery
+
+Semantic code search using Qdrant vector database and Ollama embeddings (nomic-embed-text). Use these tools for pattern discovery and impact analysis.
+
+### Available RAG Tools
+
+| Tool | Purpose | When to Use |
+|------|---------|-------------|
+| `rag_search` | Semantic code search | Finding similar patterns, related code |
+| `rag_impact_analysis` | Change impact with tests | Before modifying entities/DTOs |
+| `rag_index_status` | Index health check | Debugging RAG issues |
+
+### rag_search - Semantic Code Search
+
+Find similar patterns using natural language:
+
+```python
+# Find entities with similar patterns
+mcp__koinon-dev__rag_search(
+    query="entity with family relationship and audit fields",
+    filter_layer="Domain",
+    limit=5
+)
+
+# Find validation patterns
+mcp__koinon-dev__rag_search(
+    query="FluentValidation rules for person email",
+    filter_type="Service",
+    limit=10
+)
+
+# Find frontend components with similar features
+mcp__koinon-dev__rag_search(
+    query="data table with pagination and sorting",
+    filter_layer="Frontend",
+    filter_type="Component"
+)
+```
+
+**Filter Options:**
+- `filter_layer`: Domain | Application | Infrastructure | API | Frontend | all
+- `filter_type`: Entity | DTO | Service | Controller | Component | Hook | Other | all
+
+### rag_impact_analysis - Change Impact
+
+Combines semantic search with test discovery:
+
+```python
+mcp__koinon-dev__rag_impact_analysis(
+    file_path="src/Koinon.Domain/Entities/Person.cs",
+    change_description="adding email validation",
+    include_tests=True
+)
+# Returns: semantic_matches, related_tests, warnings
+```
+
+### rag_index_status - Health Check
+
+```python
+mcp__koinon-dev__rag_index_status()
+# Returns: { healthy, qdrant_available, ollama_available, chunks_count }
+```
+
+### Graceful Degradation
+
+RAG unavailability **never blocks** agent work:
+- Tools return empty results + warning message
+- Fall back to grep/glob exploration
+- Log warning for debugging
+- Continue with documented patterns
+
+### Discovery Order (Recommended)
+
+1. **RAG semantic search** - broad understanding, token-efficient
+2. **Graph query** via `query_api_graph` - structural relationships
+3. **Targeted grep/glob** - specific patterns when needed
+
+### Index Maintenance
+
+- **Automatic**: Post-commit hook reindexes changed files (~5s)
+- **Manual full reindex**: `python3 tools/rag/index-codebase.py`
+- **Health check**: `mcp__koinon-dev__rag_index_status()`
+
 ## Quick Reference
 
 ```

@@ -29,7 +29,8 @@ echo_error() {
 
 # Get staged files
 STAGED_CS=$(git diff --cached --name-only --diff-filter=ACM | grep '\.cs$' || true)
-STAGED_TS=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(ts|tsx)$' || true)
+# Only check frontend TypeScript files (in src/web/) - tools/ has its own build process
+STAGED_TS=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^src/web/.*\.(ts|tsx)$' || true)
 
 HAS_BACKEND_CHANGES=false
 HAS_FRONTEND_CHANGES=false
@@ -72,8 +73,8 @@ if [ "$HAS_FRONTEND_CHANGES" = true ]; then
     fi
     
     echo_step "Linting staged frontend files..."
-    # Lint only staged files for speed (paths already include src/web/ prefix)
-    STAGED_TS_FULL=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(ts|tsx)$' || true)
+    # Lint only staged files in src/web/ for speed
+    STAGED_TS_FULL=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^src/web/.*\.(ts|tsx)$' || true)
     if [ -n "$STAGED_TS_FULL" ]; then
         if echo "$STAGED_TS_FULL" | xargs npx --prefix src/web eslint --max-warnings 0 2>/dev/null; then
             echo_success "Frontend lint passed"
