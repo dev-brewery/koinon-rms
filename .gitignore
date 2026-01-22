@@ -234,3 +234,4 @@ venv-rag/
 
 .kilocode/
 .kiloignore
+.continue/mcpServers/code-rag.yaml
