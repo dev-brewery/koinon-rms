@@ -21,22 +21,54 @@ const DEFAULT_TIMEOUT_MS = 10000; // 10 seconds
 const UPLOAD_TIMEOUT_MS = 60000; // 60 seconds for uploads
 
 // ============================================================================
-// Token Storage (in memory, not localStorage for security)
+// Token Storage (localStorage for persistence across page loads)
 // ============================================================================
 
+const ACCESS_TOKEN_KEY = 'koinon_access_token';
+const REFRESH_TOKEN_KEY = 'koinon_refresh_token';
+
+let tokenRefreshPromise: Promise<boolean> | null = null;
+
+// Initialize tokens from localStorage on module load
 let accessToken: string | null = null;
 let refreshToken: string | null = null;
-let tokenRefreshPromise: Promise<boolean> | null = null;
+
+try {
+  accessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
+  refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+} catch (error) {
+  if (import.meta.env.DEV) {
+    console.warn('Failed to load tokens from localStorage:', error);
+  }
+}
 
 export function setTokens(access: string, refresh: string): void {
   accessToken = access;
   refreshToken = refresh;
+
+  try {
+    localStorage.setItem(ACCESS_TOKEN_KEY, access);
+    localStorage.setItem(REFRESH_TOKEN_KEY, refresh);
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      console.error('Failed to save tokens to localStorage:', error);
+    }
+  }
 }
 
 export function clearTokens(): void {
   accessToken = null;
   refreshToken = null;
   tokenRefreshPromise = null;
+
+  try {
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      console.error('Failed to clear tokens from localStorage:', error);
+    }
+  }
 }
 
 export function getAccessToken(): string | null {
