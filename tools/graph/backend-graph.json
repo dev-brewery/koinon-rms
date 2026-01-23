@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-23T14:08:58.573977+00:00",
+  "generated_at": "2026-01-23T14:34:49.895984+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -2130,7 +2130,8 @@
         "GroupTypeName": "string",
         "CampusName": "string?",
         "HasFollowUp": "bool"
-      }
+      },
+      "linked_entity": "Person"
     },
     "FollowUpDto": {
       "name": "FollowUpDto",
@@ -2767,7 +2768,8 @@
         "PhotoUrl": "string?",
         "CreatedDateTime": "DateTime",
         "ModifiedDateTime": "DateTime?"
-      }
+      },
+      "linked_entity": "Person"
     },
     "NotificationDto": {
       "name": "NotificationDto",
@@ -2971,7 +2973,8 @@
         "Person2PhotoUrl": "string?",
         "MatchScore": "int",
         "MatchReasons": "List<string>"
-      }
+      },
+      "linked_entity": "Person"
     },
     "IgnoreDuplicateRequestDto": {
       "name": "IgnoreDuplicateRequestDto",
@@ -3117,7 +3120,8 @@
         "ParameterSchema": "string?",
         "DefaultParameters": "string?",
         "OutputFormat": "ReportOutputFormat"
-      }
+      },
+      "linked_entity": "ReportDefinition"
     },
     "UpdateReportDefinitionRequest": {
       "name": "UpdateReportDefinitionRequest",
@@ -3129,7 +3133,8 @@
         "DefaultParameters": "string?",
         "OutputFormat": "ReportOutputFormat?",
         "IsActive": "bool?"
-      }
+      },
+      "linked_entity": "ReportDefinition"
     },
     "ReportRunDto": {
       "name": "ReportRunDto",
@@ -3186,7 +3191,8 @@
         "Parameters": "string?",
         "RecipientPersonAliasIds": "string?",
         "OutputFormat": "ReportOutputFormat"
-      }
+      },
+      "linked_entity": "ReportSchedule"
     },
     "UpdateReportScheduleRequest": {
       "name": "UpdateReportScheduleRequest",
@@ -3198,7 +3204,8 @@
         "RecipientPersonAliasIds": "string?",
         "OutputFormat": "ReportOutputFormat?",
         "IsActive": "bool?"
-      }
+      },
+      "linked_entity": "ReportSchedule"
     },
     "AddGroupScheduleRequest": {
       "name": "AddGroupScheduleRequest",
@@ -3206,7 +3213,8 @@
       "properties": {
         "ScheduleIdKey": "string",
         "Order": "int"
-      }
+      },
+      "linked_entity": "GroupSchedule"
     },
     "CreateAuthorizedPickupRequest": {
       "name": "CreateAuthorizedPickupRequest",
@@ -3219,7 +3227,8 @@
         "AuthorizationLevel": "AuthorizationLevel",
         "PhotoUrl": "string?",
         "CustodyNotes": "string?"
-      }
+      },
+      "linked_entity": "AuthorizedPickup"
     },
     "UpdateAuthorizedPickupRequest": {
       "name": "UpdateAuthorizedPickupRequest",
@@ -3230,7 +3239,8 @@
         "PhotoUrl": "string?",
         "CustodyNotes": "string?",
         "IsActive": "bool?"
-      }
+      },
+      "linked_entity": "AuthorizedPickup"
     },
     "VerifyPickupRequest": {
       "name": "VerifyPickupRequest",
@@ -3278,7 +3288,8 @@
         "TransactionTypeValueIdKey": "string",
         "Details": "List<ContributionDetailRequest>",
         "Summary": "string?"
-      }
+      },
+      "linked_entity": "Contribution"
     },
     "ContributionDetailRequest": {
       "name": "ContributionDetailRequest",
@@ -3299,7 +3310,8 @@
         "TransactionTypeValueIdKey": "string",
         "Details": "List<ContributionDetailRequest>",
         "Summary": "string?"
-      }
+      },
+      "linked_entity": "Contribution"
     },
     "BatchFilterRequest": {
       "name": "BatchFilterRequest",
@@ -3341,7 +3353,8 @@
         "TimeZoneId": "string?",
         "ServiceTimes": "string?",
         "Order": "int"
-      }
+      },
+      "linked_entity": "Campus"
     },
     "CreateFamilyRequest": {
       "name": "CreateFamilyRequest",
@@ -3351,7 +3364,8 @@
         "Description": "string?",
         "CampusId": "string?",
         "Address": "CreateFamilyAddressRequest?"
-      }
+      },
+      "linked_entity": "Family"
     },
     "AddFamilyMemberRequest": {
       "name": "AddFamilyMemberRequest",
@@ -3359,7 +3373,8 @@
       "properties": {
         "PersonId": "string",
         "RoleId": "string"
-      }
+      },
+      "linked_entity": "FamilyMember"
     },
     "UpdateFamilyAddressRequest": {
       "name": "UpdateFamilyAddressRequest",
@@ -3371,7 +3386,8 @@
         "State": "string?",
         "PostalCode": "string?",
         "Country": "string?"
-      }
+      },
+      "linked_entity": "Family"
     },
     "CreateFamilyAddressRequest": {
       "name": "CreateFamilyAddressRequest",
@@ -3383,7 +3399,8 @@
         "State": "string",
         "PostalCode": "string",
         "Country": "string?"
-      }
+      },
+      "linked_entity": "Family"
     },
     "CreateGroupRequest": {
       "name": "CreateGroupRequest",
@@ -3399,7 +3416,8 @@
         "AllowGuests": "bool",
         "GroupCapacity": "int?",
         "Order": "int"
-      }
+      },
+      "linked_entity": "Group"
     },
     "UpdateGroupRequest": {
       "name": "UpdateGroupRequest",
@@ -3413,7 +3431,8 @@
         "AllowGuests": "bool?",
         "GroupCapacity": "int?",
         "Order": "int?"
-      }
+      },
+      "linked_entity": "Group"
     },
     "AddGroupMemberRequest": {
       "name": "AddGroupMemberRequest",
@@ -3422,7 +3441,8 @@
         "PersonId": "string",
         "RoleId": "string",
         "Note": "string?"
-      }
+      },
+      "linked_entity": "GroupMember"
     },
     "CreateGroupTypeRequest": {
       "name": "CreateGroupTypeRequest",
@@ -3442,7 +3462,8 @@
         "ShowInGroupList": "bool",
         "ShowInNavigation": "bool",
         "Order": "int"
-      }
+      },
+      "linked_entity": "GroupType"
     },
     "CreateImportTemplateRequest": {
       "name": "CreateImportTemplateRequest",
@@ -3478,7 +3499,8 @@
         "Longitude": "double?",
         "IsGeoPointLocked": "bool",
         "Order": "int"
-      }
+      },
+      "linked_entity": "Location"
     },
     "CreatePersonRequest": {
       "name": "CreatePersonRequest",
@@ -3503,7 +3525,8 @@
         "CreateFamily": "bool?",
         "FamilyName": "string?",
         "CampusId": "string?"
-      }
+      },
+      "linked_entity": "Person"
     },
     "CreatePhoneNumberRequest": {
       "name": "CreatePhoneNumberRequest",
@@ -3513,7 +3536,8 @@
         "Extension": "string?",
         "PhoneTypeValueId": "string?",
         "IsMessagingEnabled": "bool?"
-      }
+      },
+      "linked_entity": "Person"
     },
     "UpdateFollowUpStatusRequest": {
       "name": "UpdateFollowUpStatusRequest",
@@ -3521,14 +3545,16 @@
       "properties": {
         "Status": "FollowUpStatus",
         "Notes": "string?"
-      }
+      },
+      "linked_entity": "Person"
     },
     "AssignFollowUpRequest": {
       "name": "AssignFollowUpRequest",
       "namespace": "Koinon.Application.DTOs.Requests",
       "properties": {
         "AssignedToIdKey": "string"
-      }
+      },
+      "linked_entity": "Person"
     },
     "SendPageRequest": {
       "name": "SendPageRequest",
@@ -3582,7 +3608,8 @@
         "Order": "int",
         "ICalendarContent": "string?",
         "AutoInactivateWhenComplete": "bool"
-      }
+      },
+      "linked_entity": "Schedule"
     },
     "UpdateScheduleRequest": {
       "name": "UpdateScheduleRequest",
@@ -3601,7 +3628,8 @@
         "Order": "int?",
         "ICalendarContent": "string?",
         "AutoInactivateWhenComplete": "bool?"
-      }
+      },
+      "linked_entity": "Schedule"
     },
     "StartImportRequest": {
       "name": "StartImportRequest",
@@ -3641,7 +3669,8 @@
         "ServiceTimes": "string?",
         "Order": "int?",
         "IsActive": "bool?"
-      }
+      },
+      "linked_entity": "Campus"
     },
     "UpdateFamilyMemberRequest": {
       "name": "UpdateFamilyMemberRequest",
@@ -3652,7 +3681,8 @@
         "Allergies": "string?",
         "HasCriticalAllergies": "bool?",
         "SpecialNeeds": "string?"
-      }
+      },
+      "linked_entity": "FamilyMember"
     },
     "UpdateFamilyRequest": {
       "name": "UpdateFamilyRequest",
@@ -3660,7 +3690,8 @@
       "properties": {
         "Name": "string?",
         "CampusId": "string?"
-      }
+      },
+      "linked_entity": "Family"
     },
     "UpdateGroupMemberRequest": {
       "name": "UpdateGroupMemberRequest",
@@ -3669,7 +3700,8 @@
         "RoleId": "string?",
         "Status": "string?",
         "Note": "string?"
-      }
+      },
+      "linked_entity": "GroupMember"
     },
     "UpdateGroupTypeRequest": {
       "name": "UpdateGroupTypeRequest",
@@ -3689,7 +3721,8 @@
         "ShowInGroupList": "bool?",
         "ShowInNavigation": "bool?",
         "Order": "int?"
-      }
+      },
+      "linked_entity": "GroupType"
     },
     "UpdateLocationRequest": {
       "name": "UpdateLocationRequest",
@@ -3716,7 +3749,8 @@
         "Longitude": "double?",
         "IsGeoPointLocked": "bool?",
         "Order": "int?"
-      }
+      },
+      "linked_entity": "Location"
     },
     "UpdateMyProfileRequest": {
       "name": "UpdateMyProfileRequest",
@@ -3726,7 +3760,8 @@
         "EmailPreference": "string?",
         "NickName": "string?",
         "PhoneNumbers": "IReadOnlyList<UpdatePhoneNumberRequest>?"
-      }
+      },
+      "linked_entity": "Person"
     },
     "UpdatePhoneNumberRequest": {
       "name": "UpdatePhoneNumberRequest",
@@ -3738,7 +3773,8 @@
         "PhoneTypeIdKey": "string?",
         "IsMessagingEnabled": "bool",
         "IsUnlisted": "bool"
-      }
+      },
+      "linked_entity": "Person"
     },
     "UpdatePersonRequest": {
       "name": "UpdatePersonRequest",
@@ -3760,7 +3796,8 @@
         "ConnectionStatusValueId": "string?",
         "RecordStatusValueId": "string?",
         "PrimaryCampusId": "string?"
-      }
+      },
+      "linked_entity": "Person"
     },
     "UpdateUserPreferenceRequest": {
       "name": "UpdateUserPreferenceRequest",
@@ -3769,7 +3806,8 @@
         "Theme": "Theme",
         "DateFormat": "string",
         "TimeZone": "string"
-      }
+      },
+      "linked_entity": "UserPreference"
     },
     "ValidateImportRequest": {
       "name": "ValidateImportRequest",
@@ -8706,6 +8744,11 @@
       "relationship": "maps_to"
     },
     {
+      "source": "FirstTimeVisitorDto",
+      "target": "Person",
+      "relationship": "maps_to"
+    },
+    {
       "source": "FollowUpDto",
       "target": "FollowUp",
       "relationship": "maps_to"
@@ -8801,6 +8844,11 @@
       "relationship": "maps_to"
     },
     {
+      "source": "MyProfileDto",
+      "target": "Person",
+      "relationship": "maps_to"
+    },
+    {
       "source": "NotificationDto",
       "target": "Notification",
       "relationship": "maps_to"
@@ -8856,6 +8904,11 @@
       "relationship": "maps_to"
     },
     {
+      "source": "DuplicateMatchDto",
+      "target": "Person",
+      "relationship": "maps_to"
+    },
+    {
       "source": "PersonComparisonDto",
       "target": "Person",
       "relationship": "maps_to"
@@ -8886,6 +8939,16 @@
       "relationship": "maps_to"
     },
     {
+      "source": "CreateReportDefinitionRequest",
+      "target": "ReportDefinition",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdateReportDefinitionRequest",
+      "target": "ReportDefinition",
+      "relationship": "maps_to"
+    },
+    {
       "source": "ReportRunDto",
       "target": "ReportRun",
       "relationship": "maps_to"
@@ -8893,6 +8956,171 @@
     {
       "source": "ReportScheduleDto",
       "target": "ReportSchedule",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CreateReportScheduleRequest",
+      "target": "ReportSchedule",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdateReportScheduleRequest",
+      "target": "ReportSchedule",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "AddGroupScheduleRequest",
+      "target": "GroupSchedule",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CreateAuthorizedPickupRequest",
+      "target": "AuthorizedPickup",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdateAuthorizedPickupRequest",
+      "target": "AuthorizedPickup",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "AddContributionRequest",
+      "target": "Contribution",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdateContributionRequest",
+      "target": "Contribution",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CreateCampusRequest",
+      "target": "Campus",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CreateFamilyRequest",
+      "target": "Family",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "AddFamilyMemberRequest",
+      "target": "FamilyMember",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdateFamilyAddressRequest",
+      "target": "Family",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CreateFamilyAddressRequest",
+      "target": "Family",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CreateGroupRequest",
+      "target": "Group",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdateGroupRequest",
+      "target": "Group",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "AddGroupMemberRequest",
+      "target": "GroupMember",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CreateGroupTypeRequest",
+      "target": "GroupType",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CreateLocationRequest",
+      "target": "Location",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CreatePersonRequest",
+      "target": "Person",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CreatePhoneNumberRequest",
+      "target": "Person",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdateFollowUpStatusRequest",
+      "target": "Person",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "AssignFollowUpRequest",
+      "target": "Person",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CreateScheduleRequest",
+      "target": "Schedule",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdateScheduleRequest",
+      "target": "Schedule",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdateCampusRequest",
+      "target": "Campus",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdateFamilyMemberRequest",
+      "target": "FamilyMember",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdateFamilyRequest",
+      "target": "Family",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdateGroupMemberRequest",
+      "target": "GroupMember",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdateGroupTypeRequest",
+      "target": "GroupType",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdateLocationRequest",
+      "target": "Location",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdateMyProfileRequest",
+      "target": "Person",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdatePhoneNumberRequest",
+      "target": "Person",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdatePersonRequest",
+      "target": "Person",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdateUserPreferenceRequest",
+      "target": "UserPreference",
       "relationship": "maps_to"
     },
     {
@@ -10336,6 +10564,6 @@
     "total_dtos": 195,
     "total_services": 105,
     "total_controllers": 34,
-    "total_relationships": 347
+    "total_relationships": 385
   }
 }
