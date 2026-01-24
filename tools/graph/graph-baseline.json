@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-23T14:34:50.335741+00:00",
+  "generated_at": "2026-01-24T19:15:33.502076+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -774,6 +774,62 @@
       },
       "navigations": []
     },
+    "ImportJob": {
+      "name": "ImportJob",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "import_job",
+      "properties": {
+        "Entity": "class ImportJob :",
+        "ImportTemplateId": "int?",
+        "ImportType": "ImportType",
+        "Status": "ImportJobStatus",
+        "FileName": "string",
+        "TotalRows": "int",
+        "ProcessedRows": "int",
+        "SuccessCount": "int",
+        "ErrorCount": "int",
+        "ErrorDetails": "string?",
+        "StartedAt": "DateTime?",
+        "CompletedAt": "DateTime?",
+        "StorageKey": "string?",
+        "BackgroundJobId": "string?",
+        "ImportTemplate": "virtual ImportTemplate?"
+      },
+      "navigations": [
+        {
+          "name": "ImportType",
+          "target_entity": "ImportType",
+          "type": "one"
+        },
+        {
+          "name": "Status",
+          "target_entity": "ImportJobStatus",
+          "type": "one"
+        }
+      ]
+    },
+    "ImportTemplate": {
+      "name": "ImportTemplate",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "import_template",
+      "properties": {
+        "Entity": "class ImportTemplate :",
+        "Name": "string",
+        "Description": "string?",
+        "ImportType": "ImportType",
+        "FieldMappings": "string",
+        "IsActive": "bool",
+        "IsSystem": "bool",
+        "ImportJobs": "virtual ICollection<ImportJob>"
+      },
+      "navigations": [
+        {
+          "name": "ImportType",
+          "target_entity": "ImportType",
+          "type": "one"
+        }
+      ]
+    },
     "LabelTemplate": {
       "name": "LabelTemplate",
       "namespace": "Koinon.Domain.Entities",
@@ -1461,7 +1517,8 @@
         "ActionType": "AuditAction?",
         "PersonIdKey": "string?",
         "Format": "ExportFormat"
-      }
+      },
+      "linked_entity": "AuditLog"
     },
     "LoginRequest": {
       "name": "LoginRequest",
@@ -1469,7 +1526,8 @@
       "properties": {
         "Email": "string",
         "Password": "string"
-      }
+      },
+      "linked_entity": "UserSession"
     },
     "TokenResponse": {
       "name": "TokenResponse",
@@ -1479,7 +1537,8 @@
         "RefreshToken": "string",
         "ExpiresAt": "DateTime",
         "User": "PersonSummaryDto"
-      }
+      },
+      "linked_entity": "UserSession"
     },
     "AuthorizedPickupDto": {
       "name": "AuthorizedPickupDto",
@@ -1950,7 +2009,8 @@
         "UpcomingSchedules": "List<UpcomingScheduleDto>",
         "GivingStats": "GivingStatsDto",
         "CommunicationsStats": "CommunicationsStatsDto"
-      }
+      },
+      "linked_entity": "System"
     },
     "UpcomingScheduleDto": {
       "name": "UpcomingScheduleDto",
@@ -1960,7 +2020,8 @@
         "Name": "string",
         "NextOccurrence": "DateTime",
         "MinutesUntilCheckIn": "int"
-      }
+      },
+      "linked_entity": "Schedule"
     },
     "GivingStatsDto": {
       "name": "GivingStatsDto",
@@ -1980,7 +2041,8 @@
         "BatchDate": "DateTime",
         "Status": "string",
         "Total": "decimal"
-      }
+      },
+      "linked_entity": "ContributionBatch"
     },
     "CommunicationsStatsDto": {
       "name": "CommunicationsStatsDto",
@@ -2002,7 +2064,8 @@
         "Description": "string?",
         "IsDefaultField": "bool",
         "IsRequired": "bool"
-      }
+      },
+      "linked_entity": "ExportJob"
     },
     "ExportJobDto": {
       "name": "ExportJobDto",
@@ -2034,7 +2097,8 @@
         "OutputFormat": "ReportOutputFormat",
         "Fields": "List<string>?",
         "Filters": "Dictionary<string, string>?"
-      }
+      },
+      "linked_entity": "ExportJob"
     },
     "FamilyDto": {
       "name": "FamilyDto",
@@ -2103,7 +2167,8 @@
         "Description": "string?",
         "CreatedDateTime": "DateTime",
         "Url": "string"
-      }
+      },
+      "linked_entity": "BinaryFile"
     },
     "UploadFileRequest": {
       "name": "UploadFileRequest",
@@ -2115,7 +2180,8 @@
         "Length": "long",
         "Description": "string?",
         "BinaryFileTypeIdKey": "string?"
-      }
+      },
+      "linked_entity": "BinaryFile"
     },
     "FirstTimeVisitorDto": {
       "name": "FirstTimeVisitorDto",
@@ -2314,7 +2380,8 @@
         "Title": "string",
         "Subtitle": "string?",
         "ImageUrl": "string?"
-      }
+      },
+      "linked_entity": "System"
     },
     "GlobalSearchResponse": {
       "name": "GlobalSearchResponse",
@@ -2325,7 +2392,8 @@
         "PageNumber": "int",
         "PageSize": "int",
         "CategoryCounts": "Dictionary<string, int>"
-      }
+      },
+      "linked_entity": "System"
     },
     "GroupDto": {
       "name": "GroupDto",
@@ -2514,7 +2582,8 @@
         "TotalRowCount": "int",
         "DetectedDelimiter": "string",
         "DetectedEncoding": "string"
-      }
+      },
+      "linked_entity": "ImportJob"
     },
     "ImportJobDto": {
       "name": "ImportJobDto",
@@ -2535,7 +2604,8 @@
         "CompletedAt": "DateTime?",
         "CreatedDateTime": "DateTime",
         "BackgroundJobId": "string?"
-      }
+      },
+      "linked_entity": "ImportJob"
     },
     "ImportTemplateDto": {
       "name": "ImportTemplateDto",
@@ -2551,7 +2621,8 @@
         "IsSystem": "bool",
         "CreatedDateTime": "DateTime",
         "ModifiedDateTime": "DateTime?"
-      }
+      },
+      "linked_entity": "ImportTemplate"
     },
     "LabelSetDto": {
       "name": "LabelSetDto",
@@ -2560,7 +2631,8 @@
         "AttendanceIdKey": "string",
         "PersonIdKey": "string",
         "Labels": "IReadOnlyList<LabelDto>"
-      }
+      },
+      "linked_entity": "LabelTemplate"
     },
     "LabelDto": {
       "name": "LabelDto",
@@ -2570,7 +2642,8 @@
         "Content": "string",
         "Format": "string",
         "Fields": "IDictionary<string, string>"
-      }
+      },
+      "linked_entity": "LabelTemplate"
     },
     "LabelTemplateDto": {
       "name": "LabelTemplateDto",
@@ -2593,7 +2666,8 @@
         "AttendanceIdKey": "string",
         "LabelTypes": "IReadOnlyList<LabelType>?",
         "CustomFields": "IDictionary<string, string>?"
-      }
+      },
+      "linked_entity": "LabelTemplate"
     },
     "BatchLabelRequestDto": {
       "name": "BatchLabelRequestDto",
@@ -2602,7 +2676,8 @@
         "AttendanceIdKeys": "IReadOnlyList<string>",
         "LabelTypes": "IReadOnlyList<LabelType>?",
         "CustomFields": "IDictionary<string, string>?"
-      }
+      },
+      "linked_entity": "LabelTemplate"
     },
     "LabelPreviewRequestDto": {
       "name": "LabelPreviewRequestDto",
@@ -2611,7 +2686,8 @@
         "Type": "LabelType",
         "Fields": "IDictionary<string, string>",
         "TemplateIdKey": "string?"
-      }
+      },
+      "linked_entity": "LabelTemplate"
     },
     "LabelPreviewDto": {
       "name": "LabelPreviewDto",
@@ -2620,7 +2696,8 @@
         "Type": "LabelType",
         "PreviewHtml": "string",
         "Format": "string"
-      }
+      },
+      "linked_entity": "LabelTemplate"
     },
     "LocationDto": {
       "name": "LocationDto",
@@ -2679,7 +2756,8 @@
         "Name": "string",
         "Token": "string",
         "Description": "string"
-      }
+      },
+      "linked_entity": "LabelTemplate"
     },
     "MyFamilyMemberDto": {
       "name": "MyFamilyMemberDto",
@@ -3073,7 +3151,8 @@
         "AuthorizedPickupIdKey": "string?",
         "Message": "string",
         "RequiresSupervisorOverride": "bool"
-      }
+      },
+      "linked_entity": "PickupLog"
     },
     "PublicGroupDto": {
       "name": "PublicGroupDto",
@@ -3250,7 +3329,8 @@
         "PickupPersonIdKey": "string?",
         "PickupPersonName": "string?",
         "SecurityCode": "string"
-      }
+      },
+      "linked_entity": "PickupLog"
     },
     "RecordPickupRequest": {
       "name": "RecordPickupRequest",
@@ -3264,7 +3344,8 @@
         "SupervisorOverride": "bool",
         "SupervisorPersonIdKey": "string?",
         "Notes": "string?"
-      }
+      },
+      "linked_entity": "PickupLog"
     },
     "CreateBatchRequest": {
       "name": "CreateBatchRequest",
@@ -3332,7 +3413,8 @@
         "CurrentPassword": "string",
         "NewPassword": "string",
         "ConfirmPassword": "string"
-      }
+      },
+      "linked_entity": "Person"
     },
     "ScheduleCommunicationRequest": {
       "name": "ScheduleCommunicationRequest",
@@ -3473,7 +3555,8 @@
         "Description": "string?",
         "ImportType": "string",
         "FieldMappings": "Dictionary<string, string>"
-      }
+      },
+      "linked_entity": "ImportTemplate"
     },
     "CreateLocationRequest": {
       "name": "CreateLocationRequest",
@@ -3640,7 +3723,8 @@
         "ImportType": "string",
         "FieldMappings": "Dictionary<string, string>",
         "ImportTemplateIdKey": "string?"
-      }
+      },
+      "linked_entity": "ImportJob"
     },
     "SubmitMembershipRequestDto": {
       "name": "SubmitMembershipRequestDto",
@@ -3654,7 +3738,8 @@
       "namespace": "Koinon.Application.DTOs.Requests",
       "properties": {
         "Code": "string"
-      }
+      },
+      "linked_entity": "TwoFactorConfig"
     },
     "UpdateCampusRequest": {
       "name": "UpdateCampusRequest",
@@ -3817,7 +3902,8 @@
         "FileName": "string",
         "ImportType": "string",
         "FieldMappings": "Dictionary<string, string>"
-      }
+      },
+      "linked_entity": "ImportJob"
     },
     "RoomCapacityDto": {
       "name": "RoomCapacityDto",
@@ -3987,7 +4073,8 @@
         "SecretKey": "string",
         "QrCodeUri": "string",
         "RecoveryCodes": "IReadOnlyList<string>"
-      }
+      },
+      "linked_entity": "TwoFactorConfig"
     },
     "TwoFactorStatusDto": {
       "name": "TwoFactorStatusDto",
@@ -3995,7 +4082,8 @@
       "properties": {
         "IsEnabled": "bool",
         "EnabledAt": "DateTime?"
-      }
+      },
+      "linked_entity": "TwoFactorConfig"
     },
     "UpdateNotificationPreferenceDto": {
       "name": "UpdateNotificationPreferenceDto",
@@ -16223,6 +16311,21 @@
       "relationship": "maps_to"
     },
     {
+      "source": "AuditLogExportRequest",
+      "target": "AuditLog",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "LoginRequest",
+      "target": "UserSession",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "TokenResponse",
+      "target": "UserSession",
+      "relationship": "maps_to"
+    },
+    {
       "source": "AuthorizedPickupDto",
       "target": "AuthorizedPickup",
       "relationship": "maps_to"
@@ -16283,12 +16386,37 @@
       "relationship": "maps_to"
     },
     {
+      "source": "DashboardStatsDto",
+      "target": "System",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpcomingScheduleDto",
+      "target": "Schedule",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "DashboardBatchDto",
+      "target": "ContributionBatch",
+      "relationship": "maps_to"
+    },
+    {
       "source": "CommunicationsStatsDto",
       "target": "Communication",
       "relationship": "maps_to"
     },
     {
+      "source": "ExportFieldDto",
+      "target": "ExportJob",
+      "relationship": "maps_to"
+    },
+    {
       "source": "ExportJobDto",
+      "target": "ExportJob",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "StartExportRequest",
       "target": "ExportJob",
       "relationship": "maps_to"
     },
@@ -16305,6 +16433,16 @@
     {
       "source": "GroupTypeRoleDto",
       "target": "GroupTypeRole",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "FileMetadataDto",
+      "target": "BinaryFile",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UploadFileRequest",
+      "target": "BinaryFile",
       "relationship": "maps_to"
     },
     {
@@ -16345,6 +16483,16 @@
     {
       "source": "PersonLookupDto",
       "target": "Person",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "GlobalSearchResultDto",
+      "target": "System",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "GlobalSearchResponse",
+      "target": "System",
       "relationship": "maps_to"
     },
     {
@@ -16393,7 +16541,52 @@
       "relationship": "maps_to"
     },
     {
+      "source": "CsvPreviewDto",
+      "target": "ImportJob",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "ImportJobDto",
+      "target": "ImportJob",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "ImportTemplateDto",
+      "target": "ImportTemplate",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "LabelSetDto",
+      "target": "LabelTemplate",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "LabelDto",
+      "target": "LabelTemplate",
+      "relationship": "maps_to"
+    },
+    {
       "source": "LabelTemplateDto",
+      "target": "LabelTemplate",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "LabelRequestDto",
+      "target": "LabelTemplate",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "BatchLabelRequestDto",
+      "target": "LabelTemplate",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "LabelPreviewRequestDto",
+      "target": "LabelTemplate",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "LabelPreviewDto",
       "target": "LabelTemplate",
       "relationship": "maps_to"
     },
@@ -16405,6 +16598,11 @@
     {
       "source": "LocationSummaryDto",
       "target": "Location",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "MergeFieldDto",
+      "target": "LabelTemplate",
       "relationship": "maps_to"
     },
     {
@@ -16498,6 +16696,11 @@
       "relationship": "maps_to"
     },
     {
+      "source": "PickupVerificationResultDto",
+      "target": "PickupLog",
+      "relationship": "maps_to"
+    },
+    {
       "source": "ReportDefinitionDto",
       "target": "ReportDefinition",
       "relationship": "maps_to"
@@ -16548,6 +16751,16 @@
       "relationship": "maps_to"
     },
     {
+      "source": "VerifyPickupRequest",
+      "target": "PickupLog",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "RecordPickupRequest",
+      "target": "PickupLog",
+      "relationship": "maps_to"
+    },
+    {
       "source": "AddContributionRequest",
       "target": "Contribution",
       "relationship": "maps_to"
@@ -16555,6 +16768,11 @@
     {
       "source": "UpdateContributionRequest",
       "target": "Contribution",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "ChangePasswordRequest",
+      "target": "Person",
       "relationship": "maps_to"
     },
     {
@@ -16603,6 +16821,11 @@
       "relationship": "maps_to"
     },
     {
+      "source": "CreateImportTemplateRequest",
+      "target": "ImportTemplate",
+      "relationship": "maps_to"
+    },
+    {
       "source": "CreateLocationRequest",
       "target": "Location",
       "relationship": "maps_to"
@@ -16635,6 +16858,16 @@
     {
       "source": "UpdateScheduleRequest",
       "target": "Schedule",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "StartImportRequest",
+      "target": "ImportJob",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "TwoFactorVerifyRequest",
+      "target": "TwoFactorConfig",
       "relationship": "maps_to"
     },
     {
@@ -16688,6 +16921,11 @@
       "relationship": "maps_to"
     },
     {
+      "source": "ValidateImportRequest",
+      "target": "ImportJob",
+      "relationship": "maps_to"
+    },
+    {
       "source": "ScheduleSummaryDto",
       "target": "Schedule",
       "relationship": "maps_to"
@@ -16700,6 +16938,16 @@
     {
       "source": "SecurityRoleDto",
       "target": "SecurityRole",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "TwoFactorSetupDto",
+      "target": "TwoFactorConfig",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "TwoFactorStatusDto",
+      "target": "TwoFactorConfig",
       "relationship": "maps_to"
     },
     {
@@ -18629,7 +18877,7 @@
     "dto:UserSessionDto": "type:UserSessionDto"
   },
   "stats": {
-    "entities": 57,
+    "entities": 59,
     "dtos": 195,
     "services": 105,
     "controllers": 34,
@@ -18637,6 +18885,6 @@
     "api_functions": 164,
     "hooks": 143,
     "components": 129,
-    "total_edges": 452
+    "total_edges": 484
   }
 }
