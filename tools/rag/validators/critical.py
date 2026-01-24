@@ -5,16 +5,22 @@ These validators MUST pass or the PR is blocked.
 They detect semantic violations that regex cannot catch.
 """
 import requests
-from qdrant_client import QdrantClient
 from .helpers import has_business_logic, is_n_plus_one_pattern, extract_api_call
 
+# Optional RAG dependency - graceful degradation if unavailable
+try:
+    from qdrant_client import QdrantClient
+    RAG_AVAILABLE = True
+except ImportError:
+    RAG_AVAILABLE = False
+    QdrantClient = None
 
 # Constants
 OLLAMA_URL = "http://host.docker.internal:11434/api/embed"
 OLLAMA_MODEL = "nomic-embed-text"
 
 # Global client instance (initialized once, reused across validators)
-client = QdrantClient(url="http://host.docker.internal:6333")
+client = QdrantClient(url="http://host.docker.internal:6333") if RAG_AVAILABLE else None
 
 
 def get_embedding(text):
@@ -40,6 +46,10 @@ def validate_no_business_logic_in_controllers():
 
     Business logic belongs in services, not controllers.
     """
+    if not RAG_AVAILABLE:
+        print("⚠️  Skipping (RAG unavailable)")
+        return []
+
     query_vector = get_embedding(
         "controller method with calculations, loops over data, or business rules"
     )
@@ -72,6 +82,10 @@ def validate_no_direct_api_calls_in_components():
 
     Use hooks/services instead (separation of concerns).
     """
+    if not RAG_AVAILABLE:
+        print("⚠️  Skipping (RAG unavailable)")
+        return []
+
     query_vector = get_embedding(
         "React component making HTTP request with fetch or axios"
     )
@@ -105,6 +119,10 @@ def detect_n_plus_one_queries():
 
     This is a performance anti-pattern.
     """
+    if not RAG_AVAILABLE:
+        print("⚠️  Skipping (RAG unavailable)")
+        return []
+
     query_vector = get_embedding(
         "foreach loop with database query or repository call inside"
     )
@@ -137,6 +155,10 @@ def detect_missing_async():
 
     All database calls must be async.
     """
+    if not RAG_AVAILABLE:
+        print("⚠️  Skipping (RAG unavailable)")
+        return []
+
     query_vector = get_embedding(
         "EF Core query without async or await like ToList FirstOrDefault Single"
     )

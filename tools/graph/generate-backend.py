@@ -400,6 +400,39 @@ class BackendGraphGenerator:
 
     def _infer_entity_from_dto_name(self, dto_name: str) -> Optional[str]:
         """Infer entity name from DTO name."""
+        # Manual mappings for DTOs that don't follow naming conventions
+        # Issue #466: Link Person-related DTOs
+        manual_mappings = {
+            'MyProfileDto': 'Person',
+            'UpdateMyProfileRequest': 'Person',
+            'DuplicateMatchDto': 'Person',
+            'FirstTimeVisitorDto': 'Person',
+            'UpdateFollowUpStatusRequest': 'Person',
+            'AssignFollowUpRequest': 'Person',
+            'CreatePhoneNumberRequest': 'Person',
+            'UpdatePhoneNumberRequest': 'Person',
+        }
+
+        if dto_name in manual_mappings:
+            entity = manual_mappings[dto_name]
+            if entity in self.entities:
+                return entity
+
+        # Handle Request pattern: Create{Entity}Request, Update{Entity}Request, etc.
+        if dto_name.endswith('Request'):
+            base_name = dto_name[:-7]  # Remove 'Request'
+            # Try prefixes: Create, Update, Add, Remove, Delete, etc.
+            for prefix in ['Create', 'Update', 'Add', 'Remove', 'Delete', 'Upload', 'Import', 'Export', 'Validate']:
+                if base_name.startswith(prefix):
+                    entity_candidate = base_name[len(prefix):]
+                    if entity_candidate in self.entities:
+                        return entity_candidate
+                    # Try without additional suffix (e.g., CreatePhoneNumberRequest -> PhoneNumber -> Person)
+                    for entity_name in self.entities:
+                        if entity_candidate.startswith(entity_name):
+                            return entity_name
+
+        # Handle Dto suffix
         if dto_name.endswith('Dto'):
             base_name = dto_name[:-3]
             # Check if entity exists
@@ -409,6 +442,7 @@ class BackendGraphGenerator:
             for entity_name in self.entities:
                 if base_name.startswith(entity_name) and entity_name != base_name:
                     return entity_name
+
         return None
 
     def process_services(self):

@@ -16,8 +16,16 @@ import subprocess
 import hashlib
 import requests
 from pathlib import Path
-from qdrant_client import QdrantClient
-from qdrant_client.models import PointStruct
+
+# Optional RAG dependency - graceful degradation if unavailable
+try:
+    from qdrant_client import QdrantClient
+    from qdrant_client.models import PointStruct
+    RAG_AVAILABLE = True
+except ImportError:
+    RAG_AVAILABLE = False
+    QdrantClient = None
+    PointStruct = None
 
 # Import shared utilities
 from utils import (
@@ -197,6 +205,12 @@ def main():
     print("=" * 60)
     print("INCREMENTAL RAG REINDEXING")
     print("=" * 60)
+
+    # Check if RAG is available
+    if not RAG_AVAILABLE:
+        print("\n⚠️  RAG dependencies not available (qdrant_client not installed)")
+        print("Skipping reindexing...")
+        return
 
     # Get changed files
     print("\nFinding changed files...")

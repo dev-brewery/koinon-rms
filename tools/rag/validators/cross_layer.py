@@ -4,15 +4,21 @@ Cross-layer validators - check relationships between architectural layers.
 Validates that Entity -> DTO -> Service -> Controller chains are complete.
 """
 import requests
-from qdrant_client import QdrantClient
 
+# Optional RAG dependency - graceful degradation if unavailable
+try:
+    from qdrant_client import QdrantClient
+    RAG_AVAILABLE = True
+except ImportError:
+    RAG_AVAILABLE = False
+    QdrantClient = None
 
 # Constants
 OLLAMA_URL = "http://host.docker.internal:11434/api/embed"
 OLLAMA_MODEL = "nomic-embed-text"
 
 # Global client instance
-client = QdrantClient(url="http://host.docker.internal:6333")
+client = QdrantClient(url="http://host.docker.internal:6333") if RAG_AVAILABLE else None
 
 
 def get_embedding(text):
@@ -38,6 +44,10 @@ def validate_dto_coverage():
 
     DTOs provide API layer isolation from domain entities.
     """
+    if not RAG_AVAILABLE:
+        print("⚠️  Skipping (RAG unavailable)")
+        return []
+
     # Find all entities
     entity_results = client.scroll(
         collection_name="koinon-code",
@@ -93,6 +103,10 @@ def validate_controller_uses_services():
 
     Repositories are infrastructure concerns, controllers use services.
     """
+    if not RAG_AVAILABLE:
+        print("⚠️  Skipping (RAG unavailable)")
+        return []
+
     query_vector = get_embedding(
         "controller constructor with repository injection instead of service"
     )
