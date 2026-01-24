@@ -336,11 +336,7 @@ class BackendGraphGenerator:
             return
 
         for file_path in sorted(entity_dir.glob('*.cs')):
-            # Skip interfaces (IEntity.cs, IAuditable.cs, etc.)
-            # But allow entities starting with I (ImportJob.cs, ImportTemplate.cs)
-            class_name = self.parser.extract_class_name_from_file(file_path)
-            if class_name.startswith('I') and len(class_name) > 1 and class_name[1].isupper():
-                # Interface pattern: IEntity, IAuditable (I + uppercase letter)
+            if file_path.name.startswith('I'):  # Skip interfaces
                 continue
             content = self.parser.read_file(file_path)
             if not content:
@@ -406,9 +402,7 @@ class BackendGraphGenerator:
         """Infer entity name from DTO name."""
         # Manual mappings for DTOs that don't follow naming conventions
         # Issue #466: Link Person-related DTOs
-        # Issue #472: Link utility DTOs (Auth, Search, Import, Export, Label)
         manual_mappings = {
-            # Person-related (Issue #466)
             'MyProfileDto': 'Person',
             'UpdateMyProfileRequest': 'Person',
             'DuplicateMatchDto': 'Person',
@@ -417,58 +411,11 @@ class BackendGraphGenerator:
             'AssignFollowUpRequest': 'Person',
             'CreatePhoneNumberRequest': 'Person',
             'UpdatePhoneNumberRequest': 'Person',
-
-            # Auth DTOs (Issue #472)
-            'LoginRequest': 'UserSession',
-            'TokenResponse': 'UserSession',
-            'ChangePasswordRequest': 'Person',
-            'TwoFactorVerifyRequest': 'TwoFactorConfig',
-            'TwoFactorSetupDto': 'TwoFactorConfig',
-            'TwoFactorStatusDto': 'TwoFactorConfig',
-
-            # Search DTOs (Issue #472) - Cross-cutting
-            'GlobalSearchResultDto': 'System',
-            'GlobalSearchResponse': 'System',
-
-            # Import/Export DTOs (Issue #472)
-            'CsvPreviewDto': 'ImportJob',
-            'ImportJobDto': 'ImportJob',
-            'ImportTemplateDto': 'ImportTemplate',
-            'CreateImportTemplateRequest': 'ImportTemplate',
-            'StartImportRequest': 'ImportJob',
-            'ValidateImportRequest': 'ImportJob',
-            'ExportFieldDto': 'ExportJob',
-            'StartExportRequest': 'ExportJob',
-            'AuditLogExportRequest': 'AuditLog',
-
-            # Label DTOs (Issue #472)
-            'LabelSetDto': 'LabelTemplate',
-            'LabelDto': 'LabelTemplate',
-            'LabelRequestDto': 'LabelTemplate',
-            'BatchLabelRequestDto': 'LabelTemplate',
-            'LabelPreviewRequestDto': 'LabelTemplate',
-            'LabelPreviewDto': 'LabelTemplate',
-            'MergeFieldDto': 'LabelTemplate',
-
-            # Dashboard/Stats DTOs (Issue #472)
-            'DashboardStatsDto': 'System',
-            'DashboardBatchDto': 'ContributionBatch',
-            'UpcomingScheduleDto': 'Schedule',
-
-            # File DTOs (Issue #472)
-            'FileMetadataDto': 'BinaryFile',
-            'UploadFileRequest': 'BinaryFile',
-
-            # Pickup DTOs (Issue #472)
-            'PickupVerificationResultDto': 'PickupLog',
-            'VerifyPickupRequest': 'PickupLog',
-            'RecordPickupRequest': 'PickupLog',
         }
 
         if dto_name in manual_mappings:
             entity = manual_mappings[dto_name]
-            # Allow "System" as a special marker for cross-cutting DTOs
-            if entity == 'System' or entity in self.entities:
+            if entity in self.entities:
                 return entity
 
         # Handle Request pattern: Create{Entity}Request, Update{Entity}Request, etc.
