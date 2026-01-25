@@ -463,6 +463,20 @@ class BackendGraphGenerator:
             'PickupVerificationResultDto': 'PickupLog',
             'VerifyPickupRequest': 'PickupLog',
             'RecordPickupRequest': 'PickupLog',
+
+            # Financial/Giving DTOs (Issue #471)
+            'CreateBatchRequest': 'ContributionBatch',
+            'AddContributionRequest': 'Contribution',
+            'ContributionDetailRequest': 'ContributionDetail',
+            'UpdateContributionRequest': 'Contribution',
+            'BatchFilterRequest': 'ContributionBatch',
+            'BatchSummaryDto': 'ContributionBatch',
+            'StatementContributionDto': 'ContributionStatement',
+            'GenerateStatementRequest': 'ContributionStatement',
+            'BatchStatementRequest': 'ContributionStatement',
+            'StatementPreviewDto': 'ContributionStatement',
+            'EligiblePersonDto': 'ContributionStatement',
+            'GivingStatsDto': 'Contribution',
         }
 
         if dto_name in manual_mappings:
