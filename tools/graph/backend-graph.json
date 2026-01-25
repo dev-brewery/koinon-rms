@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-24T19:15:33.109846+00:00",
+  "generated_at": "2026-01-25T16:08:58.498892+00:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -2030,7 +2030,8 @@
         "MonthToDateTotal": "decimal",
         "YearToDateTotal": "decimal",
         "RecentBatches": "List<DashboardBatchDto>"
-      }
+      },
+      "linked_entity": "Contribution"
     },
     "DashboardBatchDto": {
       "name": "DashboardBatchDto",
@@ -2231,7 +2232,8 @@
         "ItemCountVariance": "int?",
         "Variance": "decimal",
         "IsBalanced": "bool"
-      }
+      },
+      "linked_entity": "ContributionBatch"
     },
     "ContributionBatchDto": {
       "name": "ContributionBatchDto",
@@ -2304,7 +2306,8 @@
         "FundName": "string",
         "Amount": "decimal",
         "CheckNumber": "string?"
-      }
+      },
+      "linked_entity": "ContributionStatement"
     },
     "GenerateStatementRequest": {
       "name": "GenerateStatementRequest",
@@ -2313,7 +2316,8 @@
         "PersonIdKey": "string",
         "StartDate": "DateTime",
         "EndDate": "DateTime"
-      }
+      },
+      "linked_entity": "ContributionStatement"
     },
     "BatchStatementRequest": {
       "name": "BatchStatementRequest",
@@ -2322,7 +2326,8 @@
         "StartDate": "DateTime",
         "EndDate": "DateTime",
         "MinimumAmount": "decimal"
-      }
+      },
+      "linked_entity": "ContributionStatement"
     },
     "StatementPreviewDto": {
       "name": "StatementPreviewDto",
@@ -2337,7 +2342,8 @@
         "Contributions": "List<StatementContributionDto>",
         "ChurchName": "string",
         "ChurchAddress": "string"
-      }
+      },
+      "linked_entity": "ContributionStatement"
     },
     "EligiblePersonDto": {
       "name": "EligiblePersonDto",
@@ -2347,7 +2353,8 @@
         "PersonName": "string",
         "TotalAmount": "decimal",
         "ContributionCount": "int"
-      }
+      },
+      "linked_entity": "ContributionStatement"
     },
     "FundDto": {
       "name": "FundDto",
@@ -3357,7 +3364,8 @@
         "ControlItemCount": "int?",
         "CampusIdKey": "string?",
         "Note": "string?"
-      }
+      },
+      "linked_entity": "ContributionBatch"
     },
     "AddContributionRequest": {
       "name": "AddContributionRequest",
@@ -3379,7 +3387,8 @@
         "FundIdKey": "string",
         "Amount": "decimal",
         "Summary": "string?"
-      }
+      },
+      "linked_entity": "ContributionDetail"
     },
     "UpdateContributionRequest": {
       "name": "UpdateContributionRequest",
@@ -3404,7 +3413,8 @@
         "EndDate": "DateTime?",
         "PageNumber": "int",
         "PageSize": "int"
-      }
+      },
+      "linked_entity": "ContributionBatch"
     },
     "ChangePasswordRequest": {
       "name": "ChangePasswordRequest",
@@ -8832,6 +8842,11 @@
       "relationship": "maps_to"
     },
     {
+      "source": "GivingStatsDto",
+      "target": "Contribution",
+      "relationship": "maps_to"
+    },
+    {
       "source": "DashboardBatchDto",
       "target": "ContributionBatch",
       "relationship": "maps_to"
@@ -8892,6 +8907,11 @@
       "relationship": "maps_to"
     },
     {
+      "source": "BatchSummaryDto",
+      "target": "ContributionBatch",
+      "relationship": "maps_to"
+    },
+    {
       "source": "ContributionBatchDto",
       "target": "ContributionBatch",
       "relationship": "maps_to"
@@ -8908,6 +8928,31 @@
     },
     {
       "source": "ContributionStatementDto",
+      "target": "ContributionStatement",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "StatementContributionDto",
+      "target": "ContributionStatement",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "GenerateStatementRequest",
+      "target": "ContributionStatement",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "BatchStatementRequest",
+      "target": "ContributionStatement",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "StatementPreviewDto",
+      "target": "ContributionStatement",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "EligiblePersonDto",
       "target": "ContributionStatement",
       "relationship": "maps_to"
     },
@@ -9197,13 +9242,28 @@
       "relationship": "maps_to"
     },
     {
+      "source": "CreateBatchRequest",
+      "target": "ContributionBatch",
+      "relationship": "maps_to"
+    },
+    {
       "source": "AddContributionRequest",
       "target": "Contribution",
       "relationship": "maps_to"
     },
     {
+      "source": "ContributionDetailRequest",
+      "target": "ContributionDetail",
+      "relationship": "maps_to"
+    },
+    {
       "source": "UpdateContributionRequest",
       "target": "Contribution",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "BatchFilterRequest",
+      "target": "ContributionBatch",
       "relationship": "maps_to"
     },
     {
@@ -10812,6 +10872,6 @@
     "total_dtos": 195,
     "total_services": 105,
     "total_controllers": 34,
-    "total_relationships": 417
+    "total_relationships": 427
   }
 }
