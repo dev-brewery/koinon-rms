@@ -14,11 +14,24 @@ Exit codes:
 """
 
 import json
+import subprocess
 import sys
 import os
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Dict, List, Set, Tuple, Optional
+
+
+def _get_git_head_timestamp() -> str:
+    """Return git HEAD commit timestamp for idempotent regeneration."""
+    try:
+        result = subprocess.run(
+            ['git', 'log', '-1', '--format=%aI'],
+            capture_output=True, text=True, check=True
+        )
+        return result.stdout.strip()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return datetime.now(timezone.utc).isoformat()
 
 
 class GraphMerger:
@@ -224,9 +237,7 @@ class GraphMerger:
         """Merge backend and frontend graphs into unified baseline."""
         # Copy backend sections
         self.merged_graph["version"] = "1.0"
-        self.merged_graph["generated_at"] = datetime.now(
-            timezone.utc
-        ).isoformat()
+        self.merged_graph["generated_at"] = _get_git_head_timestamp()
 
         # Copy all backend sections
         self.merged_graph["entities"] = self.backend_graph.get("entities", {})
