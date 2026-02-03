@@ -12,10 +12,23 @@ Usage:
 import json
 import os
 import re
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Tuple, Set
+
+
+def _get_git_head_timestamp() -> str:
+    """Return git HEAD commit timestamp for idempotent regeneration."""
+    try:
+        result = subprocess.run(
+            ['git', 'log', '-1', '--format=%aI'],
+            capture_output=True, text=True, check=True
+        )
+        return result.stdout.strip()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return datetime.now(timezone.utc).isoformat()
 
 
 class CSharpParser:
@@ -477,6 +490,24 @@ class BackendGraphGenerator:
             'StatementPreviewDto': 'ContributionStatement',
             'EligiblePersonDto': 'ContributionStatement',
             'GivingStatsDto': 'Contribution',
+
+            # Communication DTOs (Issue #470)
+            'CreateCommunicationDto': 'Communication',
+            'UpdateCommunicationDto': 'Communication',
+            'CreateCommunicationTemplateDto': 'CommunicationTemplate',
+            'UpdateCommunicationTemplateDto': 'CommunicationTemplate',
+            'UpdateCommunicationPreferenceDto': 'CommunicationPreference',
+            'BulkUpdatePreferencesDto': 'CommunicationPreference',
+            'EmailAttachmentDto': 'Communication',
+            'QueuedSmsDto': 'Communication',
+            'TwilioWebhookDto': 'Communication',
+            'CreateNotificationDto': 'Notification',
+            'UpdateNotificationPreferenceDto': 'NotificationPreference',
+            'ScheduleCommunicationRequest': 'Communication',
+            'SendPageRequest': 'PagerMessage',
+            'PageSearchRequest': 'PagerMessage',
+            'PageHistoryDto': 'PagerMessage',
+            'PagerMessageDto': 'PagerMessage',
         }
 
         if dto_name in manual_mappings:
@@ -651,7 +682,7 @@ class BackendGraphGenerator:
 
         return {
             'version': '1.0',
-            'generated_at': datetime.now(timezone.utc).isoformat(),
+            'generated_at': _get_git_head_timestamp(),
             'entities': self.entities,
             'dtos': self.dtos,
             'services': self.services,

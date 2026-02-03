@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-01-25T16:08:58.498892+00:00",
+  "generated_at": "2026-02-03T09:07:24-05:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -1840,7 +1840,8 @@
         "ScheduledDateTime": "DateTime?",
         "Note": "string?",
         "GroupIdKeys": "IReadOnlyList<string>"
-      }
+      },
+      "linked_entity": "Communication"
     },
     "UpdateCommunicationDto": {
       "name": "UpdateCommunicationDto",
@@ -1852,7 +1853,8 @@
         "FromName": "string?",
         "ReplyToEmail": "string?",
         "Note": "string?"
-      }
+      },
+      "linked_entity": "Communication"
     },
     "CommunicationPreferenceDto": {
       "name": "CommunicationPreferenceDto",
@@ -1873,14 +1875,16 @@
       "properties": {
         "IsOptedOut": "bool",
         "OptOutReason": "string?"
-      }
+      },
+      "linked_entity": "CommunicationPreference"
     },
     "BulkUpdatePreferencesDto": {
       "name": "BulkUpdatePreferencesDto",
       "namespace": "Koinon.Application.DTOs",
       "properties": {
         "Preferences": "List<PreferenceUpdateItem>"
-      }
+      },
+      "linked_entity": "CommunicationPreference"
     },
     "CommunicationPreviewRequestDto": {
       "name": "CommunicationPreviewRequestDto",
@@ -1940,7 +1944,8 @@
         "Body": "string",
         "Description": "string?",
         "IsActive": "bool"
-      }
+      },
+      "linked_entity": "CommunicationTemplate"
     },
     "UpdateCommunicationTemplateDto": {
       "name": "UpdateCommunicationTemplateDto",
@@ -1952,7 +1957,8 @@
         "Body": "string?",
         "Description": "string?",
         "IsActive": "bool?"
-      }
+      },
+      "linked_entity": "CommunicationTemplate"
     },
     "EmailAttachmentDto": {
       "name": "EmailAttachmentDto",
@@ -1961,7 +1967,8 @@
         "FileName": "string",
         "Content": "byte[]",
         "ContentType": "string"
-      }
+      },
+      "linked_entity": "Communication"
     },
     "QueuedSmsDto": {
       "name": "QueuedSmsDto",
@@ -1970,7 +1977,8 @@
         "ToPhoneNumber": "string",
         "Message": "string",
         "MediaUrls": "IEnumerable<string>?"
-      }
+      },
+      "linked_entity": "Communication"
     },
     "TwilioWebhookDto": {
       "name": "TwilioWebhookDto",
@@ -1982,7 +1990,8 @@
         "From": "string?",
         "ErrorCode": "int?",
         "ErrorMessage": "string?"
-      }
+      },
+      "linked_entity": "Communication"
     },
     "CreateNotificationDto": {
       "name": "CreateNotificationDto",
@@ -1994,7 +2003,8 @@
         "Message": "string",
         "ActionUrl": "string?",
         "MetadataJson": "string?"
-      }
+      },
+      "linked_entity": "Notification"
     },
     "DashboardStatsDto": {
       "name": "DashboardStatsDto",
@@ -2922,7 +2932,8 @@
         "ChildName": "string",
         "ParentPhoneNumber": "string",
         "Messages": "List<PagerMessageDto>"
-      }
+      },
+      "linked_entity": "PagerMessage"
     },
     "PersonDto": {
       "name": "PersonDto",
@@ -3431,7 +3442,8 @@
       "namespace": "Koinon.Application.DTOs.Requests",
       "properties": {
         "ScheduledDateTime": "DateTime"
-      }
+      },
+      "linked_entity": "Communication"
     },
     "CreateCampusRequest": {
       "name": "CreateCampusRequest",
@@ -3656,7 +3668,8 @@
         "PagerNumber": "string",
         "MessageType": "PagerMessageType",
         "CustomMessage": "string?"
-      }
+      },
+      "linked_entity": "PagerMessage"
     },
     "PageSearchRequest": {
       "name": "PageSearchRequest",
@@ -3665,7 +3678,8 @@
         "SearchTerm": "string?",
         "CampusId": "int?",
         "Date": "DateTime?"
-      }
+      },
+      "linked_entity": "PagerMessage"
     },
     "ProcessMembershipRequestDto": {
       "name": "ProcessMembershipRequestDto",
@@ -4101,7 +4115,8 @@
       "properties": {
         "NotificationType": "NotificationType",
         "IsEnabled": "bool"
-      }
+      },
+      "linked_entity": "NotificationPreference"
     },
     "UserPreferenceDto": {
       "name": "UserPreferenceDto",
@@ -8807,7 +8822,27 @@
       "relationship": "maps_to"
     },
     {
+      "source": "CreateCommunicationDto",
+      "target": "Communication",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdateCommunicationDto",
+      "target": "Communication",
+      "relationship": "maps_to"
+    },
+    {
       "source": "CommunicationPreferenceDto",
+      "target": "CommunicationPreference",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdateCommunicationPreferenceDto",
+      "target": "CommunicationPreference",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "BulkUpdatePreferencesDto",
       "target": "CommunicationPreference",
       "relationship": "maps_to"
     },
@@ -8829,6 +8864,36 @@
     {
       "source": "CommunicationTemplateSummaryDto",
       "target": "Communication",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CreateCommunicationTemplateDto",
+      "target": "CommunicationTemplate",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdateCommunicationTemplateDto",
+      "target": "CommunicationTemplate",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "EmailAttachmentDto",
+      "target": "Communication",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "QueuedSmsDto",
+      "target": "Communication",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "TwilioWebhookDto",
+      "target": "Communication",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CreateNotificationDto",
+      "target": "Notification",
       "relationship": "maps_to"
     },
     {
@@ -9112,6 +9177,11 @@
       "relationship": "maps_to"
     },
     {
+      "source": "PageHistoryDto",
+      "target": "PagerMessage",
+      "relationship": "maps_to"
+    },
+    {
       "source": "PersonDto",
       "target": "Person",
       "relationship": "maps_to"
@@ -9272,6 +9342,11 @@
       "relationship": "maps_to"
     },
     {
+      "source": "ScheduleCommunicationRequest",
+      "target": "Communication",
+      "relationship": "maps_to"
+    },
+    {
       "source": "CreateCampusRequest",
       "target": "Campus",
       "relationship": "maps_to"
@@ -9344,6 +9419,16 @@
     {
       "source": "AssignFollowUpRequest",
       "target": "Person",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "SendPageRequest",
+      "target": "PagerMessage",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "PageSearchRequest",
+      "target": "PagerMessage",
       "relationship": "maps_to"
     },
     {
@@ -9444,6 +9529,11 @@
     {
       "source": "TwoFactorStatusDto",
       "target": "TwoFactorConfig",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdateNotificationPreferenceDto",
+      "target": "NotificationPreference",
       "relationship": "maps_to"
     },
     {
@@ -10872,6 +10962,6 @@
     "total_dtos": 195,
     "total_services": 105,
     "total_controllers": 34,
-    "total_relationships": 427
+    "total_relationships": 442
   }
 }
