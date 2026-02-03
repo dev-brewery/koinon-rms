@@ -508,6 +508,33 @@ class BackendGraphGenerator:
             'PageSearchRequest': 'PagerMessage',
             'PageHistoryDto': 'PagerMessage',
             'PagerMessageDto': 'PagerMessage',
+
+            # Checkin DTOs (Issue #469)
+            'CheckinRequestDto': 'Attendance',
+            'BatchCheckinRequestDto': 'Attendance',
+            'CheckinResultDto': 'Attendance',
+            'BatchCheckinResultDto': 'Attendance',
+            'CheckinPersonSummaryDto': 'Person',
+            'CheckinLocationSummaryDto': 'Location',
+            'CheckinConfigurationDto': 'Device',
+            'CheckinAreaDto': 'Group',
+            'CheckinLocationDto': 'Location',
+            'CheckinFamilySearchResultDto': 'Family',
+            'CheckinFamilyMemberDto': 'Person',
+            'RoomCapacityDto': 'Location',
+            'UpdateCapacitySettingsDto': 'Location',
+            'CapacityOverrideRequestDto': 'Location',
+            'RosterChildDto': 'Attendance',
+            'RoomRosterDto': 'AttendanceOccurrence',
+            'PrintableRosterRequestDto': 'AttendanceOccurrence',
+            'SupervisorLoginRequest': 'SupervisorSession',
+            'SupervisorLoginResponse': 'SupervisorSession',
+            'SupervisorInfoDto': 'Person',
+            'SupervisorReprintRequest': 'Attendance',
+            'MarkAttendanceResultDto': 'Attendance',
+            'BulkMarkAttendanceResultDto': 'Attendance',
+            'OccurrenceRosterEntryDto': 'Attendance',
+            'CheckinValidationResult': 'Attendance',
         }
 
         if dto_name in manual_mappings:

@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-02-03T09:07:24-05:00",
+  "generated_at": "2026-02-03T09:31:38-05:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -1434,7 +1434,8 @@
         "AttendanceIdKey": "string?",
         "IsFirstTime": "bool",
         "PresentDateTime": "DateTime?"
-      }
+      },
+      "linked_entity": "Attendance"
     },
     "BulkMarkAttendanceResultDto": {
       "name": "BulkMarkAttendanceResultDto",
@@ -1444,7 +1445,8 @@
         "SuccessCount": "int",
         "FailureCount": "int",
         "AllSucceeded": "bool"
-      }
+      },
+      "linked_entity": "Attendance"
     },
     "OccurrenceRosterEntryDto": {
       "name": "OccurrenceRosterEntryDto",
@@ -1462,7 +1464,8 @@
         "PresentDateTime": "DateTime?",
         "IsFirstTime": "bool",
         "Note": "string?"
-      }
+      },
+      "linked_entity": "Attendance"
     },
     "FamilyRosterGroupDto": {
       "name": "FamilyRosterGroupDto",
@@ -1589,7 +1592,8 @@
         "DeviceIdKey": "string?",
         "GenerateSecurityCode": "bool",
         "Note": "string?"
-      }
+      },
+      "linked_entity": "Attendance"
     },
     "BatchCheckinRequestDto": {
       "name": "BatchCheckinRequestDto",
@@ -1597,7 +1601,8 @@
       "properties": {
         "CheckIns": "List<CheckinRequestDto>",
         "DeviceIdKey": "string?"
-      }
+      },
+      "linked_entity": "Attendance"
     },
     "CheckinResultDto": {
       "name": "CheckinResultDto",
@@ -1610,7 +1615,8 @@
         "CheckInTime": "DateTime?",
         "Person": "CheckinPersonSummaryDto?",
         "Location": "CheckinLocationSummaryDto?"
-      }
+      },
+      "linked_entity": "Attendance"
     },
     "BatchCheckinResultDto": {
       "name": "BatchCheckinResultDto",
@@ -1620,7 +1626,8 @@
         "SuccessCount": "int",
         "FailureCount": "int",
         "AllSucceeded": "bool"
-      }
+      },
+      "linked_entity": "Attendance"
     },
     "AttendanceSummaryDto": {
       "name": "AttendanceSummaryDto",
@@ -1648,7 +1655,8 @@
         "NickName": "string?",
         "Age": "int?",
         "PhotoUrl": "string?"
-      }
+      },
+      "linked_entity": "Person"
     },
     "CheckinLocationSummaryDto": {
       "name": "CheckinLocationSummaryDto",
@@ -1657,7 +1665,8 @@
         "IdKey": "string",
         "Name": "string",
         "FullPath": "string"
-      }
+      },
+      "linked_entity": "Location"
     },
     "CheckinConfigurationDto": {
       "name": "CheckinConfigurationDto",
@@ -1667,7 +1676,8 @@
         "Areas": "IReadOnlyList<CheckinAreaDto>",
         "ActiveSchedules": "IReadOnlyList<ScheduleDto>",
         "ServerTime": "DateTime"
-      }
+      },
+      "linked_entity": "Device"
     },
     "CheckinAreaDto": {
       "name": "CheckinAreaDto",
@@ -1686,7 +1696,8 @@
         "MaxAgeMonths": "int?",
         "MinGrade": "int?",
         "MaxGrade": "int?"
-      }
+      },
+      "linked_entity": "Group"
     },
     "CheckinLocationDto": {
       "name": "CheckinLocationDto",
@@ -1705,7 +1716,8 @@
         "OverflowLocationIdKey": "string?",
         "OverflowLocationName": "string?",
         "AutoAssignOverflow": "bool"
-      }
+      },
+      "linked_entity": "Location"
     },
     "ScheduleDto": {
       "name": "ScheduleDto",
@@ -1744,7 +1756,8 @@
         "CampusName": "string?",
         "Members": "IReadOnlyList<CheckinFamilyMemberDto>",
         "RecentCheckInCount": "int"
-      }
+      },
+      "linked_entity": "Family"
     },
     "CheckinFamilyMemberDto": {
       "name": "CheckinFamilyMemberDto",
@@ -1766,7 +1779,8 @@
         "Allergies": "string?",
         "HasCriticalAllergies": "bool",
         "SpecialNeeds": "string?"
-      }
+      },
+      "linked_entity": "Person"
     },
     "CommunicationDto": {
       "name": "CommunicationDto",
@@ -3948,7 +3962,8 @@
         "OverflowLocationName": "string?",
         "AutoAssignOverflow": "bool",
         "IsActive": "bool"
-      }
+      },
+      "linked_entity": "Location"
     },
     "UpdateCapacitySettingsDto": {
       "name": "UpdateCapacitySettingsDto",
@@ -3959,7 +3974,8 @@
         "StaffToChildRatio": "int?",
         "OverflowLocationIdKey": "string?",
         "AutoAssignOverflow": "bool"
-      }
+      },
+      "linked_entity": "Location"
     },
     "CapacityOverrideRequestDto": {
       "name": "CapacityOverrideRequestDto",
@@ -3968,7 +3984,8 @@
         "LocationIdKey": "string",
         "SupervisorPin": "string",
         "Reason": "string"
-      }
+      },
+      "linked_entity": "Location"
     },
     "RosterChildDto": {
       "name": "RosterChildDto",
@@ -3991,7 +4008,8 @@
         "ParentName": "string?",
         "ParentMobilePhone": "string?",
         "IsFirstTime": "bool"
-      }
+      },
+      "linked_entity": "Attendance"
     },
     "RoomRosterDto": {
       "name": "RoomRosterDto",
@@ -4005,7 +4023,8 @@
         "GeneratedAt": "DateTime",
         "IsAtCapacity": "bool",
         "IsNearCapacity": "bool"
-      }
+      },
+      "linked_entity": "AttendanceOccurrence"
     },
     "PrintableRosterRequestDto": {
       "name": "PrintableRosterRequestDto",
@@ -4015,7 +4034,8 @@
         "IncludePhotos": "bool",
         "IncludeParentInfo": "bool",
         "IncludeSpecialNeeds": "bool"
-      }
+      },
+      "linked_entity": "AttendanceOccurrence"
     },
     "ScheduleSummaryDto": {
       "name": "ScheduleSummaryDto",
@@ -4061,7 +4081,8 @@
       "namespace": "Koinon.Application.DTOs",
       "properties": {
         "Pin": "string"
-      }
+      },
+      "linked_entity": "SupervisorSession"
     },
     "SupervisorLoginResponse": {
       "name": "SupervisorLoginResponse",
@@ -4070,7 +4091,8 @@
         "SessionToken": "string",
         "ExpiresAt": "DateTime",
         "Supervisor": "SupervisorInfoDto"
-      }
+      },
+      "linked_entity": "SupervisorSession"
     },
     "SupervisorInfoDto": {
       "name": "SupervisorInfoDto",
@@ -4080,7 +4102,8 @@
         "FullName": "string",
         "FirstName": "string",
         "LastName": "string"
-      }
+      },
+      "linked_entity": "Person"
     },
     "SupervisorReprintRequest": {
       "name": "SupervisorReprintRequest",
@@ -4088,7 +4111,8 @@
       "properties": {
         "SessionToken": "string",
         "AttendanceIdKey": "string"
-      }
+      },
+      "linked_entity": "Attendance"
     },
     "TwoFactorSetupDto": {
       "name": "TwoFactorSetupDto",
@@ -8757,6 +8781,21 @@
       "relationship": "maps_to"
     },
     {
+      "source": "MarkAttendanceResultDto",
+      "target": "Attendance",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "BulkMarkAttendanceResultDto",
+      "target": "Attendance",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "OccurrenceRosterEntryDto",
+      "target": "Attendance",
+      "relationship": "maps_to"
+    },
+    {
       "source": "FamilyRosterGroupDto",
       "target": "Family",
       "relationship": "maps_to"
@@ -8797,13 +8836,68 @@
       "relationship": "maps_to"
     },
     {
+      "source": "CheckinRequestDto",
+      "target": "Attendance",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "BatchCheckinRequestDto",
+      "target": "Attendance",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CheckinResultDto",
+      "target": "Attendance",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "BatchCheckinResultDto",
+      "target": "Attendance",
+      "relationship": "maps_to"
+    },
+    {
       "source": "AttendanceSummaryDto",
       "target": "Attendance",
       "relationship": "maps_to"
     },
     {
+      "source": "CheckinPersonSummaryDto",
+      "target": "Person",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CheckinLocationSummaryDto",
+      "target": "Location",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CheckinConfigurationDto",
+      "target": "Device",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CheckinAreaDto",
+      "target": "Group",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CheckinLocationDto",
+      "target": "Location",
+      "relationship": "maps_to"
+    },
+    {
       "source": "ScheduleDto",
       "target": "Schedule",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CheckinFamilySearchResultDto",
+      "target": "Family",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CheckinFamilyMemberDto",
+      "target": "Person",
       "relationship": "maps_to"
     },
     {
@@ -9507,6 +9601,36 @@
       "relationship": "maps_to"
     },
     {
+      "source": "RoomCapacityDto",
+      "target": "Location",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdateCapacitySettingsDto",
+      "target": "Location",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CapacityOverrideRequestDto",
+      "target": "Location",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "RosterChildDto",
+      "target": "Attendance",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "RoomRosterDto",
+      "target": "AttendanceOccurrence",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "PrintableRosterRequestDto",
+      "target": "AttendanceOccurrence",
+      "relationship": "maps_to"
+    },
+    {
       "source": "ScheduleSummaryDto",
       "target": "Schedule",
       "relationship": "maps_to"
@@ -9519,6 +9643,26 @@
     {
       "source": "SecurityRoleDto",
       "target": "SecurityRole",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "SupervisorLoginRequest",
+      "target": "SupervisorSession",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "SupervisorLoginResponse",
+      "target": "SupervisorSession",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "SupervisorInfoDto",
+      "target": "Person",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "SupervisorReprintRequest",
+      "target": "Attendance",
       "relationship": "maps_to"
     },
     {
@@ -10962,6 +11106,6 @@
     "total_dtos": 195,
     "total_services": 105,
     "total_controllers": 34,
-    "total_relationships": 442
+    "total_relationships": 466
   }
 }
