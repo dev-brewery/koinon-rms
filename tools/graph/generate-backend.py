@@ -508,6 +508,10 @@ class BackendGraphGenerator:
             'PageSearchRequest': 'PagerMessage',
             'PageHistoryDto': 'PagerMessage',
             'PagerMessageDto': 'PagerMessage',
+
+            # Family DTOs (Issue #467)
+            'MyFamilyMemberDto': 'FamilyMember',
+            'AddressDto': 'Family',
         }
 
         if dto_name in manual_mappings:

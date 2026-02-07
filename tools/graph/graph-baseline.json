@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-02-03T09:07:24-05:00",
+  "generated_at": "2026-02-03T09:31:38-05:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -2152,7 +2152,8 @@
         "PostalCode": "string?",
         "Country": "string?",
         "FormattedAddress": "string"
-      }
+      },
+      "linked_entity": "Family"
     },
     "GroupTypeRoleDto": {
       "name": "GroupTypeRoleDto",
@@ -2796,7 +2797,8 @@
         "Allergies": "string?",
         "HasCriticalAllergies": "bool",
         "SpecialNeeds": "string?"
-      }
+      },
+      "linked_entity": "FamilyMember"
     },
     "MyGroupDto": {
       "name": "MyGroupDto",
@@ -16511,6 +16513,11 @@
       "relationship": "maps_to"
     },
     {
+      "source": "AddressDto",
+      "target": "Family",
+      "relationship": "maps_to"
+    },
+    {
       "source": "GroupTypeRoleDto",
       "target": "GroupTypeRole",
       "relationship": "maps_to"
@@ -16713,6 +16720,11 @@
     {
       "source": "MergeFieldDto",
       "target": "LabelTemplate",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "MyFamilyMemberDto",
+      "target": "FamilyMember",
       "relationship": "maps_to"
     },
     {
@@ -19035,6 +19047,6 @@
     "api_functions": 164,
     "hooks": 143,
     "components": 129,
-    "total_edges": 509
+    "total_edges": 511
   }
 }
