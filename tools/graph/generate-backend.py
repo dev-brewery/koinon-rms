@@ -318,14 +318,28 @@ class CSharpParser:
                     })
         return endpoints
 
-    def extract_patterns(self, content: str) -> Dict[str, bool]:
+    # Controllers that legitimately do not need IdKey in their primary route.
+    # Auth-context controllers resolve entities from the authenticated user.
+    IDKEY_EXEMPT_CONTROLLERS: Dict[str, str] = {
+        'MyGroupsController': 'Auth-context controller, resolves groups from authenticated user',
+        'MyProfileController': 'Auth-context controller, resolves person from authenticated user',
+        'AnalyticsController': 'Aggregate data queries, no entity-specific routes',
+        'AuthController': 'Authentication operations (login/refresh/logout), no entity routes',
+        'DashboardController': 'Aggregate dashboard statistics, no entity-specific routes',
+        'SearchController': 'Global search operations, no entity-specific routes',
+        'TwilioWebhookController': 'External webhook receiver, no entity-specific routes',
+    }
+
+    def extract_patterns(self, content: str, class_name: str = '') -> Dict[str, Any]:
         """Extract architectural patterns used in controller."""
-        patterns = {
+        patterns: Dict[str, Any] = {
             'response_envelope': bool(re.search(r'new\s*\{\s*(?:data|Data)\s*=', content)),
-            'idkey_routes': bool(re.search(r'\{idKey\}', content)),
+            'idkey_routes': bool(re.search(r'\{[a-zA-Z]*[Ii]dKey\}', content)),
             'problem_details': bool(re.search(r'Problem\(|ProblemDetails', content)),
             'result_pattern': bool(re.search(r'Result<', content))
         }
+        if class_name in self.IDKEY_EXEMPT_CONTROLLERS:
+            patterns['idkey_exempt'] = True
         return patterns
 
 
@@ -535,6 +549,15 @@ class BackendGraphGenerator:
             'BulkMarkAttendanceResultDto': 'Attendance',
             'OccurrenceRosterEntryDto': 'Attendance',
             'CheckinValidationResult': 'Attendance',
+
+            # Group DTOs (Issue #468)
+            'MyGroupDto': 'Group',
+            'MyInvolvementDto': 'GroupMember',
+            'MyInvolvementGroupDto': 'Group',
+            'PublicGroupDto': 'Group',
+            'SubmitMembershipRequestDto': 'GroupMemberRequest',
+            'ProcessMembershipRequestDto': 'GroupMemberRequest',
+            'RecordAttendanceRequest': 'Attendance',
         }
 
         if dto_name in manual_mappings:
@@ -623,7 +646,7 @@ class BackendGraphGenerator:
                 route = f"api/v1/{self.parser.camel_to_snake(controller_base)}"
 
             endpoints = self.parser.extract_endpoints(content)
-            patterns = self.parser.extract_patterns(content)
+            patterns = self.parser.extract_patterns(content, class_name)
             dependencies = self.parser.extract_constructor_dependencies(content)
 
             self.controllers[class_name] = {

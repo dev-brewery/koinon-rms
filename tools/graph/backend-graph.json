@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-02-03T09:31:38-05:00",
+  "generated_at": "2026-02-06T21:29:42-05:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -2828,7 +2828,8 @@
         "Campus": "CampusSummaryDto?",
         "CreatedDateTime": "DateTime",
         "ModifiedDateTime": "DateTime?"
-      }
+      },
+      "linked_entity": "Group"
     },
     "MyInvolvementDto": {
       "name": "MyInvolvementDto",
@@ -2837,7 +2838,8 @@
         "Groups": "IReadOnlyList<MyInvolvementGroupDto>",
         "RecentAttendanceCount": "int",
         "TotalGroupsCount": "int"
-      }
+      },
+      "linked_entity": "GroupMember"
     },
     "MyInvolvementGroupDto": {
       "name": "MyInvolvementGroupDto",
@@ -2852,7 +2854,8 @@
         "LastAttendanceDate": "DateTime?",
         "JoinedDate": "DateTime?",
         "Campus": "CampusSummaryDto?"
-      }
+      },
+      "linked_entity": "Group"
     },
     "MyProfileDto": {
       "name": "MyProfileDto",
@@ -3201,7 +3204,8 @@
         "MeetingDay": "string?",
         "MeetingTime": "TimeOnly?",
         "MeetingScheduleSummary": "string?"
-      }
+      },
+      "linked_entity": "Group"
     },
     "ReportDefinitionDto": {
       "name": "ReportDefinitionDto",
@@ -3701,7 +3705,8 @@
       "properties": {
         "Status": "string",
         "Note": "string?"
-      }
+      },
+      "linked_entity": "GroupMemberRequest"
     },
     "RecordAttendanceRequest": {
       "name": "RecordAttendanceRequest",
@@ -3710,7 +3715,8 @@
         "OccurrenceDate": "DateOnly",
         "AttendedPersonIds": "IReadOnlyList<string>",
         "Notes": "string?"
-      }
+      },
+      "linked_entity": "Attendance"
     },
     "CreateScheduleRequest": {
       "name": "CreateScheduleRequest",
@@ -3769,7 +3775,8 @@
       "namespace": "Koinon.Application.DTOs.Requests",
       "properties": {
         "Note": "string?"
-      }
+      },
+      "linked_entity": "GroupMemberRequest"
     },
     "TwoFactorVerifyRequest": {
       "name": "TwoFactorVerifyRequest",
@@ -6688,9 +6695,10 @@
       ],
       "patterns": {
         "response_envelope": true,
-        "idkey_routes": false,
+        "idkey_routes": true,
         "problem_details": true,
-        "result_pattern": false
+        "result_pattern": false,
+        "idkey_exempt": true
       },
       "dependencies": [
         "IAttendanceAnalyticsService",
@@ -6770,7 +6778,8 @@
         "response_envelope": true,
         "idkey_routes": false,
         "problem_details": true,
-        "result_pattern": false
+        "result_pattern": false,
+        "idkey_exempt": true
       },
       "dependencies": [
         "IAuthService",
@@ -6831,7 +6840,7 @@
       ],
       "patterns": {
         "response_envelope": true,
-        "idkey_routes": false,
+        "idkey_routes": true,
         "problem_details": true,
         "result_pattern": false
       },
@@ -7027,7 +7036,7 @@
       ],
       "patterns": {
         "response_envelope": true,
-        "idkey_routes": false,
+        "idkey_routes": true,
         "problem_details": true,
         "result_pattern": false
       },
@@ -7059,7 +7068,7 @@
       ],
       "patterns": {
         "response_envelope": true,
-        "idkey_routes": false,
+        "idkey_routes": true,
         "problem_details": true,
         "result_pattern": false
       },
@@ -7221,7 +7230,8 @@
         "response_envelope": true,
         "idkey_routes": false,
         "problem_details": false,
-        "result_pattern": false
+        "result_pattern": false,
+        "idkey_exempt": true
       },
       "dependencies": [
         "IDashboardService",
@@ -7625,7 +7635,7 @@
       ],
       "patterns": {
         "response_envelope": true,
-        "idkey_routes": false,
+        "idkey_routes": true,
         "problem_details": true,
         "result_pattern": false
       },
@@ -7995,9 +8005,10 @@
       ],
       "patterns": {
         "response_envelope": true,
-        "idkey_routes": false,
+        "idkey_routes": true,
         "problem_details": false,
-        "result_pattern": false
+        "result_pattern": false,
+        "idkey_exempt": true
       },
       "dependencies": [
         "IMyGroupsService"
@@ -8056,9 +8067,10 @@
       ],
       "patterns": {
         "response_envelope": true,
-        "idkey_routes": false,
+        "idkey_routes": true,
         "problem_details": false,
-        "result_pattern": false
+        "result_pattern": false,
+        "idkey_exempt": true
       },
       "dependencies": [
         "IMyProfileService"
@@ -8388,7 +8400,7 @@
       ],
       "patterns": {
         "response_envelope": true,
-        "idkey_routes": false,
+        "idkey_routes": true,
         "problem_details": true,
         "result_pattern": false
       },
@@ -8636,7 +8648,8 @@
         "response_envelope": false,
         "idkey_routes": false,
         "problem_details": true,
-        "result_pattern": false
+        "result_pattern": false,
+        "idkey_exempt": true
       },
       "dependencies": [
         "IGlobalSearchService",
@@ -8662,7 +8675,8 @@
         "response_envelope": false,
         "idkey_routes": false,
         "problem_details": false,
-        "result_pattern": false
+        "result_pattern": false,
+        "idkey_exempt": true
       },
       "dependencies": [
         "ILogger<TwilioWebhookController>",
@@ -9246,6 +9260,21 @@
       "relationship": "maps_to"
     },
     {
+      "source": "MyGroupDto",
+      "target": "Group",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "MyInvolvementDto",
+      "target": "GroupMember",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "MyInvolvementGroupDto",
+      "target": "Group",
+      "relationship": "maps_to"
+    },
+    {
       "source": "MyProfileDto",
       "target": "Person",
       "relationship": "maps_to"
@@ -9343,6 +9372,11 @@
     {
       "source": "PickupVerificationResultDto",
       "target": "PickupLog",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "PublicGroupDto",
+      "target": "Group",
       "relationship": "maps_to"
     },
     {
@@ -9526,6 +9560,16 @@
       "relationship": "maps_to"
     },
     {
+      "source": "ProcessMembershipRequestDto",
+      "target": "GroupMemberRequest",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "RecordAttendanceRequest",
+      "target": "Attendance",
+      "relationship": "maps_to"
+    },
+    {
       "source": "CreateScheduleRequest",
       "target": "Schedule",
       "relationship": "maps_to"
@@ -9538,6 +9582,11 @@
     {
       "source": "StartImportRequest",
       "target": "ImportJob",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "SubmitMembershipRequestDto",
+      "target": "GroupMemberRequest",
       "relationship": "maps_to"
     },
     {
@@ -11106,6 +11155,6 @@
     "total_dtos": 195,
     "total_services": 105,
     "total_controllers": 34,
-    "total_relationships": 466
+    "total_relationships": 473
   }
 }
