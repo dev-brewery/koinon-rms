@@ -22,7 +22,10 @@
       "type": "string",
       "description": "Schema version (semantic versioning)",
       "pattern": "^\\d+\\.\\d+(\\.\\d+)?$",
-      "examples": ["1.0", "1.0.0"]
+      "examples": [
+        "1.0",
+        "1.0.0"
+      ]
     },
     "generated_at": {
       "type": "string",
@@ -90,7 +93,13 @@
     "Entity": {
       "type": "object",
       "description": "Domain entity representing core business object",
-      "required": ["name", "namespace", "table", "properties", "navigations"],
+      "required": [
+        "name",
+        "namespace",
+        "table",
+        "properties",
+        "navigations"
+      ],
       "additionalProperties": false,
       "properties": {
         "name": {
@@ -101,7 +110,9 @@
         "namespace": {
           "type": "string",
           "description": "C# namespace where entity is defined",
-          "enum": ["Koinon.Domain.Entities"]
+          "enum": [
+            "Koinon.Domain.Entities"
+          ]
         },
         "table": {
           "type": "string",
@@ -121,7 +132,11 @@
           "description": "Navigation properties to other entities",
           "items": {
             "type": "object",
-            "required": ["name", "target_entity", "type"],
+            "required": [
+              "name",
+              "target_entity",
+              "type"
+            ],
             "additionalProperties": false,
             "properties": {
               "name": {
@@ -134,7 +149,10 @@
               },
               "type": {
                 "type": "string",
-                "enum": ["one", "many"],
+                "enum": [
+                  "one",
+                  "many"
+                ],
                 "description": "Cardinality: one or many"
               }
             }
@@ -145,7 +163,11 @@
     "DTO": {
       "type": "object",
       "description": "Data transfer object for API communication",
-      "required": ["name", "namespace", "properties"],
+      "required": [
+        "name",
+        "namespace",
+        "properties"
+      ],
       "additionalProperties": false,
       "properties": {
         "name": {
@@ -175,7 +197,12 @@
     "Service": {
       "type": "object",
       "description": "Application service implementing business logic",
-      "required": ["name", "namespace", "methods", "dependencies"],
+      "required": [
+        "name",
+        "namespace",
+        "methods",
+        "dependencies"
+      ],
       "additionalProperties": false,
       "properties": {
         "name": {
@@ -193,7 +220,9 @@
           "description": "Public methods of the service",
           "items": {
             "type": "object",
-            "required": ["name"],
+            "required": [
+              "name"
+            ],
             "additionalProperties": false,
             "properties": {
               "name": {
@@ -224,7 +253,13 @@
     "Controller": {
       "type": "object",
       "description": "ASP.NET Core API controller handling HTTP requests",
-      "required": ["name", "namespace", "route", "endpoints", "patterns"],
+      "required": [
+        "name",
+        "namespace",
+        "route",
+        "endpoints",
+        "patterns"
+      ],
       "additionalProperties": false,
       "properties": {
         "name": {
@@ -235,7 +270,9 @@
         "namespace": {
           "type": "string",
           "description": "C# namespace where controller is defined",
-          "enum": ["Koinon.Api.Controllers"]
+          "enum": [
+            "Koinon.Api.Controllers"
+          ]
         },
         "route": {
           "type": "string",
@@ -247,7 +284,11 @@
           "description": "HTTP endpoints (actions) in controller",
           "items": {
             "type": "object",
-            "required": ["name", "method", "route"],
+            "required": [
+              "name",
+              "method",
+              "route"
+            ],
             "additionalProperties": false,
             "properties": {
               "name": {
@@ -256,7 +297,15 @@
               },
               "method": {
                 "type": "string",
-                "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],
+                "enum": [
+                  "GET",
+                  "POST",
+                  "PUT",
+                  "PATCH",
+                  "DELETE",
+                  "HEAD",
+                  "OPTIONS"
+                ],
                 "description": "HTTP method"
               },
               "route": {
@@ -306,6 +355,14 @@
             "result_pattern": {
               "type": "boolean",
               "description": "Uses Result<T> pattern for return values"
+            },
+            "idkey_exempt": {
+              "type": "boolean",
+              "description": "Controller legitimately does not need IdKey routes (e.g., aggregate queries, auth, webhooks)"
+            },
+            "idkey_exempt_reason": {
+              "type": "string",
+              "description": "Reason why controller is exempt from IdKey route requirement"
             }
           }
         }
@@ -314,7 +371,11 @@
     "Hook": {
       "type": "object",
       "description": "React custom hook for data fetching and state management",
-      "required": ["name", "path", "api_binding"],
+      "required": [
+        "name",
+        "path",
+        "api_binding"
+      ],
       "additionalProperties": false,
       "properties": {
         "name": {
@@ -351,7 +412,13 @@
     "ApiFunction": {
       "type": "object",
       "description": "Frontend API function for HTTP communication with backend",
-      "required": ["name", "path", "endpoint", "method", "response_type"],
+      "required": [
+        "name",
+        "path",
+        "endpoint",
+        "method",
+        "response_type"
+      ],
       "additionalProperties": false,
       "properties": {
         "name": {
@@ -370,7 +437,13 @@
         },
         "method": {
           "type": "string",
-          "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"],
+          "enum": [
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE"
+          ],
           "description": "HTTP method"
         },
         "request_type": {
@@ -386,7 +459,10 @@
     "Component": {
       "type": "object",
       "description": "React component for UI rendering",
-      "required": ["name", "path"],
+      "required": [
+        "name",
+        "path"
+      ],
       "additionalProperties": false,
       "properties": {
         "name": {
@@ -420,7 +496,11 @@
     "Edge": {
       "type": "object",
       "description": "Relationship between two nodes in the graph",
-      "required": ["from", "to", "type"],
+      "required": [
+        "from",
+        "to",
+        "type"
+      ],
       "additionalProperties": false,
       "properties": {
         "from": {
