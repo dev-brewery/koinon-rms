@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-02-06T21:18:57-05:00",
+  "generated_at": "2026-02-06T21:20:50-05:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -6675,7 +6675,9 @@
         "response_envelope": true,
         "idkey_routes": true,
         "problem_details": true,
-        "result_pattern": false
+        "result_pattern": false,
+        "idkey_exempt": true,
+        "idkey_exempt_reason": "Aggregate data queries, no entity-specific routes"
       },
       "dependencies": [
         "IAttendanceAnalyticsService",
@@ -6755,7 +6757,9 @@
         "response_envelope": true,
         "idkey_routes": false,
         "problem_details": true,
-        "result_pattern": false
+        "result_pattern": false,
+        "idkey_exempt": true,
+        "idkey_exempt_reason": "Authentication operations (login/refresh/logout), no entity routes"
       },
       "dependencies": [
         "IAuthService",
@@ -7206,7 +7210,9 @@
         "response_envelope": true,
         "idkey_routes": false,
         "problem_details": false,
-        "result_pattern": false
+        "result_pattern": false,
+        "idkey_exempt": true,
+        "idkey_exempt_reason": "Aggregate dashboard statistics, no entity-specific routes"
       },
       "dependencies": [
         "IDashboardService",
@@ -8625,7 +8631,9 @@
         "response_envelope": false,
         "idkey_routes": false,
         "problem_details": true,
-        "result_pattern": false
+        "result_pattern": false,
+        "idkey_exempt": true,
+        "idkey_exempt_reason": "Global search operations, no entity-specific routes"
       },
       "dependencies": [
         "IGlobalSearchService",
@@ -8651,7 +8659,9 @@
         "response_envelope": false,
         "idkey_routes": false,
         "problem_details": false,
-        "result_pattern": false
+        "result_pattern": false,
+        "idkey_exempt": true,
+        "idkey_exempt_reason": "External webhook receiver, no entity-specific routes"
       },
       "dependencies": [
         "ILogger<TwilioWebhookController>",

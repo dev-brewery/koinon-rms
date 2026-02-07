@@ -323,6 +323,11 @@ class CSharpParser:
     IDKEY_EXEMPT_CONTROLLERS: Dict[str, str] = {
         'MyGroupsController': 'Auth-context controller, resolves groups from authenticated user',
         'MyProfileController': 'Auth-context controller, resolves person from authenticated user',
+        'AnalyticsController': 'Aggregate data queries, no entity-specific routes',
+        'AuthController': 'Authentication operations (login/refresh/logout), no entity routes',
+        'DashboardController': 'Aggregate dashboard statistics, no entity-specific routes',
+        'SearchController': 'Global search operations, no entity-specific routes',
+        'TwilioWebhookController': 'External webhook receiver, no entity-specific routes',
     }
 
     def extract_patterns(self, content: str, class_name: str = '') -> Dict[str, Any]:
