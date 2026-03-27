@@ -97,8 +97,8 @@ export interface UserSummaryDto {
   idKey: IdKey;
   firstName: string;
   lastName: string;
-  email: string;
-  photoUrl?: string;
+  email?: string | null;
+  photoUrl?: string | null;
   roles: string[];
 }
 

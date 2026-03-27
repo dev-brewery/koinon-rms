@@ -9,10 +9,14 @@
  * - Offline cache lookup is faster than network
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../../../fixtures/auth.fixture';
 import { CheckinPage } from '../../../fixtures/page-objects/checkin.page';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Performance baseline file
 const BASELINE_PATH = path.join(
@@ -46,7 +50,8 @@ function saveBaseline(data: Record<string, unknown>) {
 }
 
 test.describe('Check-in Performance - Online Mode', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ loginAsAdmin, page }) => {
+    await loginAsAdmin();
     const checkin = new CheckinPage(page);
     await checkin.goto();
   });
