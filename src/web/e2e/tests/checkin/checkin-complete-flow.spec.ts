@@ -18,7 +18,7 @@
  *   GET  /api/v1/checkin/configuration
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import { CheckinPage } from '../../fixtures/page-objects/checkin.page';
 import { testData } from '../../fixtures/test-data';
 
@@ -237,35 +237,46 @@ const supervisorRosterResponse = {
   data: {
     locationIdKey: LOC_ROOM201_ID,
     locationName: 'Room 201',
-    attendees: [
+    children: [
       {
         attendanceIdKey: ATT_JOHNNY_ID,
         personIdKey: PERSON_JOHNNY_ID,
-        personName: testData.people.johnnySmith.fullName,
+        fullName: testData.people.johnnySmith.fullName,
+        firstName: testData.people.johnnySmith.firstName,
+        lastName: testData.people.johnnySmith.lastName,
+        hasCriticalAllergies: false,
         securityCode: 'ABC123',
         checkInTime: '2026-03-29T08:55:00Z',
-        isCheckedOut: false,
+        isFirstTime: false,
       },
     ],
+    totalCount: 1,
+    generatedAt: '2026-03-29T08:55:00Z',
+    isAtCapacity: false,
+    isNearCapacity: false,
   },
 };
 
-/** Valid supervisor login response */
-const supervisorLoginResponse = {
-  sessionToken: 'test-supervisor-token-abc',
-  supervisor: {
-    idKey: 'sup_abc123',
-    fullName: 'Test Supervisor',
-  },
-  expiresAt: new Date(Date.now() + 120_000).toISOString(),
-};
+/** Valid supervisor login response — built fresh each call so expiresAt is never stale */
+function buildSupervisorLoginResponse() {
+  return {
+    sessionToken: 'test-supervisor-token-abc',
+    supervisor: {
+      idKey: 'sup_abc123',
+      fullName: 'Test Supervisor',
+      firstName: 'Test',
+      lastName: 'Supervisor',
+    },
+    expiresAt: new Date(Date.now() + 120_000).toISOString(),
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Helper: wire up the full set of API mocks needed for a happy-path check-in
 // ---------------------------------------------------------------------------
 
 async function setupCheckinMocks(
-  page: Parameters<typeof test>[1] extends { page: infer P } ? P : never,
+  page: Page,
   opts: {
     searchResponse?: unknown;
     checkinResult?: unknown;
@@ -324,16 +335,14 @@ async function setupCheckinMocks(
 // Helper: wire supervisor-specific mocks
 // ---------------------------------------------------------------------------
 
-async function setupSupervisorMocks(
-  page: Parameters<typeof test>[1] extends { page: infer P } ? P : never
-) {
+async function setupSupervisorMocks(page: Page) {
   await page.route('**/api/v1/checkin/supervisor/login', async (route) => {
     const body = JSON.parse(route.request().postData() ?? '{}') as { pin?: string };
     if (body.pin === '1234') {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify(supervisorLoginResponse),
+        body: JSON.stringify(buildSupervisorLoginResponse()),
       });
     } else {
       await route.fulfill({
@@ -369,7 +378,7 @@ async function setupSupervisorMocks(
 // Helper: authenticate supervisor through the PIN modal
 // ---------------------------------------------------------------------------
 
-async function authenticateSupervisor(page: Parameters<typeof test>[1] extends { page: infer P } ? P : never) {
+async function authenticateSupervisor(page: Page) {
   await page.getByRole('button', { name: /supervisor/i }).click();
   await page.getByRole('button', { name: '1' }).click();
   await page.getByRole('button', { name: '2' }).click();
@@ -396,14 +405,6 @@ test.describe('Complete Check-in Flow', () => {
     const checkin = new CheckinPage(page);
 
     // Step 1: Search by phone — single family auto-advances to member selection
-    await checkin.enterPhone(testData.credentials.kiosk.deviceCode.slice(0, 10)); // not used, mocked
-    await page.route('**/api/v1/checkin/search', (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(smithSearchResponse),
-      })
-    );
     await checkin.enterPhone('5551234567');
     await checkin.submitPhone();
 

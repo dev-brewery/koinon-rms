@@ -104,13 +104,8 @@ export class CheckinPage {
    * activityIndex is 0-based within that person's opportunity list.
    */
   async selectActivity(personIndex: number, activityIndex: number) {
-    // Activities are rendered as toggle buttons inside each member card section
-    const targetIndex = personIndex * 10 + activityIndex; // rough offset; real DOM is flat
-    const allToggles = await this.page.getByRole('checkbox').all();
-    const toggle = allToggles[targetIndex];
-    if (toggle) {
-      await toggle.click();
-    }
+    const card = this.familyMemberCards.nth(personIndex);
+    await card.getByRole('checkbox').nth(activityIndex).click();
   }
 
   /**
