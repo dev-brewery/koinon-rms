@@ -14,6 +14,7 @@ import type {
   GroupMembershipDto,
   PersonGroupsParams,
   AttendanceSummaryDto,
+  PersonGivingSummaryDto,
 } from './types';
 
 /**
@@ -115,6 +116,18 @@ export async function getPersonAttendance(
 ): Promise<AttendanceSummaryDto[]> {
   const response = await get<{ data: AttendanceSummaryDto[] }>(
     `/people/${personIdKey}/attendance?days=${days}`
+  );
+  return response.data;
+}
+
+/**
+ * Get the giving summary for a person (YTD total + recent contributions)
+ */
+export async function getPersonGivingSummary(
+  personIdKey: string
+): Promise<PersonGivingSummaryDto> {
+  const response = await get<{ data: PersonGivingSummaryDto }>(
+    `/people/${personIdKey}/giving-summary`
   );
   return response.data;
 }

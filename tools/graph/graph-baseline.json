@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-03-26T23:23:13-04:00",
+  "generated_at": "2026-03-27T15:54:16-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -2435,6 +2435,27 @@
         "IsPublic": "bool"
       },
       "linked_entity": "Fund"
+    },
+    "PersonGivingSummaryDto": {
+      "name": "PersonGivingSummaryDto",
+      "namespace": "Koinon.Application.DTOs.Giving",
+      "properties": {
+        "YearToDateTotal": "decimal",
+        "LastContributionDate": "DateTime?",
+        "RecentContributions": "List<RecentContributionDto>"
+      },
+      "linked_entity": "Person"
+    },
+    "RecentContributionDto": {
+      "name": "RecentContributionDto",
+      "namespace": "Koinon.Application.DTOs.Giving",
+      "properties": {
+        "IdKey": "string",
+        "TransactionDateTime": "DateTime",
+        "Amount": "decimal",
+        "FundName": "string",
+        "TransactionType": "string?"
+      }
     },
     "PersonLookupDto": {
       "name": "PersonLookupDto",
@@ -6083,6 +6104,11 @@
           "name": "GetGroupsAsync",
           "return_type": "Task<PagedResult<PersonGroupMembershipDto>>",
           "is_async": false
+        },
+        {
+          "name": "GetGivingSummaryAsync",
+          "return_type": "Task<Result<PersonGivingSummaryDto>>",
+          "is_async": false
         }
       ],
       "dependencies": [
@@ -8478,6 +8504,24 @@
           "required_roles": []
         },
         {
+          "name": "GetAttendanceHistory",
+          "method": "GET",
+          "route": "{idKey}/attendance",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetGivingSummary",
+          "method": "GET",
+          "route": "{idKey}/giving-summary",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "UploadPhoto",
           "method": "POST",
           "route": "{idKey}/photo",
@@ -8514,6 +8558,7 @@
       "dependencies": [
         "IPersonService",
         "IFileService",
+        "ICheckinAttendanceService",
         "ILogger<PeopleController>"
       ]
     },
@@ -9348,15 +9393,20 @@
       "kind": "interface",
       "properties": {
         "idKey": "IdKey",
-        "person": "CheckinPersonSummaryDtoCore",
-        "location": "CheckinLocationSummaryDtoCore",
+        "person": "{\n    idKey: IdKey",
+        "fullName": "string",
+        "firstName": "string",
+        "lastName": "string",
+        "location": "{\n    idKey: IdKey",
+        "name": "string",
+        "fullPath": "string",
         "startDateTime": "DateTime",
         "endDateTime": "DateTime",
         "securityCode": "string",
         "isFirstTime": "boolean",
         "note": "string"
       },
-      "path": "types/checkin-extended.ts"
+      "path": "services/api/types.ts"
     },
     "ExtendedCheckinRequestDto": {
       "name": "ExtendedCheckinRequestDto",
@@ -12773,6 +12823,28 @@
       },
       "path": "services/api/types.ts"
     },
+    "PersonGivingSummaryDto": {
+      "name": "PersonGivingSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "yearToDateTotal": "number",
+        "lastContributionDate": "DateTime",
+        "recentContributions": "RecentContributionDto[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "RecentContributionDto": {
+      "name": "RecentContributionDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "transactionDateTime": "DateTime",
+        "amount": "number",
+        "fundName": "string",
+        "transactionType": "string"
+      },
+      "path": "services/api/types.ts"
+    },
     "DataExportJobDto": {
       "name": "DataExportJobDto",
       "kind": "interface",
@@ -14381,6 +14453,32 @@
       "usesMutation": false,
       "dependencies": []
     },
+    "usePersonAttendance": {
+      "name": "usePersonAttendance",
+      "path": "hooks/usePeople.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "person-attendance"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getPersonAttendance"
+      ]
+    },
+    "usePersonGivingSummary": {
+      "name": "usePersonGivingSummary",
+      "path": "hooks/usePeople.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "people"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getPersonGivingSummary"
+      ]
+    },
     "useDuplicates": {
       "name": "useDuplicates",
       "path": "hooks/usePersonMerge.ts",
@@ -15778,6 +15876,20 @@
       "method": "GET",
       "responseType": "PersonFamilyResponse"
     },
+    "getPersonAttendance": {
+      "name": "getPersonAttendance",
+      "path": "services/api/people.ts",
+      "endpoint": "/people/${personIdKey}/attendance?days=${days}",
+      "method": "GET",
+      "responseType": "AttendanceSummaryDto[]"
+    },
+    "getPersonGivingSummary": {
+      "name": "getPersonGivingSummary",
+      "path": "services/api/people.ts",
+      "endpoint": "/people/${personIdKey}/giving-summary",
+      "method": "GET",
+      "responseType": "PersonGivingSummaryDto"
+    },
     "uploadPersonPhoto": {
       "name": "uploadPersonPhoto",
       "path": "services/api/people.ts",
@@ -16235,6 +16347,14 @@
       ],
       "apiCallsDirectly": false
     },
+    "AttendanceHistorySection": {
+      "name": "AttendanceHistorySection",
+      "path": "components/admin/people/AttendanceHistorySection.tsx",
+      "hooksUsed": [
+        "usePersonAttendance"
+      ],
+      "apiCallsDirectly": false
+    },
     "CommunicationPreferences": {
       "name": "CommunicationPreferences",
       "path": "components/admin/people/CommunicationPreferences.tsx",
@@ -16242,6 +16362,20 @@
         "useCommunicationPreferences",
         "useUpdateCommunicationPreference"
       ],
+      "apiCallsDirectly": false
+    },
+    "GivingHistorySection": {
+      "name": "GivingHistorySection",
+      "path": "components/admin/people/GivingHistorySection.tsx",
+      "hooksUsed": [
+        "usePersonGivingSummary"
+      ],
+      "apiCallsDirectly": false
+    },
+    "GroupMembershipsSection": {
+      "name": "GroupMembershipsSection",
+      "path": "components/admin/people/GroupMembershipsSection.tsx",
+      "hooksUsed": [],
       "apiCallsDirectly": false
     },
     "PersonCard": {
@@ -17234,6 +17368,11 @@
       "relationship": "maps_to"
     },
     {
+      "source": "PersonGivingSummaryDto",
+      "target": "Person",
+      "relationship": "maps_to"
+    },
+    {
       "source": "PersonLookupDto",
       "target": "Person",
       "relationship": "maps_to"
@@ -18021,6 +18160,11 @@
     {
       "source": "PeopleController",
       "target": "IFileService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "PeopleController",
+      "target": "ICheckinAttendanceService",
       "relationship": "depends_on"
     },
     {
@@ -18899,6 +19043,11 @@
       "relationship": "returns"
     },
     {
+      "source": "PersonService",
+      "target": "PersonGivingSummaryDto",
+      "relationship": "returns"
+    },
+    {
       "source": "PublicGroupService",
       "target": "GroupDto",
       "relationship": "returns"
@@ -19439,6 +19588,11 @@
       "type": "uses_hook"
     },
     {
+      "from": "AttendanceHistorySection",
+      "to": "usePersonAttendance",
+      "type": "uses_hook"
+    },
+    {
       "from": "CommunicationPreferences",
       "to": "useCommunicationPreferences",
       "type": "uses_hook"
@@ -19446,6 +19600,11 @@
     {
       "from": "CommunicationPreferences",
       "to": "useUpdateCommunicationPreference",
+      "type": "uses_hook"
+    },
+    {
+      "from": "GivingHistorySection",
+      "to": "usePersonGivingSummary",
       "type": "uses_hook"
     },
     {
@@ -19719,6 +19878,8 @@
     "dto:StatementPreviewDto": "type:StatementPreviewDto",
     "dto:EligiblePersonDto": "type:EligiblePersonDto",
     "dto:FundDto": "type:FundDto",
+    "dto:PersonGivingSummaryDto": "type:PersonGivingSummaryDto",
+    "dto:RecentContributionDto": "type:RecentContributionDto",
     "dto:PersonLookupDto": "type:PersonLookupDto",
     "dto:GlobalSearchResultDto": "type:GlobalSearchResult",
     "dto:GlobalSearchResponse": "type:GlobalSearchResponse",
@@ -19832,13 +19993,13 @@
   },
   "stats": {
     "entities": 59,
-    "dtos": 202,
+    "dtos": 204,
     "services": 109,
     "controllers": 35,
-    "types": 302,
-    "api_functions": 171,
-    "hooks": 149,
-    "components": 130,
-    "total_edges": 556
+    "types": 304,
+    "api_functions": 173,
+    "hooks": 151,
+    "components": 133,
+    "total_edges": 561
   }
 }
