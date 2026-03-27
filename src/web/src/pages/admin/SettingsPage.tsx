@@ -159,6 +159,34 @@ export function SettingsPage() {
             View system activity and track changes to records
           </p>
         </Link>
+
+        <Link
+          to="/admin/setup-wizard"
+          className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow"
+        >
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-2 bg-indigo-100 rounded-lg">
+              <svg
+                className="w-6 h-6 text-indigo-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">Setup Wizard</h3>
+          </div>
+          <p className="text-sm text-gray-600">
+            Run the guided onboarding wizard to configure campuses, locations, and schedules
+          </p>
+        </Link>
       </div>
     </div>
   );

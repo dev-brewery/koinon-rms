@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { LoginForm, ProtectedRoute } from './components/auth';
 import { useAuth } from './hooks/useAuth';
@@ -62,6 +62,8 @@ import { FamiliesImportPage } from './pages/admin/import/FamiliesImportPage';
 import { ImportHistoryPage } from './pages/admin/import/ImportHistoryPage';
 import { SearchResultsPage } from './pages/SearchResultsPage';
 import { CheckinConfigPage } from './pages/admin/checkin/CheckinConfigPage';
+import { SetupWizardPage } from './pages/admin/SetupWizardPage';
+import { useCampuses } from './hooks/useCampuses';
 
 function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -140,6 +142,20 @@ function NotFoundPage() {
       </div>
     </div>
   );
+}
+
+function SetupWizardAutoLaunch() {
+  const { data: campuses, isLoading } = useCampuses();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!isLoading && campuses?.length === 0 && location.pathname === '/admin') {
+      navigate('/admin/setup-wizard', { replace: true });
+    }
+  }, [isLoading, campuses, location.pathname, navigate]);
+
+  return null;
 }
 
 function App() {
@@ -243,7 +259,7 @@ function App() {
           }
           errorElement={<RouteErrorBoundary />}
         >
-          <Route index element={<DashboardPage />} />
+          <Route index element={<><SetupWizardAutoLaunch /><DashboardPage /></>} />
           <Route path="search" element={<SearchResultsPage />} />
           <Route path="people" element={<PeopleListPage />} />
           <Route path="people/new" element={<PersonFormPage />} />
@@ -290,6 +306,16 @@ function App() {
           <Route path="import/families" element={<FamiliesImportPage />} />
           <Route path="checkin" element={<CheckinConfigPage />} />
         </Route>
+
+        {/* Setup wizard - full-page, outside AdminLayout */}
+        <Route
+          path="/admin/setup-wizard"
+          element={
+            <ProtectedRoute>
+              <SetupWizardPage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Check-in route */}
         <Route
