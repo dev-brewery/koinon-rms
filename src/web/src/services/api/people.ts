@@ -13,6 +13,7 @@ import type {
   PersonFamilyResponse,
   GroupMembershipDto,
   PersonGroupsParams,
+  AttendanceSummaryDto,
 } from './types';
 
 /**
@@ -103,6 +104,19 @@ export async function getPersonGroups(
   const endpoint = `/people/${idKey}/groups${query ? `?${query}` : ''}`;
 
   return get<PagedResult<GroupMembershipDto>>(endpoint);
+}
+
+/**
+ * Get attendance history for a person
+ */
+export async function getPersonAttendance(
+  personIdKey: string,
+  days = 90
+): Promise<AttendanceSummaryDto[]> {
+  const response = await get<{ data: AttendanceSummaryDto[] }>(
+    `/people/${personIdKey}/attendance?days=${days}`
+  );
+  return response.data;
 }
 
 /**

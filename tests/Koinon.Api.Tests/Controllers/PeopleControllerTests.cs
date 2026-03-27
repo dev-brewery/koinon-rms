@@ -18,6 +18,7 @@ public class PeopleControllerTests
 {
     private readonly Mock<IPersonService> _personServiceMock;
     private readonly Mock<IFileService> _fileServiceMock;
+    private readonly Mock<ICheckinAttendanceService> _checkinAttendanceServiceMock;
     private readonly Mock<ILogger<PeopleController>> _loggerMock;
     private readonly PeopleController _controller;
 
@@ -34,8 +35,9 @@ public class PeopleControllerTests
     {
         _personServiceMock = new Mock<IPersonService>();
         _fileServiceMock = new Mock<IFileService>();
+        _checkinAttendanceServiceMock = new Mock<ICheckinAttendanceService>();
         _loggerMock = new Mock<ILogger<PeopleController>>();
-        _controller = new PeopleController(_personServiceMock.Object, _fileServiceMock.Object, _loggerMock.Object);
+        _controller = new PeopleController(_personServiceMock.Object, _fileServiceMock.Object, _checkinAttendanceServiceMock.Object, _loggerMock.Object);
 
         // Setup HttpContext for controller
         _controller.ControllerContext = new ControllerContext
@@ -1081,6 +1083,36 @@ public class PeopleControllerTests
         var totalCount = (int)totalCountProp!.GetValue(meta)!;
         items.Should().BeEmpty();
         totalCount.Should().Be(0);
+    }
+
+    #endregion
+
+    #region GetAttendanceHistory Tests
+
+    [Fact]
+    public async Task GetAttendanceHistory_ReturnsOkWithData()
+    {
+        var idKey = IdKeyHelper.Encode(1);
+        var history = (IReadOnlyList<AttendanceSummaryDto>)new List<AttendanceSummaryDto>
+        {
+            new(IdKeyHelper.Encode(301), new CheckinPersonSummaryDto(idKey, "John Doe", "John", "Doe"), new CheckinLocationSummaryDto(IdKeyHelper.Encode(10), "Room 101", "Building A / Room 101"), DateTime.UtcNow.AddDays(-1))
+        };
+        _checkinAttendanceServiceMock
+            .Setup(s => s.GetPersonAttendanceHistoryAsync(idKey, 90, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(history);
+        var result = await _controller.GetAttendanceHistory(idKey);
+        Assert.IsType<OkObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task GetAttendanceHistory_WithNoHistory_ReturnsEmptyList()
+    {
+        var idKey = IdKeyHelper.Encode(1);
+        _checkinAttendanceServiceMock
+            .Setup(s => s.GetPersonAttendanceHistoryAsync(idKey, 90, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IReadOnlyList<AttendanceSummaryDto>)new List<AttendanceSummaryDto>());
+        var result = await _controller.GetAttendanceHistory(idKey);
+        Assert.IsType<OkObjectResult>(result);
     }
 
     #endregion
