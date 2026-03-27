@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-03-27T19:17:28-04:00",
+  "generated_at": "2026-03-27T16:12:10-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -1087,6 +1087,30 @@
         "MergedByPerson": "virtual Person?"
       },
       "navigations": []
+    },
+    "PersonNote": {
+      "name": "PersonNote",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "person_note",
+      "properties": {
+        "Entity": "class PersonNote :",
+        "PersonId": "int",
+        "Text": "string",
+        "NoteDate": "DateTime",
+        "NoteTypeDefinedValueId": "int?",
+        "IsPrivate": "bool",
+        "IsAlert": "bool",
+        "Person": "virtual Person",
+        "NoteTypeDefinedValue": "virtual DefinedValue?",
+        "CreatedByPersonAlias": "virtual PersonAlias?"
+      },
+      "navigations": [
+        {
+          "name": "NoteDate",
+          "target_entity": "DateTime",
+          "type": "one"
+        }
+      ]
     },
     "PersonSecurityRole": {
       "name": "PersonSecurityRole",
@@ -3225,6 +3249,45 @@
         "MergedDateTime": "DateTime"
       },
       "linked_entity": "Person"
+    },
+    "PersonNoteDto": {
+      "name": "PersonNoteDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "IdKey": "string",
+        "Text": "string",
+        "NoteDate": "DateTime",
+        "NoteType": "string?",
+        "CreatedByName": "string?",
+        "IsPrivate": "bool",
+        "IsAlert": "bool",
+        "CreatedDateTime": "DateTime"
+      },
+      "linked_entity": "PersonNote"
+    },
+    "CreatePersonNoteRequest": {
+      "name": "CreatePersonNoteRequest",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Text": "string",
+        "NoteDate": "DateTime",
+        "NoteTypeDefinedValueIdKey": "string?",
+        "IsPrivate": "bool",
+        "IsAlert": "bool"
+      },
+      "linked_entity": "PersonNote"
+    },
+    "UpdatePersonNoteRequest": {
+      "name": "UpdatePersonNoteRequest",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Text": "string",
+        "NoteDate": "DateTime",
+        "NoteTypeDefinedValueIdKey": "string?",
+        "IsPrivate": "bool",
+        "IsAlert": "bool"
+      },
+      "linked_entity": "PersonNote"
     },
     "PickupLogDto": {
       "name": "PickupLogDto",
@@ -6109,6 +6172,26 @@
           "name": "GetGivingSummaryAsync",
           "return_type": "Task<Result<PersonGivingSummaryDto>>",
           "is_async": false
+        },
+        {
+          "name": "GetNotesAsync",
+          "return_type": "Task<IEnumerable<PersonNoteDto>>",
+          "is_async": false
+        },
+        {
+          "name": "CreateNoteAsync",
+          "return_type": "Task<PersonNoteDto>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateNoteAsync",
+          "return_type": "Task<PersonNoteDto>",
+          "is_async": false
+        },
+        {
+          "name": "DeleteNoteAsync",
+          "return_type": "Task",
+          "is_async": false
         }
       ],
       "dependencies": [
@@ -8522,6 +8605,24 @@
           "required_roles": []
         },
         {
+          "name": "GetPersonNotes",
+          "method": "GET",
+          "route": "{idKey}/notes",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "CreatePersonNote",
+          "method": "POST",
+          "route": "{idKey}/notes",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "UploadPhoto",
           "method": "POST",
           "route": "{idKey}/photo",
@@ -8540,9 +8641,27 @@
           "required_roles": []
         },
         {
+          "name": "UpdatePersonNote",
+          "method": "PUT",
+          "route": "{idKey}/notes/{noteIdKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "Delete",
           "method": "DELETE",
           "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "DeletePersonNote",
+          "method": "DELETE",
+          "route": "{idKey}/notes/{noteIdKey}",
           "request_type": null,
           "response_type": null,
           "requires_auth": true,
@@ -9656,6 +9775,21 @@
     {
       "source": "PersonMergeResultDto",
       "target": "Person",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "PersonNoteDto",
+      "target": "PersonNote",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CreatePersonNoteRequest",
+      "target": "PersonNote",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdatePersonNoteRequest",
+      "target": "PersonNote",
       "relationship": "maps_to"
     },
     {
@@ -11104,6 +11238,21 @@
       "relationship": "returns"
     },
     {
+      "source": "PersonService",
+      "target": "PersonNoteDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "PersonService",
+      "target": "PersonNoteDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "PersonService",
+      "target": "PersonNoteDto",
+      "relationship": "returns"
+    },
+    {
       "source": "PublicGroupService",
       "target": "GroupDto",
       "relationship": "returns"
@@ -11525,10 +11674,10 @@
     }
   ],
   "summary": {
-    "total_entities": 59,
-    "total_dtos": 204,
+    "total_entities": 60,
+    "total_dtos": 207,
     "total_services": 109,
     "total_controllers": 35,
-    "total_relationships": 492
+    "total_relationships": 498
   }
 }

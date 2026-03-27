@@ -85,4 +85,24 @@ public interface IPersonService
     /// <param name="ct">Cancellation token</param>
     /// <returns>Giving summary DTO, or a not-found error when the person doesn't exist</returns>
     Task<Result<PersonGivingSummaryDto>> GetGivingSummaryAsync(string idKey, CancellationToken ct = default);
+
+    /// <summary>
+    /// Gets all notes for a person, ordered by note date descending.
+    /// </summary>
+    Task<IEnumerable<PersonNoteDto>> GetNotesAsync(string personIdKey, CancellationToken ct = default);
+
+    /// <summary>
+    /// Creates a new note on a person record.
+    /// </summary>
+    Task<PersonNoteDto> CreateNoteAsync(string personIdKey, CreatePersonNoteRequest request, CancellationToken ct = default);
+
+    /// <summary>
+    /// Updates an existing note, verifying it belongs to the specified person.
+    /// </summary>
+    Task<PersonNoteDto> UpdateNoteAsync(string personIdKey, string noteIdKey, UpdatePersonNoteRequest request, CancellationToken ct = default);
+
+    /// <summary>
+    /// Deletes a note, verifying it belongs to the specified person.
+    /// </summary>
+    Task DeleteNoteAsync(string personIdKey, string noteIdKey, CancellationToken ct = default);
 }

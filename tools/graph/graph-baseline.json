@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-03-27T19:29:28-04:00",
+  "generated_at": "2026-03-27T16:12:10-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -1087,6 +1087,30 @@
         "MergedByPerson": "virtual Person?"
       },
       "navigations": []
+    },
+    "PersonNote": {
+      "name": "PersonNote",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "person_note",
+      "properties": {
+        "Entity": "class PersonNote :",
+        "PersonId": "int",
+        "Text": "string",
+        "NoteDate": "DateTime",
+        "NoteTypeDefinedValueId": "int?",
+        "IsPrivate": "bool",
+        "IsAlert": "bool",
+        "Person": "virtual Person",
+        "NoteTypeDefinedValue": "virtual DefinedValue?",
+        "CreatedByPersonAlias": "virtual PersonAlias?"
+      },
+      "navigations": [
+        {
+          "name": "NoteDate",
+          "target_entity": "DateTime",
+          "type": "one"
+        }
+      ]
     },
     "PersonSecurityRole": {
       "name": "PersonSecurityRole",
@@ -3225,6 +3249,45 @@
         "MergedDateTime": "DateTime"
       },
       "linked_entity": "Person"
+    },
+    "PersonNoteDto": {
+      "name": "PersonNoteDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "IdKey": "string",
+        "Text": "string",
+        "NoteDate": "DateTime",
+        "NoteType": "string?",
+        "CreatedByName": "string?",
+        "IsPrivate": "bool",
+        "IsAlert": "bool",
+        "CreatedDateTime": "DateTime"
+      },
+      "linked_entity": "PersonNote"
+    },
+    "CreatePersonNoteRequest": {
+      "name": "CreatePersonNoteRequest",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Text": "string",
+        "NoteDate": "DateTime",
+        "NoteTypeDefinedValueIdKey": "string?",
+        "IsPrivate": "bool",
+        "IsAlert": "bool"
+      },
+      "linked_entity": "PersonNote"
+    },
+    "UpdatePersonNoteRequest": {
+      "name": "UpdatePersonNoteRequest",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Text": "string",
+        "NoteDate": "DateTime",
+        "NoteTypeDefinedValueIdKey": "string?",
+        "IsPrivate": "bool",
+        "IsAlert": "bool"
+      },
+      "linked_entity": "PersonNote"
     },
     "PickupLogDto": {
       "name": "PickupLogDto",
@@ -6109,6 +6172,26 @@
           "name": "GetGivingSummaryAsync",
           "return_type": "Task<Result<PersonGivingSummaryDto>>",
           "is_async": false
+        },
+        {
+          "name": "GetNotesAsync",
+          "return_type": "Task<IEnumerable<PersonNoteDto>>",
+          "is_async": false
+        },
+        {
+          "name": "CreateNoteAsync",
+          "return_type": "Task<PersonNoteDto>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateNoteAsync",
+          "return_type": "Task<PersonNoteDto>",
+          "is_async": false
+        },
+        {
+          "name": "DeleteNoteAsync",
+          "return_type": "Task",
+          "is_async": false
         }
       ],
       "dependencies": [
@@ -8522,6 +8605,24 @@
           "required_roles": []
         },
         {
+          "name": "GetPersonNotes",
+          "method": "GET",
+          "route": "{idKey}/notes",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "CreatePersonNote",
+          "method": "POST",
+          "route": "{idKey}/notes",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "UploadPhoto",
           "method": "POST",
           "route": "{idKey}/photo",
@@ -8540,9 +8641,27 @@
           "required_roles": []
         },
         {
+          "name": "UpdatePersonNote",
+          "method": "PUT",
+          "route": "{idKey}/notes/{noteIdKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "Delete",
           "method": "DELETE",
           "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "DeletePersonNote",
+          "method": "DELETE",
+          "route": "{idKey}/notes/{noteIdKey}",
           "request_type": null,
           "response_type": null,
           "requires_auth": true,
@@ -11604,9 +11723,8 @@
         "idKey": "IdKey",
         "firstName": "string",
         "lastName": "string",
-        "email": "string | null",
-        "photoUrl": "string | null",
-        "roles": "string[]"
+        "email": "string",
+        "photoUrl": "string"
       },
       "path": "services/api/types.ts"
     },
@@ -11902,24 +12020,6 @@
         "PaginationParams"
       ]
     },
-    "PersonGroupMembershipDto": {
-      "name": "PersonGroupMembershipDto",
-      "kind": "interface",
-      "properties": {
-        "idKey": "IdKey",
-        "guid": "string",
-        "groupIdKey": "IdKey",
-        "groupName": "string",
-        "groupTypeIdKey": "IdKey",
-        "groupTypeName": "string",
-        "roleIdKey": "IdKey",
-        "roleName": "string",
-        "memberStatus": "string",
-        "createdDateTime": "DateTime",
-        "modifiedDateTime": "DateTime"
-      },
-      "path": "services/api/types.ts"
-    },
     "AddGroupMemberRequest": {
       "name": "AddGroupMemberRequest",
       "kind": "interface",
@@ -11951,32 +12051,6 @@
       "properties": {
         "family": "FamilyDetailDto",
         "members": "FamilyMemberDto[]"
-      },
-      "path": "services/api/types.ts"
-    },
-    "GroupAttendanceOccurrenceDto": {
-      "name": "GroupAttendanceOccurrenceDto",
-      "kind": "interface",
-      "properties": {
-        "idKey": "IdKey",
-        "occurrenceDate": "DateOnly",
-        "attendeeCount": "number",
-        "anonymousCount": "number",
-        "didNotOccur": "boolean",
-        "locationName": "string | null",
-        "scheduleName": "string | null"
-      },
-      "path": "services/api/types.ts"
-    },
-    "GroupAttendanceDetailDto": {
-      "name": "GroupAttendanceDetailDto",
-      "kind": "interface",
-      "properties": {
-        "personIdKey": "IdKey",
-        "fullName": "string",
-        "photoUrl": "string | null",
-        "didAttend": "boolean",
-        "presentDateTime": "DateTime | null"
       },
       "path": "services/api/types.ts"
     },
@@ -17648,6 +17722,21 @@
       "relationship": "maps_to"
     },
     {
+      "source": "PersonNoteDto",
+      "target": "PersonNote",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CreatePersonNoteRequest",
+      "target": "PersonNote",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdatePersonNoteRequest",
+      "target": "PersonNote",
+      "relationship": "maps_to"
+    },
+    {
       "source": "PickupLogDto",
       "target": "PickupLog",
       "relationship": "maps_to"
@@ -19093,6 +19182,21 @@
       "relationship": "returns"
     },
     {
+      "source": "PersonService",
+      "target": "PersonNoteDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "PersonService",
+      "target": "PersonNoteDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "PersonService",
+      "target": "PersonNoteDto",
+      "relationship": "returns"
+    },
+    {
       "source": "PublicGroupService",
       "target": "GroupDto",
       "relationship": "returns"
@@ -19964,7 +20068,6 @@
     "dto:DefinedValueDto": "type:DefinedValueDto",
     "dto:FamilySummaryDto": "type:FamilySummaryDto",
     "dto:CampusSummaryDto": "type:CampusSummaryDto",
-    "dto:PersonGroupMembershipDto": "type:PersonGroupMembershipDto",
     "dto:DuplicateMatchDto": "type:DuplicateMatchDto",
     "dto:IgnoreDuplicateRequestDto": "type:IgnoreDuplicateRequestDto",
     "dto:PersonComparisonDto": "type:PersonComparisonDto",
@@ -20038,14 +20141,14 @@
     "dto:UserSessionDto": "type:UserSessionDto"
   },
   "stats": {
-    "entities": 59,
-    "dtos": 204,
+    "entities": 60,
+    "dtos": 207,
     "services": 109,
     "controllers": 35,
-    "types": 307,
+    "types": 304,
     "api_functions": 173,
     "hooks": 151,
     "components": 133,
-    "total_edges": 561
+    "total_edges": 567
   }
 }

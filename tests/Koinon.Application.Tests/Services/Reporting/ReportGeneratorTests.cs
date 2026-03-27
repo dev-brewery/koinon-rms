@@ -599,6 +599,7 @@ public class ReportGeneratorTests
         public DbSet<Person> People { get; set; } = null!;
         public DbSet<PersonAlias> PersonAliases { get; set; } = null!;
         public DbSet<PhoneNumber> PhoneNumbers { get; set; } = null!;
+        public DbSet<PersonNote> PersonNotes { get; set; } = null!;
         public DbSet<Group> Groups { get; set; } = null!;
         public DbSet<GroupType> GroupTypes { get; set; } = null!;
         public DbSet<GroupTypeRole> GroupTypeRoles { get; set; } = null!;

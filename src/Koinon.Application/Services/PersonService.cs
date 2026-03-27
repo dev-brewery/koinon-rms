@@ -12,6 +12,7 @@ using Koinon.Domain.Entities;
 using Koinon.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 
 namespace Koinon.Application.Services;
 
@@ -666,6 +667,219 @@ public class PersonService(
         };
 
         return Result<PersonGivingSummaryDto>.Success(summary);
+    }
+
+    public async Task<IEnumerable<PersonNoteDto>> GetNotesAsync(
+        string personIdKey,
+        CancellationToken ct = default)
+    {
+        if (!IdKeyHelper.TryDecode(personIdKey, out int personId))
+        {
+            return Enumerable.Empty<PersonNoteDto>();
+        }
+
+        var notes = await context.PersonNotes
+            .AsNoTracking()
+            .Include(n => n.NoteTypeDefinedValue)
+            .Include(n => n.CreatedByPersonAlias)
+                .ThenInclude(pa => pa!.Person)
+            .Where(n => n.PersonId == personId)
+            .OrderByDescending(n => n.NoteDate)
+            .Select(n => new PersonNoteDto(
+                IdKeyHelper.Encode(n.Id),
+                n.Text,
+                n.NoteDate,
+                n.NoteTypeDefinedValue != null ? n.NoteTypeDefinedValue.Value : null,
+                n.CreatedByPersonAlias != null && n.CreatedByPersonAlias.Person != null
+                    ? n.CreatedByPersonAlias.Person.FullName
+                    : n.CreatedByPersonAlias != null
+                        ? n.CreatedByPersonAlias.Name
+                        : null,
+                n.IsPrivate,
+                n.IsAlert,
+                n.CreatedDateTime
+            ))
+            .ToListAsync(ct);
+
+        logger.LogInformation(
+            "Retrieved {Count} notes for person {PersonId}",
+            notes.Count, personId);
+
+        return notes;
+    }
+
+    public async Task<PersonNoteDto> CreateNoteAsync(
+        string personIdKey,
+        CreatePersonNoteRequest request,
+        CancellationToken ct = default)
+    {
+        if (!IdKeyHelper.TryDecode(personIdKey, out int personId))
+        {
+            throw new ArgumentException($"Invalid person IdKey: {personIdKey}", nameof(personIdKey));
+        }
+
+        var personExists = await context.People.AnyAsync(p => p.Id == personId, ct);
+        if (!personExists)
+        {
+            throw new KeyNotFoundException($"Person not found: {personIdKey}");
+        }
+
+        // Resolve note type if provided
+        int? noteTypeDefinedValueId = null;
+        if (!string.IsNullOrWhiteSpace(request.NoteTypeDefinedValueIdKey))
+        {
+            if (IdKeyHelper.TryDecode(request.NoteTypeDefinedValueIdKey, out int noteTypeId))
+            {
+                noteTypeDefinedValueId = noteTypeId;
+            }
+        }
+
+        var note = new PersonNote
+        {
+            PersonId = personId,
+            Text = request.Text,
+            NoteDate = request.NoteDate,
+            NoteTypeDefinedValueId = noteTypeDefinedValueId,
+            IsPrivate = request.IsPrivate,
+            IsAlert = request.IsAlert,
+            CreatedDateTime = DateTime.UtcNow
+        };
+
+        await context.PersonNotes.AddAsync(note, ct);
+        await context.SaveChangesAsync(ct);
+
+        logger.LogInformation(
+            "Created note {NoteId} for person {PersonId}",
+            note.Id, personId);
+
+        // Fetch with includes for full DTO
+        var created = await context.PersonNotes
+            .AsNoTracking()
+            .Include(n => n.NoteTypeDefinedValue)
+            .Include(n => n.CreatedByPersonAlias)
+                .ThenInclude(pa => pa!.Person)
+            .Where(n => n.Id == note.Id)
+            .Select(n => new PersonNoteDto(
+                IdKeyHelper.Encode(n.Id),
+                n.Text,
+                n.NoteDate,
+                n.NoteTypeDefinedValue != null ? n.NoteTypeDefinedValue.Value : null,
+                n.CreatedByPersonAlias != null && n.CreatedByPersonAlias.Person != null
+                    ? n.CreatedByPersonAlias.Person.FullName
+                    : n.CreatedByPersonAlias != null
+                        ? n.CreatedByPersonAlias.Name
+                        : null,
+                n.IsPrivate,
+                n.IsAlert,
+                n.CreatedDateTime
+            ))
+            .FirstAsync(ct);
+
+        return created;
+    }
+
+    public async Task<PersonNoteDto> UpdateNoteAsync(
+        string personIdKey,
+        string noteIdKey,
+        UpdatePersonNoteRequest request,
+        CancellationToken ct = default)
+    {
+        if (!IdKeyHelper.TryDecode(personIdKey, out int personId))
+        {
+            throw new ArgumentException($"Invalid person IdKey: {personIdKey}", nameof(personIdKey));
+        }
+
+        if (!IdKeyHelper.TryDecode(noteIdKey, out int noteId))
+        {
+            throw new ArgumentException($"Invalid note IdKey: {noteIdKey}", nameof(noteIdKey));
+        }
+
+        var note = await context.PersonNotes
+            .FirstOrDefaultAsync(n => n.Id == noteId && n.PersonId == personId, ct);
+
+        if (note is null)
+        {
+            throw new KeyNotFoundException($"Note '{noteIdKey}' not found for person '{personIdKey}'");
+        }
+
+        // Resolve note type if provided
+        int? noteTypeDefinedValueId = null;
+        if (!string.IsNullOrWhiteSpace(request.NoteTypeDefinedValueIdKey))
+        {
+            if (IdKeyHelper.TryDecode(request.NoteTypeDefinedValueIdKey, out int noteTypeId))
+            {
+                noteTypeDefinedValueId = noteTypeId;
+            }
+        }
+
+        note.Text = request.Text;
+        note.NoteDate = request.NoteDate;
+        note.NoteTypeDefinedValueId = noteTypeDefinedValueId;
+        note.IsPrivate = request.IsPrivate;
+        note.IsAlert = request.IsAlert;
+        note.ModifiedDateTime = DateTime.UtcNow;
+
+        await context.SaveChangesAsync(ct);
+
+        logger.LogInformation(
+            "Updated note {NoteId} for person {PersonId}",
+            noteId, personId);
+
+        // Fetch with includes for full DTO
+        var updated = await context.PersonNotes
+            .AsNoTracking()
+            .Include(n => n.NoteTypeDefinedValue)
+            .Include(n => n.CreatedByPersonAlias)
+                .ThenInclude(pa => pa!.Person)
+            .Where(n => n.Id == noteId)
+            .Select(n => new PersonNoteDto(
+                IdKeyHelper.Encode(n.Id),
+                n.Text,
+                n.NoteDate,
+                n.NoteTypeDefinedValue != null ? n.NoteTypeDefinedValue.Value : null,
+                n.CreatedByPersonAlias != null && n.CreatedByPersonAlias.Person != null
+                    ? n.CreatedByPersonAlias.Person.FullName
+                    : n.CreatedByPersonAlias != null
+                        ? n.CreatedByPersonAlias.Name
+                        : null,
+                n.IsPrivate,
+                n.IsAlert,
+                n.CreatedDateTime
+            ))
+            .FirstAsync(ct);
+
+        return updated;
+    }
+
+    public async Task DeleteNoteAsync(
+        string personIdKey,
+        string noteIdKey,
+        CancellationToken ct = default)
+    {
+        if (!IdKeyHelper.TryDecode(personIdKey, out int personId))
+        {
+            throw new ArgumentException($"Invalid person IdKey: {personIdKey}", nameof(personIdKey));
+        }
+
+        if (!IdKeyHelper.TryDecode(noteIdKey, out int noteId))
+        {
+            throw new ArgumentException($"Invalid note IdKey: {noteIdKey}", nameof(noteIdKey));
+        }
+
+        var note = await context.PersonNotes
+            .FirstOrDefaultAsync(n => n.Id == noteId && n.PersonId == personId, ct);
+
+        if (note is null)
+        {
+            throw new KeyNotFoundException($"Note '{noteIdKey}' not found for person '{personIdKey}'");
+        }
+
+        context.PersonNotes.Remove(note);
+        await context.SaveChangesAsync(ct);
+
+        logger.LogInformation(
+            "Deleted note {NoteId} for person {PersonId}",
+            noteId, personId);
     }
 
 }
