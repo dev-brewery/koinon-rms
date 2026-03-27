@@ -1502,6 +1502,37 @@ export interface RecentContributionDto {
 }
 
 // ============================================================================
+// Person Note Types
+// ============================================================================
+
+export interface PersonNoteDto {
+  idKey: IdKey;
+  text: string;
+  noteDate: DateTime;
+  noteType: string | null;
+  createdByName: string | null;
+  isPrivate: boolean;
+  isAlert: boolean;
+  createdDateTime: DateTime;
+}
+
+export interface CreatePersonNoteRequest {
+  text: string;
+  noteDate: DateTime;
+  noteTypeDefinedValueIdKey?: IdKey | null;
+  isPrivate?: boolean;
+  isAlert?: boolean;
+}
+
+export interface UpdatePersonNoteRequest {
+  text: string;
+  noteDate: DateTime;
+  noteTypeDefinedValueIdKey?: IdKey | null;
+  isPrivate?: boolean;
+  isAlert?: boolean;
+}
+
+// ============================================================================
 // Data Export Types
 // ============================================================================
 

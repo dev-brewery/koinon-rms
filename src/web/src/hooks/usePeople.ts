@@ -8,6 +8,8 @@ import type {
   PersonSearchParams,
   CreatePersonRequest,
   UpdatePersonRequest,
+  CreatePersonNoteRequest,
+  UpdatePersonNoteRequest,
 } from '@/services/api/types';
 
 /**
@@ -137,5 +139,76 @@ export function usePersonGivingSummary(idKey?: string) {
     queryFn: () => peopleApi.getPersonGivingSummary(idKey!),
     enabled: !!idKey,
     staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+/**
+ * Get notes for a person
+ */
+export function usePersonNotes(personIdKey?: string) {
+  return useQuery({
+    queryKey: ['people', personIdKey, 'notes'],
+    queryFn: () => peopleApi.getPersonNotes(personIdKey!),
+    enabled: !!personIdKey,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+}
+
+/**
+ * Create a note for a person
+ */
+export function useCreatePersonNote() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      personIdKey,
+      request,
+    }: {
+      personIdKey: string;
+      request: CreatePersonNoteRequest;
+    }) => peopleApi.createPersonNote(personIdKey, request),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['people', variables.personIdKey, 'notes'] });
+    },
+  });
+}
+
+/**
+ * Update a note for a person
+ */
+export function useUpdatePersonNote() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      personIdKey,
+      noteIdKey,
+      request,
+    }: {
+      personIdKey: string;
+      noteIdKey: string;
+      request: UpdatePersonNoteRequest;
+    }) => peopleApi.updatePersonNote(personIdKey, noteIdKey, request),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['people', variables.personIdKey, 'notes'] });
+    },
+  });
+}
+
+/**
+ * Delete a note from a person
+ */
+export function useDeletePersonNote() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      personIdKey,
+      noteIdKey,
+    }: {
+      personIdKey: string;
+      noteIdKey: string;
+    }) => peopleApi.deletePersonNote(personIdKey, noteIdKey),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['people', variables.personIdKey, 'notes'] });
+    },
   });
 }
