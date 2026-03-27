@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-03-27T14:01:00.703Z",
+  "generated_at": "2026-03-27T14:51:10.883Z",
   "types": {
     "AttendanceAnalyticsDto": {
       "name": "AttendanceAnalyticsDto",
@@ -295,20 +295,20 @@
       "name": "CheckinFamilySearchResultDto",
       "kind": "interface",
       "properties": {
-        "familyIdKey": "IdKey",
+        "familyIdKey": "string",
         "familyName": "string",
         "addressSummary": "string",
         "campusName": "string",
         "members": "CheckinFamilyMemberDto[]",
         "recentCheckInCount": "number"
       },
-      "path": "types/checkin-extended.ts"
+      "path": "services/api/types.ts"
     },
     "CheckinFamilyMemberDto": {
       "name": "CheckinFamilyMemberDto",
       "kind": "interface",
       "properties": {
-        "personIdKey": "IdKey",
+        "personIdKey": "string",
         "fullName": "string",
         "firstName": "string",
         "lastName": "string",
@@ -319,13 +319,13 @@
         "roleName": "string",
         "isChild": "boolean",
         "hasRecentCheckIn": "boolean",
-        "lastCheckIn": "DateTime",
+        "lastCheckIn": "string",
         "grade": "string",
         "allergies": "string",
         "hasCriticalAllergies": "boolean",
         "specialNeeds": "string"
       },
-      "path": "types/checkin-extended.ts"
+      "path": "services/api/types.ts"
     },
     "AttendanceSummaryDto": {
       "name": "AttendanceSummaryDto",
@@ -2042,6 +2042,10 @@
       "name": "PersonSearchParams",
       "kind": "interface",
       "properties": {
+        "sortBy": "string",
+        "sortDir": "'asc' | 'desc'",
+        "page": "number",
+        "pageSize": "number",
         "q": "string",
         "firstName": "string",
         "lastName": "string",
@@ -2052,7 +2056,11 @@
         "campusId": "IdKey",
         "includeInactive": "boolean"
       },
-      "path": "services/api/types.ts"
+      "path": "services/api/types.ts",
+      "extends": [
+        "PaginationParams",
+        "SortParams"
+      ]
     },
     "DuplicateMatchDto": {
       "name": "DuplicateMatchDto",
@@ -2659,11 +2667,16 @@
       "name": "FamiliesSearchParams",
       "kind": "interface",
       "properties": {
+        "page": "number",
+        "pageSize": "number",
         "q": "string",
         "campusId": "IdKey",
         "includeInactive": "boolean"
       },
-      "path": "services/api/types.ts"
+      "path": "services/api/types.ts",
+      "extends": [
+        "PaginationParams"
+      ]
     },
     "FamilyDetailDto": {
       "name": "FamilyDetailDto",
@@ -2775,13 +2788,18 @@
       "name": "GroupsSearchParams",
       "kind": "interface",
       "properties": {
+        "page": "number",
+        "pageSize": "number",
         "q": "string",
         "groupTypeId": "IdKey",
         "parentGroupId": "IdKey",
         "campusId": "IdKey",
         "includeInactive": "boolean"
       },
-      "path": "services/api/types.ts"
+      "path": "services/api/types.ts",
+      "extends": [
+        "PaginationParams"
+      ]
     },
     "GroupDetailDto": {
       "name": "GroupDetailDto",
@@ -2807,10 +2825,15 @@
       "name": "GroupMembersParams",
       "kind": "interface",
       "properties": {
+        "page": "number",
+        "pageSize": "number",
         "status": "'Active' | 'Inactive' | 'Pending' | 'All'",
         "roleId": "IdKey"
       },
-      "path": "services/api/types.ts"
+      "path": "services/api/types.ts",
+      "extends": [
+        "PaginationParams"
+      ]
     },
     "AddGroupMemberRequest": {
       "name": "AddGroupMemberRequest",
@@ -2827,10 +2850,15 @@
       "name": "PersonGroupsParams",
       "kind": "interface",
       "properties": {
+        "page": "number",
+        "pageSize": "number",
         "groupTypeId": "IdKey",
         "includeInactive": "boolean"
       },
-      "path": "services/api/types.ts"
+      "path": "services/api/types.ts",
+      "extends": [
+        "PaginationParams"
+      ]
     },
     "PersonFamilyResponse": {
       "name": "PersonFamilyResponse",
@@ -3019,6 +3047,27 @@
       },
       "path": "services/api/types.ts"
     },
+    "KioskChildRegistrationRequest": {
+      "name": "KioskChildRegistrationRequest",
+      "kind": "interface",
+      "properties": {
+        "firstName": "string",
+        "lastName": "string",
+        "birthDate": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "KioskFamilyRegistrationRequest": {
+      "name": "KioskFamilyRegistrationRequest",
+      "kind": "interface",
+      "properties": {
+        "parentFirstName": "string",
+        "parentLastName": "string",
+        "phoneNumber": "string",
+        "children": "KioskChildRegistrationRequest[]"
+      },
+      "path": "services/api/types.ts"
+    },
     "CheckinRequest": {
       "name": "CheckinRequest",
       "kind": "interface",
@@ -3191,6 +3240,23 @@
       "name": "GroupTypeDetailAdminDto",
       "kind": "interface",
       "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "name": "string",
+        "description": "string",
+        "iconCssClass": "string",
+        "color": "string",
+        "groupTerm": "string",
+        "groupMemberTerm": "string",
+        "takesAttendance": "boolean",
+        "allowSelfRegistration": "boolean",
+        "requiresMemberApproval": "boolean",
+        "defaultIsPublic": "boolean",
+        "defaultGroupCapacity": "number",
+        "isSystem": "boolean",
+        "isArchived": "boolean",
+        "order": "number",
+        "groupCount": "number",
         "showInGroupList": "boolean",
         "showInNavigation": "boolean",
         "attendanceCountsAsWeekendService": "boolean",
@@ -3204,7 +3270,10 @@
         "createdDateTime": "DateTime",
         "modifiedDateTime": "DateTime"
       },
-      "path": "services/api/types.ts"
+      "path": "services/api/types.ts",
+      "extends": [
+        "GroupTypeAdminDto"
+      ]
     },
     "CreateGroupTypeRequest": {
       "name": "CreateGroupTypeRequest",
@@ -3296,11 +3365,16 @@
       "name": "ScheduleSearchParams",
       "kind": "interface",
       "properties": {
+        "page": "number",
+        "pageSize": "number",
         "query": "string",
         "dayOfWeek": "number",
         "includeInactive": "boolean"
       },
-      "path": "services/api/types.ts"
+      "path": "services/api/types.ts",
+      "extends": [
+        "PaginationParams"
+      ]
     },
     "ScheduleSummaryDto": {
       "name": "ScheduleSummaryDto",
@@ -3575,6 +3649,8 @@
       "name": "AuditLogSearchParams",
       "kind": "interface",
       "properties": {
+        "page": "number",
+        "pageSize": "number",
         "startDate": "DateTime",
         "endDate": "DateTime",
         "entityType": "string",
@@ -3582,7 +3658,10 @@
         "personIdKey": "IdKey",
         "entityIdKey": "IdKey"
       },
-      "path": "services/api/types.ts"
+      "path": "services/api/types.ts",
+      "extends": [
+        "PaginationParams"
+      ]
     },
     "AuditLogExportParams": {
       "name": "AuditLogExportParams",
@@ -3944,6 +4023,13 @@
       "endpoint": "/checkin/roster?${queryParams.toString()}",
       "method": "GET",
       "responseType": "RoomRosterDto[]"
+    },
+    "registerFamily": {
+      "name": "registerFamily",
+      "path": "services/api/checkin.ts",
+      "endpoint": "/checkin/register-family",
+      "method": "POST",
+      "responseType": "CheckinFamilyDto"
     },
     "checkoutFromRoster": {
       "name": "checkoutFromRoster",
@@ -7117,6 +7203,12 @@
     "IdleWarningModal": {
       "name": "IdleWarningModal",
       "path": "components/checkin/IdleWarningModal.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "KioskFamilyRegistration": {
+      "name": "KioskFamilyRegistration",
+      "path": "components/checkin/KioskFamilyRegistration.tsx",
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
