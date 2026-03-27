@@ -11,7 +11,7 @@ import type {
   CreatePersonRequest,
   UpdatePersonRequest,
   PersonFamilyResponse,
-  GroupMembershipDto,
+  PersonGroupMembershipDto,
   PersonGroupsParams,
   AttendanceSummaryDto,
   PersonGivingSummaryDto,
@@ -93,7 +93,7 @@ export async function getPersonFamily(idKey: string): Promise<PersonFamilyRespon
 export async function getPersonGroups(
   idKey: string,
   params: PersonGroupsParams = {}
-): Promise<PagedResult<GroupMembershipDto>> {
+): Promise<PagedResult<PersonGroupMembershipDto>> {
   const queryParams = new URLSearchParams();
 
   if (params.groupTypeId) queryParams.set('groupTypeId', params.groupTypeId);
@@ -104,7 +104,7 @@ export async function getPersonGroups(
   const query = queryParams.toString();
   const endpoint = `/people/${idKey}/groups${query ? `?${query}` : ''}`;
 
-  return get<PagedResult<GroupMembershipDto>>(endpoint);
+  return get<PagedResult<PersonGroupMembershipDto>>(endpoint);
 }
 
 /**

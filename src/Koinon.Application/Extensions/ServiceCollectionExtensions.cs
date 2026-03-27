@@ -119,6 +119,9 @@ public static class ServiceCollectionExtensions
         // Self-service profile service
         services.AddScoped<IMyProfileService, MyProfileService>();
 
+        // Notification service
+        services.AddScoped<INotificationService, NotificationService>();
+
         // User settings service
         services.AddScoped<IUserSettingsService, UserSettingsService>();
 

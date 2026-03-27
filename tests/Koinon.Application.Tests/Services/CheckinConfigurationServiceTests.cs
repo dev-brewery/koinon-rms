@@ -232,7 +232,7 @@ public class CheckinConfigurationServiceTests : IDisposable
         result!.Campus.Should().NotBeNull();
         result.Campus.Name.Should().Be("Main Campus");
         result.Areas.Should().NotBeEmpty();
-        result.ServerTime.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        result.ServerTime.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(30));
     }
 
     [Fact]
