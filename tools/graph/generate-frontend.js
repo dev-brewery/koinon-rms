@@ -77,6 +77,42 @@ function extractBalancedBody(content) {
 }
 
 /**
+ * Resolve TypeScript interface inheritance by flattening parent properties
+ * into child types. Handles multi-level inheritance and multiple parents.
+ * @param {Object} types - Map of type name → type object
+ */
+function resolveInheritance(types) {
+  const resolved = new Set();
+  const visiting = new Set();
+
+  function resolve(name) {
+    if (resolved.has(name)) return;
+    if (visiting.has(name)) return; // cycle guard
+    const type = types[name];
+    if (!type || !type.extends || type.extends.length === 0) {
+      resolved.add(name);
+      return;
+    }
+    visiting.add(name);
+    for (const parentName of type.extends) {
+      // Strip generic parameters: Base<Foo> → Base
+      const bareName = parentName.replace(/<.*>/, '').trim();
+      if (types[bareName]) {
+        resolve(bareName);
+        // Merge parent props (child's own props take precedence)
+        type.properties = { ...types[bareName].properties, ...type.properties };
+      }
+    }
+    visiting.delete(name);
+    resolved.add(name);
+  }
+
+  for (const name of Object.keys(types)) {
+    resolve(name);
+  }
+}
+
+/**
  * Extract interface/type definitions from a TypeScript file
  * @param {string} content - File content
  * @param {string} filePath - Relative path for tracking
@@ -84,21 +120,28 @@ function extractBalancedBody(content) {
 function parseTypes(content, filePath = 'services/api/types.ts') {
   const types = {};
 
-  // Match: export interface Name { ... } with balanced braces
-  const interfaceStartRegex = /export\s+interface\s+(\w+)\s*(?:extends\s+[\w<>,\s]+)?\s*\{/g;
+  // Match: export interface Name [extends Parents] { ... } with balanced braces
+  const interfaceStartRegex = /export\s+interface\s+(\w+)\s*(?:extends\s+([\w<>,\s]+?))?\s*\{/g;
   let match;
 
   while ((match = interfaceStartRegex.exec(content)) !== null) {
     const name = match[1];
+    const extendsClause = match[2];
     const startPos = match.index + match[0].length;
     const body = extractBalancedBody(content.substring(startPos));
     const properties = parseProperties(body);
+
+    // Parse extends clause into array of parent names
+    const parentTypes = extendsClause
+      ? extendsClause.split(',').map(s => s.trim()).filter(Boolean)
+      : [];
 
     types[name] = {
       name,
       kind: 'interface',
       properties,
       path: filePath,
+      ...(parentTypes.length > 0 && { extends: parentTypes }),
     };
   }
 
@@ -125,6 +168,9 @@ function parseTypes(content, filePath = 'services/api/types.ts') {
       path: filePath,
     };
   }
+
+  // Resolve within-file inheritance
+  resolveInheritance(types);
 
   return types;
 }
@@ -606,6 +652,8 @@ async function main() {
 
     // 3. Merge types (types.ts takes precedence for duplicates)
     const mergedTypes = { ...typesFromDir, ...types };
+    // Resolve cross-file inheritance (e.g. types/ extending types.ts)
+    resolveInheritance(mergedTypes);
     console.log(`  Total merged: ${Object.keys(mergedTypes).length} types\n`);
     types = mergedTypes;
 
