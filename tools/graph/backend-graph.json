@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-03-27T09:57:49-04:00",
+  "generated_at": "2026-03-26T23:23:13-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -2079,6 +2079,50 @@
       },
       "linked_entity": "Communication"
     },
+    "DeviceDetailDto": {
+      "name": "DeviceDetailDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "IdKey": "string",
+        "Guid": "Guid",
+        "Name": "string",
+        "Description": "string?",
+        "IsActive": "bool",
+        "DeviceTypeName": "string?",
+        "IpAddress": "string?",
+        "CampusIdKey": "string?",
+        "CampusName": "string?",
+        "PrinterSettings": "string?",
+        "HasKioskToken": "bool",
+        "KioskTokenExpiresAt": "DateTime?",
+        "CreatedDateTime": "DateTime",
+        "ModifiedDateTime": "DateTime?"
+      },
+      "linked_entity": "Device"
+    },
+    "GenerateKioskTokenResponseDto": {
+      "name": "GenerateKioskTokenResponseDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Token": "string",
+        "DeviceIdKey": "string",
+        "DeviceName": "string",
+        "ExpiresAt": "DateTime?"
+      }
+    },
+    "DeviceSummaryDto": {
+      "name": "DeviceSummaryDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "IdKey": "string",
+        "Name": "string",
+        "IsActive": "bool",
+        "DeviceTypeName": "string?",
+        "CampusName": "string?",
+        "IpAddress": "string?"
+      },
+      "linked_entity": "Device"
+    },
     "ExportFieldDto": {
       "name": "ExportFieldDto",
       "namespace": "Koinon.Application.DTOs",
@@ -3478,6 +3522,19 @@
       },
       "linked_entity": "Campus"
     },
+    "CreateDeviceRequest": {
+      "name": "CreateDeviceRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Name": "string",
+        "Description": "string?",
+        "DeviceTypeValueIdKey": "string?",
+        "CampusIdKey": "string?",
+        "IpAddress": "string?",
+        "IsActive": "bool"
+      },
+      "linked_entity": "Device"
+    },
     "CreateFamilyRequest": {
       "name": "CreateFamilyRequest",
       "namespace": "Koinon.Application.DTOs.Requests",
@@ -3820,6 +3877,20 @@
         "IsActive": "bool?"
       },
       "linked_entity": "Campus"
+    },
+    "UpdateDeviceRequest": {
+      "name": "UpdateDeviceRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Name": "string?",
+        "Description": "string?",
+        "DeviceTypeValueIdKey": "string?",
+        "CampusIdKey": "string?",
+        "IpAddress": "string?",
+        "IsActive": "bool?",
+        "PrinterSettings": "string?"
+      },
+      "linked_entity": "Device"
     },
     "UpdateFamilyMemberRequest": {
       "name": "UpdateFamilyMemberRequest",
@@ -5129,6 +5200,54 @@
         "IBackgroundJobService",
         "IFileStorageService",
         "ILogger<DataImportService>"
+      ]
+    },
+    "DeviceService": {
+      "name": "DeviceService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "DeviceService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetAllAsync",
+          "return_type": "Task<IReadOnlyList<DeviceSummaryDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetByIdKeyAsync",
+          "return_type": "Task<Result<DeviceDetailDto>>",
+          "is_async": false
+        },
+        {
+          "name": "CreateAsync",
+          "return_type": "Task<Result<DeviceDetailDto>>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateAsync",
+          "return_type": "Task<Result<DeviceDetailDto>>",
+          "is_async": false
+        },
+        {
+          "name": "DeleteAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        },
+        {
+          "name": "GenerateKioskTokenAsync",
+          "return_type": "Task<Result<GenerateKioskTokenResponseDto>>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IMapper",
+        "IValidator<CreateDeviceRequest>",
+        "IValidator<UpdateDeviceRequest>",
+        "ILogger<DeviceService>"
       ]
     },
     "DeviceValidationService": {
@@ -6470,6 +6589,12 @@
       "methods": [],
       "dependencies": []
     },
+    "IDeviceService": {
+      "name": "IDeviceService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
     "IDeviceValidationService": {
       "name": "IDeviceValidationService",
       "namespace": "Koinon.Application.Interfaces",
@@ -7292,6 +7417,59 @@
       "dependencies": [
         "IDashboardService",
         "ILogger<DashboardController>"
+      ]
+    },
+    "DevicesController": {
+      "name": "DevicesController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/[controller]",
+      "endpoints": [
+        {
+          "name": "GetByIdKey",
+          "method": "GET",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GenerateToken",
+          "method": "POST",
+          "route": "{idKey}/token",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Update",
+          "method": "PUT",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Delete",
+          "method": "DELETE",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": true,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "IDeviceService",
+        "ILogger<DevicesController>"
       ]
     },
     "ExportsController": {
@@ -9086,6 +9264,16 @@
       "relationship": "maps_to"
     },
     {
+      "source": "DeviceDetailDto",
+      "target": "Device",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "DeviceSummaryDto",
+      "target": "Device",
+      "relationship": "maps_to"
+    },
+    {
       "source": "ExportFieldDto",
       "target": "ExportJob",
       "relationship": "maps_to"
@@ -9536,6 +9724,11 @@
       "relationship": "maps_to"
     },
     {
+      "source": "CreateDeviceRequest",
+      "target": "Device",
+      "relationship": "maps_to"
+    },
+    {
       "source": "CreateFamilyRequest",
       "target": "Family",
       "relationship": "maps_to"
@@ -9653,6 +9846,11 @@
     {
       "source": "UpdateCampusRequest",
       "target": "Campus",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdateDeviceRequest",
+      "target": "Device",
       "relationship": "maps_to"
     },
     {
@@ -9888,6 +10086,11 @@
     {
       "source": "DashboardController",
       "target": "IDashboardService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "DevicesController",
+      "target": "IDeviceService",
       "relationship": "depends_on"
     },
     {
@@ -10448,6 +10651,31 @@
     {
       "source": "DataImportService",
       "target": "ImportJobDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "DeviceService",
+      "target": "DeviceSummaryDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "DeviceService",
+      "target": "DeviceDetailDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "DeviceService",
+      "target": "DeviceDetailDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "DeviceService",
+      "target": "DeviceDetailDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "DeviceService",
+      "target": "TokenResponse",
       "relationship": "returns"
     },
     {
@@ -11066,6 +11294,21 @@
       "relationship": "uses"
     },
     {
+      "source": "DeviceService",
+      "target": "Device",
+      "relationship": "uses"
+    },
+    {
+      "source": "DeviceService",
+      "target": "Device",
+      "relationship": "uses"
+    },
+    {
+      "source": "DeviceService",
+      "target": "Device",
+      "relationship": "uses"
+    },
+    {
       "source": "FamilyService",
       "target": "Family",
       "relationship": "uses"
@@ -11223,9 +11466,9 @@
   ],
   "summary": {
     "total_entities": 59,
-    "total_dtos": 197,
-    "total_services": 107,
-    "total_controllers": 34,
-    "total_relationships": 476
+    "total_dtos": 202,
+    "total_services": 109,
+    "total_controllers": 35,
+    "total_relationships": 489
   }
 }

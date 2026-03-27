@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-03-27T14:27:47.710Z",
+  "generated_at": "2026-03-27T14:47:20.996Z",
   "types": {
     "AttendanceAnalyticsDto": {
       "name": "AttendanceAnalyticsDto",
@@ -3676,6 +3676,87 @@
       },
       "path": "services/api/types.ts"
     },
+    "DeviceSummaryDto": {
+      "name": "DeviceSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "deviceTypeName": "string",
+        "campusName": "string",
+        "isActive": "boolean",
+        "ipAddress": "string",
+        "lastSeenDateTime": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
+    "DeviceDetailDto": {
+      "name": "DeviceDetailDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "deviceTypeName": "string",
+        "campusName": "string",
+        "isActive": "boolean",
+        "ipAddress": "string",
+        "lastSeenDateTime": "DateTime",
+        "guid": "string",
+        "description": "string",
+        "campusIdKey": "IdKey",
+        "printerSettings": "string",
+        "hasKioskToken": "boolean",
+        "kioskTokenExpiresAt": "DateTime",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "services/api/types.ts",
+      "extends": [
+        "DeviceSummaryDto"
+      ]
+    },
+    "DevicesSearchParams": {
+      "name": "DevicesSearchParams",
+      "kind": "interface",
+      "properties": {
+        "page": "number",
+        "pageSize": "number",
+        "q": "string",
+        "campusId": "IdKey",
+        "includeInactive": "boolean"
+      },
+      "path": "services/api/types.ts",
+      "extends": [
+        "PaginationParams"
+      ]
+    },
+    "CreateDeviceRequest": {
+      "name": "CreateDeviceRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "description": "string",
+        "deviceTypeValueIdKey": "IdKey",
+        "campusIdKey": "IdKey",
+        "ipAddress": "string",
+        "isActive": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "UpdateDeviceRequest": {
+      "name": "UpdateDeviceRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "description": "string",
+        "deviceTypeValueIdKey": "IdKey",
+        "campusIdKey": "IdKey",
+        "ipAddress": "string",
+        "isActive": "boolean",
+        "printerSettings": "string"
+      },
+      "path": "services/api/types.ts"
+    },
     "DataExportJobDto": {
       "name": "DataExportJobDto",
       "kind": "interface",
@@ -4142,6 +4223,48 @@
       "endpoint": "/dashboard/stats",
       "method": "GET",
       "responseType": "DashboardStatsDto"
+    },
+    "getDevices": {
+      "name": "getDevices",
+      "path": "services/api/devices.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "DeviceSummaryDto[]"
+    },
+    "getDeviceByIdKey": {
+      "name": "getDeviceByIdKey",
+      "path": "services/api/devices.ts",
+      "endpoint": "/devices/${idKey}",
+      "method": "GET",
+      "responseType": "DeviceDetailDto"
+    },
+    "createDevice": {
+      "name": "createDevice",
+      "path": "services/api/devices.ts",
+      "endpoint": "/devices",
+      "method": "POST",
+      "responseType": "DeviceDetailDto"
+    },
+    "updateDevice": {
+      "name": "updateDevice",
+      "path": "services/api/devices.ts",
+      "endpoint": "/devices/${idKey}",
+      "method": "PUT",
+      "responseType": "DeviceDetailDto"
+    },
+    "deleteDevice": {
+      "name": "deleteDevice",
+      "path": "services/api/devices.ts",
+      "endpoint": "/devices/${idKey}",
+      "method": "DELETE",
+      "responseType": "void"
+    },
+    "generateKioskToken": {
+      "name": "generateKioskToken",
+      "path": "services/api/devices.ts",
+      "endpoint": "/devices/${idKey}/token",
+      "method": "POST",
+      "responseType": "GenerateKioskTokenResponse"
     },
     "getFamilyByIdKey": {
       "name": "getFamilyByIdKey",
@@ -5475,6 +5598,82 @@
       "usesMutation": false,
       "dependencies": [
         "getDefinedTypeValues"
+      ]
+    },
+    "useDevices": {
+      "name": "useDevices",
+      "path": "hooks/useDevices.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "devices"
+      ],
+      "usesQuery": false,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useDevice": {
+      "name": "useDevice",
+      "path": "hooks/useDevices.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "devices"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getDeviceByIdKey"
+      ]
+    },
+    "useCreateDevice": {
+      "name": "useCreateDevice",
+      "path": "hooks/useDevices.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "devices"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "createDevice"
+      ]
+    },
+    "useUpdateDevice": {
+      "name": "useUpdateDevice",
+      "path": "hooks/useDevices.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "devices"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "updateDevice"
+      ]
+    },
+    "useDeleteDevice": {
+      "name": "useDeleteDevice",
+      "path": "hooks/useDevices.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "devices"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "deleteDevice"
+      ]
+    },
+    "useGenerateKioskToken": {
+      "name": "useGenerateKioskToken",
+      "path": "hooks/useDevices.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "devices"
+      ],
+      "usesQuery": false,
+      "usesMutation": false,
+      "dependencies": [
+        "generateKioskToken"
       ]
     },
     "useErrorHandler": {

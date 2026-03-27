@@ -73,6 +73,9 @@ public static class ServiceCollectionExtensions
         // Kiosk registration service
         services.AddScoped<ICheckinRegistrationService, CheckinRegistrationService>();
 
+        // Device/Kiosk management service
+        services.AddScoped<IDeviceService, DeviceService>();
+
         // Device/Kiosk validation service
         services.AddScoped<IDeviceValidationService, DeviceValidationService>();
 

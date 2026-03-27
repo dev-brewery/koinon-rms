@@ -1376,6 +1376,56 @@ export interface AuditLogExportParams {
 }
 
 // ============================================================================
+// Device Types
+// ============================================================================
+
+export interface DeviceSummaryDto {
+  idKey: IdKey;
+  name: string;
+  deviceTypeName?: string;
+  campusName?: string;
+  isActive: boolean;
+  ipAddress?: string;
+  lastSeenDateTime?: DateTime;
+}
+
+export interface DeviceDetailDto extends DeviceSummaryDto {
+  guid: string;
+  description?: string;
+  campusIdKey?: IdKey;
+  printerSettings?: string;
+  hasKioskToken: boolean;
+  kioskTokenExpiresAt?: DateTime;
+  createdDateTime: DateTime;
+  modifiedDateTime?: DateTime;
+}
+
+export interface DevicesSearchParams extends PaginationParams {
+  q?: string;
+  campusId?: IdKey;
+  includeInactive?: boolean;
+}
+
+export interface CreateDeviceRequest {
+  name: string;
+  description?: string;
+  deviceTypeValueIdKey?: IdKey;
+  campusIdKey?: IdKey;
+  ipAddress?: string;
+  isActive?: boolean;
+}
+
+export interface UpdateDeviceRequest {
+  name?: string;
+  description?: string;
+  deviceTypeValueIdKey?: IdKey;
+  campusIdKey?: IdKey;
+  ipAddress?: string;
+  isActive?: boolean;
+  printerSettings?: string;
+}
+
+// ============================================================================
 // Data Export Types
 // ============================================================================
 
