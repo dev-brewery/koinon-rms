@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useRef } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { LoginForm, ProtectedRoute } from './components/auth';
 import { useAuth } from './hooks/useAuth';
@@ -10,6 +10,8 @@ import { ToastProvider } from './contexts/ToastContext';
 import { ToastContainer } from './components/ui';
 import { DashboardPage } from './pages/admin/DashboardPage';
 import { PWAUpdatePrompt, InstallPrompt } from './components/pwa';
+import { useCampuses } from './hooks/useCampuses';
+import { SetupWizardPage } from './pages/admin/SetupWizardPage';
 
 // Lazy-loaded pages — only loaded when their route is visited
 const CheckinPage = lazy(() => import('./pages/CheckinPage').then(m => ({ default: m.CheckinPage })));
@@ -139,6 +141,20 @@ function NotFoundPage() {
   );
 }
 
+function SetupWizardAutoLaunch() {
+  const { data: campuses, isLoading } = useCampuses();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!isLoading && campuses?.length === 0 && location.pathname === '/admin') {
+      navigate('/admin/setup-wizard', { replace: true });
+    }
+  }, [isLoading, campuses, location.pathname, navigate]);
+
+  return null;
+}
+
 function App() {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const registrationRef = useRef<ServiceWorkerRegistration | null>(null);
@@ -241,7 +257,7 @@ function App() {
           }
           errorElement={<RouteErrorBoundary />}
         >
-          <Route index element={<DashboardPage />} />
+          <Route index element={<><SetupWizardAutoLaunch /><DashboardPage /></>} />
           <Route path="search" element={<SearchResultsPage />} />
           <Route path="people" element={<PeopleListPage />} />
           <Route path="people/new" element={<PersonFormPage />} />
@@ -291,6 +307,16 @@ function App() {
           <Route path="checkin" element={<CheckinConfigPage />} />
           <Route path="checkin/operations" element={<CheckinOperationsPage />} />
         </Route>
+
+        {/* Setup wizard - full-page, outside AdminLayout */}
+        <Route
+          path="/admin/setup-wizard"
+          element={
+            <ProtectedRoute>
+              <SetupWizardPage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Check-in kiosk — uses its own kiosk auth, not ProtectedRoute */}
         <Route path="/checkin" element={<CheckinPage />} />
