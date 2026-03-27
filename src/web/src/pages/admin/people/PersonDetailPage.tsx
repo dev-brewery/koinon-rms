@@ -8,6 +8,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { usePerson, usePersonFamily, usePersonGroups, useDeletePerson } from '@/hooks/usePeople';
 import { CommunicationPreferences } from '@/components/admin/people/CommunicationPreferences';
 import { AttendanceHistorySection } from '@/components/admin/people/AttendanceHistorySection';
+import { GroupMembershipsSection } from '@/components/admin/people/GroupMembershipsSection';
 import { useToast } from '@/contexts/ToastContext';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
@@ -19,7 +20,7 @@ export function PersonDetailPage() {
 
   const { data: person, isLoading, error } = usePerson(idKey);
   const { data: familyData } = usePersonFamily(idKey);
-  const { data: groupsData } = usePersonGroups(idKey);
+  const { data: groupsData, isLoading: isGroupsLoading } = usePersonGroups(idKey);
 
   const deleteMutation = useDeletePerson();
 
@@ -272,27 +273,7 @@ export function PersonDetailPage() {
         </div>
       )}
 
-      {/* Groups */}
-      {groups.length > 0 && (
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Groups</h2>
-          <ul className="space-y-2">
-            {groups.map((membership) => (
-              <li key={membership.group.idKey} className="flex items-center gap-2">
-                <Link
-                  to={`/admin/groups/${membership.group.idKey}`}
-                  className="text-primary-600 hover:text-primary-700"
-                >
-                  {membership.group.name}
-                </Link>
-                <span className="text-xs text-gray-500">
-                  ({membership.role.name} - {membership.status})
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <GroupMembershipsSection memberships={groups} isLoading={isGroupsLoading} />
 
       <AttendanceHistorySection personIdKey={idKey!} />
 
