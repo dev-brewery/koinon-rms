@@ -9,6 +9,7 @@ import { usePerson, usePersonFamily, usePersonGroups, useDeletePerson } from '@/
 import { CommunicationPreferences } from '@/components/admin/people/CommunicationPreferences';
 import { NotesSection } from '@/components/admin/people/NotesSection';
 import { AttendanceHistorySection } from '@/components/admin/people/AttendanceHistorySection';
+import { GivingHistorySection } from '@/components/admin/people/GivingHistorySection';
 import { useToast } from '@/contexts/ToastContext';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
@@ -300,6 +301,9 @@ export function PersonDetailPage() {
 
       {/* Attendance History */}
       <AttendanceHistorySection personIdKey={idKey!} />
+
+      {/* Giving History */}
+      <GivingHistorySection personIdKey={idKey!} />
 
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog

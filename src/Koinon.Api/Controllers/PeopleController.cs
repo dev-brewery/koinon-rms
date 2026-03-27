@@ -2,6 +2,7 @@ using Koinon.Api.Filters;
 using Koinon.Application.Common;
 using Koinon.Application.DTOs;
 using Koinon.Application.DTOs.Files;
+using Koinon.Application.DTOs.Giving;
 using Koinon.Application.DTOs.Requests;
 using Koinon.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -321,6 +322,42 @@ public class PeopleController(
                 totalPages = (int)Math.Ceiling(result.TotalCount / (double)result.PageSize)
             }
         });
+    }
+
+    /// <summary>
+    /// Gets a person's giving summary including YTD total, last contribution date, and recent contributions.
+    /// </summary>
+    /// <param name="idKey">The person's IdKey</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Giving summary with YTD total and last 10 contributions</returns>
+    /// <response code="200">Returns the giving summary</response>
+    /// <response code="404">Person not found</response>
+    [HttpGet("{idKey}/giving-summary")]
+    [ValidateIdKey]
+    [ProducesResponseType(typeof(PersonGivingSummaryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetGivingSummary(string idKey, CancellationToken ct = default)
+    {
+        var result = await personService.GetGivingSummaryAsync(idKey, ct);
+
+        if (result.IsFailure)
+        {
+            logger.LogDebug("Person not found for giving summary: IdKey={IdKey}", idKey);
+
+            return NotFound(new ProblemDetails
+            {
+                Title = "Person not found",
+                Detail = result.Error!.Message,
+                Status = StatusCodes.Status404NotFound,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        logger.LogInformation(
+            "Giving summary retrieved for person: IdKey={IdKey}, YTD={YtdTotal}",
+            idKey, result.Value!.YearToDateTotal);
+
+        return Ok(new { data = result.Value });
     }
 
     /// <summary>

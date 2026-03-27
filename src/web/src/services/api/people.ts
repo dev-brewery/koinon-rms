@@ -17,6 +17,7 @@ import type {
   CreateNoteRequest,
   UpdateNoteRequest,
   AttendanceSummaryDto,
+  PersonGivingSummaryDto,
 } from './types';
 
 /**
@@ -166,6 +167,14 @@ export async function getPersonAttendance(
   const response = await get<{ data: AttendanceSummaryDto[] }>(
     `/people/${personIdKey}/attendance?days=${days}`
   );
+  return response.data;
+}
+
+/**
+ * Get giving summary for a person (YTD total + recent contributions)
+ */
+export async function getPersonGivingSummary(idKey: string): Promise<PersonGivingSummaryDto> {
+  const response = await get<{ data: PersonGivingSummaryDto }>(`/people/${idKey}/giving-summary`);
   return response.data;
 }
 

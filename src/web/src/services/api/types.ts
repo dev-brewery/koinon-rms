@@ -1485,6 +1485,24 @@ export interface AttendanceSummaryDto {
 }
 
 // ============================================================================
+// Giving Types
+// ============================================================================
+
+export interface PersonGivingSummaryDto {
+  yearToDateTotal: number;
+  lastContributionDate?: DateTime;
+  recentContributions: RecentContributionDto[];
+}
+
+export interface RecentContributionDto {
+  idKey: IdKey;
+  transactionDateTime: DateTime;
+  amount: number;
+  fundName: string;
+  transactionType?: string;
+}
+
+// ============================================================================
 // Data Export Types
 // ============================================================================
 

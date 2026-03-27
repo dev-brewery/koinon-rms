@@ -181,3 +181,15 @@ export function usePersonAttendance(personIdKey?: string, days = 90) {
     enabled: !!personIdKey,
   });
 }
+
+/**
+ * Get giving summary for a person (YTD total + recent contributions)
+ */
+export function usePersonGivingSummary(idKey?: string) {
+  return useQuery({
+    queryKey: ['people', idKey, 'giving-summary'],
+    queryFn: () => peopleApi.getPersonGivingSummary(idKey!),
+    enabled: !!idKey,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}

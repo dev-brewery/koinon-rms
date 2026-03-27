@@ -4,6 +4,7 @@ using FluentValidation;
 using Koinon.Application.Common;
 using Koinon.Application.Constants;
 using Koinon.Application.DTOs;
+using Koinon.Application.DTOs.Giving;
 using Koinon.Application.DTOs.Requests;
 using Koinon.Application.Interfaces;
 using Koinon.Domain.Data;
@@ -820,6 +821,88 @@ public class PersonService(
 
         return new PagedResult<PersonGroupMembershipDto>(
             items, totalCount, page, pageSize);
+    }
+
+    public async Task<Result<PersonGivingSummaryDto>> GetGivingSummaryAsync(
+        string idKey,
+        CancellationToken ct = default)
+    {
+        if (!IdKeyHelper.TryDecode(idKey, out int id))
+        {
+            return Result<PersonGivingSummaryDto>.Failure(Error.NotFound("Person", idKey));
+        }
+
+        var personExists = await context.People.AnyAsync(p => p.Id == id, ct);
+        if (!personExists)
+        {
+            return Result<PersonGivingSummaryDto>.Failure(Error.NotFound("Person", idKey));
+        }
+
+        // Collect all PersonAlias IDs for this person
+        var aliasIds = await context.PersonAliases
+            .AsNoTracking()
+            .Where(pa => pa.PersonId == id)
+            .Select(pa => pa.Id)
+            .ToListAsync(ct);
+
+        var currentYear = DateTime.UtcNow.Year;
+
+        // YTD total: sum all ContributionDetail amounts for contributions in the current year
+        var ytdTotal = await context.ContributionDetails
+            .AsNoTracking()
+            .Where(cd =>
+                cd.Contribution != null &&
+                cd.Contribution.PersonAliasId != null &&
+                aliasIds.Contains(cd.Contribution.PersonAliasId.Value) &&
+                cd.Contribution.TransactionDateTime.Year == currentYear)
+            .SumAsync(cd => cd.Amount, ct);
+
+        // Last contribution date across all contributions linked to this person's aliases
+        var lastContributionDate = await context.Contributions
+            .AsNoTracking()
+            .Where(c =>
+                c.PersonAliasId != null &&
+                aliasIds.Contains(c.PersonAliasId.Value))
+            .OrderByDescending(c => c.TransactionDateTime)
+            .Select(c => (DateTime?)c.TransactionDateTime)
+            .FirstOrDefaultAsync(ct);
+
+        // Last 10 contribution details (one row per fund allocation), newest first
+        var recentContributions = await context.ContributionDetails
+            .AsNoTracking()
+            .Include(cd => cd.Contribution)
+                .ThenInclude(c => c!.TransactionTypeValue)
+            .Include(cd => cd.Fund)
+            .Where(cd =>
+                cd.Contribution != null &&
+                cd.Contribution.PersonAliasId != null &&
+                aliasIds.Contains(cd.Contribution.PersonAliasId.Value))
+            .OrderByDescending(cd => cd.Contribution!.TransactionDateTime)
+            .Take(10)
+            .Select(cd => new RecentContributionDto
+            {
+                IdKey = IdKeyHelper.Encode(cd.Id),
+                TransactionDateTime = cd.Contribution!.TransactionDateTime,
+                Amount = cd.Amount,
+                FundName = cd.Fund != null ? cd.Fund.Name : "(Unknown Fund)",
+                TransactionType = cd.Contribution.TransactionTypeValue != null
+                    ? cd.Contribution.TransactionTypeValue.Value
+                    : null
+            })
+            .ToListAsync(ct);
+
+        logger.LogInformation(
+            "Retrieved giving summary for person {PersonId}: YTD={YtdTotal}, RecentCount={Count}",
+            id, ytdTotal, recentContributions.Count);
+
+        var summary = new PersonGivingSummaryDto
+        {
+            YearToDateTotal = ytdTotal,
+            LastContributionDate = lastContributionDate,
+            RecentContributions = recentContributions
+        };
+
+        return Result<PersonGivingSummaryDto>.Success(summary);
     }
 
 }
