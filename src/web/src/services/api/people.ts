@@ -16,6 +16,7 @@ import type {
   NoteDto,
   CreateNoteRequest,
   UpdateNoteRequest,
+  AttendanceSummaryDto,
 } from './types';
 
 /**
@@ -153,6 +154,19 @@ export async function updatePersonNote(
  */
 export async function deletePersonNote(personIdKey: string, noteIdKey: string): Promise<void> {
   await del(`/people/${personIdKey}/notes/${noteIdKey}`);
+}
+
+/**
+ * Get attendance history for a person
+ */
+export async function getPersonAttendance(
+  personIdKey: string,
+  days = 90
+): Promise<AttendanceSummaryDto[]> {
+  const response = await get<{ data: AttendanceSummaryDto[] }>(
+    `/people/${personIdKey}/attendance?days=${days}`
+  );
+  return response.data;
 }
 
 /**

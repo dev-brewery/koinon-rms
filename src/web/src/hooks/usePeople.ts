@@ -170,3 +170,14 @@ export function useDeleteNote(personIdKey: string) {
     },
   });
 }
+
+/**
+ * Get attendance history for a person
+ */
+export function usePersonAttendance(personIdKey?: string, days = 90) {
+  return useQuery({
+    queryKey: ['person-attendance', personIdKey, days],
+    queryFn: () => peopleApi.getPersonAttendance(personIdKey!, days),
+    enabled: !!personIdKey,
+  });
+}

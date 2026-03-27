@@ -18,6 +18,7 @@ public class PeopleControllerTests
 {
     private readonly Mock<IPersonService> _personServiceMock;
     private readonly Mock<IFileService> _fileServiceMock;
+    private readonly Mock<ICheckinAttendanceService> _checkinAttendanceServiceMock;
     private readonly Mock<ILogger<PeopleController>> _loggerMock;
     private readonly PeopleController _controller;
 
@@ -34,8 +35,13 @@ public class PeopleControllerTests
     {
         _personServiceMock = new Mock<IPersonService>();
         _fileServiceMock = new Mock<IFileService>();
+        _checkinAttendanceServiceMock = new Mock<ICheckinAttendanceService>();
         _loggerMock = new Mock<ILogger<PeopleController>>();
-        _controller = new PeopleController(_personServiceMock.Object, _fileServiceMock.Object, _loggerMock.Object);
+        _controller = new PeopleController(
+            _personServiceMock.Object,
+            _fileServiceMock.Object,
+            _checkinAttendanceServiceMock.Object,
+            _loggerMock.Object);
 
         // Setup HttpContext for controller
         _controller.ControllerContext = new ControllerContext
@@ -1081,6 +1087,69 @@ public class PeopleControllerTests
         var totalCount = (int)totalCountProp!.GetValue(meta)!;
         items.Should().BeEmpty();
         totalCount.Should().Be(0);
+    }
+
+    #endregion
+
+    #region GetAttendanceHistory Tests
+
+    [Fact]
+    public async Task GetAttendanceHistory_WithHistory_ReturnsOkWithData()
+    {
+        // Arrange
+        var locationIdKey = IdKeyHelper.Encode(50);
+        var attendanceIdKey1 = IdKeyHelper.Encode(301);
+        var attendanceIdKey2 = IdKeyHelper.Encode(302);
+
+        var expectedHistory = (IReadOnlyList<AttendanceSummaryDto>)new List<AttendanceSummaryDto>
+        {
+            new(
+                IdKey: attendanceIdKey1,
+                Person: new CheckinPersonSummaryDto(IdKey: _personIdKey, FullName: "John Doe", FirstName: "John", LastName: "Doe"),
+                Location: new CheckinLocationSummaryDto(IdKey: locationIdKey, Name: "Room A", FullPath: "Building > Room A"),
+                StartDateTime: DateTime.UtcNow.AddDays(-5)),
+            new(
+                IdKey: attendanceIdKey2,
+                Person: new CheckinPersonSummaryDto(IdKey: _personIdKey, FullName: "John Doe", FirstName: "John", LastName: "Doe"),
+                Location: new CheckinLocationSummaryDto(IdKey: locationIdKey, Name: "Room A", FullPath: "Building > Room A"),
+                StartDateTime: DateTime.UtcNow.AddDays(-12))
+        };
+
+        _checkinAttendanceServiceMock
+            .Setup(s => s.GetPersonAttendanceHistoryAsync(_personIdKey, 90, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedHistory);
+
+        // Act
+        var result = await _controller.GetAttendanceHistory(_personIdKey, days: 90);
+
+        // Assert
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var response = okResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        var items = dataProperty!.GetValue(response).Should().BeAssignableTo<IReadOnlyList<AttendanceSummaryDto>>().Subject;
+        items.Should().HaveCount(2);
+        items[0].IdKey.Should().Be(attendanceIdKey1);
+    }
+
+    [Fact]
+    public async Task GetAttendanceHistory_WithNoHistory_ReturnsOkWithEmptyList()
+    {
+        // Arrange
+        var emptyHistory = (IReadOnlyList<AttendanceSummaryDto>)new List<AttendanceSummaryDto>();
+
+        _checkinAttendanceServiceMock
+            .Setup(s => s.GetPersonAttendanceHistoryAsync(_personIdKey, It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(emptyHistory);
+
+        // Act
+        var result = await _controller.GetAttendanceHistory(_personIdKey);
+
+        // Assert
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var response = okResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        var items = dataProperty!.GetValue(response).Should().BeAssignableTo<IReadOnlyList<AttendanceSummaryDto>>().Subject;
+        items.Should().BeEmpty();
     }
 
     #endregion

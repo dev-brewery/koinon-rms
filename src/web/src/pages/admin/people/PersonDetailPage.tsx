@@ -8,6 +8,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { usePerson, usePersonFamily, usePersonGroups, useDeletePerson } from '@/hooks/usePeople';
 import { CommunicationPreferences } from '@/components/admin/people/CommunicationPreferences';
 import { NotesSection } from '@/components/admin/people/NotesSection';
+import { AttendanceHistorySection } from '@/components/admin/people/AttendanceHistorySection';
 import { useToast } from '@/contexts/ToastContext';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
@@ -296,6 +297,9 @@ export function PersonDetailPage() {
 
       {/* Notes / Interaction Log */}
       <NotesSection personIdKey={idKey!} />
+
+      {/* Attendance History */}
+      <AttendanceHistorySection personIdKey={idKey!} />
 
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog
