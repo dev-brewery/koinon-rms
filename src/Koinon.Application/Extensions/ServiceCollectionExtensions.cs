@@ -70,6 +70,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ILabelGenerationService, LabelGenerationService>();
         services.AddScoped<ICapacityService, CapacityService>();
 
+        // Kiosk registration service
+        services.AddScoped<ICheckinRegistrationService, CheckinRegistrationService>();
+
         // Device/Kiosk validation service
         services.AddScoped<IDeviceValidationService, DeviceValidationService>();
 

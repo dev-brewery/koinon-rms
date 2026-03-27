@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-02-06T21:29:42-05:00",
+  "generated_at": "2026-02-07T09:04:24-05:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -3679,6 +3679,25 @@
       },
       "linked_entity": "Person"
     },
+    "KioskFamilyRegistrationRequest": {
+      "name": "KioskFamilyRegistrationRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "ParentFirstName": "string",
+        "ParentLastName": "string",
+        "PhoneNumber": "string",
+        "Children": "List<KioskChildRegistrationRequest>"
+      }
+    },
+    "KioskChildRegistrationRequest": {
+      "name": "KioskChildRegistrationRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "FirstName": "string",
+        "LastName": "string?",
+        "BirthDate": "DateOnly?"
+      }
+    },
     "SendPageRequest": {
       "name": "SendPageRequest",
       "namespace": "Koinon.Application.DTOs.Requests",
@@ -4689,6 +4708,28 @@
         "IUserContext",
         "IGradeCalculationService",
         "ILogger<CheckinConfigurationService>"
+      ]
+    },
+    "CheckinRegistrationService": {
+      "name": "CheckinRegistrationService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "CheckinRegistrationService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "RegisterFamilyAsync",
+          "return_type": "Task<CheckinFamilySearchResultDto>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "ICheckinSearchService",
+        "IValidator<KioskFamilyRegistrationRequest>",
+        "ILogger<CheckinRegistrationService>"
       ]
     },
     "CheckinSearchService": {
@@ -6370,6 +6411,12 @@
       "methods": [],
       "dependencies": []
     },
+    "ICheckinRegistrationService": {
+      "name": "ICheckinRegistrationService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
     "ICheckinSearchService": {
       "name": "ICheckinSearchService",
       "namespace": "Koinon.Application.Interfaces",
@@ -6980,6 +7027,15 @@
           "required_roles": []
         },
         {
+          "name": "RegisterFamily",
+          "method": "POST",
+          "route": "register-family",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "RecordAttendance",
           "method": "POST",
           "route": "attendance",
@@ -7038,12 +7094,13 @@
         "response_envelope": true,
         "idkey_routes": true,
         "problem_details": true,
-        "result_pattern": false
+        "result_pattern": true
       },
       "dependencies": [
         "ICheckinConfigurationService",
         "ICheckinSearchService",
         "ICheckinAttendanceService",
+        "ICheckinRegistrationService",
         "ILabelGenerationService",
         "ISupervisorModeService",
         "IRoomRosterService",
@@ -17350,6 +17407,11 @@
     },
     {
       "source": "CheckinController",
+      "target": "ICheckinRegistrationService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "CheckinController",
       "target": "ILabelGenerationService",
       "relationship": "depends_on"
     },
@@ -17756,6 +17818,11 @@
     {
       "source": "CheckinConfigurationService",
       "target": "CheckinAreaDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CheckinRegistrationService",
+      "target": "CheckinFamilySearchResultDto",
       "relationship": "returns"
     },
     {
@@ -18524,6 +18591,11 @@
       "relationship": "uses"
     },
     {
+      "source": "CheckinRegistrationService",
+      "target": "Family",
+      "relationship": "uses"
+    },
+    {
       "source": "CommunicationPreferenceService",
       "target": "Communication",
       "relationship": "uses"
@@ -19221,13 +19293,13 @@
   },
   "stats": {
     "entities": 59,
-    "dtos": 195,
-    "services": 105,
+    "dtos": 197,
+    "services": 107,
     "controllers": 34,
     "types": 295,
     "api_functions": 164,
     "hooks": 143,
     "components": 129,
-    "total_edges": 540
+    "total_edges": 543
   }
 }

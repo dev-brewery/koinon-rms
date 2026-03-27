@@ -12,6 +12,7 @@ import {
   OfflineQueueIndicator,
   PinEntry,
   SupervisorMode,
+  KioskFamilyRegistration,
 } from '@/components/checkin';
 import type { OpportunitySelection } from '@/components/checkin';
 import { Button, Card } from '@/components/ui';
@@ -39,7 +40,7 @@ import { printBridgeClient, type PrinterInfo } from '@/services/printing/PrintBr
 import { OfflineIndicator } from '@/components/pwa';
 import { supervisorLogin, supervisorLogout, supervisorReprint, checkout } from '@/services/api/checkin';
 
-type CheckinStep = 'search' | 'select-family' | 'select-members' | 'confirmation';
+type CheckinStep = 'search' | 'select-family' | 'select-members' | 'confirmation' | 'register';
 type SearchMode = 'phone' | 'name' | 'qr';
 
 // Idle timeout configuration
@@ -480,15 +481,35 @@ export function CheckinPage() {
 
           {/* No Results */}
           {searchQuery.data && searchQuery.data.length === 0 && searchMode !== 'qr' && (
-            <div className="max-w-2xl mx-auto mt-4">
+            <div className="max-w-2xl mx-auto mt-4 space-y-4">
               <Card className="bg-yellow-50 border border-yellow-200">
                 <p className="text-yellow-900 text-center font-medium">
-                  No families found. Please try a different search.
+                  No families found matching your search.
                 </p>
               </Card>
+              <Button
+                onClick={() => setStep('register')}
+                variant="primary"
+                size="lg"
+                className="w-full text-xl"
+              >
+                Not Found? Register New Family
+              </Button>
             </div>
           )}
         </div>
+      )}
+
+      {/* Step: Register New Family */}
+      {step === 'register' && (
+        <KioskFamilyRegistration
+          onComplete={(family) => {
+            setSelectedFamily(family);
+            setStep('select-members');
+          }}
+          onCancel={() => setStep('search')}
+          defaultPhone={searchMode === 'phone' ? searchValue : undefined}
+        />
       )}
 
       {/* Step 2: Select Family (if multiple results) */}
