@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-02-07T09:04:24-05:00",
+  "generated_at": "2026-03-26T21:08:02-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -4727,7 +4727,6 @@
       ],
       "dependencies": [
         "IApplicationDbContext",
-        "ICheckinSearchService",
         "IValidator<KioskFamilyRegistrationRequest>",
         "ILogger<CheckinRegistrationService>"
       ]
@@ -9134,20 +9133,20 @@
       "name": "CheckinFamilySearchResultDto",
       "kind": "interface",
       "properties": {
-        "familyIdKey": "IdKey",
+        "familyIdKey": "string",
         "familyName": "string",
         "addressSummary": "string",
         "campusName": "string",
         "members": "CheckinFamilyMemberDto[]",
         "recentCheckInCount": "number"
       },
-      "path": "types/checkin-extended.ts"
+      "path": "services/api/types.ts"
     },
     "CheckinFamilyMemberDto": {
       "name": "CheckinFamilyMemberDto",
       "kind": "interface",
       "properties": {
-        "personIdKey": "IdKey",
+        "personIdKey": "string",
         "fullName": "string",
         "firstName": "string",
         "lastName": "string",
@@ -9158,13 +9157,13 @@
         "roleName": "string",
         "isChild": "boolean",
         "hasRecentCheckIn": "boolean",
-        "lastCheckIn": "DateTime",
+        "lastCheckIn": "string",
         "grade": "string",
         "allergies": "string",
         "hasCriticalAllergies": "boolean",
         "specialNeeds": "string"
       },
-      "path": "types/checkin-extended.ts"
+      "path": "services/api/types.ts"
     },
     "AttendanceSummaryDto": {
       "name": "AttendanceSummaryDto",
@@ -11855,6 +11854,27 @@
         "scheduleName": "string",
         "startTime": "string",
         "isSelected": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "KioskChildRegistrationRequest": {
+      "name": "KioskChildRegistrationRequest",
+      "kind": "interface",
+      "properties": {
+        "firstName": "string",
+        "lastName": "string",
+        "birthDate": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "KioskFamilyRegistrationRequest": {
+      "name": "KioskFamilyRegistrationRequest",
+      "kind": "interface",
+      "properties": {
+        "parentFirstName": "string",
+        "parentLastName": "string",
+        "phoneNumber": "string",
+        "children": "KioskChildRegistrationRequest[]"
       },
       "path": "services/api/types.ts"
     },
@@ -14595,6 +14615,13 @@
       "method": "GET",
       "responseType": "RoomRosterDto[]"
     },
+    "registerFamily": {
+      "name": "registerFamily",
+      "path": "services/api/checkin.ts",
+      "endpoint": "/checkin/register-family",
+      "method": "POST",
+      "responseType": "CheckinFamilyDto"
+    },
     "checkoutFromRoster": {
       "name": "checkoutFromRoster",
       "path": "services/api/checkin.ts",
@@ -15897,6 +15924,12 @@
     "IdleWarningModal": {
       "name": "IdleWarningModal",
       "path": "components/checkin/IdleWarningModal.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "KioskFamilyRegistration": {
+      "name": "KioskFamilyRegistration",
+      "path": "components/checkin/KioskFamilyRegistration.tsx",
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
@@ -19257,6 +19290,8 @@
     "dto:CreatePhoneNumberRequest": "type:CreatePhoneNumberRequest",
     "dto:UpdateFollowUpStatusRequest": "type:UpdateFollowUpStatusRequest",
     "dto:AssignFollowUpRequest": "type:AssignFollowUpRequest",
+    "dto:KioskFamilyRegistrationRequest": "type:KioskFamilyRegistrationRequest",
+    "dto:KioskChildRegistrationRequest": "type:KioskChildRegistrationRequest",
     "dto:SendPageRequest": "type:SendPageRequest",
     "dto:PageSearchRequest": "type:PageSearchRequest",
     "dto:RecordAttendanceRequest": "type:RecordAttendanceRequest",
@@ -19296,10 +19331,10 @@
     "dtos": 197,
     "services": 107,
     "controllers": 34,
-    "types": 295,
-    "api_functions": 164,
+    "types": 297,
+    "api_functions": 165,
     "hooks": 143,
-    "components": 129,
+    "components": 130,
     "total_edges": 543
   }
 }
