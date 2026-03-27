@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-03-27T09:57:49-04:00",
+  "generated_at": "2026-03-27T10:46:06-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -15867,6 +15867,12 @@
       ],
       "apiCallsDirectly": false
     },
+    "GroupMembershipsSection": {
+      "name": "GroupMembershipsSection",
+      "path": "components/admin/people/GroupMembershipsSection.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
     "PersonCard": {
       "name": "PersonCard",
       "path": "components/admin/people/PersonCard.tsx",
@@ -19392,7 +19398,7 @@
     "types": 297,
     "api_functions": 165,
     "hooks": 143,
-    "components": 130,
+    "components": 131,
     "total_edges": 543
   }
 }

@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-03-27T14:27:47.710Z",
+  "generated_at": "2026-03-27T15:00:23.991Z",
   "types": {
     "AttendanceAnalyticsDto": {
       "name": "AttendanceAnalyticsDto",
@@ -7027,6 +7027,12 @@
         "useCommunicationPreferences",
         "useUpdateCommunicationPreference"
       ],
+      "apiCallsDirectly": false
+    },
+    "GroupMembershipsSection": {
+      "name": "GroupMembershipsSection",
+      "path": "components/admin/people/GroupMembershipsSection.tsx",
+      "hooksUsed": [],
       "apiCallsDirectly": false
     },
     "PersonCard": {
