@@ -20,6 +20,7 @@ namespace Koinon.Api.Controllers;
 public class PeopleController(
     IPersonService personService,
     IFileService fileService,
+    ICheckinAttendanceService checkinAttendanceService,
     ILogger<PeopleController> logger) : ControllerBase
 {
     /// <summary>
@@ -363,6 +364,33 @@ public class PeopleController(
         }
 
         return Ok(new { data = result.Value });
+    }
+
+    /// <summary>
+    /// Gets the attendance history for a person.
+    /// </summary>
+    /// <param name="idKey">The person's IdKey</param>
+    /// <param name="days">Number of days to look back (default: 90)</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>List of attendance records</returns>
+    /// <response code="200">Returns attendance history</response>
+    /// <response code="404">Person not found</response>
+    [HttpGet("{idKey}/attendance")]
+    [ValidateIdKey]
+    [ProducesResponseType(typeof(IReadOnlyList<AttendanceSummaryDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetAttendanceHistory(
+        string idKey,
+        [FromQuery] int days = 90,
+        CancellationToken ct = default)
+    {
+        var history = await checkinAttendanceService.GetPersonAttendanceHistoryAsync(idKey, days, ct);
+
+        logger.LogDebug(
+            "Attendance history retrieved for person: IdKey={IdKey}, Days={Days}, Count={Count}",
+            idKey, days, history.Count);
+
+        return Ok(new { data = history });
     }
 
     /// <summary>

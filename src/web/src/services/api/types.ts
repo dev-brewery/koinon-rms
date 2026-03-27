@@ -1376,6 +1376,30 @@ export interface AuditLogExportParams {
 }
 
 // ============================================================================
+// Attendance History Types
+// ============================================================================
+
+export interface AttendanceSummaryDto {
+  idKey: IdKey;
+  person: {
+    idKey: IdKey;
+    fullName: string;
+    firstName: string;
+    lastName: string;
+  };
+  location: {
+    idKey: IdKey;
+    name: string;
+    fullPath: string;
+  };
+  startDateTime: DateTime;
+  endDateTime?: DateTime;
+  securityCode?: string;
+  isFirstTime: boolean;
+  note?: string;
+}
+
+// ============================================================================
 // Data Export Types
 // ============================================================================
 

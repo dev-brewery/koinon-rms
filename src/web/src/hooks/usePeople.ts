@@ -116,3 +116,14 @@ export function usePersonGroups(idKey?: string) {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
+
+/**
+ * Get attendance history for a person
+ */
+export function usePersonAttendance(personIdKey?: string, days = 90) {
+  return useQuery({
+    queryKey: ['person-attendance', personIdKey, days],
+    queryFn: () => peopleApi.getPersonAttendance(personIdKey!, days),
+    enabled: !!personIdKey,
+  });
+}
