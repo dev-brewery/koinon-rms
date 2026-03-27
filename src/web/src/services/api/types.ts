@@ -1408,17 +1408,21 @@ export interface DevicesSearchParams extends PaginationParams {
 
 export interface CreateDeviceRequest {
   name: string;
-  deviceTypeValueId?: IdKey;
-  campusId?: IdKey;
+  description?: string;
+  deviceTypeValueIdKey?: IdKey;
+  campusIdKey?: IdKey;
   ipAddress?: string;
+  isActive?: boolean;
 }
 
 export interface UpdateDeviceRequest {
   name?: string;
-  deviceTypeValueId?: IdKey;
-  campusId?: IdKey;
+  description?: string;
+  deviceTypeValueIdKey?: IdKey;
+  campusIdKey?: IdKey;
   ipAddress?: string;
   isActive?: boolean;
+  printerSettings?: string;
 }
 
 // ============================================================================
