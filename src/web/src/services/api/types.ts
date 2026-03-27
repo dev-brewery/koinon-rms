@@ -503,6 +503,21 @@ export interface GroupMembershipDto {
   dateAdded?: DateTime;
 }
 
+/** Flat DTO returned by GET /api/v1/people/:idKey/groups */
+export interface PersonGroupMembershipDto {
+  idKey: IdKey;
+  guid: string;
+  groupIdKey: IdKey;
+  groupName: string;
+  groupTypeIdKey: IdKey;
+  groupTypeName: string;
+  roleIdKey: IdKey;
+  roleName: string;
+  memberStatus: string;
+  createdDateTime: DateTime;
+  modifiedDateTime?: DateTime;
+}
+
 export interface AddGroupMemberRequest {
   personId: IdKey;
   roleId: IdKey;

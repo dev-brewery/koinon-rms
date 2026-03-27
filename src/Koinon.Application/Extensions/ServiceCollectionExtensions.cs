@@ -166,6 +166,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IExportFormatGenerator, CsvExportGenerator>();
         services.AddScoped<IExportFormatGenerator, ExcelExportGenerator>();
 
+        // Notification service
+        services.AddScoped<INotificationService, NotificationService>();
+
         // Configure QuestPDF license
         QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
