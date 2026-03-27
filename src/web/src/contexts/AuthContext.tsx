@@ -8,6 +8,35 @@ import { authApi, setTokens, clearTokens, getAccessToken, getRefreshToken } from
 import type { LoginRequest, UserSummaryDto } from '../services/api/types';
 
 // ============================================================================
+// JWT Utilities (private to this module)
+// ============================================================================
+
+/**
+ * Extract the roles claim from a JWT access token.
+ * ASP.NET Core emits roles under either the standard claim URI or the
+ * short-form "role" / "roles" key.  Returns an empty array on any failure.
+ */
+function extractRolesFromJwt(token: string): string[] {
+  try {
+    const payloadBase64 = token.split('.')[1];
+    if (!payloadBase64) return [];
+    const padded = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
+    const payload: unknown = JSON.parse(atob(padded));
+    if (typeof payload !== 'object' || payload === null) return [];
+    const p = payload as Record<string, unknown>;
+    const raw =
+      p['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ??
+      p['role'] ??
+      p['roles'];
+    if (Array.isArray(raw)) return raw.filter((r): r is string => typeof r === 'string');
+    if (typeof raw === 'string') return [raw];
+    return [];
+  } catch {
+    return [];
+  }
+}
+
+// ============================================================================
 // Types
 // ============================================================================
 
@@ -59,8 +88,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const response = await authApi.login(request);
 
+      // Merge roles from the JWT into the user object.  The API user payload
+      // may omit roles, but the access token always carries them as claims.
+      const roles = extractRolesFromJwt(response.accessToken);
+      const userWithRoles: UserSummaryDto = { ...response.user, roles };
+
       setState({
-        user: response.user,
+        user: userWithRoles,
         isAuthenticated: true,
         isLoading: false,
         error: null,

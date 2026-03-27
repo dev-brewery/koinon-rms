@@ -515,6 +515,7 @@ public class CheckinController(
     /// <response code="401">Missing or invalid authentication</response>
     /// <response code="403">Not authorized to view this room</response>
     [HttpGet("roster/{locationIdKey}")]
+    [Authorize(Roles = "CheckInVolunteer,Supervisor")]
     [ProducesResponseType(typeof(RoomRosterDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
@@ -541,9 +542,11 @@ public class CheckinController(
     /// <response code="400">Invalid request</response>
     /// <response code="401">Missing or invalid authentication</response>
     [HttpGet("roster")]
+    [Authorize(Roles = "Supervisor")]
     [ProducesResponseType(typeof(List<RoomRosterDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetMultipleRoomRosters(
         [FromQuery] string locationIdKeys,
         CancellationToken ct = default)

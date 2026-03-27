@@ -7,6 +7,7 @@ import { useState } from 'react';
 import type { RosterChildDto } from '@/services/api/types';
 import { useCheckOutFromRoster } from '@/hooks/useRoomRoster';
 import { Button } from '@/components/ui';
+import { useToast } from '@/contexts/ToastContext';
 
 interface ChildRowProps {
   child: RosterChildDto;
@@ -14,7 +15,12 @@ interface ChildRowProps {
 
 export function ChildRow({ child }: ChildRowProps) {
   const [isConfirming, setIsConfirming] = useState(false);
+  const { error: toastError } = useToast();
   const checkOutMutation = useCheckOutFromRoster();
+
+  const displayName = child.nickName
+    ? `${child.nickName} ${child.lastName}`
+    : `${child.firstName} ${child.lastName}`;
 
   const handleCheckOut = () => {
     if (!isConfirming) {
@@ -22,7 +28,14 @@ export function ChildRow({ child }: ChildRowProps) {
       return;
     }
     setIsConfirming(false);
-    checkOutMutation.mutate(child.attendanceIdKey);
+    checkOutMutation.mutate(child.attendanceIdKey, {
+      onError: () => {
+        toastError(
+          'Check-out failed',
+          `Failed to check out ${displayName}. Please try again.`
+        );
+      },
+    });
   };
 
   const handleCancel = () => {
@@ -33,10 +46,6 @@ export function ChildRow({ child }: ChildRowProps) {
     hour: 'numeric',
     minute: '2-digit',
   });
-
-  const displayName = child.nickName
-    ? `${child.nickName} ${child.lastName}`
-    : `${child.firstName} ${child.lastName}`;
 
   return (
     <div

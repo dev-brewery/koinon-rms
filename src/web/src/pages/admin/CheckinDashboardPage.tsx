@@ -14,46 +14,8 @@ import {
   RoomCard,
 } from '@/components/admin/checkin-dashboard';
 import { Button } from '@/components/ui';
-import { useAuth } from '@/hooks/useAuth';
-import { getAccessToken } from '@/services/api/client';
+import { useIsAdmin } from '@/hooks/useAuth';
 import type { CheckinLocationDto, RoomRosterDto } from '@/services/api/types';
-
-// ── Role guard helpers ──────────────────────────────────────────────────────
-
-/**
- * Decode the roles claim from the current JWT access token without an external
- * library.  Returns an empty array if the token is absent or malformed.
- */
-function getRolesFromToken(): string[] {
-  try {
-    const token = getAccessToken();
-    if (!token) return [];
-    const payloadBase64 = token.split('.')[1];
-    if (!payloadBase64) return [];
-    // Replace URL-safe chars and pad to a multiple of 4
-    const padded = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
-    const decoded = atob(padded);
-    const payload: unknown = JSON.parse(decoded);
-    if (typeof payload !== 'object' || payload === null) return [];
-    // ASP.NET Core emits roles as the standard ClaimTypes role URI or the
-    // shorthand "role" key; handle both forms.
-    const p = payload as Record<string, unknown>;
-    const raw =
-      p['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ??
-      p['role'] ??
-      p['roles'];
-    if (Array.isArray(raw)) return raw.filter((r): r is string => typeof r === 'string');
-    if (typeof raw === 'string') return [raw];
-    return [];
-  } catch {
-    return [];
-  }
-}
-
-function useIsAdmin(): boolean {
-  const { isAuthenticated } = useAuth();
-  return isAuthenticated && getRolesFromToken().includes('Admin');
-}
 
 export function CheckinDashboardPage() {
   const isAdmin = useIsAdmin();
