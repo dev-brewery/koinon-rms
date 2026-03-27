@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-03-27T09:57:49-04:00",
+  "generated_at": "2026-03-27T10:46:06-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -2391,6 +2391,27 @@
         "IsPublic": "bool"
       },
       "linked_entity": "Fund"
+    },
+    "PersonGivingSummaryDto": {
+      "name": "PersonGivingSummaryDto",
+      "namespace": "Koinon.Application.DTOs.Giving",
+      "properties": {
+        "YearToDateTotal": "decimal",
+        "LastContributionDate": "DateTime?",
+        "RecentContributions": "List<RecentContributionDto>"
+      },
+      "linked_entity": "Person"
+    },
+    "RecentContributionDto": {
+      "name": "RecentContributionDto",
+      "namespace": "Koinon.Application.DTOs.Giving",
+      "properties": {
+        "IdKey": "string",
+        "TransactionDateTime": "DateTime",
+        "Amount": "decimal",
+        "FundName": "string",
+        "TransactionType": "string?"
+      }
     },
     "PersonLookupDto": {
       "name": "PersonLookupDto",
@@ -5964,6 +5985,11 @@
           "name": "GetGroupsAsync",
           "return_type": "Task<PagedResult<PersonGroupMembershipDto>>",
           "is_async": false
+        },
+        {
+          "name": "GetGivingSummaryAsync",
+          "return_type": "Task<Result<PersonGivingSummaryDto>>",
+          "is_async": false
         }
       ],
       "dependencies": [
@@ -8291,6 +8317,15 @@
           "required_roles": []
         },
         {
+          "name": "GetGivingSummary",
+          "method": "GET",
+          "route": "{idKey}/giving-summary",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "GetFamily",
           "method": "GET",
           "route": "{idKey}/family",
@@ -9188,6 +9223,11 @@
     {
       "source": "FundDto",
       "target": "Fund",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "PersonGivingSummaryDto",
+      "target": "Person",
       "relationship": "maps_to"
     },
     {
@@ -10816,6 +10856,11 @@
       "relationship": "returns"
     },
     {
+      "source": "PersonService",
+      "target": "PersonGivingSummaryDto",
+      "relationship": "returns"
+    },
+    {
       "source": "PublicGroupService",
       "target": "GroupDto",
       "relationship": "returns"
@@ -11223,9 +11268,9 @@
   ],
   "summary": {
     "total_entities": 59,
-    "total_dtos": 197,
+    "total_dtos": 199,
     "total_services": 107,
     "total_controllers": 34,
-    "total_relationships": 476
+    "total_relationships": 478
   }
 }

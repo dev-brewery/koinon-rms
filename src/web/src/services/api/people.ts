@@ -13,6 +13,7 @@ import type {
   PersonFamilyResponse,
   GroupMembershipDto,
   PersonGroupsParams,
+  PersonGivingSummaryDto,
 } from './types';
 
 /**
@@ -103,6 +104,14 @@ export async function getPersonGroups(
   const endpoint = `/people/${idKey}/groups${query ? `?${query}` : ''}`;
 
   return get<PagedResult<GroupMembershipDto>>(endpoint);
+}
+
+/**
+ * Get giving summary for a person (YTD total + recent contributions)
+ */
+export async function getPersonGivingSummary(idKey: string): Promise<PersonGivingSummaryDto> {
+  const response = await get<{ data: PersonGivingSummaryDto }>(`/people/${idKey}/giving-summary`);
+  return response.data;
 }
 
 /**

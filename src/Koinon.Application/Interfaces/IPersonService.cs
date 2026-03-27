@@ -1,5 +1,6 @@
 using Koinon.Application.Common;
 using Koinon.Application.DTOs;
+using Koinon.Application.DTOs.Giving;
 using Koinon.Application.DTOs.Requests;
 
 namespace Koinon.Application.Interfaces;
@@ -75,4 +76,13 @@ public interface IPersonService
         int page = 1,
         int pageSize = 25,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// Gets a person's giving summary: YTD total, last contribution date, and last 10 contributions.
+    /// Returns Failure(NotFound) when the person does not exist.
+    /// </summary>
+    /// <param name="idKey">Person's IdKey</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Result containing the giving summary DTO</returns>
+    Task<Result<PersonGivingSummaryDto>> GetGivingSummaryAsync(string idKey, CancellationToken ct = default);
 }

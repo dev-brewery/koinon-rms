@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-03-27T09:57:49-04:00",
+  "generated_at": "2026-03-27T10:46:06-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -2391,6 +2391,27 @@
         "IsPublic": "bool"
       },
       "linked_entity": "Fund"
+    },
+    "PersonGivingSummaryDto": {
+      "name": "PersonGivingSummaryDto",
+      "namespace": "Koinon.Application.DTOs.Giving",
+      "properties": {
+        "YearToDateTotal": "decimal",
+        "LastContributionDate": "DateTime?",
+        "RecentContributions": "List<RecentContributionDto>"
+      },
+      "linked_entity": "Person"
+    },
+    "RecentContributionDto": {
+      "name": "RecentContributionDto",
+      "namespace": "Koinon.Application.DTOs.Giving",
+      "properties": {
+        "IdKey": "string",
+        "TransactionDateTime": "DateTime",
+        "Amount": "decimal",
+        "FundName": "string",
+        "TransactionType": "string?"
+      }
     },
     "PersonLookupDto": {
       "name": "PersonLookupDto",
@@ -5964,6 +5985,11 @@
           "name": "GetGroupsAsync",
           "return_type": "Task<PagedResult<PersonGroupMembershipDto>>",
           "is_async": false
+        },
+        {
+          "name": "GetGivingSummaryAsync",
+          "return_type": "Task<Result<PersonGivingSummaryDto>>",
+          "is_async": false
         }
       ],
       "dependencies": [
@@ -8285,6 +8311,15 @@
           "name": "GetGroups",
           "method": "GET",
           "route": "{idKey}/groups",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetGivingSummary",
+          "method": "GET",
+          "route": "{idKey}/giving-summary",
           "request_type": null,
           "response_type": null,
           "requires_auth": true,
@@ -12514,6 +12549,28 @@
       },
       "path": "services/api/types.ts"
     },
+    "PersonGivingSummaryDto": {
+      "name": "PersonGivingSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "yearToDateTotal": "number",
+        "lastContributionDate": "DateTime",
+        "recentContributions": "RecentContributionDto[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "RecentContributionDto": {
+      "name": "RecentContributionDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "transactionDateTime": "DateTime",
+        "amount": "number",
+        "fundName": "string",
+        "transactionType": "string"
+      },
+      "path": "services/api/types.ts"
+    },
     "DataExportJobDto": {
       "name": "DataExportJobDto",
       "kind": "interface",
@@ -14046,6 +14103,19 @@
       "usesMutation": false,
       "dependencies": []
     },
+    "usePersonGivingSummary": {
+      "name": "usePersonGivingSummary",
+      "path": "hooks/usePeople.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "people"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getPersonGivingSummary"
+      ]
+    },
     "useDuplicates": {
       "name": "useDuplicates",
       "path": "hooks/usePersonMerge.ts",
@@ -15401,6 +15471,13 @@
       "method": "GET",
       "responseType": "PersonFamilyResponse"
     },
+    "getPersonGivingSummary": {
+      "name": "getPersonGivingSummary",
+      "path": "services/api/people.ts",
+      "endpoint": "/people/${idKey}/giving-summary",
+      "method": "GET",
+      "responseType": "PersonGivingSummaryDto"
+    },
     "uploadPersonPhoto": {
       "name": "uploadPersonPhoto",
       "path": "services/api/people.ts",
@@ -15864,6 +15941,14 @@
       "hooksUsed": [
         "useCommunicationPreferences",
         "useUpdateCommunicationPreference"
+      ],
+      "apiCallsDirectly": false
+    },
+    "GivingHistorySection": {
+      "name": "GivingHistorySection",
+      "path": "components/admin/people/GivingHistorySection.tsx",
+      "hooksUsed": [
+        "usePersonGivingSummary"
       ],
       "apiCallsDirectly": false
     },
@@ -16844,6 +16929,11 @@
     {
       "source": "FundDto",
       "target": "Fund",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "PersonGivingSummaryDto",
+      "target": "Person",
       "relationship": "maps_to"
     },
     {
@@ -18472,6 +18562,11 @@
       "relationship": "returns"
     },
     {
+      "source": "PersonService",
+      "target": "PersonGivingSummaryDto",
+      "relationship": "returns"
+    },
+    {
       "source": "PublicGroupService",
       "target": "GroupDto",
       "relationship": "returns"
@@ -19007,6 +19102,11 @@
       "type": "uses_hook"
     },
     {
+      "from": "GivingHistorySection",
+      "to": "usePersonGivingSummary",
+      "type": "uses_hook"
+    },
+    {
       "from": "PersonComparisonView",
       "to": "usePersonComparison",
       "type": "uses_hook"
@@ -19275,6 +19375,8 @@
     "dto:StatementPreviewDto": "type:StatementPreviewDto",
     "dto:EligiblePersonDto": "type:EligiblePersonDto",
     "dto:FundDto": "type:FundDto",
+    "dto:PersonGivingSummaryDto": "type:PersonGivingSummaryDto",
+    "dto:RecentContributionDto": "type:RecentContributionDto",
     "dto:PersonLookupDto": "type:PersonLookupDto",
     "dto:GlobalSearchResultDto": "type:GlobalSearchResult",
     "dto:GlobalSearchResponse": "type:GlobalSearchResponse",
@@ -19386,13 +19488,13 @@
   },
   "stats": {
     "entities": 59,
-    "dtos": 197,
+    "dtos": 199,
     "services": 107,
     "controllers": 34,
-    "types": 297,
-    "api_functions": 165,
-    "hooks": 143,
-    "components": 130,
-    "total_edges": 543
+    "types": 299,
+    "api_functions": 166,
+    "hooks": 144,
+    "components": 131,
+    "total_edges": 546
   }
 }

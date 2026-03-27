@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-03-27T14:27:47.710Z",
+  "generated_at": "2026-03-27T15:19:36.854Z",
   "types": {
     "AttendanceAnalyticsDto": {
       "name": "AttendanceAnalyticsDto",
@@ -3676,6 +3676,28 @@
       },
       "path": "services/api/types.ts"
     },
+    "PersonGivingSummaryDto": {
+      "name": "PersonGivingSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "yearToDateTotal": "number",
+        "lastContributionDate": "DateTime",
+        "recentContributions": "RecentContributionDto[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "RecentContributionDto": {
+      "name": "RecentContributionDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "transactionDateTime": "DateTime",
+        "amount": "number",
+        "fundName": "string",
+        "transactionType": "string"
+      },
+      "path": "services/api/types.ts"
+    },
     "DataExportJobDto": {
       "name": "DataExportJobDto",
       "kind": "interface",
@@ -4751,6 +4773,13 @@
       "endpoint": "/people/${idKey}/family",
       "method": "GET",
       "responseType": "PersonFamilyResponse"
+    },
+    "getPersonGivingSummary": {
+      "name": "getPersonGivingSummary",
+      "path": "services/api/people.ts",
+      "endpoint": "/people/${idKey}/giving-summary",
+      "method": "GET",
+      "responseType": "PersonGivingSummaryDto"
     },
     "uploadPersonPhoto": {
       "name": "uploadPersonPhoto",
@@ -6365,6 +6394,19 @@
       "usesMutation": false,
       "dependencies": []
     },
+    "usePersonGivingSummary": {
+      "name": "usePersonGivingSummary",
+      "path": "hooks/usePeople.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "people"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getPersonGivingSummary"
+      ]
+    },
     "useDuplicates": {
       "name": "useDuplicates",
       "path": "hooks/usePersonMerge.ts",
@@ -7026,6 +7068,14 @@
       "hooksUsed": [
         "useCommunicationPreferences",
         "useUpdateCommunicationPreference"
+      ],
+      "apiCallsDirectly": false
+    },
+    "GivingHistorySection": {
+      "name": "GivingHistorySection",
+      "path": "components/admin/people/GivingHistorySection.tsx",
+      "hooksUsed": [
+        "usePersonGivingSummary"
       ],
       "apiCallsDirectly": false
     },
@@ -7786,6 +7836,11 @@
     {
       "from": "CommunicationPreferences",
       "to": "useUpdateCommunicationPreference",
+      "type": "uses_hook"
+    },
+    {
+      "from": "GivingHistorySection",
+      "to": "usePersonGivingSummary",
       "type": "uses_hook"
     },
     {
