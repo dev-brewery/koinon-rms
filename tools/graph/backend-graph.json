@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-03-27T09:57:49-04:00",
+  "generated_at": "2026-03-27T10:46:06-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -881,6 +881,25 @@
         "OverflowLocationId": "int?",
         "OverflowLocation": "virtual Location?",
         "AutoAssignOverflow": "bool"
+      },
+      "navigations": []
+    },
+    "Note": {
+      "name": "Note",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "note",
+      "properties": {
+        "Entity": "class Note :",
+        "PersonAliasId": "int",
+        "NoteTypeValueId": "int",
+        "Text": "string",
+        "NoteDateTime": "DateTime",
+        "AuthorPersonAliasId": "int?",
+        "IsPrivate": "bool",
+        "IsAlert": "bool",
+        "PersonAlias": "virtual PersonAlias?",
+        "NoteTypeValue": "virtual DefinedValue?",
+        "AuthorPersonAlias": "virtual PersonAlias?"
       },
       "navigations": []
     },
@@ -2882,6 +2901,48 @@
         "ModifiedDateTime": "DateTime?"
       },
       "linked_entity": "Person"
+    },
+    "NoteDto": {
+      "name": "NoteDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "IdKey": "string",
+        "NoteTypeValueIdKey": "string",
+        "NoteTypeName": "string",
+        "Text": "string",
+        "NoteDateTime": "DateTime",
+        "AuthorPersonIdKey": "string?",
+        "AuthorPersonName": "string?",
+        "IsPrivate": "bool",
+        "IsAlert": "bool",
+        "CreatedDateTime": "DateTime",
+        "ModifiedDateTime": "DateTime?"
+      },
+      "linked_entity": "Note"
+    },
+    "CreateNoteRequest": {
+      "name": "CreateNoteRequest",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "NoteTypeValueIdKey": "string",
+        "Text": "string",
+        "NoteDateTime": "DateTime?",
+        "IsPrivate": "bool",
+        "IsAlert": "bool"
+      },
+      "linked_entity": "Note"
+    },
+    "UpdateNoteRequest": {
+      "name": "UpdateNoteRequest",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "NoteTypeValueIdKey": "string?",
+        "Text": "string?",
+        "NoteDateTime": "DateTime?",
+        "IsPrivate": "bool?",
+        "IsAlert": "bool?"
+      },
+      "linked_entity": "Note"
     },
     "NotificationDto": {
       "name": "NotificationDto",
@@ -5961,6 +6022,26 @@
           "is_async": false
         },
         {
+          "name": "GetNotesAsync",
+          "return_type": "Task<Result<PagedResult<NoteDto>>>",
+          "is_async": false
+        },
+        {
+          "name": "CreateNoteAsync",
+          "return_type": "Task<Result<NoteDto>>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateNoteAsync",
+          "return_type": "Task<Result<NoteDto>>",
+          "is_async": false
+        },
+        {
+          "name": "DeleteNoteAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        },
+        {
           "name": "GetGroupsAsync",
           "return_type": "Task<PagedResult<PersonGroupMembershipDto>>",
           "is_async": false
@@ -8300,6 +8381,24 @@
           "required_roles": []
         },
         {
+          "name": "GetNotes",
+          "method": "GET",
+          "route": "{idKey}/notes",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "CreateNote",
+          "method": "POST",
+          "route": "{idKey}/notes",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "UploadPhoto",
           "method": "POST",
           "route": "{idKey}/photo",
@@ -8318,9 +8417,27 @@
           "required_roles": []
         },
         {
+          "name": "UpdateNote",
+          "method": "PUT",
+          "route": "{idKey}/notes/{noteIdKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "Delete",
           "method": "DELETE",
           "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "DeleteNote",
+          "method": "DELETE",
+          "route": "{idKey}/notes/{noteIdKey}",
           "request_type": null,
           "response_type": null,
           "requires_auth": true,
@@ -9333,6 +9450,21 @@
     {
       "source": "MyProfileDto",
       "target": "Person",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "NoteDto",
+      "target": "Note",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CreateNoteRequest",
+      "target": "Note",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdateNoteRequest",
+      "target": "Note",
       "relationship": "maps_to"
     },
     {
@@ -10812,6 +10944,21 @@
     },
     {
       "source": "PersonService",
+      "target": "NoteDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "PersonService",
+      "target": "NoteDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "PersonService",
+      "target": "NoteDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "PersonService",
       "target": "PersonGroupMembershipDto",
       "relationship": "returns"
     },
@@ -11222,10 +11369,10 @@
     }
   ],
   "summary": {
-    "total_entities": 59,
-    "total_dtos": 197,
+    "total_entities": 60,
+    "total_dtos": 200,
     "total_services": 107,
     "total_controllers": 34,
-    "total_relationships": 476
+    "total_relationships": 482
   }
 }

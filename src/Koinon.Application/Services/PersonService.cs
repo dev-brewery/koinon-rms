@@ -535,6 +535,241 @@ public class PersonService(
             : Result<PersonDto>.Failure(Error.UnprocessableEntity("Failed to retrieve updated person"));
     }
 
+    public async Task<Result<PagedResult<NoteDto>>> GetNotesAsync(
+        string personIdKey,
+        int page,
+        int pageSize,
+        CancellationToken ct = default)
+    {
+        if (!IdKeyHelper.TryDecode(personIdKey, out int personId))
+        {
+            return Result<PagedResult<NoteDto>>.Failure(Error.NotFound("Person", personIdKey));
+        }
+
+        var personExists = await context.People.AnyAsync(p => p.Id == personId, ct);
+        if (!personExists)
+        {
+            return Result<PagedResult<NoteDto>>.Failure(Error.NotFound("Person", personIdKey));
+        }
+
+        // Collect all alias IDs for this person so notes on any alias are returned
+        var aliasIds = await context.PersonAliases
+            .AsNoTracking()
+            .Where(pa => pa.PersonId == personId)
+            .Select(pa => pa.Id)
+            .ToListAsync(ct);
+
+        var query = context.Notes
+            .AsNoTracking()
+            .Include(n => n.NoteTypeValue)
+            .Include(n => n.AuthorPersonAlias)
+                .ThenInclude(pa => pa!.Person)
+            .Where(n => aliasIds.Contains(n.PersonAliasId));
+
+        var totalCount = await query.CountAsync(ct);
+
+        var items = await query
+            .OrderByDescending(n => n.NoteDateTime)
+            .ThenByDescending(n => n.CreatedDateTime)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(n => new NoteDto
+            {
+                IdKey = IdKeyHelper.Encode(n.Id),
+                NoteTypeValueIdKey = IdKeyHelper.Encode(n.NoteTypeValueId),
+                NoteTypeName = n.NoteTypeValue != null ? n.NoteTypeValue.Value : string.Empty,
+                Text = n.Text,
+                NoteDateTime = n.NoteDateTime,
+                AuthorPersonIdKey = n.AuthorPersonAlias != null && n.AuthorPersonAlias.Person != null
+                    ? IdKeyHelper.Encode(n.AuthorPersonAlias.Person.Id)
+                    : null,
+                AuthorPersonName = n.AuthorPersonAlias != null && n.AuthorPersonAlias.Person != null
+                    ? n.AuthorPersonAlias.Person.FullName
+                    : null,
+                IsPrivate = n.IsPrivate,
+                IsAlert = n.IsAlert,
+                CreatedDateTime = n.CreatedDateTime,
+                ModifiedDateTime = n.ModifiedDateTime
+            })
+            .ToListAsync(ct);
+
+        logger.LogInformation(
+            "Retrieved notes for person {PersonId}: Count={Count}, Page={Page}",
+            personId, totalCount, page);
+
+        return Result<PagedResult<NoteDto>>.Success(
+            new PagedResult<NoteDto>(items, totalCount, page, pageSize));
+    }
+
+    public async Task<Result<NoteDto>> CreateNoteAsync(
+        string personIdKey,
+        CreateNoteRequest request,
+        CancellationToken ct = default)
+    {
+        if (!IdKeyHelper.TryDecode(personIdKey, out int personId))
+        {
+            return Result<NoteDto>.Failure(Error.NotFound("Person", personIdKey));
+        }
+
+        // Verify person exists and get their primary alias
+        var primaryAlias = await context.PersonAliases
+            .AsNoTracking()
+            .Where(pa => pa.PersonId == personId)
+            .OrderBy(pa => pa.Id)
+            .FirstOrDefaultAsync(ct);
+
+        if (primaryAlias is null)
+        {
+            return Result<NoteDto>.Failure(Error.NotFound("Person", personIdKey));
+        }
+
+        // Decode note type
+        if (!IdKeyHelper.TryDecode(request.NoteTypeValueIdKey, out int noteTypeValueId))
+        {
+            return Result<NoteDto>.Failure(Error.Validation("Invalid NoteTypeValueIdKey"));
+        }
+
+        var noteTypeExists = await context.DefinedValues.AnyAsync(dv => dv.Id == noteTypeValueId, ct);
+        if (!noteTypeExists)
+        {
+            return Result<NoteDto>.Failure(Error.NotFound("DefinedValue", request.NoteTypeValueIdKey));
+        }
+
+        // Resolve the current user's PersonAlias for authorship attribution.
+        // TODO(#486): Replace with IUserContext.CurrentPersonAliasId once that property is added
+        //             to the auth context pipeline. For now, look up the primary alias by PersonId.
+        int? authorAliasId = null;
+        if (userContext.CurrentPersonId.HasValue)
+        {
+            authorAliasId = await context.PersonAliases
+                .AsNoTracking()
+                .Where(pa => pa.PersonId == userContext.CurrentPersonId.Value)
+                .OrderBy(pa => pa.Id)
+                .Select(pa => (int?)pa.Id)
+                .FirstOrDefaultAsync(ct);
+        }
+
+        var note = new Note
+        {
+            PersonAliasId = primaryAlias.Id,
+            NoteTypeValueId = noteTypeValueId,
+            Text = request.Text,
+            NoteDateTime = request.NoteDateTime?.ToUniversalTime() ?? DateTime.UtcNow,
+            AuthorPersonAliasId = authorAliasId,
+            IsPrivate = request.IsPrivate,
+            IsAlert = request.IsAlert,
+            CreatedDateTime = DateTime.UtcNow
+        };
+
+        await context.Notes.AddAsync(note, ct);
+        await context.SaveChangesAsync(ct);
+
+        logger.LogInformation(
+            "Created note {NoteId} on person {PersonId} by alias {AuthorAliasId}",
+            note.Id, personId, authorAliasId);
+
+        // Fetch with includes for the full response DTO
+        var created = await context.Notes
+            .AsNoTracking()
+            .Include(n => n.NoteTypeValue)
+            .Include(n => n.AuthorPersonAlias)
+                .ThenInclude(pa => pa!.Person)
+            .FirstAsync(n => n.Id == note.Id, ct);
+
+        return Result<NoteDto>.Success(mapper.Map<NoteDto>(created));
+    }
+
+    public async Task<Result<NoteDto>> UpdateNoteAsync(
+        string noteIdKey,
+        UpdateNoteRequest request,
+        CancellationToken ct = default)
+    {
+        if (!IdKeyHelper.TryDecode(noteIdKey, out int noteId))
+        {
+            return Result<NoteDto>.Failure(Error.NotFound("Note", noteIdKey));
+        }
+
+        var note = await context.Notes.FindAsync(new object[] { noteId }, ct);
+
+        if (note is null)
+        {
+            return Result<NoteDto>.Failure(Error.NotFound("Note", noteIdKey));
+        }
+
+        if (request.NoteTypeValueIdKey is not null)
+        {
+            if (!IdKeyHelper.TryDecode(request.NoteTypeValueIdKey, out int noteTypeValueId))
+            {
+                return Result<NoteDto>.Failure(Error.Validation("Invalid NoteTypeValueIdKey"));
+            }
+
+            var noteTypeExists = await context.DefinedValues.AnyAsync(dv => dv.Id == noteTypeValueId, ct);
+            if (!noteTypeExists)
+            {
+                return Result<NoteDto>.Failure(Error.NotFound("DefinedValue", request.NoteTypeValueIdKey));
+            }
+
+            note.NoteTypeValueId = noteTypeValueId;
+        }
+
+        if (request.Text is not null)
+        {
+            note.Text = request.Text;
+        }
+
+        if (request.NoteDateTime.HasValue)
+        {
+            note.NoteDateTime = request.NoteDateTime.Value.ToUniversalTime();
+        }
+
+        if (request.IsPrivate.HasValue)
+        {
+            note.IsPrivate = request.IsPrivate.Value;
+        }
+
+        if (request.IsAlert.HasValue)
+        {
+            note.IsAlert = request.IsAlert.Value;
+        }
+
+        note.ModifiedDateTime = DateTime.UtcNow;
+
+        await context.SaveChangesAsync(ct);
+
+        logger.LogInformation("Updated note {NoteId}", noteId);
+
+        var updated = await context.Notes
+            .AsNoTracking()
+            .Include(n => n.NoteTypeValue)
+            .Include(n => n.AuthorPersonAlias)
+                .ThenInclude(pa => pa!.Person)
+            .FirstAsync(n => n.Id == noteId, ct);
+
+        return Result<NoteDto>.Success(mapper.Map<NoteDto>(updated));
+    }
+
+    public async Task<Result> DeleteNoteAsync(string noteIdKey, CancellationToken ct = default)
+    {
+        if (!IdKeyHelper.TryDecode(noteIdKey, out int noteId))
+        {
+            return Result.Failure(Error.NotFound("Note", noteIdKey));
+        }
+
+        var note = await context.Notes.FindAsync(new object[] { noteId }, ct);
+
+        if (note is null)
+        {
+            return Result.Failure(Error.NotFound("Note", noteIdKey));
+        }
+
+        context.Notes.Remove(note);
+        await context.SaveChangesAsync(ct);
+
+        logger.LogInformation("Deleted note {NoteId}", noteId);
+
+        return Result.Success();
+    }
+
     public async Task<PagedResult<PersonGroupMembershipDto>> GetGroupsAsync(
         string idKey,
         int page = 1,

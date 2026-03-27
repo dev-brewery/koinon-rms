@@ -235,3 +235,4 @@ venv-rag/
 .kilocode/
 .kiloignore
 .continue/mcpServers/code-rag.yaml
+.claude/qa-evidence/

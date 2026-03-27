@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-03-27T14:27:47.710Z",
+  "generated_at": "2026-03-27T16:03:10.396Z",
   "types": {
     "AttendanceAnalyticsDto": {
       "name": "AttendanceAnalyticsDto",
@@ -3676,6 +3676,48 @@
       },
       "path": "services/api/types.ts"
     },
+    "NoteDto": {
+      "name": "NoteDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "noteTypeValueIdKey": "IdKey",
+        "noteTypeName": "string",
+        "text": "string",
+        "noteDateTime": "DateTime",
+        "authorPersonName": "string",
+        "authorPersonIdKey": "IdKey",
+        "isPrivate": "boolean",
+        "isAlert": "boolean",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CreateNoteRequest": {
+      "name": "CreateNoteRequest",
+      "kind": "interface",
+      "properties": {
+        "noteTypeValueIdKey": "IdKey",
+        "text": "string",
+        "noteDateTime": "DateTime",
+        "isPrivate": "boolean",
+        "isAlert": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "UpdateNoteRequest": {
+      "name": "UpdateNoteRequest",
+      "kind": "interface",
+      "properties": {
+        "noteTypeValueIdKey": "IdKey",
+        "text": "string",
+        "noteDateTime": "DateTime",
+        "isPrivate": "boolean",
+        "isAlert": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
     "DataExportJobDto": {
       "name": "DataExportJobDto",
       "kind": "interface",
@@ -4751,6 +4793,27 @@
       "endpoint": "/people/${idKey}/family",
       "method": "GET",
       "responseType": "PersonFamilyResponse"
+    },
+    "createPersonNote": {
+      "name": "createPersonNote",
+      "path": "services/api/people.ts",
+      "endpoint": "/people/${personIdKey}/notes",
+      "method": "POST",
+      "responseType": "NoteDto"
+    },
+    "updatePersonNote": {
+      "name": "updatePersonNote",
+      "path": "services/api/people.ts",
+      "endpoint": "/people/${personIdKey}/notes/${noteIdKey}",
+      "method": "PUT",
+      "responseType": "NoteDto"
+    },
+    "deletePersonNote": {
+      "name": "deletePersonNote",
+      "path": "services/api/people.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "void"
     },
     "uploadPersonPhoto": {
       "name": "uploadPersonPhoto",
@@ -6365,6 +6428,56 @@
       "usesMutation": false,
       "dependencies": []
     },
+    "usePersonNotes": {
+      "name": "usePersonNotes",
+      "path": "hooks/usePeople.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "people"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useCreateNote": {
+      "name": "useCreateNote",
+      "path": "hooks/usePeople.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "people"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "createPersonNote"
+      ]
+    },
+    "useUpdateNote": {
+      "name": "useUpdateNote",
+      "path": "hooks/usePeople.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "people"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "updatePersonNote"
+      ]
+    },
+    "useDeleteNote": {
+      "name": "useDeleteNote",
+      "path": "hooks/usePeople.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "people"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "deletePersonNote"
+      ]
+    },
     "useDuplicates": {
       "name": "useDuplicates",
       "path": "hooks/usePersonMerge.ts",
@@ -7026,6 +7139,17 @@
       "hooksUsed": [
         "useCommunicationPreferences",
         "useUpdateCommunicationPreference"
+      ],
+      "apiCallsDirectly": false
+    },
+    "NotesSection": {
+      "name": "NotesSection",
+      "path": "components/admin/people/NotesSection.tsx",
+      "hooksUsed": [
+        "usePersonNotes",
+        "useCreateNote",
+        "useUpdateNote",
+        "useDeleteNote"
       ],
       "apiCallsDirectly": false
     },
@@ -7786,6 +7910,26 @@
     {
       "from": "CommunicationPreferences",
       "to": "useUpdateCommunicationPreference",
+      "type": "uses_hook"
+    },
+    {
+      "from": "NotesSection",
+      "to": "usePersonNotes",
+      "type": "uses_hook"
+    },
+    {
+      "from": "NotesSection",
+      "to": "useCreateNote",
+      "type": "uses_hook"
+    },
+    {
+      "from": "NotesSection",
+      "to": "useUpdateNote",
+      "type": "uses_hook"
+    },
+    {
+      "from": "NotesSection",
+      "to": "useDeleteNote",
       "type": "uses_hook"
     },
     {

@@ -687,6 +687,7 @@ public class ReportServiceTests
         public DbSet<PersonDuplicateIgnore> PersonDuplicateIgnores { get; set; } = null!;
         public DbSet<Notification> Notifications { get; set; } = null!;
         public DbSet<NotificationPreference> NotificationPreferences { get; set; } = null!;
+        public DbSet<Note> Notes { get; set; } = null!;
         public DbSet<SecurityRole> SecurityRoles { get; set; } = null!;
         public DbSet<SecurityClaim> SecurityClaims { get; set; } = null!;
         public DbSet<PersonSecurityRole> PersonSecurityRoles { get; set; } = null!;

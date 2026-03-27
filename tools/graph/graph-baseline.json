@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-03-27T09:57:49-04:00",
+  "generated_at": "2026-03-27T10:46:06-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -881,6 +881,25 @@
         "OverflowLocationId": "int?",
         "OverflowLocation": "virtual Location?",
         "AutoAssignOverflow": "bool"
+      },
+      "navigations": []
+    },
+    "Note": {
+      "name": "Note",
+      "namespace": "Koinon.Domain.Entities",
+      "table": "note",
+      "properties": {
+        "Entity": "class Note :",
+        "PersonAliasId": "int",
+        "NoteTypeValueId": "int",
+        "Text": "string",
+        "NoteDateTime": "DateTime",
+        "AuthorPersonAliasId": "int?",
+        "IsPrivate": "bool",
+        "IsAlert": "bool",
+        "PersonAlias": "virtual PersonAlias?",
+        "NoteTypeValue": "virtual DefinedValue?",
+        "AuthorPersonAlias": "virtual PersonAlias?"
       },
       "navigations": []
     },
@@ -2882,6 +2901,48 @@
         "ModifiedDateTime": "DateTime?"
       },
       "linked_entity": "Person"
+    },
+    "NoteDto": {
+      "name": "NoteDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "IdKey": "string",
+        "NoteTypeValueIdKey": "string",
+        "NoteTypeName": "string",
+        "Text": "string",
+        "NoteDateTime": "DateTime",
+        "AuthorPersonIdKey": "string?",
+        "AuthorPersonName": "string?",
+        "IsPrivate": "bool",
+        "IsAlert": "bool",
+        "CreatedDateTime": "DateTime",
+        "ModifiedDateTime": "DateTime?"
+      },
+      "linked_entity": "Note"
+    },
+    "CreateNoteRequest": {
+      "name": "CreateNoteRequest",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "NoteTypeValueIdKey": "string",
+        "Text": "string",
+        "NoteDateTime": "DateTime?",
+        "IsPrivate": "bool",
+        "IsAlert": "bool"
+      },
+      "linked_entity": "Note"
+    },
+    "UpdateNoteRequest": {
+      "name": "UpdateNoteRequest",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "NoteTypeValueIdKey": "string?",
+        "Text": "string?",
+        "NoteDateTime": "DateTime?",
+        "IsPrivate": "bool?",
+        "IsAlert": "bool?"
+      },
+      "linked_entity": "Note"
     },
     "NotificationDto": {
       "name": "NotificationDto",
@@ -5961,6 +6022,26 @@
           "is_async": false
         },
         {
+          "name": "GetNotesAsync",
+          "return_type": "Task<Result<PagedResult<NoteDto>>>",
+          "is_async": false
+        },
+        {
+          "name": "CreateNoteAsync",
+          "return_type": "Task<Result<NoteDto>>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateNoteAsync",
+          "return_type": "Task<Result<NoteDto>>",
+          "is_async": false
+        },
+        {
+          "name": "DeleteNoteAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        },
+        {
           "name": "GetGroupsAsync",
           "return_type": "Task<PagedResult<PersonGroupMembershipDto>>",
           "is_async": false
@@ -8300,6 +8381,24 @@
           "required_roles": []
         },
         {
+          "name": "GetNotes",
+          "method": "GET",
+          "route": "{idKey}/notes",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "CreateNote",
+          "method": "POST",
+          "route": "{idKey}/notes",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "UploadPhoto",
           "method": "POST",
           "route": "{idKey}/photo",
@@ -8318,9 +8417,27 @@
           "required_roles": []
         },
         {
+          "name": "UpdateNote",
+          "method": "PUT",
+          "route": "{idKey}/notes/{noteIdKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "Delete",
           "method": "DELETE",
           "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "DeleteNote",
+          "method": "DELETE",
+          "route": "{idKey}/notes/{noteIdKey}",
           "request_type": null,
           "response_type": null,
           "requires_auth": true,
@@ -12514,6 +12631,48 @@
       },
       "path": "services/api/types.ts"
     },
+    "NoteDto": {
+      "name": "NoteDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "noteTypeValueIdKey": "IdKey",
+        "noteTypeName": "string",
+        "text": "string",
+        "noteDateTime": "DateTime",
+        "authorPersonName": "string",
+        "authorPersonIdKey": "IdKey",
+        "isPrivate": "boolean",
+        "isAlert": "boolean",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CreateNoteRequest": {
+      "name": "CreateNoteRequest",
+      "kind": "interface",
+      "properties": {
+        "noteTypeValueIdKey": "IdKey",
+        "text": "string",
+        "noteDateTime": "DateTime",
+        "isPrivate": "boolean",
+        "isAlert": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "UpdateNoteRequest": {
+      "name": "UpdateNoteRequest",
+      "kind": "interface",
+      "properties": {
+        "noteTypeValueIdKey": "IdKey",
+        "text": "string",
+        "noteDateTime": "DateTime",
+        "isPrivate": "boolean",
+        "isAlert": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
     "DataExportJobDto": {
       "name": "DataExportJobDto",
       "kind": "interface",
@@ -14046,6 +14205,56 @@
       "usesMutation": false,
       "dependencies": []
     },
+    "usePersonNotes": {
+      "name": "usePersonNotes",
+      "path": "hooks/usePeople.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "people"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useCreateNote": {
+      "name": "useCreateNote",
+      "path": "hooks/usePeople.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "people"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "createPersonNote"
+      ]
+    },
+    "useUpdateNote": {
+      "name": "useUpdateNote",
+      "path": "hooks/usePeople.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "people"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "updatePersonNote"
+      ]
+    },
+    "useDeleteNote": {
+      "name": "useDeleteNote",
+      "path": "hooks/usePeople.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "people"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "deletePersonNote"
+      ]
+    },
     "useDuplicates": {
       "name": "useDuplicates",
       "path": "hooks/usePersonMerge.ts",
@@ -15401,6 +15610,27 @@
       "method": "GET",
       "responseType": "PersonFamilyResponse"
     },
+    "createPersonNote": {
+      "name": "createPersonNote",
+      "path": "services/api/people.ts",
+      "endpoint": "/people/${personIdKey}/notes",
+      "method": "POST",
+      "responseType": "NoteDto"
+    },
+    "updatePersonNote": {
+      "name": "updatePersonNote",
+      "path": "services/api/people.ts",
+      "endpoint": "/people/${personIdKey}/notes/${noteIdKey}",
+      "method": "PUT",
+      "responseType": "NoteDto"
+    },
+    "deletePersonNote": {
+      "name": "deletePersonNote",
+      "path": "services/api/people.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "void"
+    },
     "uploadPersonPhoto": {
       "name": "uploadPersonPhoto",
       "path": "services/api/people.ts",
@@ -15864,6 +16094,17 @@
       "hooksUsed": [
         "useCommunicationPreferences",
         "useUpdateCommunicationPreference"
+      ],
+      "apiCallsDirectly": false
+    },
+    "NotesSection": {
+      "name": "NotesSection",
+      "path": "components/admin/people/NotesSection.tsx",
+      "hooksUsed": [
+        "usePersonNotes",
+        "useCreateNote",
+        "useUpdateNote",
+        "useDeleteNote"
       ],
       "apiCallsDirectly": false
     },
@@ -16989,6 +17230,21 @@
     {
       "source": "MyProfileDto",
       "target": "Person",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "NoteDto",
+      "target": "Note",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CreateNoteRequest",
+      "target": "Note",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdateNoteRequest",
+      "target": "Note",
       "relationship": "maps_to"
     },
     {
@@ -18468,6 +18724,21 @@
     },
     {
       "source": "PersonService",
+      "target": "NoteDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "PersonService",
+      "target": "NoteDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "PersonService",
+      "target": "NoteDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "PersonService",
       "target": "PersonGroupMembershipDto",
       "relationship": "returns"
     },
@@ -19007,6 +19278,26 @@
       "type": "uses_hook"
     },
     {
+      "from": "NotesSection",
+      "to": "usePersonNotes",
+      "type": "uses_hook"
+    },
+    {
+      "from": "NotesSection",
+      "to": "useCreateNote",
+      "type": "uses_hook"
+    },
+    {
+      "from": "NotesSection",
+      "to": "useUpdateNote",
+      "type": "uses_hook"
+    },
+    {
+      "from": "NotesSection",
+      "to": "useDeleteNote",
+      "type": "uses_hook"
+    },
+    {
       "from": "PersonComparisonView",
       "to": "usePersonComparison",
       "type": "uses_hook"
@@ -19303,6 +19594,9 @@
     "dto:MyGroupDto": "type:MyGroupDto",
     "dto:MyInvolvementDto": "type:MyInvolvementDto",
     "dto:MyProfileDto": "type:MyProfileDto",
+    "dto:NoteDto": "type:NoteDto",
+    "dto:CreateNoteRequest": "type:CreateNoteRequest",
+    "dto:UpdateNoteRequest": "type:UpdateNoteRequest",
     "dto:NotificationDto": "type:NotificationDto",
     "dto:NotificationPreferenceDto": "type:NotificationPreferenceDto",
     "dto:PagerAssignmentDto": "type:PagerAssignmentDto",
@@ -19385,14 +19679,14 @@
     "dto:UserSessionDto": "type:UserSessionDto"
   },
   "stats": {
-    "entities": 59,
-    "dtos": 197,
+    "entities": 60,
+    "dtos": 200,
     "services": 107,
     "controllers": 34,
-    "types": 297,
-    "api_functions": 165,
-    "hooks": 143,
-    "components": 130,
-    "total_edges": 543
+    "types": 300,
+    "api_functions": 168,
+    "hooks": 147,
+    "components": 131,
+    "total_edges": 553
   }
 }

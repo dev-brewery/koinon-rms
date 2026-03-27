@@ -8,6 +8,8 @@ import type {
   PersonSearchParams,
   CreatePersonRequest,
   UpdatePersonRequest,
+  CreateNoteRequest,
+  UpdateNoteRequest,
 } from '@/services/api/types';
 
 /**
@@ -114,5 +116,57 @@ export function usePersonGroups(idKey?: string) {
     queryFn: () => peopleApi.getPersonGroups(idKey!),
     enabled: !!idKey,
     staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+/**
+ * Get paginated notes for a person
+ */
+export function usePersonNotes(idKey?: string) {
+  return useQuery({
+    queryKey: ['people', idKey, 'notes'],
+    queryFn: () => peopleApi.getPersonNotes(idKey!),
+    enabled: !!idKey,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+}
+
+/**
+ * Create a note for a person
+ */
+export function useCreateNote(personIdKey: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (request: CreateNoteRequest) => peopleApi.createPersonNote(personIdKey, request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['people', personIdKey, 'notes'] });
+    },
+  });
+}
+
+/**
+ * Update a note for a person
+ */
+export function useUpdateNote(personIdKey: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ noteIdKey, request }: { noteIdKey: string; request: UpdateNoteRequest }) =>
+      peopleApi.updatePersonNote(personIdKey, noteIdKey, request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['people', personIdKey, 'notes'] });
+    },
+  });
+}
+
+/**
+ * Delete a note for a person
+ */
+export function useDeleteNote(personIdKey: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (noteIdKey: string) => peopleApi.deletePersonNote(personIdKey, noteIdKey),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['people', personIdKey, 'notes'] });
+    },
   });
 }
