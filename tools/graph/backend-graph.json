@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-02-07T09:04:24-05:00",
+  "generated_at": "2026-03-26T23:23:13-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -2100,6 +2100,16 @@
       },
       "linked_entity": "Device"
     },
+    "GenerateKioskTokenResponseDto": {
+      "name": "GenerateKioskTokenResponseDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Token": "string",
+        "DeviceIdKey": "string",
+        "DeviceName": "string",
+        "ExpiresAt": "DateTime?"
+      }
+    },
     "DeviceSummaryDto": {
       "name": "DeviceSummaryDto",
       "namespace": "Koinon.Application.DTOs",
@@ -3726,6 +3736,25 @@
       },
       "linked_entity": "Person"
     },
+    "KioskFamilyRegistrationRequest": {
+      "name": "KioskFamilyRegistrationRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "ParentFirstName": "string",
+        "ParentLastName": "string",
+        "PhoneNumber": "string",
+        "Children": "List<KioskChildRegistrationRequest>"
+      }
+    },
+    "KioskChildRegistrationRequest": {
+      "name": "KioskChildRegistrationRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "FirstName": "string",
+        "LastName": "string?",
+        "BirthDate": "DateOnly?"
+      }
+    },
     "SendPageRequest": {
       "name": "SendPageRequest",
       "namespace": "Koinon.Application.DTOs.Requests",
@@ -4752,6 +4781,27 @@
         "ILogger<CheckinConfigurationService>"
       ]
     },
+    "CheckinRegistrationService": {
+      "name": "CheckinRegistrationService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "CheckinRegistrationService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "RegisterFamilyAsync",
+          "return_type": "Task<CheckinFamilySearchResultDto>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IValidator<KioskFamilyRegistrationRequest>",
+        "ILogger<CheckinRegistrationService>"
+      ]
+    },
     "CheckinSearchService": {
       "name": "CheckinSearchService",
       "namespace": "Koinon.Application.Services",
@@ -5157,6 +5207,11 @@
       "namespace": "Koinon.Application.Services",
       "methods": [
         {
+          "name": "DeviceService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
           "name": "GetAllAsync",
           "return_type": "Task<IReadOnlyList<DeviceSummaryDto>>",
           "is_async": false
@@ -5183,11 +5238,17 @@
         },
         {
           "name": "GenerateKioskTokenAsync",
-          "return_type": "Task<Result<DeviceDetailDto>>",
+          "return_type": "Task<Result<GenerateKioskTokenResponseDto>>",
           "is_async": false
         }
       ],
-      "dependencies": []
+      "dependencies": [
+        "IApplicationDbContext",
+        "IMapper",
+        "IValidator<CreateDeviceRequest>",
+        "IValidator<UpdateDeviceRequest>",
+        "ILogger<DeviceService>"
+      ]
     },
     "DeviceValidationService": {
       "name": "DeviceValidationService",
@@ -6468,6 +6529,12 @@
       "methods": [],
       "dependencies": []
     },
+    "ICheckinRegistrationService": {
+      "name": "ICheckinRegistrationService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
     "ICheckinSearchService": {
       "name": "ICheckinSearchService",
       "namespace": "Koinon.Application.Interfaces",
@@ -7084,6 +7151,15 @@
           "required_roles": []
         },
         {
+          "name": "RegisterFamily",
+          "method": "POST",
+          "route": "register-family",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "RecordAttendance",
           "method": "POST",
           "route": "attendance",
@@ -7142,12 +7218,13 @@
         "response_envelope": true,
         "idkey_routes": true,
         "problem_details": true,
-        "result_pattern": false
+        "result_pattern": true
       },
       "dependencies": [
         "ICheckinConfigurationService",
         "ICheckinSearchService",
         "ICheckinAttendanceService",
+        "ICheckinRegistrationService",
         "ILabelGenerationService",
         "ISupervisorModeService",
         "IRoomRosterService",
@@ -9963,6 +10040,11 @@
     },
     {
       "source": "CheckinController",
+      "target": "ICheckinRegistrationService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "CheckinController",
       "target": "ILabelGenerationService",
       "relationship": "depends_on"
     },
@@ -10377,6 +10459,11 @@
       "relationship": "returns"
     },
     {
+      "source": "CheckinRegistrationService",
+      "target": "CheckinFamilySearchResultDto",
+      "relationship": "returns"
+    },
+    {
       "source": "CheckinSearchService",
       "target": "CheckinFamilySearchResultDto",
       "relationship": "returns"
@@ -10588,7 +10675,7 @@
     },
     {
       "source": "DeviceService",
-      "target": "DeviceDetailDto",
+      "target": "TokenResponse",
       "relationship": "returns"
     },
     {
@@ -11167,6 +11254,11 @@
       "relationship": "uses"
     },
     {
+      "source": "CheckinRegistrationService",
+      "target": "Family",
+      "relationship": "uses"
+    },
+    {
       "source": "CommunicationPreferenceService",
       "target": "Communication",
       "relationship": "uses"
@@ -11199,6 +11291,21 @@
     {
       "source": "DataImportService",
       "target": "Family",
+      "relationship": "uses"
+    },
+    {
+      "source": "DeviceService",
+      "target": "Device",
+      "relationship": "uses"
+    },
+    {
+      "source": "DeviceService",
+      "target": "Device",
+      "relationship": "uses"
+    },
+    {
+      "source": "DeviceService",
+      "target": "Device",
       "relationship": "uses"
     },
     {
@@ -11359,9 +11466,9 @@
   ],
   "summary": {
     "total_entities": 59,
-    "total_dtos": 199,
-    "total_services": 107,
+    "total_dtos": 202,
+    "total_services": 109,
     "total_controllers": 35,
-    "total_relationships": 483
+    "total_relationships": 489
   }
 }

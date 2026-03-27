@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-03-26T23:22:23-04:00",
+  "generated_at": "2026-03-26T23:23:13-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -3736,6 +3736,25 @@
       },
       "linked_entity": "Person"
     },
+    "KioskFamilyRegistrationRequest": {
+      "name": "KioskFamilyRegistrationRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "ParentFirstName": "string",
+        "ParentLastName": "string",
+        "PhoneNumber": "string",
+        "Children": "List<KioskChildRegistrationRequest>"
+      }
+    },
+    "KioskChildRegistrationRequest": {
+      "name": "KioskChildRegistrationRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "FirstName": "string",
+        "LastName": "string?",
+        "BirthDate": "DateOnly?"
+      }
+    },
     "SendPageRequest": {
       "name": "SendPageRequest",
       "namespace": "Koinon.Application.DTOs.Requests",
@@ -4760,6 +4779,27 @@
         "IUserContext",
         "IGradeCalculationService",
         "ILogger<CheckinConfigurationService>"
+      ]
+    },
+    "CheckinRegistrationService": {
+      "name": "CheckinRegistrationService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "CheckinRegistrationService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "RegisterFamilyAsync",
+          "return_type": "Task<CheckinFamilySearchResultDto>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IValidator<KioskFamilyRegistrationRequest>",
+        "ILogger<CheckinRegistrationService>"
       ]
     },
     "CheckinSearchService": {
@@ -6489,6 +6529,12 @@
       "methods": [],
       "dependencies": []
     },
+    "ICheckinRegistrationService": {
+      "name": "ICheckinRegistrationService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
     "ICheckinSearchService": {
       "name": "ICheckinSearchService",
       "namespace": "Koinon.Application.Interfaces",
@@ -7105,6 +7151,15 @@
           "required_roles": []
         },
         {
+          "name": "RegisterFamily",
+          "method": "POST",
+          "route": "register-family",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "RecordAttendance",
           "method": "POST",
           "route": "attendance",
@@ -7163,12 +7218,13 @@
         "response_envelope": true,
         "idkey_routes": true,
         "problem_details": true,
-        "result_pattern": false
+        "result_pattern": true
       },
       "dependencies": [
         "ICheckinConfigurationService",
         "ICheckinSearchService",
         "ICheckinAttendanceService",
+        "ICheckinRegistrationService",
         "ILabelGenerationService",
         "ISupervisorModeService",
         "IRoomRosterService",
@@ -9255,20 +9311,20 @@
       "name": "CheckinFamilySearchResultDto",
       "kind": "interface",
       "properties": {
-        "familyIdKey": "IdKey",
+        "familyIdKey": "string",
         "familyName": "string",
         "addressSummary": "string",
         "campusName": "string",
         "members": "CheckinFamilyMemberDto[]",
         "recentCheckInCount": "number"
       },
-      "path": "types/checkin-extended.ts"
+      "path": "services/api/types.ts"
     },
     "CheckinFamilyMemberDto": {
       "name": "CheckinFamilyMemberDto",
       "kind": "interface",
       "properties": {
-        "personIdKey": "IdKey",
+        "personIdKey": "string",
         "fullName": "string",
         "firstName": "string",
         "lastName": "string",
@@ -9279,13 +9335,13 @@
         "roleName": "string",
         "isChild": "boolean",
         "hasRecentCheckIn": "boolean",
-        "lastCheckIn": "DateTime",
+        "lastCheckIn": "string",
         "grade": "string",
         "allergies": "string",
         "hasCriticalAllergies": "boolean",
         "specialNeeds": "string"
       },
-      "path": "types/checkin-extended.ts"
+      "path": "services/api/types.ts"
     },
     "AttendanceSummaryDto": {
       "name": "AttendanceSummaryDto",
@@ -11002,6 +11058,10 @@
       "name": "PersonSearchParams",
       "kind": "interface",
       "properties": {
+        "sortBy": "string",
+        "sortDir": "'asc' | 'desc'",
+        "page": "number",
+        "pageSize": "number",
         "q": "string",
         "firstName": "string",
         "lastName": "string",
@@ -11012,7 +11072,11 @@
         "campusId": "IdKey",
         "includeInactive": "boolean"
       },
-      "path": "services/api/types.ts"
+      "path": "services/api/types.ts",
+      "extends": [
+        "PaginationParams",
+        "SortParams"
+      ]
     },
     "DuplicateMatchDto": {
       "name": "DuplicateMatchDto",
@@ -11619,11 +11683,16 @@
       "name": "FamiliesSearchParams",
       "kind": "interface",
       "properties": {
+        "page": "number",
+        "pageSize": "number",
         "q": "string",
         "campusId": "IdKey",
         "includeInactive": "boolean"
       },
-      "path": "services/api/types.ts"
+      "path": "services/api/types.ts",
+      "extends": [
+        "PaginationParams"
+      ]
     },
     "FamilyDetailDto": {
       "name": "FamilyDetailDto",
@@ -11735,13 +11804,18 @@
       "name": "GroupsSearchParams",
       "kind": "interface",
       "properties": {
+        "page": "number",
+        "pageSize": "number",
         "q": "string",
         "groupTypeId": "IdKey",
         "parentGroupId": "IdKey",
         "campusId": "IdKey",
         "includeInactive": "boolean"
       },
-      "path": "services/api/types.ts"
+      "path": "services/api/types.ts",
+      "extends": [
+        "PaginationParams"
+      ]
     },
     "GroupDetailDto": {
       "name": "GroupDetailDto",
@@ -11767,10 +11841,15 @@
       "name": "GroupMembersParams",
       "kind": "interface",
       "properties": {
+        "page": "number",
+        "pageSize": "number",
         "status": "'Active' | 'Inactive' | 'Pending' | 'All'",
         "roleId": "IdKey"
       },
-      "path": "services/api/types.ts"
+      "path": "services/api/types.ts",
+      "extends": [
+        "PaginationParams"
+      ]
     },
     "AddGroupMemberRequest": {
       "name": "AddGroupMemberRequest",
@@ -11787,10 +11866,15 @@
       "name": "PersonGroupsParams",
       "kind": "interface",
       "properties": {
+        "page": "number",
+        "pageSize": "number",
         "groupTypeId": "IdKey",
         "includeInactive": "boolean"
       },
-      "path": "services/api/types.ts"
+      "path": "services/api/types.ts",
+      "extends": [
+        "PaginationParams"
+      ]
     },
     "PersonFamilyResponse": {
       "name": "PersonFamilyResponse",
@@ -11979,6 +12063,27 @@
       },
       "path": "services/api/types.ts"
     },
+    "KioskChildRegistrationRequest": {
+      "name": "KioskChildRegistrationRequest",
+      "kind": "interface",
+      "properties": {
+        "firstName": "string",
+        "lastName": "string",
+        "birthDate": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "KioskFamilyRegistrationRequest": {
+      "name": "KioskFamilyRegistrationRequest",
+      "kind": "interface",
+      "properties": {
+        "parentFirstName": "string",
+        "parentLastName": "string",
+        "phoneNumber": "string",
+        "children": "KioskChildRegistrationRequest[]"
+      },
+      "path": "services/api/types.ts"
+    },
     "CheckinRequest": {
       "name": "CheckinRequest",
       "kind": "interface",
@@ -12151,6 +12256,23 @@
       "name": "GroupTypeDetailAdminDto",
       "kind": "interface",
       "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "name": "string",
+        "description": "string",
+        "iconCssClass": "string",
+        "color": "string",
+        "groupTerm": "string",
+        "groupMemberTerm": "string",
+        "takesAttendance": "boolean",
+        "allowSelfRegistration": "boolean",
+        "requiresMemberApproval": "boolean",
+        "defaultIsPublic": "boolean",
+        "defaultGroupCapacity": "number",
+        "isSystem": "boolean",
+        "isArchived": "boolean",
+        "order": "number",
+        "groupCount": "number",
         "showInGroupList": "boolean",
         "showInNavigation": "boolean",
         "attendanceCountsAsWeekendService": "boolean",
@@ -12164,7 +12286,10 @@
         "createdDateTime": "DateTime",
         "modifiedDateTime": "DateTime"
       },
-      "path": "services/api/types.ts"
+      "path": "services/api/types.ts",
+      "extends": [
+        "GroupTypeAdminDto"
+      ]
     },
     "CreateGroupTypeRequest": {
       "name": "CreateGroupTypeRequest",
@@ -12256,11 +12381,16 @@
       "name": "ScheduleSearchParams",
       "kind": "interface",
       "properties": {
+        "page": "number",
+        "pageSize": "number",
         "query": "string",
         "dayOfWeek": "number",
         "includeInactive": "boolean"
       },
-      "path": "services/api/types.ts"
+      "path": "services/api/types.ts",
+      "extends": [
+        "PaginationParams"
+      ]
     },
     "ScheduleSummaryDto": {
       "name": "ScheduleSummaryDto",
@@ -12535,6 +12665,8 @@
       "name": "AuditLogSearchParams",
       "kind": "interface",
       "properties": {
+        "page": "number",
+        "pageSize": "number",
         "startDate": "DateTime",
         "endDate": "DateTime",
         "entityType": "string",
@@ -12542,7 +12674,10 @@
         "personIdKey": "IdKey",
         "entityIdKey": "IdKey"
       },
-      "path": "services/api/types.ts"
+      "path": "services/api/types.ts",
+      "extends": [
+        "PaginationParams"
+      ]
     },
     "AuditLogExportParams": {
       "name": "AuditLogExportParams",
@@ -12575,6 +12710,13 @@
       "name": "DeviceDetailDto",
       "kind": "interface",
       "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "deviceTypeName": "string",
+        "campusName": "string",
+        "isActive": "boolean",
+        "ipAddress": "string",
+        "lastSeenDateTime": "DateTime",
         "guid": "string",
         "description": "string",
         "campusIdKey": "IdKey",
@@ -12584,17 +12726,25 @@
         "createdDateTime": "DateTime",
         "modifiedDateTime": "DateTime"
       },
-      "path": "services/api/types.ts"
+      "path": "services/api/types.ts",
+      "extends": [
+        "DeviceSummaryDto"
+      ]
     },
     "DevicesSearchParams": {
       "name": "DevicesSearchParams",
       "kind": "interface",
       "properties": {
+        "page": "number",
+        "pageSize": "number",
         "q": "string",
         "campusId": "IdKey",
         "includeInactive": "boolean"
       },
-      "path": "services/api/types.ts"
+      "path": "services/api/types.ts",
+      "extends": [
+        "PaginationParams"
+      ]
     },
     "CreateDeviceRequest": {
       "name": "CreateDeviceRequest",
@@ -14858,6 +15008,13 @@
       "method": "GET",
       "responseType": "RoomRosterDto[]"
     },
+    "registerFamily": {
+      "name": "registerFamily",
+      "path": "services/api/checkin.ts",
+      "endpoint": "/checkin/register-family",
+      "method": "POST",
+      "responseType": "CheckinFamilyDto"
+    },
     "checkoutFromRoster": {
       "name": "checkoutFromRoster",
       "path": "services/api/checkin.ts",
@@ -16202,6 +16359,12 @@
     "IdleWarningModal": {
       "name": "IdleWarningModal",
       "path": "components/checkin/IdleWarningModal.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "KioskFamilyRegistration": {
+      "name": "KioskFamilyRegistration",
+      "path": "components/checkin/KioskFamilyRegistration.tsx",
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
@@ -17732,6 +17895,11 @@
     },
     {
       "source": "CheckinController",
+      "target": "ICheckinRegistrationService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "CheckinController",
       "target": "ILabelGenerationService",
       "relationship": "depends_on"
     },
@@ -18143,6 +18311,11 @@
     {
       "source": "CheckinConfigurationService",
       "target": "CheckinAreaDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CheckinRegistrationService",
+      "target": "CheckinFamilySearchResultDto",
       "relationship": "returns"
     },
     {
@@ -18936,6 +19109,11 @@
       "relationship": "uses"
     },
     {
+      "source": "CheckinRegistrationService",
+      "target": "Family",
+      "relationship": "uses"
+    },
+    {
       "source": "CommunicationPreferenceService",
       "target": "Communication",
       "relationship": "uses"
@@ -19615,6 +19793,8 @@
     "dto:CreatePhoneNumberRequest": "type:CreatePhoneNumberRequest",
     "dto:UpdateFollowUpStatusRequest": "type:UpdateFollowUpStatusRequest",
     "dto:AssignFollowUpRequest": "type:AssignFollowUpRequest",
+    "dto:KioskFamilyRegistrationRequest": "type:KioskFamilyRegistrationRequest",
+    "dto:KioskChildRegistrationRequest": "type:KioskChildRegistrationRequest",
     "dto:SendPageRequest": "type:SendPageRequest",
     "dto:PageSearchRequest": "type:PageSearchRequest",
     "dto:RecordAttendanceRequest": "type:RecordAttendanceRequest",
@@ -19652,13 +19832,13 @@
   },
   "stats": {
     "entities": 59,
-    "dtos": 200,
-    "services": 107,
+    "dtos": 202,
+    "services": 109,
     "controllers": 35,
-    "types": 300,
-    "api_functions": 170,
+    "types": 302,
+    "api_functions": 171,
     "hooks": 149,
-    "components": 129,
-    "total_edges": 553
+    "components": 130,
+    "total_edges": 556
   }
 }
