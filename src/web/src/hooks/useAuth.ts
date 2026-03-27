@@ -30,3 +30,13 @@ export function useIsAuthenticated() {
   const { isAuthenticated, isLoading } = useAuthContext();
   return { isAuthenticated, isLoading };
 }
+
+/**
+ * Returns true if the current user has the 'Admin' role.
+ * Roles are extracted from the JWT claims at login time and stored on the
+ * user object — no token re-parsing on every render.
+ */
+export function useIsAdmin(): boolean {
+  const { user, isAuthenticated } = useAuthContext();
+  return isAuthenticated && (user?.roles?.includes('Admin') ?? false);
+}

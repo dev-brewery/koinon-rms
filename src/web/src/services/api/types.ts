@@ -99,6 +99,7 @@ export interface UserSummaryDto {
   lastName: string;
   email: string;
   photoUrl?: string;
+  roles: string[];
 }
 
 export interface RefreshRequest {

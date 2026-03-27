@@ -54,6 +54,7 @@ import { TemplateFormPage } from './pages/communications/TemplateFormPage';
 import { MyProfilePage } from './pages/profile';
 import { UserSettingsPage } from './pages/settings/UserSettingsPage';
 import { RosterPage } from './pages/admin/RosterPage';
+import { CheckinDashboardPage } from './pages/admin/CheckinDashboardPage';
 import { BatchListPage, BatchDetailPage, BatchFormPage, StatementsPage } from './pages/admin/giving';
 import { DataExportsPage } from './features/admin/DataExportsPage';
 import { PeopleImportPage } from './pages/admin/import/PeopleImportPage';
@@ -272,6 +273,7 @@ function App() {
           <Route path="communications/templates/new" element={<TemplateFormPage />} />
           <Route path="communications/templates/:idKey/edit" element={<TemplateFormPage />} />
           <Route path="roster" element={<RosterPage />} />
+          <Route path="checkin-dashboard" element={<CheckinDashboardPage />} />
           <Route path="giving" element={<BatchListPage />} />
           <Route path="giving/new" element={<BatchFormPage />} />
           <Route path="giving/:idKey" element={<BatchDetailPage />} />

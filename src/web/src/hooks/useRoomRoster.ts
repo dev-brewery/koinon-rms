@@ -19,13 +19,16 @@ export function useRoomRoster(locationIdKey?: string, autoRefresh: boolean = tru
  * Get rosters for multiple locations at once
  * Used by supervisors to view all room rosters
  */
-export function useMultipleRoomRosters(locationIdKeys?: string[]) {
+export function useMultipleRoomRosters(
+  locationIdKeys?: string[],
+  autoRefresh: boolean = true
+) {
   return useQuery({
     queryKey: ['checkin', 'roster', 'multiple', locationIdKeys],
     queryFn: () => checkinApi.getMultipleRoomRosters(locationIdKeys!),
     enabled: !!locationIdKeys && locationIdKeys.length > 0,
     staleTime: 30 * 1000, // 30 seconds
-    refetchInterval: 30 * 1000, // Auto-refresh every 30 seconds
+    refetchInterval: autoRefresh ? 30 * 1000 : false, // Auto-refresh every 30 seconds when enabled
   });
 }
 

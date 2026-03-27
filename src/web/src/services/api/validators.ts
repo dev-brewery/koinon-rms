@@ -57,6 +57,7 @@ export const UserSummarySchema = z.object({
   lastName: z.string(),
   email: z.string(),
   photoUrl: z.string().optional(),
+  roles: z.array(z.string()).default([]),
 });
 
 export const TokenResponseSchema = z.object({
