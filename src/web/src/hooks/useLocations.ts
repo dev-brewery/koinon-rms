@@ -73,6 +73,23 @@ export function useUpdateLocation() {
 }
 
 /**
+ * Toggle a room's open/closed status (isActive flag).
+ * Used by the check-in dashboard to quickly open or close a room.
+ * Invalidates both location and roster queries so all views refresh.
+ */
+export function useToggleRoomStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ idKey, isActive }: { idKey: string; isActive: boolean }) =>
+      locationsApi.updateLocation(idKey, { isActive }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['locations'] });
+      queryClient.invalidateQueries({ queryKey: ['checkin'] });
+    },
+  });
+}
+
+/**
  * Delete a location
  */
 export function useDeleteLocation() {
