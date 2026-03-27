@@ -1,7 +1,9 @@
+using FluentValidation;
 using Koinon.Api.Attributes;
 using Koinon.Api.Filters;
 using Koinon.Api.Helpers;
 using Koinon.Application.DTOs;
+using Koinon.Application.DTOs.Requests;
 using Koinon.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +24,7 @@ public class CheckinController(
     ICheckinConfigurationService configurationService,
     ICheckinSearchService searchService,
     ICheckinAttendanceService attendanceService,
+    ICheckinRegistrationService registrationService,
     ILabelGenerationService labelService,
     ISupervisorModeService supervisorService,
     IRoomRosterService rosterService,
@@ -168,6 +171,54 @@ public class CheckinController(
             query, families.Count);
 
         return Ok(new { data = families });
+    }
+
+    /// <summary>
+    /// Registers a new family at the kiosk during first-time check-in.
+    /// Creates the family, parent, and children in a single atomic transaction.
+    /// Returns check-in-ready search results so the kiosk can proceed directly to member selection.
+    /// </summary>
+    /// <param name="request">Parent and children registration details</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>The newly created family formatted as a check-in search result</returns>
+    /// <response code="201">Family created successfully</response>
+    /// <response code="400">Validation failed</response>
+    /// <response code="401">Missing or invalid kiosk authentication</response>
+    [HttpPost("register-family")]
+    [KioskAuthorize]
+    [ProducesResponseType(typeof(CheckinFamilySearchResultDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<CheckinFamilySearchResultDto>> RegisterFamily(
+        [FromBody] KioskFamilyRegistrationRequest request,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            var result = await registrationService.RegisterFamilyAsync(request, ct);
+
+            logger.LogInformation(
+                "Kiosk family registration: FamilyIdKey={FamilyIdKey}, FamilyName={FamilyName}",
+                result.FamilyIdKey, result.FamilyName);
+
+            return StatusCode(StatusCodes.Status201Created, new { data = result });
+        }
+        catch (ValidationException ex)
+        {
+            var errorMessages = ex.Errors.Select(e => e.ErrorMessage);
+            var detail = string.Join("; ", errorMessages);
+
+            logger.LogWarning(
+                "Kiosk family registration validation failed: {Errors}", detail);
+
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Validation failed",
+                Detail = detail,
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
     }
 
     /// <summary>

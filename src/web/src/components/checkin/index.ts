@@ -39,3 +39,6 @@ export type { SecurityCodeVerifyProps } from './SecurityCodeVerify';
 
 export { OfflineQueueIndicator } from './OfflineQueueIndicator';
 export type { OfflineQueueIndicatorProps } from './OfflineQueueIndicator';
+
+export { KioskFamilyRegistration } from './KioskFamilyRegistration';
+export type { KioskFamilyRegistrationProps } from './KioskFamilyRegistration';

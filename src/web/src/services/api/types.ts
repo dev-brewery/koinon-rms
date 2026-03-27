@@ -684,6 +684,60 @@ export interface CheckinScheduleOptionDto {
 }
 
 // =============================================================================
+// Kiosk Family Registration Types
+// =============================================================================
+
+export interface KioskChildRegistrationRequest {
+  firstName: string;
+  lastName?: string;
+  birthDate?: string; // ISO date string (YYYY-MM-DD)
+}
+
+export interface KioskFamilyRegistrationRequest {
+  parentFirstName: string;
+  parentLastName: string;
+  phoneNumber: string;
+  children: KioskChildRegistrationRequest[];
+}
+
+/**
+ * Backend response shape for POST /checkin/register-family.
+ * Field names match the C# CheckinFamilySearchResultDto record.
+ * Use CheckinFamilyDto (via mapSearchResultToFamily) for all downstream state.
+ */
+export interface CheckinFamilySearchResultDto {
+  familyIdKey: string;
+  familyName: string;
+  addressSummary?: string;
+  campusName?: string;
+  members: CheckinFamilyMemberDto[];
+  recentCheckInCount: number;
+}
+
+/**
+ * Backend response shape for a single family member in a search result.
+ * Field names match the C# CheckinFamilyMemberDto record.
+ */
+export interface CheckinFamilyMemberDto {
+  personIdKey: string;
+  fullName: string;
+  firstName: string;
+  lastName: string;
+  nickName?: string;
+  age?: number;
+  gender: string;
+  photoUrl?: string;
+  roleName: string;
+  isChild: boolean;
+  hasRecentCheckIn: boolean;
+  lastCheckIn?: string;
+  grade?: string;
+  allergies?: string;
+  hasCriticalAllergies: boolean;
+  specialNeeds?: string;
+}
+
+// =============================================================================
 // Kiosk Check-in Types (for /checkin/attendance endpoint)
 // =============================================================================
 

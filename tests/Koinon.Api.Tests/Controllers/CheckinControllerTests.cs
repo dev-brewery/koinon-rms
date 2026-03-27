@@ -1,6 +1,9 @@
 using FluentAssertions;
+using FluentValidation;
+using FluentValidation.Results;
 using Koinon.Api.Controllers;
 using Koinon.Application.DTOs;
+using Koinon.Application.DTOs.Requests;
 using Koinon.Application.Interfaces;
 using Koinon.Domain.Data;
 using Koinon.Domain.Enums;
@@ -17,6 +20,7 @@ public class CheckinControllerTests
     private readonly Mock<ICheckinConfigurationService> _configServiceMock;
     private readonly Mock<ICheckinSearchService> _searchServiceMock;
     private readonly Mock<ICheckinAttendanceService> _attendanceServiceMock;
+    private readonly Mock<ICheckinRegistrationService> _registrationServiceMock;
     private readonly Mock<ILabelGenerationService> _labelServiceMock;
     private readonly Mock<ISupervisorModeService> _supervisorServiceMock;
     private readonly Mock<IRoomRosterService> _rosterServiceMock;
@@ -37,6 +41,7 @@ public class CheckinControllerTests
         _configServiceMock = new Mock<ICheckinConfigurationService>();
         _searchServiceMock = new Mock<ICheckinSearchService>();
         _attendanceServiceMock = new Mock<ICheckinAttendanceService>();
+        _registrationServiceMock = new Mock<ICheckinRegistrationService>();
         _labelServiceMock = new Mock<ILabelGenerationService>();
         _supervisorServiceMock = new Mock<ISupervisorModeService>();
         _rosterServiceMock = new Mock<IRoomRosterService>();
@@ -47,6 +52,7 @@ public class CheckinControllerTests
             _configServiceMock.Object,
             _searchServiceMock.Object,
             _attendanceServiceMock.Object,
+            _registrationServiceMock.Object,
             _labelServiceMock.Object,
             _supervisorServiceMock.Object,
             _rosterServiceMock.Object,
@@ -557,6 +563,97 @@ public class CheckinControllerTests
         var notFoundResult = result.Should().BeOfType<NotFoundObjectResult>().Subject;
         var problemDetails = notFoundResult.Value.Should().BeOfType<ProblemDetails>().Subject;
         problemDetails.Title.Should().Be("Attendance not found");
+    }
+
+    #endregion
+
+    #region RegisterFamily Tests
+
+    [Fact]
+    public async Task RegisterFamily_WithValidRequest_ReturnsCreatedWithResult()
+    {
+        // Arrange
+        var request = new KioskFamilyRegistrationRequest
+        {
+            ParentFirstName = "Jane",
+            ParentLastName = "Smith",
+            PhoneNumber = "5551234567",
+            Children = new List<KioskChildRegistrationRequest>()
+        };
+
+        var expectedResult = new CheckinFamilySearchResultDto
+        {
+            FamilyIdKey = _familyIdKey,
+            FamilyName = "Smith Family",
+            Members = new List<CheckinFamilyMemberDto>
+            {
+                new()
+                {
+                    PersonIdKey = IdKeyHelper.Encode(501),
+                    FullName = "Jane Smith",
+                    FirstName = "Jane",
+                    LastName = "Smith",
+                    Gender = "Unknown",
+                    RoleName = "Adult",
+                    IsChild = false,
+                    HasRecentCheckIn = false
+                }
+            },
+            RecentCheckInCount = 0
+        };
+
+        _registrationServiceMock
+            .Setup(s => s.RegisterFamilyAsync(
+                It.IsAny<KioskFamilyRegistrationRequest>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedResult);
+
+        // Act
+        var actionResult = await _controller.RegisterFamily(request);
+
+        // Assert
+        var createdResult = actionResult.Result.Should().BeOfType<ObjectResult>().Subject;
+        createdResult.StatusCode.Should().Be(StatusCodes.Status201Created);
+        var response = createdResult.Value.Should().BeAssignableTo<object>().Subject;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var family = dataProperty!.GetValue(response).Should().BeOfType<CheckinFamilySearchResultDto>().Subject;
+        family.FamilyName.Should().Be("Smith Family");
+        family.Members.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public async Task RegisterFamily_WithValidationFailure_ReturnsBadRequest()
+    {
+        // Arrange
+        var request = new KioskFamilyRegistrationRequest
+        {
+            ParentFirstName = string.Empty,
+            ParentLastName = string.Empty,
+            PhoneNumber = string.Empty,
+            Children = new List<KioskChildRegistrationRequest>()
+        };
+
+        var validationFailures = new[]
+        {
+            new ValidationFailure("ParentFirstName", "Parent first name is required"),
+            new ValidationFailure("PhoneNumber", "Phone number is required")
+        };
+
+        _registrationServiceMock
+            .Setup(s => s.RegisterFamilyAsync(
+                It.IsAny<KioskFamilyRegistrationRequest>(),
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new ValidationException(validationFailures));
+
+        // Act
+        var actionResult = await _controller.RegisterFamily(request);
+
+        // Assert
+        var badRequestResult = actionResult.Result.Should().BeOfType<BadRequestObjectResult>().Subject;
+        var problemDetails = badRequestResult.Value.Should().BeOfType<ProblemDetails>().Subject;
+        problemDetails.Title.Should().Be("Validation failed");
+        problemDetails.Detail.Should().Contain("Parent first name is required");
     }
 
     #endregion

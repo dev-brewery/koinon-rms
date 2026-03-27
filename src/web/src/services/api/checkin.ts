@@ -8,6 +8,7 @@ import type {
   CheckinConfigParams,
   CheckinSearchRequest,
   CheckinFamilyDto,
+  CheckinPersonDto,
   CheckinOpportunitiesParams,
   CheckinOpportunitiesResponse,
   BatchCheckinRequest,
@@ -18,6 +19,9 @@ import type {
   SupervisorLoginRequest,
   SupervisorLoginResponse,
   RoomRosterDto,
+  KioskFamilyRegistrationRequest,
+  CheckinFamilySearchResultDto,
+  CheckinFamilyMemberDto,
 } from './types';
 
 /**
@@ -199,6 +203,57 @@ export async function getMultipleRoomRosters(
     `/checkin/roster?${queryParams.toString()}`
   );
   return response.data;
+}
+
+/**
+ * Map a backend CheckinFamilyMemberDto (from registration) to the
+ * CheckinPersonDto shape used throughout the kiosk flow.
+ */
+function mapMemberToPersonDto(member: CheckinFamilyMemberDto): CheckinPersonDto {
+  return {
+    idKey: member.personIdKey,
+    firstName: member.firstName,
+    nickName: member.nickName,
+    lastName: member.lastName,
+    fullName: member.fullName,
+    age: member.age,
+    grade: member.grade,
+    photoUrl: member.photoUrl,
+    lastCheckIn: member.lastCheckIn,
+    allergies: member.allergies,
+    hasCriticalAllergies: member.hasCriticalAllergies,
+    specialNeeds: member.specialNeeds,
+  };
+}
+
+/**
+ * Map a backend CheckinFamilySearchResultDto (registration response) to the
+ * CheckinFamilyDto shape expected by CheckinPage and downstream components.
+ */
+function mapSearchResultToFamily(result: CheckinFamilySearchResultDto): CheckinFamilyDto {
+  return {
+    idKey: result.familyIdKey,
+    name: result.familyName,
+    members: result.members.map(mapMemberToPersonDto),
+  };
+}
+
+/**
+ * Register a new family at the kiosk.
+ *
+ * Creates a family, parent, and one or more children in a single call.
+ * The backend returns CheckinFamilySearchResultDto wrapped in { data: ... };
+ * this function unwraps and maps it to CheckinFamilyDto so the kiosk can
+ * immediately advance to the member selection step.
+ */
+export async function registerFamily(
+  request: KioskFamilyRegistrationRequest
+): Promise<CheckinFamilyDto> {
+  const response = await post<{ data: CheckinFamilySearchResultDto }>(
+    '/checkin/register-family',
+    request
+  );
+  return mapSearchResultToFamily(response.data);
 }
 
 /**
