@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-03-26T22:57:02-04:00",
+  "generated_at": "2026-03-27T11:09:12-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -11313,7 +11313,8 @@
         "firstName": "string",
         "lastName": "string",
         "email": "string",
-        "photoUrl": "string"
+        "photoUrl": "string",
+        "roles": "string[]"
       },
       "path": "services/api/types.ts"
     },
