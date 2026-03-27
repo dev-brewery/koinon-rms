@@ -75,4 +75,35 @@ public interface IPersonService
         int page = 1,
         int pageSize = 25,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// Gets paginated notes for a person, ordered by NoteDateTime descending.
+    /// Returns an empty page when the person IdKey is invalid.
+    /// </summary>
+    Task<Result<PagedResult<NoteDto>>> GetNotesAsync(
+        string personIdKey,
+        int page,
+        int pageSize,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Creates a new note on a person's record.
+    /// </summary>
+    Task<Result<NoteDto>> CreateNoteAsync(
+        string personIdKey,
+        CreateNoteRequest request,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Updates an existing note by its IdKey.
+    /// </summary>
+    Task<Result<NoteDto>> UpdateNoteAsync(
+        string noteIdKey,
+        UpdateNoteRequest request,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Hard-deletes a note by its IdKey.
+    /// </summary>
+    Task<Result> DeleteNoteAsync(string noteIdKey, CancellationToken ct = default);
 }

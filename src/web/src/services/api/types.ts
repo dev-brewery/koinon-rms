@@ -1427,6 +1427,40 @@ export interface UpdateDeviceRequest {
 }
 
 // ============================================================================
+// Note / Interaction Log Types
+// ============================================================================
+
+export interface NoteDto {
+  idKey: IdKey;
+  noteTypeValueIdKey: IdKey;
+  noteTypeName: string;
+  text: string;
+  noteDateTime: DateTime;
+  authorPersonName?: string;
+  authorPersonIdKey?: IdKey;
+  isPrivate: boolean;
+  isAlert: boolean;
+  createdDateTime: DateTime;
+  modifiedDateTime?: DateTime;
+}
+
+export interface CreateNoteRequest {
+  noteTypeValueIdKey: IdKey;
+  text: string;
+  noteDateTime?: DateTime;
+  isPrivate?: boolean;
+  isAlert?: boolean;
+}
+
+export interface UpdateNoteRequest {
+  noteTypeValueIdKey?: IdKey;
+  text?: string;
+  noteDateTime?: DateTime;
+  isPrivate?: boolean;
+  isAlert?: boolean;
+}
+
+// ============================================================================
 // Data Export Types
 // ============================================================================
 

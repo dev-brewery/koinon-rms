@@ -13,6 +13,9 @@ import type {
   PersonFamilyResponse,
   GroupMembershipDto,
   PersonGroupsParams,
+  NoteDto,
+  CreateNoteRequest,
+  UpdateNoteRequest,
 } from './types';
 
 /**
@@ -103,6 +106,53 @@ export async function getPersonGroups(
   const endpoint = `/people/${idKey}/groups${query ? `?${query}` : ''}`;
 
   return get<PagedResult<GroupMembershipDto>>(endpoint);
+}
+
+/**
+ * Get paginated notes for a person
+ */
+export async function getPersonNotes(
+  idKey: string,
+  page = 1,
+  pageSize = 25,
+): Promise<PagedResult<NoteDto>> {
+  const response = await get<{ data: PagedResult<NoteDto> }>(
+    `/people/${idKey}/notes?page=${page}&pageSize=${pageSize}`,
+  );
+  return response.data;
+}
+
+/**
+ * Create a note for a person
+ */
+export async function createPersonNote(
+  personIdKey: string,
+  request: CreateNoteRequest,
+): Promise<NoteDto> {
+  const response = await post<{ data: NoteDto }>(`/people/${personIdKey}/notes`, request);
+  return response.data;
+}
+
+/**
+ * Update a note for a person
+ */
+export async function updatePersonNote(
+  personIdKey: string,
+  noteIdKey: string,
+  request: UpdateNoteRequest,
+): Promise<NoteDto> {
+  const response = await put<{ data: NoteDto }>(
+    `/people/${personIdKey}/notes/${noteIdKey}`,
+    request,
+  );
+  return response.data;
+}
+
+/**
+ * Delete a note for a person
+ */
+export async function deletePersonNote(personIdKey: string, noteIdKey: string): Promise<void> {
+  await del(`/people/${personIdKey}/notes/${noteIdKey}`);
 }
 
 /**

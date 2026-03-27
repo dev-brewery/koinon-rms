@@ -774,6 +774,7 @@ public class DataExportServiceTests
         public DbSet<PersonDuplicateIgnore> PersonDuplicateIgnores { get; set; } = null!;
         public DbSet<Notification> Notifications { get; set; } = null!;
         public DbSet<NotificationPreference> NotificationPreferences { get; set; } = null!;
+        public DbSet<Note> Notes { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

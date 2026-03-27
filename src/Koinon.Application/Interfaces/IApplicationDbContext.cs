@@ -74,6 +74,9 @@ public interface IApplicationDbContext
     DbSet<PersonMergeHistory> PersonMergeHistories { get; }
     DbSet<PersonDuplicateIgnore> PersonDuplicateIgnores { get; }
 
+    // Person notes / interaction log
+    DbSet<Note> Notes { get; }
+
     // In-app notifications
     DbSet<Notification> Notifications { get; }
     DbSet<NotificationPreference> NotificationPreferences { get; }

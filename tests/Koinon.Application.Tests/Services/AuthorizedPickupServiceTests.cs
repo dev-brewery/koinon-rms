@@ -1010,6 +1010,7 @@ public class AuthorizedPickupServiceTests : IDisposable
         // In-app notifications
         public DbSet<Notification> Notifications { get; set; } = null!;
         public DbSet<NotificationPreference> NotificationPreferences { get; set; } = null!;
+        public DbSet<Note> Notes { get; set; } = null!;
 
         // Security
         public DbSet<SecurityRole> SecurityRoles { get; set; } = null!;
