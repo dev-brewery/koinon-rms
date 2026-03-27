@@ -14,9 +14,49 @@ import {
   RoomCard,
 } from '@/components/admin/checkin-dashboard';
 import { Button } from '@/components/ui';
+import { useAuth } from '@/hooks/useAuth';
+import { getAccessToken } from '@/services/api/client';
 import type { CheckinLocationDto, RoomRosterDto } from '@/services/api/types';
 
+// ── Role guard helpers ──────────────────────────────────────────────────────
+
+/**
+ * Decode the roles claim from the current JWT access token without an external
+ * library.  Returns an empty array if the token is absent or malformed.
+ */
+function getRolesFromToken(): string[] {
+  try {
+    const token = getAccessToken();
+    if (!token) return [];
+    const payloadBase64 = token.split('.')[1];
+    if (!payloadBase64) return [];
+    // Replace URL-safe chars and pad to a multiple of 4
+    const padded = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
+    const decoded = atob(padded);
+    const payload: unknown = JSON.parse(decoded);
+    if (typeof payload !== 'object' || payload === null) return [];
+    // ASP.NET Core emits roles as the standard ClaimTypes role URI or the
+    // shorthand "role" key; handle both forms.
+    const p = payload as Record<string, unknown>;
+    const raw =
+      p['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ??
+      p['role'] ??
+      p['roles'];
+    if (Array.isArray(raw)) return raw.filter((r): r is string => typeof r === 'string');
+    if (typeof raw === 'string') return [raw];
+    return [];
+  } catch {
+    return [];
+  }
+}
+
+function useIsAdmin(): boolean {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated && getRolesFromToken().includes('Admin');
+}
+
 export function CheckinDashboardPage() {
+  const isAdmin = useIsAdmin();
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRoomIdKey, setSelectedRoomIdKey] = useState('');
@@ -44,7 +84,10 @@ export function CheckinDashboardPage() {
     data: rosters,
     isLoading: isRostersLoading,
     refetch,
-  } = useMultipleRoomRosters(locationIdKeys.length > 0 ? locationIdKeys : undefined);
+  } = useMultipleRoomRosters(
+    locationIdKeys.length > 0 ? locationIdKeys : undefined,
+    autoRefresh
+  );
 
   const toggleRoom = useToggleRoomStatus();
 
@@ -77,6 +120,35 @@ export function CheckinDashboardPage() {
   const handleToggleRoom = (idKey: string, isActive: boolean) => {
     toggleRoom.mutate({ idKey, isActive });
   };
+
+  // ── Role guard — Admin only ─────────────────────────────────────────────────
+  if (!isAdmin) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-64 gap-4">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-8 max-w-md text-center">
+          <svg
+            className="w-12 h-12 text-red-400 mx-auto mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 15v2m0 0v2m0-2h2m-2 0H10m2-11a7 7 0 100 14 7 7 0 000-14z"
+            />
+          </svg>
+          <p className="text-red-700 font-semibold text-lg">Access Denied</p>
+          <p className="text-red-600 text-sm mt-2">
+            The check-in dashboard is restricted to Admin users. Contact your
+            system administrator if you need access.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   // ── Loading skeleton ────────────────────────────────────────────────────────
   if (isLoading && allLocations.length === 0) {
@@ -204,7 +276,10 @@ export function CheckinDashboardPage() {
               roster={rosterByLocation.get(location.idKey)}
               searchQuery={searchQuery}
               onToggleRoom={handleToggleRoom}
-              isToggling={toggleRoom.isPending}
+              isToggling={
+                toggleRoom.isPending &&
+                toggleRoom.variables?.idKey === location.idKey
+              }
             />
           ))}
         </div>
