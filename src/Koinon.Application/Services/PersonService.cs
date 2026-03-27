@@ -671,6 +671,8 @@ public class PersonService(
 
     public async Task<IEnumerable<PersonNoteDto>> GetNotesAsync(
         string personIdKey,
+        int page = 1,
+        int pageSize = 25,
         CancellationToken ct = default)
     {
         if (!IdKeyHelper.TryDecode(personIdKey, out int personId))
@@ -678,13 +680,39 @@ public class PersonService(
             return Enumerable.Empty<PersonNoteDto>();
         }
 
-        var notes = await context.PersonNotes
+        var isStaffOrAdmin = userContext.IsAuthenticated &&
+            (userContext.IsInRole(Roles.Staff) || userContext.IsInRole(Roles.Admin));
+
+        // Resolve current user's alias IDs for private note visibility
+        IReadOnlyList<int> currentUserAliasIds = Array.Empty<int>();
+        if (userContext.IsAuthenticated && userContext.CurrentPersonId.HasValue)
+        {
+            currentUserAliasIds = await context.PersonAliases
+                .AsNoTracking()
+                .Where(pa => pa.PersonId == userContext.CurrentPersonId.Value)
+                .Select(pa => pa.Id)
+                .ToListAsync(ct);
+        }
+
+        var query = context.PersonNotes
             .AsNoTracking()
             .Include(n => n.NoteTypeDefinedValue)
             .Include(n => n.CreatedByPersonAlias)
                 .ThenInclude(pa => pa!.Person)
-            .Where(n => n.PersonId == personId)
+            .Where(n => n.PersonId == personId);
+
+        // Filter private notes: only staff/admin or note author can see private notes
+        if (!isStaffOrAdmin)
+        {
+            query = query.Where(n =>
+                !n.IsPrivate ||
+                (n.CreatedByPersonAliasId != null && currentUserAliasIds.Contains(n.CreatedByPersonAliasId.Value)));
+        }
+
+        var notes = await query
             .OrderByDescending(n => n.NoteDate)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(n => new PersonNoteDto(
                 IdKeyHelper.Encode(n.Id),
                 n.Text,
@@ -802,6 +830,22 @@ public class PersonService(
             throw new KeyNotFoundException($"Note '{noteIdKey}' not found for person '{personIdKey}'");
         }
 
+        // Authorization: only staff/admin or the note author can update
+        var isStaffOrAdmin = userContext.IsAuthenticated &&
+            (userContext.IsInRole(Roles.Staff) || userContext.IsInRole(Roles.Admin));
+        if (!isStaffOrAdmin)
+        {
+            var isAuthor = note.CreatedByPersonAliasId.HasValue &&
+                userContext.CurrentPersonId.HasValue &&
+                await context.PersonAliases
+                    .AnyAsync(pa => pa.Id == note.CreatedByPersonAliasId.Value
+                        && pa.PersonId == userContext.CurrentPersonId.Value, ct);
+            if (!isAuthor)
+            {
+                throw new UnauthorizedAccessException("You do not have permission to update this note.");
+            }
+        }
+
         // Resolve note type if provided
         int? noteTypeDefinedValueId = null;
         if (!string.IsNullOrWhiteSpace(request.NoteTypeDefinedValueIdKey))
@@ -872,6 +916,22 @@ public class PersonService(
         if (note is null)
         {
             throw new KeyNotFoundException($"Note '{noteIdKey}' not found for person '{personIdKey}'");
+        }
+
+        // Authorization: only staff/admin or the note author can delete
+        var isStaffOrAdmin = userContext.IsAuthenticated &&
+            (userContext.IsInRole(Roles.Staff) || userContext.IsInRole(Roles.Admin));
+        if (!isStaffOrAdmin)
+        {
+            var isAuthor = note.CreatedByPersonAliasId.HasValue &&
+                userContext.CurrentPersonId.HasValue &&
+                await context.PersonAliases
+                    .AnyAsync(pa => pa.Id == note.CreatedByPersonAliasId.Value
+                        && pa.PersonId == userContext.CurrentPersonId.Value, ct);
+            if (!isAuthor)
+            {
+                throw new UnauthorizedAccessException("You do not have permission to delete this note.");
+            }
         }
 
         context.PersonNotes.Remove(note);

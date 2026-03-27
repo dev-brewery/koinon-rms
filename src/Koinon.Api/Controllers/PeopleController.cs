@@ -425,15 +425,23 @@ public class PeopleController(
     /// Gets all notes for a person, ordered by note date descending.
     /// </summary>
     /// <param name="idKey">The person's IdKey</param>
+    /// <param name="page">Page number (1-based, default 1)</param>
+    /// <param name="pageSize">Items per page (1-100, default 25)</param>
     /// <param name="ct">Cancellation token</param>
     /// <returns>List of person notes</returns>
     /// <response code="200">Returns list of notes</response>
     [HttpGet("{idKey}/notes")]
     [ValidateIdKey]
     [ProducesResponseType(typeof(IEnumerable<PersonNoteDto>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<PersonNoteDto>>> GetPersonNotes(string idKey, CancellationToken ct)
+    public async Task<ActionResult<IEnumerable<PersonNoteDto>>> GetPersonNotes(
+        string idKey,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 25,
+        CancellationToken ct = default)
     {
-        var notes = await personService.GetNotesAsync(idKey, ct);
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+        var notes = await personService.GetNotesAsync(idKey, page, pageSize, ct);
 
         logger.LogDebug("Notes retrieved for person: IdKey={IdKey}", idKey);
 

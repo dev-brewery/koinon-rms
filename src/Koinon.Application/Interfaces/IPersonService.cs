@@ -89,7 +89,7 @@ public interface IPersonService
     /// <summary>
     /// Gets all notes for a person, ordered by note date descending.
     /// </summary>
-    Task<IEnumerable<PersonNoteDto>> GetNotesAsync(string personIdKey, CancellationToken ct = default);
+    Task<IEnumerable<PersonNoteDto>> GetNotesAsync(string personIdKey, int page = 1, int pageSize = 25, CancellationToken ct = default);
 
     /// <summary>
     /// Creates a new note on a person record.
