@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-03-26T21:08:02-04:00",
+  "generated_at": "2026-03-27T09:57:49-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -10880,6 +10880,10 @@
       "name": "PersonSearchParams",
       "kind": "interface",
       "properties": {
+        "sortBy": "string",
+        "sortDir": "'asc' | 'desc'",
+        "page": "number",
+        "pageSize": "number",
         "q": "string",
         "firstName": "string",
         "lastName": "string",
@@ -10890,7 +10894,11 @@
         "campusId": "IdKey",
         "includeInactive": "boolean"
       },
-      "path": "services/api/types.ts"
+      "path": "services/api/types.ts",
+      "extends": [
+        "PaginationParams",
+        "SortParams"
+      ]
     },
     "DuplicateMatchDto": {
       "name": "DuplicateMatchDto",
@@ -11497,11 +11505,16 @@
       "name": "FamiliesSearchParams",
       "kind": "interface",
       "properties": {
+        "page": "number",
+        "pageSize": "number",
         "q": "string",
         "campusId": "IdKey",
         "includeInactive": "boolean"
       },
-      "path": "services/api/types.ts"
+      "path": "services/api/types.ts",
+      "extends": [
+        "PaginationParams"
+      ]
     },
     "FamilyDetailDto": {
       "name": "FamilyDetailDto",
@@ -11613,13 +11626,18 @@
       "name": "GroupsSearchParams",
       "kind": "interface",
       "properties": {
+        "page": "number",
+        "pageSize": "number",
         "q": "string",
         "groupTypeId": "IdKey",
         "parentGroupId": "IdKey",
         "campusId": "IdKey",
         "includeInactive": "boolean"
       },
-      "path": "services/api/types.ts"
+      "path": "services/api/types.ts",
+      "extends": [
+        "PaginationParams"
+      ]
     },
     "GroupDetailDto": {
       "name": "GroupDetailDto",
@@ -11645,10 +11663,15 @@
       "name": "GroupMembersParams",
       "kind": "interface",
       "properties": {
+        "page": "number",
+        "pageSize": "number",
         "status": "'Active' | 'Inactive' | 'Pending' | 'All'",
         "roleId": "IdKey"
       },
-      "path": "services/api/types.ts"
+      "path": "services/api/types.ts",
+      "extends": [
+        "PaginationParams"
+      ]
     },
     "AddGroupMemberRequest": {
       "name": "AddGroupMemberRequest",
@@ -11665,10 +11688,15 @@
       "name": "PersonGroupsParams",
       "kind": "interface",
       "properties": {
+        "page": "number",
+        "pageSize": "number",
         "groupTypeId": "IdKey",
         "includeInactive": "boolean"
       },
-      "path": "services/api/types.ts"
+      "path": "services/api/types.ts",
+      "extends": [
+        "PaginationParams"
+      ]
     },
     "PersonFamilyResponse": {
       "name": "PersonFamilyResponse",
@@ -12050,6 +12078,23 @@
       "name": "GroupTypeDetailAdminDto",
       "kind": "interface",
       "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "name": "string",
+        "description": "string",
+        "iconCssClass": "string",
+        "color": "string",
+        "groupTerm": "string",
+        "groupMemberTerm": "string",
+        "takesAttendance": "boolean",
+        "allowSelfRegistration": "boolean",
+        "requiresMemberApproval": "boolean",
+        "defaultIsPublic": "boolean",
+        "defaultGroupCapacity": "number",
+        "isSystem": "boolean",
+        "isArchived": "boolean",
+        "order": "number",
+        "groupCount": "number",
         "showInGroupList": "boolean",
         "showInNavigation": "boolean",
         "attendanceCountsAsWeekendService": "boolean",
@@ -12063,7 +12108,10 @@
         "createdDateTime": "DateTime",
         "modifiedDateTime": "DateTime"
       },
-      "path": "services/api/types.ts"
+      "path": "services/api/types.ts",
+      "extends": [
+        "GroupTypeAdminDto"
+      ]
     },
     "CreateGroupTypeRequest": {
       "name": "CreateGroupTypeRequest",
@@ -12155,11 +12203,16 @@
       "name": "ScheduleSearchParams",
       "kind": "interface",
       "properties": {
+        "page": "number",
+        "pageSize": "number",
         "query": "string",
         "dayOfWeek": "number",
         "includeInactive": "boolean"
       },
-      "path": "services/api/types.ts"
+      "path": "services/api/types.ts",
+      "extends": [
+        "PaginationParams"
+      ]
     },
     "ScheduleSummaryDto": {
       "name": "ScheduleSummaryDto",
@@ -12434,6 +12487,8 @@
       "name": "AuditLogSearchParams",
       "kind": "interface",
       "properties": {
+        "page": "number",
+        "pageSize": "number",
         "startDate": "DateTime",
         "endDate": "DateTime",
         "entityType": "string",
@@ -12441,7 +12496,10 @@
         "personIdKey": "IdKey",
         "entityIdKey": "IdKey"
       },
-      "path": "services/api/types.ts"
+      "path": "services/api/types.ts",
+      "extends": [
+        "PaginationParams"
+      ]
     },
     "AuditLogExportParams": {
       "name": "AuditLogExportParams",
