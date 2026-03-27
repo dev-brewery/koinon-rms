@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-02-07T09:04:24-05:00",
+  "generated_at": "2026-03-26T22:10:45-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -2099,6 +2099,16 @@
         "ModifiedDateTime": "DateTime?"
       },
       "linked_entity": "Device"
+    },
+    "GenerateKioskTokenResponseDto": {
+      "name": "GenerateKioskTokenResponseDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Token": "string",
+        "DeviceIdKey": "string",
+        "DeviceName": "string",
+        "ExpiresAt": "DateTime?"
+      }
     },
     "DeviceSummaryDto": {
       "name": "DeviceSummaryDto",
@@ -5157,6 +5167,11 @@
       "namespace": "Koinon.Application.Services",
       "methods": [
         {
+          "name": "DeviceService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
           "name": "GetAllAsync",
           "return_type": "Task<IReadOnlyList<DeviceSummaryDto>>",
           "is_async": false
@@ -5183,11 +5198,17 @@
         },
         {
           "name": "GenerateKioskTokenAsync",
-          "return_type": "Task<Result<DeviceDetailDto>>",
+          "return_type": "Task<Result<GenerateKioskTokenResponseDto>>",
           "is_async": false
         }
       ],
-      "dependencies": []
+      "dependencies": [
+        "IApplicationDbContext",
+        "IMapper",
+        "IValidator<CreateDeviceRequest>",
+        "IValidator<UpdateDeviceRequest>",
+        "ILogger<DeviceService>"
+      ]
     },
     "DeviceValidationService": {
       "name": "DeviceValidationService",
@@ -12542,7 +12563,7 @@
       "properties": {
         "idKey": "IdKey",
         "name": "string",
-        "deviceType": "string",
+        "deviceTypeName": "string",
         "campusName": "string",
         "isActive": "boolean",
         "ipAddress": "string",
@@ -12554,10 +12575,14 @@
       "name": "DeviceDetailDto",
       "kind": "interface",
       "properties": {
+        "guid": "string",
+        "description": "string",
         "campusIdKey": "IdKey",
-        "deviceTypeValueId": "IdKey",
         "printerSettings": "string",
-        "hasKioskToken": "boolean"
+        "hasKioskToken": "boolean",
+        "kioskTokenExpiresAt": "DateTime",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
       },
       "path": "services/api/types.ts"
     },
@@ -13309,7 +13334,7 @@
         "devices"
       ],
       "usesQuery": false,
-      "usesMutation": true,
+      "usesMutation": false,
       "dependencies": [
         "generateKioskToken"
       ]
@@ -14941,6 +14966,13 @@
       "method": "GET",
       "responseType": "DashboardStatsDto"
     },
+    "getDevices": {
+      "name": "getDevices",
+      "path": "services/api/devices.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "DeviceSummaryDto[]"
+    },
     "getDeviceByIdKey": {
       "name": "getDeviceByIdKey",
       "path": "services/api/devices.ts",
@@ -14972,9 +15004,9 @@
     "generateKioskToken": {
       "name": "generateKioskToken",
       "path": "services/api/devices.ts",
-      "endpoint": "/unknown",
-      "method": "GET",
-      "responseType": "{ token: string }"
+      "endpoint": "/devices/${idKey}/token",
+      "method": "POST",
+      "responseType": "GenerateKioskTokenResponse"
     },
     "getFamilyByIdKey": {
       "name": "getFamilyByIdKey",
@@ -18321,7 +18353,7 @@
     },
     {
       "source": "DeviceService",
-      "target": "DeviceDetailDto",
+      "target": "TokenResponse",
       "relationship": "returns"
     },
     {
@@ -18932,6 +18964,21 @@
     {
       "source": "DataImportService",
       "target": "Family",
+      "relationship": "uses"
+    },
+    {
+      "source": "DeviceService",
+      "target": "Device",
+      "relationship": "uses"
+    },
+    {
+      "source": "DeviceService",
+      "target": "Device",
+      "relationship": "uses"
+    },
+    {
+      "source": "DeviceService",
+      "target": "Device",
       "relationship": "uses"
     },
     {
@@ -19601,13 +19648,13 @@
   },
   "stats": {
     "entities": 59,
-    "dtos": 199,
+    "dtos": 200,
     "services": 107,
     "controllers": 35,
     "types": 300,
-    "api_functions": 169,
+    "api_functions": 170,
     "hooks": 149,
     "components": 129,
-    "total_edges": 550
+    "total_edges": 553
   }
 }
