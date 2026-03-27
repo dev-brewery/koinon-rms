@@ -60,6 +60,7 @@ import { PeopleImportPage } from './pages/admin/import/PeopleImportPage';
 import { FamiliesImportPage } from './pages/admin/import/FamiliesImportPage';
 import { ImportHistoryPage } from './pages/admin/import/ImportHistoryPage';
 import { SearchResultsPage } from './pages/SearchResultsPage';
+import { CheckinConfigPage } from './pages/admin/checkin/CheckinConfigPage';
 
 function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -285,6 +286,7 @@ function App() {
           <Route path="import/history" element={<ImportHistoryPage />} />
           <Route path="import/people" element={<PeopleImportPage />} />
           <Route path="import/families" element={<FamiliesImportPage />} />
+          <Route path="checkin" element={<CheckinConfigPage />} />
         </Route>
 
         {/* Check-in route */}

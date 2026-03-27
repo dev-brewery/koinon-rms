@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-03-27T09:57:49-04:00",
+  "generated_at": "2026-02-07T09:04:24-05:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -2079,6 +2079,40 @@
       },
       "linked_entity": "Communication"
     },
+    "DeviceDetailDto": {
+      "name": "DeviceDetailDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "IdKey": "string",
+        "Guid": "Guid",
+        "Name": "string",
+        "Description": "string?",
+        "IsActive": "bool",
+        "DeviceTypeName": "string?",
+        "IpAddress": "string?",
+        "CampusIdKey": "string?",
+        "CampusName": "string?",
+        "PrinterSettings": "string?",
+        "HasKioskToken": "bool",
+        "KioskTokenExpiresAt": "DateTime?",
+        "CreatedDateTime": "DateTime",
+        "ModifiedDateTime": "DateTime?"
+      },
+      "linked_entity": "Device"
+    },
+    "DeviceSummaryDto": {
+      "name": "DeviceSummaryDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "IdKey": "string",
+        "Name": "string",
+        "IsActive": "bool",
+        "DeviceTypeName": "string?",
+        "CampusName": "string?",
+        "IpAddress": "string?"
+      },
+      "linked_entity": "Device"
+    },
     "ExportFieldDto": {
       "name": "ExportFieldDto",
       "namespace": "Koinon.Application.DTOs",
@@ -3478,6 +3512,19 @@
       },
       "linked_entity": "Campus"
     },
+    "CreateDeviceRequest": {
+      "name": "CreateDeviceRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Name": "string",
+        "Description": "string?",
+        "DeviceTypeValueIdKey": "string?",
+        "CampusIdKey": "string?",
+        "IpAddress": "string?",
+        "IsActive": "bool"
+      },
+      "linked_entity": "Device"
+    },
     "CreateFamilyRequest": {
       "name": "CreateFamilyRequest",
       "namespace": "Koinon.Application.DTOs.Requests",
@@ -3679,25 +3726,6 @@
       },
       "linked_entity": "Person"
     },
-    "KioskFamilyRegistrationRequest": {
-      "name": "KioskFamilyRegistrationRequest",
-      "namespace": "Koinon.Application.DTOs.Requests",
-      "properties": {
-        "ParentFirstName": "string",
-        "ParentLastName": "string",
-        "PhoneNumber": "string",
-        "Children": "List<KioskChildRegistrationRequest>"
-      }
-    },
-    "KioskChildRegistrationRequest": {
-      "name": "KioskChildRegistrationRequest",
-      "namespace": "Koinon.Application.DTOs.Requests",
-      "properties": {
-        "FirstName": "string",
-        "LastName": "string?",
-        "BirthDate": "DateOnly?"
-      }
-    },
     "SendPageRequest": {
       "name": "SendPageRequest",
       "namespace": "Koinon.Application.DTOs.Requests",
@@ -3820,6 +3848,20 @@
         "IsActive": "bool?"
       },
       "linked_entity": "Campus"
+    },
+    "UpdateDeviceRequest": {
+      "name": "UpdateDeviceRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Name": "string?",
+        "Description": "string?",
+        "DeviceTypeValueIdKey": "string?",
+        "CampusIdKey": "string?",
+        "IpAddress": "string?",
+        "IsActive": "bool?",
+        "PrinterSettings": "string?"
+      },
+      "linked_entity": "Device"
     },
     "UpdateFamilyMemberRequest": {
       "name": "UpdateFamilyMemberRequest",
@@ -4710,27 +4752,6 @@
         "ILogger<CheckinConfigurationService>"
       ]
     },
-    "CheckinRegistrationService": {
-      "name": "CheckinRegistrationService",
-      "namespace": "Koinon.Application.Services",
-      "methods": [
-        {
-          "name": "CheckinRegistrationService",
-          "return_type": "class",
-          "is_async": false
-        },
-        {
-          "name": "RegisterFamilyAsync",
-          "return_type": "Task<CheckinFamilySearchResultDto>",
-          "is_async": false
-        }
-      ],
-      "dependencies": [
-        "IApplicationDbContext",
-        "IValidator<KioskFamilyRegistrationRequest>",
-        "ILogger<CheckinRegistrationService>"
-      ]
-    },
     "CheckinSearchService": {
       "name": "CheckinSearchService",
       "namespace": "Koinon.Application.Services",
@@ -5130,6 +5151,43 @@
         "IFileStorageService",
         "ILogger<DataImportService>"
       ]
+    },
+    "DeviceService": {
+      "name": "DeviceService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "GetAllAsync",
+          "return_type": "Task<IReadOnlyList<DeviceSummaryDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetByIdKeyAsync",
+          "return_type": "Task<Result<DeviceDetailDto>>",
+          "is_async": false
+        },
+        {
+          "name": "CreateAsync",
+          "return_type": "Task<Result<DeviceDetailDto>>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateAsync",
+          "return_type": "Task<Result<DeviceDetailDto>>",
+          "is_async": false
+        },
+        {
+          "name": "DeleteAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        },
+        {
+          "name": "GenerateKioskTokenAsync",
+          "return_type": "Task<Result<DeviceDetailDto>>",
+          "is_async": false
+        }
+      ],
+      "dependencies": []
     },
     "DeviceValidationService": {
       "name": "DeviceValidationService",
@@ -6410,12 +6468,6 @@
       "methods": [],
       "dependencies": []
     },
-    "ICheckinRegistrationService": {
-      "name": "ICheckinRegistrationService",
-      "namespace": "Koinon.Application.Interfaces",
-      "methods": [],
-      "dependencies": []
-    },
     "ICheckinSearchService": {
       "name": "ICheckinSearchService",
       "namespace": "Koinon.Application.Interfaces",
@@ -6466,6 +6518,12 @@
     },
     "IDataImportService": {
       "name": "IDataImportService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IDeviceService": {
+      "name": "IDeviceService",
       "namespace": "Koinon.Application.Interfaces",
       "methods": [],
       "dependencies": []
@@ -7026,15 +7084,6 @@
           "required_roles": []
         },
         {
-          "name": "RegisterFamily",
-          "method": "POST",
-          "route": "register-family",
-          "request_type": null,
-          "response_type": null,
-          "requires_auth": true,
-          "required_roles": []
-        },
-        {
           "name": "RecordAttendance",
           "method": "POST",
           "route": "attendance",
@@ -7093,13 +7142,12 @@
         "response_envelope": true,
         "idkey_routes": true,
         "problem_details": true,
-        "result_pattern": true
+        "result_pattern": false
       },
       "dependencies": [
         "ICheckinConfigurationService",
         "ICheckinSearchService",
         "ICheckinAttendanceService",
-        "ICheckinRegistrationService",
         "ILabelGenerationService",
         "ISupervisorModeService",
         "IRoomRosterService",
@@ -7292,6 +7340,59 @@
       "dependencies": [
         "IDashboardService",
         "ILogger<DashboardController>"
+      ]
+    },
+    "DevicesController": {
+      "name": "DevicesController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/[controller]",
+      "endpoints": [
+        {
+          "name": "GetByIdKey",
+          "method": "GET",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GenerateToken",
+          "method": "POST",
+          "route": "{idKey}/token",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Update",
+          "method": "PUT",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Delete",
+          "method": "DELETE",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": true,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "IDeviceService",
+        "ILogger<DevicesController>"
       ]
     },
     "ExportsController": {
@@ -9133,20 +9234,20 @@
       "name": "CheckinFamilySearchResultDto",
       "kind": "interface",
       "properties": {
-        "familyIdKey": "string",
+        "familyIdKey": "IdKey",
         "familyName": "string",
         "addressSummary": "string",
         "campusName": "string",
         "members": "CheckinFamilyMemberDto[]",
         "recentCheckInCount": "number"
       },
-      "path": "services/api/types.ts"
+      "path": "types/checkin-extended.ts"
     },
     "CheckinFamilyMemberDto": {
       "name": "CheckinFamilyMemberDto",
       "kind": "interface",
       "properties": {
-        "personIdKey": "string",
+        "personIdKey": "IdKey",
         "fullName": "string",
         "firstName": "string",
         "lastName": "string",
@@ -9157,13 +9258,13 @@
         "roleName": "string",
         "isChild": "boolean",
         "hasRecentCheckIn": "boolean",
-        "lastCheckIn": "string",
+        "lastCheckIn": "DateTime",
         "grade": "string",
         "allergies": "string",
         "hasCriticalAllergies": "boolean",
         "specialNeeds": "string"
       },
-      "path": "services/api/types.ts"
+      "path": "types/checkin-extended.ts"
     },
     "AttendanceSummaryDto": {
       "name": "AttendanceSummaryDto",
@@ -10880,10 +10981,6 @@
       "name": "PersonSearchParams",
       "kind": "interface",
       "properties": {
-        "sortBy": "string",
-        "sortDir": "'asc' | 'desc'",
-        "page": "number",
-        "pageSize": "number",
         "q": "string",
         "firstName": "string",
         "lastName": "string",
@@ -10894,11 +10991,7 @@
         "campusId": "IdKey",
         "includeInactive": "boolean"
       },
-      "path": "services/api/types.ts",
-      "extends": [
-        "PaginationParams",
-        "SortParams"
-      ]
+      "path": "services/api/types.ts"
     },
     "DuplicateMatchDto": {
       "name": "DuplicateMatchDto",
@@ -11505,16 +11598,11 @@
       "name": "FamiliesSearchParams",
       "kind": "interface",
       "properties": {
-        "page": "number",
-        "pageSize": "number",
         "q": "string",
         "campusId": "IdKey",
         "includeInactive": "boolean"
       },
-      "path": "services/api/types.ts",
-      "extends": [
-        "PaginationParams"
-      ]
+      "path": "services/api/types.ts"
     },
     "FamilyDetailDto": {
       "name": "FamilyDetailDto",
@@ -11626,18 +11714,13 @@
       "name": "GroupsSearchParams",
       "kind": "interface",
       "properties": {
-        "page": "number",
-        "pageSize": "number",
         "q": "string",
         "groupTypeId": "IdKey",
         "parentGroupId": "IdKey",
         "campusId": "IdKey",
         "includeInactive": "boolean"
       },
-      "path": "services/api/types.ts",
-      "extends": [
-        "PaginationParams"
-      ]
+      "path": "services/api/types.ts"
     },
     "GroupDetailDto": {
       "name": "GroupDetailDto",
@@ -11663,15 +11746,10 @@
       "name": "GroupMembersParams",
       "kind": "interface",
       "properties": {
-        "page": "number",
-        "pageSize": "number",
         "status": "'Active' | 'Inactive' | 'Pending' | 'All'",
         "roleId": "IdKey"
       },
-      "path": "services/api/types.ts",
-      "extends": [
-        "PaginationParams"
-      ]
+      "path": "services/api/types.ts"
     },
     "AddGroupMemberRequest": {
       "name": "AddGroupMemberRequest",
@@ -11688,15 +11766,10 @@
       "name": "PersonGroupsParams",
       "kind": "interface",
       "properties": {
-        "page": "number",
-        "pageSize": "number",
         "groupTypeId": "IdKey",
         "includeInactive": "boolean"
       },
-      "path": "services/api/types.ts",
-      "extends": [
-        "PaginationParams"
-      ]
+      "path": "services/api/types.ts"
     },
     "PersonFamilyResponse": {
       "name": "PersonFamilyResponse",
@@ -11885,27 +11958,6 @@
       },
       "path": "services/api/types.ts"
     },
-    "KioskChildRegistrationRequest": {
-      "name": "KioskChildRegistrationRequest",
-      "kind": "interface",
-      "properties": {
-        "firstName": "string",
-        "lastName": "string",
-        "birthDate": "string"
-      },
-      "path": "services/api/types.ts"
-    },
-    "KioskFamilyRegistrationRequest": {
-      "name": "KioskFamilyRegistrationRequest",
-      "kind": "interface",
-      "properties": {
-        "parentFirstName": "string",
-        "parentLastName": "string",
-        "phoneNumber": "string",
-        "children": "KioskChildRegistrationRequest[]"
-      },
-      "path": "services/api/types.ts"
-    },
     "CheckinRequest": {
       "name": "CheckinRequest",
       "kind": "interface",
@@ -12078,23 +12130,6 @@
       "name": "GroupTypeDetailAdminDto",
       "kind": "interface",
       "properties": {
-        "idKey": "IdKey",
-        "guid": "Guid",
-        "name": "string",
-        "description": "string",
-        "iconCssClass": "string",
-        "color": "string",
-        "groupTerm": "string",
-        "groupMemberTerm": "string",
-        "takesAttendance": "boolean",
-        "allowSelfRegistration": "boolean",
-        "requiresMemberApproval": "boolean",
-        "defaultIsPublic": "boolean",
-        "defaultGroupCapacity": "number",
-        "isSystem": "boolean",
-        "isArchived": "boolean",
-        "order": "number",
-        "groupCount": "number",
         "showInGroupList": "boolean",
         "showInNavigation": "boolean",
         "attendanceCountsAsWeekendService": "boolean",
@@ -12108,10 +12143,7 @@
         "createdDateTime": "DateTime",
         "modifiedDateTime": "DateTime"
       },
-      "path": "services/api/types.ts",
-      "extends": [
-        "GroupTypeAdminDto"
-      ]
+      "path": "services/api/types.ts"
     },
     "CreateGroupTypeRequest": {
       "name": "CreateGroupTypeRequest",
@@ -12203,16 +12235,11 @@
       "name": "ScheduleSearchParams",
       "kind": "interface",
       "properties": {
-        "page": "number",
-        "pageSize": "number",
         "query": "string",
         "dayOfWeek": "number",
         "includeInactive": "boolean"
       },
-      "path": "services/api/types.ts",
-      "extends": [
-        "PaginationParams"
-      ]
+      "path": "services/api/types.ts"
     },
     "ScheduleSummaryDto": {
       "name": "ScheduleSummaryDto",
@@ -12487,8 +12514,6 @@
       "name": "AuditLogSearchParams",
       "kind": "interface",
       "properties": {
-        "page": "number",
-        "pageSize": "number",
         "startDate": "DateTime",
         "endDate": "DateTime",
         "entityType": "string",
@@ -12496,10 +12521,7 @@
         "personIdKey": "IdKey",
         "entityIdKey": "IdKey"
       },
-      "path": "services/api/types.ts",
-      "extends": [
-        "PaginationParams"
-      ]
+      "path": "services/api/types.ts"
     },
     "AuditLogExportParams": {
       "name": "AuditLogExportParams",
@@ -12511,6 +12533,64 @@
         "actionType": "AuditAction",
         "personIdKey": "IdKey",
         "format": "ExportFormat"
+      },
+      "path": "services/api/types.ts"
+    },
+    "DeviceSummaryDto": {
+      "name": "DeviceSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "deviceType": "string",
+        "campusName": "string",
+        "isActive": "boolean",
+        "ipAddress": "string",
+        "lastSeenDateTime": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
+    "DeviceDetailDto": {
+      "name": "DeviceDetailDto",
+      "kind": "interface",
+      "properties": {
+        "campusIdKey": "IdKey",
+        "deviceTypeValueId": "IdKey",
+        "printerSettings": "string",
+        "hasKioskToken": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "DevicesSearchParams": {
+      "name": "DevicesSearchParams",
+      "kind": "interface",
+      "properties": {
+        "q": "string",
+        "campusId": "IdKey",
+        "includeInactive": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CreateDeviceRequest": {
+      "name": "CreateDeviceRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "deviceTypeValueId": "IdKey",
+        "campusId": "IdKey",
+        "ipAddress": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "UpdateDeviceRequest": {
+      "name": "UpdateDeviceRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "deviceTypeValueId": "IdKey",
+        "campusId": "IdKey",
+        "ipAddress": "string",
+        "isActive": "boolean"
       },
       "path": "services/api/types.ts"
     },
@@ -13156,6 +13236,82 @@
       "usesMutation": false,
       "dependencies": [
         "getDefinedTypeValues"
+      ]
+    },
+    "useDevices": {
+      "name": "useDevices",
+      "path": "hooks/useDevices.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "devices"
+      ],
+      "usesQuery": false,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useDevice": {
+      "name": "useDevice",
+      "path": "hooks/useDevices.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "devices"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getDeviceByIdKey"
+      ]
+    },
+    "useCreateDevice": {
+      "name": "useCreateDevice",
+      "path": "hooks/useDevices.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "devices"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "createDevice"
+      ]
+    },
+    "useUpdateDevice": {
+      "name": "useUpdateDevice",
+      "path": "hooks/useDevices.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "devices"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "updateDevice"
+      ]
+    },
+    "useDeleteDevice": {
+      "name": "useDeleteDevice",
+      "path": "hooks/useDevices.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "devices"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "deleteDevice"
+      ]
+    },
+    "useGenerateKioskToken": {
+      "name": "useGenerateKioskToken",
+      "path": "hooks/useDevices.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "devices"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "generateKioskToken"
       ]
     },
     "useErrorHandler": {
@@ -14673,13 +14829,6 @@
       "method": "GET",
       "responseType": "RoomRosterDto[]"
     },
-    "registerFamily": {
-      "name": "registerFamily",
-      "path": "services/api/checkin.ts",
-      "endpoint": "/checkin/register-family",
-      "method": "POST",
-      "responseType": "CheckinFamilyDto"
-    },
     "checkoutFromRoster": {
       "name": "checkoutFromRoster",
       "path": "services/api/checkin.ts",
@@ -14791,6 +14940,41 @@
       "endpoint": "/dashboard/stats",
       "method": "GET",
       "responseType": "DashboardStatsDto"
+    },
+    "getDeviceByIdKey": {
+      "name": "getDeviceByIdKey",
+      "path": "services/api/devices.ts",
+      "endpoint": "/devices/${idKey}",
+      "method": "GET",
+      "responseType": "DeviceDetailDto"
+    },
+    "createDevice": {
+      "name": "createDevice",
+      "path": "services/api/devices.ts",
+      "endpoint": "/devices",
+      "method": "POST",
+      "responseType": "DeviceDetailDto"
+    },
+    "updateDevice": {
+      "name": "updateDevice",
+      "path": "services/api/devices.ts",
+      "endpoint": "/devices/${idKey}",
+      "method": "PUT",
+      "responseType": "DeviceDetailDto"
+    },
+    "deleteDevice": {
+      "name": "deleteDevice",
+      "path": "services/api/devices.ts",
+      "endpoint": "/devices/${idKey}",
+      "method": "DELETE",
+      "responseType": "void"
+    },
+    "generateKioskToken": {
+      "name": "generateKioskToken",
+      "path": "services/api/devices.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "{ token: string }"
     },
     "getFamilyByIdKey": {
       "name": "getFamilyByIdKey",
@@ -15985,12 +16169,6 @@
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
-    "KioskFamilyRegistration": {
-      "name": "KioskFamilyRegistration",
-      "path": "components/checkin/KioskFamilyRegistration.tsx",
-      "hooksUsed": [],
-      "apiCallsDirectly": false
-    },
     "KioskLayout": {
       "name": "KioskLayout",
       "path": "components/checkin/KioskLayout.tsx",
@@ -16742,6 +16920,16 @@
       "relationship": "maps_to"
     },
     {
+      "source": "DeviceDetailDto",
+      "target": "Device",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "DeviceSummaryDto",
+      "target": "Device",
+      "relationship": "maps_to"
+    },
+    {
       "source": "ExportFieldDto",
       "target": "ExportJob",
       "relationship": "maps_to"
@@ -17192,6 +17380,11 @@
       "relationship": "maps_to"
     },
     {
+      "source": "CreateDeviceRequest",
+      "target": "Device",
+      "relationship": "maps_to"
+    },
+    {
       "source": "CreateFamilyRequest",
       "target": "Family",
       "relationship": "maps_to"
@@ -17309,6 +17502,11 @@
     {
       "source": "UpdateCampusRequest",
       "target": "Campus",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdateDeviceRequest",
+      "target": "Device",
       "relationship": "maps_to"
     },
     {
@@ -17498,11 +17696,6 @@
     },
     {
       "source": "CheckinController",
-      "target": "ICheckinRegistrationService",
-      "relationship": "depends_on"
-    },
-    {
-      "source": "CheckinController",
       "target": "ILabelGenerationService",
       "relationship": "depends_on"
     },
@@ -17544,6 +17737,11 @@
     {
       "source": "DashboardController",
       "target": "IDashboardService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "DevicesController",
+      "target": "IDeviceService",
       "relationship": "depends_on"
     },
     {
@@ -17912,11 +18110,6 @@
       "relationship": "returns"
     },
     {
-      "source": "CheckinRegistrationService",
-      "target": "CheckinFamilySearchResultDto",
-      "relationship": "returns"
-    },
-    {
       "source": "CheckinSearchService",
       "target": "CheckinFamilySearchResultDto",
       "relationship": "returns"
@@ -18104,6 +18297,31 @@
     {
       "source": "DataImportService",
       "target": "ImportJobDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "DeviceService",
+      "target": "DeviceSummaryDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "DeviceService",
+      "target": "DeviceDetailDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "DeviceService",
+      "target": "DeviceDetailDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "DeviceService",
+      "target": "DeviceDetailDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "DeviceService",
+      "target": "DeviceDetailDto",
       "relationship": "returns"
     },
     {
@@ -18682,11 +18900,6 @@
       "relationship": "uses"
     },
     {
-      "source": "CheckinRegistrationService",
-      "target": "Family",
-      "relationship": "uses"
-    },
-    {
       "source": "CommunicationPreferenceService",
       "target": "Communication",
       "relationship": "uses"
@@ -19256,6 +19469,8 @@
     "dto:UpcomingScheduleDto": "type:UpcomingScheduleDto",
     "dto:GivingStatsDto": "type:GivingStats",
     "dto:CommunicationsStatsDto": "type:CommunicationsStats",
+    "dto:DeviceDetailDto": "type:DeviceDetailDto",
+    "dto:DeviceSummaryDto": "type:DeviceSummaryDto",
     "dto:ExportFieldDto": "type:ExportFieldDto",
     "dto:FamilyDto": "type:FamilyDto",
     "dto:FamilyMemberDto": "type:FamilyMemberDto",
@@ -19335,6 +19550,7 @@
     "dto:ChangePasswordRequest": "type:ChangePasswordRequest",
     "dto:ScheduleCommunicationRequest": "type:ScheduleCommunicationRequest",
     "dto:CreateCampusRequest": "type:CreateCampusRequest",
+    "dto:CreateDeviceRequest": "type:CreateDeviceRequest",
     "dto:CreateFamilyRequest": "type:CreateFamilyRequest",
     "dto:AddFamilyMemberRequest": "type:AddFamilyMemberRequest",
     "dto:UpdateFamilyAddressRequest": "type:UpdateFamilyAddressRequest",
@@ -19348,8 +19564,6 @@
     "dto:CreatePhoneNumberRequest": "type:CreatePhoneNumberRequest",
     "dto:UpdateFollowUpStatusRequest": "type:UpdateFollowUpStatusRequest",
     "dto:AssignFollowUpRequest": "type:AssignFollowUpRequest",
-    "dto:KioskFamilyRegistrationRequest": "type:KioskFamilyRegistrationRequest",
-    "dto:KioskChildRegistrationRequest": "type:KioskChildRegistrationRequest",
     "dto:SendPageRequest": "type:SendPageRequest",
     "dto:PageSearchRequest": "type:PageSearchRequest",
     "dto:RecordAttendanceRequest": "type:RecordAttendanceRequest",
@@ -19358,6 +19572,7 @@
     "dto:StartImportRequest": "type:StartImportRequest",
     "dto:TwoFactorVerifyRequest": "type:TwoFactorVerifyRequest",
     "dto:UpdateCampusRequest": "type:UpdateCampusRequest",
+    "dto:UpdateDeviceRequest": "type:UpdateDeviceRequest",
     "dto:UpdateFamilyMemberRequest": "type:UpdateFamilyMemberRequest",
     "dto:UpdateFamilyRequest": "type:UpdateFamilyRequest",
     "dto:UpdateGroupMemberRequest": "type:UpdateGroupMemberRequest",
@@ -19386,13 +19601,13 @@
   },
   "stats": {
     "entities": 59,
-    "dtos": 197,
+    "dtos": 199,
     "services": 107,
-    "controllers": 34,
-    "types": 297,
-    "api_functions": 165,
-    "hooks": 143,
-    "components": 130,
-    "total_edges": 543
+    "controllers": 35,
+    "types": 300,
+    "api_functions": 169,
+    "hooks": 149,
+    "components": 129,
+    "total_edges": 550
   }
 }
