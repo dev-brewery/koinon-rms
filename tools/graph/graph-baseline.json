@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-03-27T15:54:16-04:00",
+  "generated_at": "2026-03-27T19:17:28-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -11604,8 +11604,9 @@
         "idKey": "IdKey",
         "firstName": "string",
         "lastName": "string",
-        "email": "string",
-        "photoUrl": "string"
+        "email": "string | null",
+        "photoUrl": "string | null",
+        "roles": "string[]"
       },
       "path": "services/api/types.ts"
     },
@@ -11901,6 +11902,24 @@
         "PaginationParams"
       ]
     },
+    "PersonGroupMembershipDto": {
+      "name": "PersonGroupMembershipDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "string",
+        "groupIdKey": "IdKey",
+        "groupName": "string",
+        "groupTypeIdKey": "IdKey",
+        "groupTypeName": "string",
+        "roleIdKey": "IdKey",
+        "roleName": "string",
+        "memberStatus": "string",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
     "AddGroupMemberRequest": {
       "name": "AddGroupMemberRequest",
       "kind": "interface",
@@ -11932,6 +11951,32 @@
       "properties": {
         "family": "FamilyDetailDto",
         "members": "FamilyMemberDto[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupAttendanceOccurrenceDto": {
+      "name": "GroupAttendanceOccurrenceDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "occurrenceDate": "DateOnly",
+        "attendeeCount": "number",
+        "anonymousCount": "number",
+        "didNotOccur": "boolean",
+        "locationName": "string | null",
+        "scheduleName": "string | null"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupAttendanceDetailDto": {
+      "name": "GroupAttendanceDetailDto",
+      "kind": "interface",
+      "properties": {
+        "personIdKey": "IdKey",
+        "fullName": "string",
+        "photoUrl": "string | null",
+        "didAttend": "boolean",
+        "presentDateTime": "DateTime | null"
       },
       "path": "services/api/types.ts"
     },
@@ -19919,6 +19964,7 @@
     "dto:DefinedValueDto": "type:DefinedValueDto",
     "dto:FamilySummaryDto": "type:FamilySummaryDto",
     "dto:CampusSummaryDto": "type:CampusSummaryDto",
+    "dto:PersonGroupMembershipDto": "type:PersonGroupMembershipDto",
     "dto:DuplicateMatchDto": "type:DuplicateMatchDto",
     "dto:IgnoreDuplicateRequestDto": "type:IgnoreDuplicateRequestDto",
     "dto:PersonComparisonDto": "type:PersonComparisonDto",
@@ -19996,7 +20042,7 @@
     "dtos": 204,
     "services": 109,
     "controllers": 35,
-    "types": 304,
+    "types": 307,
     "api_functions": 173,
     "hooks": 151,
     "components": 133,

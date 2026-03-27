@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-03-27T14:47:20.996Z",
+  "generated_at": "2026-03-27T23:29:15.716Z",
   "types": {
     "AttendanceAnalyticsDto": {
       "name": "AttendanceAnalyticsDto",
@@ -332,15 +332,20 @@
       "kind": "interface",
       "properties": {
         "idKey": "IdKey",
-        "person": "CheckinPersonSummaryDtoCore",
-        "location": "CheckinLocationSummaryDtoCore",
+        "person": "{\n    idKey: IdKey",
+        "fullName": "string",
+        "firstName": "string",
+        "lastName": "string",
+        "location": "{\n    idKey: IdKey",
+        "name": "string",
+        "fullPath": "string",
         "startDateTime": "DateTime",
         "endDateTime": "DateTime",
         "securityCode": "string",
         "isFirstTime": "boolean",
         "note": "string"
       },
-      "path": "types/checkin-extended.ts"
+      "path": "services/api/types.ts"
     },
     "ExtendedCheckinRequestDto": {
       "name": "ExtendedCheckinRequestDto",
@@ -2538,8 +2543,9 @@
         "idKey": "IdKey",
         "firstName": "string",
         "lastName": "string",
-        "email": "string",
-        "photoUrl": "string"
+        "email": "string | null",
+        "photoUrl": "string | null",
+        "roles": "string[]"
       },
       "path": "services/api/types.ts"
     },
@@ -2835,6 +2841,24 @@
         "PaginationParams"
       ]
     },
+    "PersonGroupMembershipDto": {
+      "name": "PersonGroupMembershipDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "string",
+        "groupIdKey": "IdKey",
+        "groupName": "string",
+        "groupTypeIdKey": "IdKey",
+        "groupTypeName": "string",
+        "roleIdKey": "IdKey",
+        "roleName": "string",
+        "memberStatus": "string",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
     "AddGroupMemberRequest": {
       "name": "AddGroupMemberRequest",
       "kind": "interface",
@@ -2866,6 +2890,32 @@
       "properties": {
         "family": "FamilyDetailDto",
         "members": "FamilyMemberDto[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupAttendanceOccurrenceDto": {
+      "name": "GroupAttendanceOccurrenceDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "occurrenceDate": "DateOnly",
+        "attendeeCount": "number",
+        "anonymousCount": "number",
+        "didNotOccur": "boolean",
+        "locationName": "string | null",
+        "scheduleName": "string | null"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupAttendanceDetailDto": {
+      "name": "GroupAttendanceDetailDto",
+      "kind": "interface",
+      "properties": {
+        "personIdKey": "IdKey",
+        "fullName": "string",
+        "photoUrl": "string | null",
+        "didAttend": "boolean",
+        "presentDateTime": "DateTime | null"
       },
       "path": "services/api/types.ts"
     },
@@ -3754,6 +3804,28 @@
         "ipAddress": "string",
         "isActive": "boolean",
         "printerSettings": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "PersonGivingSummaryDto": {
+      "name": "PersonGivingSummaryDto",
+      "kind": "interface",
+      "properties": {
+        "yearToDateTotal": "number",
+        "lastContributionDate": "DateTime",
+        "recentContributions": "RecentContributionDto[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "RecentContributionDto": {
+      "name": "RecentContributionDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "transactionDateTime": "DateTime",
+        "amount": "number",
+        "fundName": "string",
+        "transactionType": "string"
       },
       "path": "services/api/types.ts"
     },
@@ -4874,6 +4946,20 @@
       "endpoint": "/people/${idKey}/family",
       "method": "GET",
       "responseType": "PersonFamilyResponse"
+    },
+    "getPersonAttendance": {
+      "name": "getPersonAttendance",
+      "path": "services/api/people.ts",
+      "endpoint": "/people/${personIdKey}/attendance?days=${days}",
+      "method": "GET",
+      "responseType": "AttendanceSummaryDto[]"
+    },
+    "getPersonGivingSummary": {
+      "name": "getPersonGivingSummary",
+      "path": "services/api/people.ts",
+      "endpoint": "/people/${personIdKey}/giving-summary",
+      "method": "GET",
+      "responseType": "PersonGivingSummaryDto"
     },
     "uploadPersonPhoto": {
       "name": "uploadPersonPhoto",
@@ -6564,6 +6650,32 @@
       "usesMutation": false,
       "dependencies": []
     },
+    "usePersonAttendance": {
+      "name": "usePersonAttendance",
+      "path": "hooks/usePeople.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "person-attendance"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getPersonAttendance"
+      ]
+    },
+    "usePersonGivingSummary": {
+      "name": "usePersonGivingSummary",
+      "path": "hooks/usePeople.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "people"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getPersonGivingSummary"
+      ]
+    },
     "useDuplicates": {
       "name": "useDuplicates",
       "path": "hooks/usePersonMerge.ts",
@@ -7219,6 +7331,14 @@
       ],
       "apiCallsDirectly": false
     },
+    "AttendanceHistorySection": {
+      "name": "AttendanceHistorySection",
+      "path": "components/admin/people/AttendanceHistorySection.tsx",
+      "hooksUsed": [
+        "usePersonAttendance"
+      ],
+      "apiCallsDirectly": false
+    },
     "CommunicationPreferences": {
       "name": "CommunicationPreferences",
       "path": "components/admin/people/CommunicationPreferences.tsx",
@@ -7226,6 +7346,20 @@
         "useCommunicationPreferences",
         "useUpdateCommunicationPreference"
       ],
+      "apiCallsDirectly": false
+    },
+    "GivingHistorySection": {
+      "name": "GivingHistorySection",
+      "path": "components/admin/people/GivingHistorySection.tsx",
+      "hooksUsed": [
+        "usePersonGivingSummary"
+      ],
+      "apiCallsDirectly": false
+    },
+    "GroupMembershipsSection": {
+      "name": "GroupMembershipsSection",
+      "path": "components/admin/people/GroupMembershipsSection.tsx",
+      "hooksUsed": [],
       "apiCallsDirectly": false
     },
     "PersonCard": {
@@ -7978,6 +8112,11 @@
       "type": "uses_hook"
     },
     {
+      "from": "AttendanceHistorySection",
+      "to": "usePersonAttendance",
+      "type": "uses_hook"
+    },
+    {
       "from": "CommunicationPreferences",
       "to": "useCommunicationPreferences",
       "type": "uses_hook"
@@ -7985,6 +8124,11 @@
     {
       "from": "CommunicationPreferences",
       "to": "useUpdateCommunicationPreference",
+      "type": "uses_hook"
+    },
+    {
+      "from": "GivingHistorySection",
+      "to": "usePersonGivingSummary",
       "type": "uses_hook"
     },
     {
