@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-03-27T09:57:49-04:00",
+  "generated_at": "2026-03-27T00:13:26-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -8300,6 +8300,15 @@
           "required_roles": []
         },
         {
+          "name": "GetAttendanceHistory",
+          "method": "GET",
+          "route": "{idKey}/attendance",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "UploadPhoto",
           "method": "POST",
           "route": "{idKey}/photo",
@@ -8336,6 +8345,7 @@
       "dependencies": [
         "IPersonService",
         "IFileService",
+        "ICheckinAttendanceService",
         "ILogger<PeopleController>"
       ]
     },
@@ -9170,15 +9180,20 @@
       "kind": "interface",
       "properties": {
         "idKey": "IdKey",
-        "person": "CheckinPersonSummaryDtoCore",
-        "location": "CheckinLocationSummaryDtoCore",
+        "person": "{\n    idKey: IdKey",
+        "fullName": "string",
+        "firstName": "string",
+        "lastName": "string",
+        "location": "{\n    idKey: IdKey",
+        "name": "string",
+        "fullPath": "string",
         "startDateTime": "DateTime",
         "endDateTime": "DateTime",
         "securityCode": "string",
         "isFirstTime": "boolean",
         "note": "string"
       },
-      "path": "types/checkin-extended.ts"
+      "path": "services/api/types.ts"
     },
     "ExtendedCheckinRequestDto": {
       "name": "ExtendedCheckinRequestDto",
@@ -14046,6 +14061,19 @@
       "usesMutation": false,
       "dependencies": []
     },
+    "usePersonAttendance": {
+      "name": "usePersonAttendance",
+      "path": "hooks/usePeople.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "person-attendance"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getPersonAttendance"
+      ]
+    },
     "useDuplicates": {
       "name": "useDuplicates",
       "path": "hooks/usePersonMerge.ts",
@@ -15401,6 +15429,13 @@
       "method": "GET",
       "responseType": "PersonFamilyResponse"
     },
+    "getPersonAttendance": {
+      "name": "getPersonAttendance",
+      "path": "services/api/people.ts",
+      "endpoint": "/people/${personIdKey}/attendance?days=${days}",
+      "method": "GET",
+      "responseType": "AttendanceSummaryDto[]"
+    },
     "uploadPersonPhoto": {
       "name": "uploadPersonPhoto",
       "path": "services/api/people.ts",
@@ -15855,6 +15890,14 @@
       "path": "components/admin/groups/GroupTree.tsx",
       "hooksUsed": [
         "useChildGroups"
+      ],
+      "apiCallsDirectly": false
+    },
+    "AttendanceHistorySection": {
+      "name": "AttendanceHistorySection",
+      "path": "components/admin/people/AttendanceHistorySection.tsx",
+      "hooksUsed": [
+        "usePersonAttendance"
       ],
       "apiCallsDirectly": false
     },
@@ -17622,6 +17665,11 @@
       "relationship": "depends_on"
     },
     {
+      "source": "PeopleController",
+      "target": "ICheckinAttendanceService",
+      "relationship": "depends_on"
+    },
+    {
       "source": "PersonMergeController",
       "target": "IDuplicateDetectionService",
       "relationship": "depends_on"
@@ -18997,6 +19045,11 @@
       "type": "uses_hook"
     },
     {
+      "from": "AttendanceHistorySection",
+      "to": "usePersonAttendance",
+      "type": "uses_hook"
+    },
+    {
       "from": "CommunicationPreferences",
       "to": "useCommunicationPreferences",
       "type": "uses_hook"
@@ -19390,9 +19443,9 @@
     "services": 107,
     "controllers": 34,
     "types": 297,
-    "api_functions": 165,
-    "hooks": 143,
-    "components": 130,
-    "total_edges": 543
+    "api_functions": 166,
+    "hooks": 144,
+    "components": 131,
+    "total_edges": 545
   }
 }

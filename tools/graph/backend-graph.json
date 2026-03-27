@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-03-27T09:57:49-04:00",
+  "generated_at": "2026-03-27T00:13:26-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -8300,6 +8300,15 @@
           "required_roles": []
         },
         {
+          "name": "GetAttendanceHistory",
+          "method": "GET",
+          "route": "{idKey}/attendance",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "UploadPhoto",
           "method": "POST",
           "route": "{idKey}/photo",
@@ -8336,6 +8345,7 @@
       "dependencies": [
         "IPersonService",
         "IFileService",
+        "ICheckinAttendanceService",
         "ILogger<PeopleController>"
       ]
     },
@@ -9966,6 +9976,11 @@
       "relationship": "depends_on"
     },
     {
+      "source": "PeopleController",
+      "target": "ICheckinAttendanceService",
+      "relationship": "depends_on"
+    },
+    {
       "source": "PersonMergeController",
       "target": "IDuplicateDetectionService",
       "relationship": "depends_on"
@@ -11226,6 +11241,6 @@
     "total_dtos": 197,
     "total_services": 107,
     "total_controllers": 34,
-    "total_relationships": 476
+    "total_relationships": 477
   }
 }
