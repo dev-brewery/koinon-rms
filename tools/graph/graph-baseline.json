@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-03-26T22:10:45-04:00",
+  "generated_at": "2026-03-26T23:22:23-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -12601,9 +12601,11 @@
       "kind": "interface",
       "properties": {
         "name": "string",
-        "deviceTypeValueId": "IdKey",
-        "campusId": "IdKey",
-        "ipAddress": "string"
+        "description": "string",
+        "deviceTypeValueIdKey": "IdKey",
+        "campusIdKey": "IdKey",
+        "ipAddress": "string",
+        "isActive": "boolean"
       },
       "path": "services/api/types.ts"
     },
@@ -12612,10 +12614,12 @@
       "kind": "interface",
       "properties": {
         "name": "string",
-        "deviceTypeValueId": "IdKey",
-        "campusId": "IdKey",
+        "description": "string",
+        "deviceTypeValueIdKey": "IdKey",
+        "campusIdKey": "IdKey",
         "ipAddress": "string",
-        "isActive": "boolean"
+        "isActive": "boolean",
+        "printerSettings": "string"
       },
       "path": "services/api/types.ts"
     },
