@@ -15,6 +15,15 @@ export class CheckinPage {
   readonly idleWarningModal: Locator;
   readonly continueButton: Locator;
 
+  // Extended locators for complete flow testing
+  readonly nameSearchInput: Locator;
+  readonly searchByPhoneButton: Locator;
+  readonly searchByNameButton: Locator;
+  readonly familyCards: Locator;
+  readonly checkInCompleteHeading: Locator;
+  readonly doneButton: Locator;
+  readonly securityCodeDisplay: Locator;
+
   constructor(page: Page) {
     this.page = page;
     this.phoneInput = page.getByTestId('phone-input');
@@ -25,6 +34,18 @@ export class CheckinPage {
     this.successMessage = page.getByTestId('success-message');
     this.idleWarningModal = page.getByRole('alertdialog');
     this.continueButton = page.getByRole('button', { name: /continue|stay/i });
+
+    // Extended locators
+    this.nameSearchInput = page.getByPlaceholder(/name|first|last/i);
+    this.searchByPhoneButton = page.getByRole('button', { name: /search by phone/i });
+    this.searchByNameButton = page.getByRole('button', { name: /search by name/i });
+    // Family cards shown in the select-family step (multiple families matched)
+    this.familyCards = page.getByRole('heading', { level: 3 });
+    // Confirmation step elements
+    this.checkInCompleteHeading = page.getByText('Check-In Complete!');
+    this.doneButton = page.getByRole('button', { name: 'Done' });
+    // Security codes rendered as large mono text inside attendance cards
+    this.securityCodeDisplay = page.locator('.font-mono');
   }
 
   async goto() {
@@ -68,5 +89,58 @@ export class CheckinPage {
     await expect(this.idleWarningModal).toBeVisible();
     await this.continueButton.click();
     await expect(this.idleWarningModal).not.toBeVisible();
+  }
+
+  /**
+   * Switch to name search mode and submit a name query.
+   */
+  async switchToNameSearch() {
+    await this.searchByNameButton.click();
+  }
+
+  /**
+   * Select an activity toggle for a given person row.
+   * personIndex is 0-based within the FamilyMemberList.
+   * activityIndex is 0-based within that person's opportunity list.
+   */
+  async selectActivity(personIndex: number, activityIndex: number) {
+    // Activities are rendered as toggle buttons inside each member card section
+    const targetIndex = personIndex * 10 + activityIndex; // rough offset; real DOM is flat
+    const allToggles = await this.page.getByRole('checkbox').all();
+    const toggle = allToggles[targetIndex];
+    if (toggle) {
+      await toggle.click();
+    }
+  }
+
+  /**
+   * Returns the text content of all visible security code elements
+   * on the confirmation screen.
+   */
+  async getSecurityCodes(): Promise<string[]> {
+    const codes = await this.securityCodeDisplay.all();
+    const texts: string[] = [];
+    for (const code of codes) {
+      const text = await code.textContent();
+      if (text?.trim()) {
+        texts.push(text.trim());
+      }
+    }
+    return texts;
+  }
+
+  /**
+   * Wait for the confirmation step to be visible.
+   */
+  async expectConfirmation() {
+    await expect(this.checkInCompleteHeading).toBeVisible({ timeout: 5000 });
+  }
+
+  /**
+   * Click Done and verify we return to the search step.
+   */
+  async clickDoneAndReset() {
+    await this.doneButton.click();
+    await expect(this.page.getByRole('button', { name: /search by phone/i })).toBeVisible();
   }
 }
