@@ -28,7 +28,7 @@ export async function searchPeople(
 ): Promise<PagedResult<PersonSummaryDto>> {
   const queryParams = new URLSearchParams();
 
-  if (params.q) queryParams.set('q', params.q);
+  if (params.q) queryParams.set('query', params.q);
   if (params.firstName) queryParams.set('firstName', params.firstName);
   if (params.lastName) queryParams.set('lastName', params.lastName);
   if (params.email) queryParams.set('email', params.email);
