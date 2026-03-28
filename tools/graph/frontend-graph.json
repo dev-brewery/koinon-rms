@@ -2243,7 +2243,6 @@
         "person": "PersonSummaryDto",
         "role": "GroupTypeRoleDto",
         "status": "string",
-        "isPersonPrimaryFamily": "boolean",
         "dateTimeAdded": "DateTime"
       },
       "path": "services/api/types.ts"
@@ -2665,7 +2664,8 @@
         "anniversaryDate": "DateOnly | null",
         "connectionStatusValueId": "IdKey",
         "recordStatusValueId": "IdKey",
-        "primaryCampusId": "IdKey | null"
+        "primaryCampusId": "IdKey | null",
+        "phoneNumbers": "CreatePhoneNumberRequest[]"
       },
       "path": "services/api/types.ts"
     },
@@ -2691,9 +2691,11 @@
         "idKey": "IdKey",
         "guid": "Guid",
         "name": "string",
+        "description": "string",
+        "isActive": "boolean",
         "campus": "CampusSummaryDto",
+        "address": "AddressDto",
         "members": "FamilyMemberDto[]",
-        "addresses": "FamilyAddressDto[]",
         "createdDateTime": "DateTime",
         "modifiedDateTime": "DateTime"
       },
@@ -2818,7 +2820,7 @@
         "groupType": "GroupTypeSummaryDto",
         "parentGroup": "GroupSummaryDto",
         "campus": "CampusSummaryDto",
-        "capacity": "number",
+        "groupCapacity": "number",
         "isActive": "boolean",
         "isArchived": "boolean",
         "schedule": "ScheduleDto",
@@ -3835,9 +3837,10 @@
       "properties": {
         "idKey": "IdKey",
         "text": "string",
-        "noteDate": "DateTime",
-        "noteType": "string | null",
-        "createdByName": "string | null",
+        "noteDateTime": "DateTime",
+        "noteTypeName": "string | null",
+        "noteTypeValueIdKey": "IdKey | null",
+        "authorPersonName": "string | null",
         "isPrivate": "boolean",
         "isAlert": "boolean",
         "createdDateTime": "DateTime"
@@ -6348,6 +6351,17 @@
         "getImportJobs"
       ]
     },
+    "useIsMobile": {
+      "name": "useIsMobile",
+      "path": "hooks/useIsMobile.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "ismobile"
+      ],
+      "usesQuery": false,
+      "usesMutation": false,
+      "dependencies": []
+    },
     "useLocations": {
       "name": "useLocations",
       "path": "hooks/useLocations.ts",
@@ -7282,7 +7296,8 @@
       "name": "Header",
       "path": "components/admin/Header.tsx",
       "hooksUsed": [
-        "useAuth"
+        "useAuth",
+        "useIsMobile"
       ],
       "apiCallsDirectly": false
     },
@@ -8174,6 +8189,11 @@
     {
       "from": "Header",
       "to": "useAuth",
+      "type": "uses_hook"
+    },
+    {
+      "from": "Header",
+      "to": "useIsMobile",
       "type": "uses_hook"
     },
     {

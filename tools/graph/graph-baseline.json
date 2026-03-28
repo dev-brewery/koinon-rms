@@ -2515,6 +2515,41 @@
       },
       "linked_entity": "System"
     },
+    "GroupAttendanceOccurrenceDto": {
+      "name": "GroupAttendanceOccurrenceDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "OccurrenceIdKey": "string",
+        "OccurrenceDate": "DateTime",
+        "AttendeeCount": "int",
+        "TotalMembers": "int",
+        "DidNotOccur": "bool"
+      },
+      "linked_entity": "Group"
+    },
+    "GroupAttendanceEntryDto": {
+      "name": "GroupAttendanceEntryDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "PersonIdKey": "string",
+        "FullName": "string",
+        "PhotoUrl": "string?",
+        "DidAttend": "bool",
+        "PresentDateTime": "DateTime?",
+        "IsFirstTime": "bool"
+      },
+      "linked_entity": "Group"
+    },
+    "GroupAttendanceHistoryDto": {
+      "name": "GroupAttendanceHistoryDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Occurrences": "IReadOnlyList<GroupAttendanceOccurrenceDto>",
+        "AverageAttendance": "double",
+        "TrendDirection": "string"
+      },
+      "linked_entity": "Group"
+    },
     "GroupDto": {
       "name": "GroupDto",
       "namespace": "Koinon.Application.DTOs",
@@ -3256,12 +3291,13 @@
       "properties": {
         "IdKey": "string",
         "Text": "string",
-        "NoteDate": "DateTime",
-        "NoteType": "string?",
-        "CreatedByName": "string?",
+        "NoteDateTime": "DateTime",
+        "NoteTypeName": "string?",
+        "NoteTypeValueIdKey": "string?",
+        "AuthorPersonName": "string?",
         "IsPrivate": "bool",
         "IsAlert": "bool",
-        "CreatedDateTime": "DateTime"
+        "CreatedDateTime": "DateTime?"
       },
       "linked_entity": "PersonNote"
     },
@@ -4099,7 +4135,8 @@
         "AnniversaryDate": "DateOnly?",
         "ConnectionStatusValueId": "string?",
         "RecordStatusValueId": "string?",
-        "PrimaryCampusId": "string?"
+        "PrimaryCampusId": "string?",
+        "PhoneNumbers": "IList<CreatePhoneNumberRequest>?"
       },
       "linked_entity": "Person"
     },
@@ -6766,6 +6803,12 @@
     },
     "IGradeCalculationService": {
       "name": "IGradeCalculationService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IGroupAttendanceService": {
+      "name": "IGroupAttendanceService",
       "namespace": "Koinon.Application.Interfaces",
       "methods": [],
       "dependencies": []
@@ -11423,7 +11466,6 @@
         "person": "PersonSummaryDto",
         "role": "GroupTypeRoleDto",
         "status": "string",
-        "isPersonPrimaryFamily": "boolean",
         "dateTimeAdded": "DateTime"
       },
       "path": "services/api/types.ts"
@@ -11845,7 +11887,8 @@
         "anniversaryDate": "DateOnly | null",
         "connectionStatusValueId": "IdKey",
         "recordStatusValueId": "IdKey",
-        "primaryCampusId": "IdKey | null"
+        "primaryCampusId": "IdKey | null",
+        "phoneNumbers": "CreatePhoneNumberRequest[]"
       },
       "path": "services/api/types.ts"
     },
@@ -11871,9 +11914,11 @@
         "idKey": "IdKey",
         "guid": "Guid",
         "name": "string",
+        "description": "string",
+        "isActive": "boolean",
         "campus": "CampusSummaryDto",
+        "address": "AddressDto",
         "members": "FamilyMemberDto[]",
-        "addresses": "FamilyAddressDto[]",
         "createdDateTime": "DateTime",
         "modifiedDateTime": "DateTime"
       },
@@ -11998,7 +12043,7 @@
         "groupType": "GroupTypeSummaryDto",
         "parentGroup": "GroupSummaryDto",
         "campus": "CampusSummaryDto",
-        "capacity": "number",
+        "groupCapacity": "number",
         "isActive": "boolean",
         "isArchived": "boolean",
         "schedule": "ScheduleDto",
@@ -13015,9 +13060,10 @@
       "properties": {
         "idKey": "IdKey",
         "text": "string",
-        "noteDate": "DateTime",
-        "noteType": "string | null",
-        "createdByName": "string | null",
+        "noteDateTime": "DateTime",
+        "noteTypeName": "string | null",
+        "noteTypeValueIdKey": "IdKey | null",
+        "authorPersonName": "string | null",
         "isPrivate": "boolean",
         "isAlert": "boolean",
         "createdDateTime": "DateTime"
@@ -14286,6 +14332,17 @@
       "dependencies": [
         "getImportJobs"
       ]
+    },
+    "useIsMobile": {
+      "name": "useIsMobile",
+      "path": "hooks/useIsMobile.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "ismobile"
+      ],
+      "usesQuery": false,
+      "usesMutation": false,
+      "dependencies": []
     },
     "useLocations": {
       "name": "useLocations",
@@ -16462,7 +16519,8 @@
       "name": "Header",
       "path": "components/admin/Header.tsx",
       "hooksUsed": [
-        "useAuth"
+        "useAuth",
+        "useIsMobile"
       ],
       "apiCallsDirectly": false
     },
@@ -17679,6 +17737,21 @@
     {
       "source": "GlobalSearchResponse",
       "target": "System",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "GroupAttendanceOccurrenceDto",
+      "target": "Group",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "GroupAttendanceEntryDto",
+      "target": "Group",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "GroupAttendanceHistoryDto",
+      "target": "Group",
       "relationship": "maps_to"
     },
     {
@@ -19847,6 +19920,11 @@
       "type": "uses_hook"
     },
     {
+      "from": "Header",
+      "to": "useIsMobile",
+      "type": "uses_hook"
+    },
+    {
       "from": "LocationEditorModal",
       "to": "useCampuses",
       "type": "uses_hook"
@@ -20227,6 +20305,7 @@
     "dto:PersonLookupDto": "type:PersonLookupDto",
     "dto:GlobalSearchResultDto": "type:GlobalSearchResult",
     "dto:GlobalSearchResponse": "type:GlobalSearchResponse",
+    "dto:GroupAttendanceOccurrenceDto": "type:GroupAttendanceOccurrenceDto",
     "dto:GroupDto": "type:GroupDto",
     "dto:GroupSummaryDto": "type:GroupSummaryDto",
     "dto:GroupMemberDto": "type:GroupMemberDto",
@@ -20341,13 +20420,13 @@
   },
   "stats": {
     "entities": 60,
-    "dtos": 207,
-    "services": 109,
+    "dtos": 210,
+    "services": 110,
     "controllers": 35,
     "types": 310,
     "api_functions": 177,
-    "hooks": 155,
+    "hooks": 156,
     "components": 134,
-    "total_edges": 571
+    "total_edges": 575
   }
 }

@@ -127,6 +127,7 @@ export function PhoneSearch({ onSearch, loading }: PhoneSearchProps) {
         <Button
           onClick={handleSearch}
           loading={loading}
+          disabled={phone.length === 0}
           size="lg"
           className="w-full text-xl"
         >

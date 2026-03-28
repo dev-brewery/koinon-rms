@@ -273,7 +273,9 @@ public class CheckinController(
                         var today = DateOnly.FromDateTime(DateTime.UtcNow);
                         age = today.Year - m.Person.BirthDate.Value.Year;
                         if (m.Person.BirthDate.Value > today.AddYears(-age.Value))
+                        {
                             age--;
+                        }
                     }
 
                     return new CheckinFamilyMemberDto
