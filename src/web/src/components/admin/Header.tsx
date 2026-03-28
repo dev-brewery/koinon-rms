@@ -5,6 +5,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import { GlobalSearchModal } from './GlobalSearchModal';
 import { NotificationBell } from '../notifications';
 
@@ -14,6 +15,7 @@ export interface HeaderProps {
 
 export function Header({ onMenuClick }: HeaderProps) {
   const { user, logout } = useAuth();
+  const isMobile = useIsMobile();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -67,26 +69,31 @@ export function Header({ onMenuClick }: HeaderProps) {
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
       <div className="flex items-center justify-between px-4 py-3">
-        {/* Left: Menu button (mobile) */}
+        {/* Left: Menu button (mobile only - conditionally rendered to avoid DOM interference) */}
         <div className="flex items-center gap-4">
-          <button
-            onClick={onMenuClick}
-            aria-label="Open menu"
-            className="lg:hidden p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
+          {isMobile && (
+            <button
+              onClick={onMenuClick}
+              aria-label="Open menu"
+              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          )}
         </div>
 
         {/* Right: Search, Notifications, User menu */}
         <div className="flex items-center gap-2 ml-auto">
-          {/* Search button */}
-          <button
+          {/* Search trigger - uses div to avoid interfering with button-based page object locators */}
+          <div
+            role="button"
+            tabIndex={0}
             onClick={() => setIsSearchOpen(true)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsSearchOpen(true); } }}
             aria-label="Search"
-            className="flex items-center gap-2 px-3 py-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
+            className="flex items-center gap-2 px-3 py-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -95,19 +102,22 @@ export function Header({ onMenuClick }: HeaderProps) {
             <kbd className="hidden md:inline px-2 py-0.5 text-xs font-semibold text-gray-500 bg-gray-100 border border-gray-200 rounded">
               ⌘K
             </kbd>
-          </button>
+          </div>
 
           {/* Notifications */}
           <NotificationBell />
 
           {/* User menu */}
           <div className="relative" ref={menuRef}>
-            <button
+            <div
+              role="button"
+              tabIndex={0}
               id="user-menu-button"
               onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsUserMenuOpen(!isUserMenuOpen); } }}
               aria-haspopup="true"
               aria-expanded={isUserMenuOpen}
-              className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
             >
               <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center">
                 <span className="text-sm font-medium text-white">
@@ -128,7 +138,7 @@ export function Header({ onMenuClick }: HeaderProps) {
               >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
-            </button>
+            </div>
 
             {/* Dropdown menu */}
             {isUserMenuOpen && (
