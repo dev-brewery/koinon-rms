@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 
 export interface PhoneSearchProps {
@@ -11,6 +11,13 @@ export interface PhoneSearchProps {
  */
 export function PhoneSearch({ onSearch, loading }: PhoneSearchProps) {
   const [phone, setPhone] = useState('');
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-focus the hidden input on mount
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
 
   const handleDigit = (digit: string) => {
     if (phone.length < 10) {
@@ -27,7 +34,21 @@ export function PhoneSearch({ onSearch, loading }: PhoneSearchProps) {
   };
 
   const handleSearch = () => {
-    if (phone.length >= 4) {
+    if (phone.length < 4) {
+      setValidationError('Please enter a valid phone number (at least 10 digits)');
+      return;
+    }
+    setValidationError(null);
+    onSearch(phone);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+    setPhone(digits);
+  };
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && phone.length >= 4) {
       onSearch(phone);
     }
   };
@@ -53,7 +74,20 @@ export function PhoneSearch({ onSearch, loading }: PhoneSearchProps) {
 
         {/* Phone Display */}
         <div className="mb-8">
-          <div className="bg-gray-100 rounded-lg p-6 text-center">
+          <div className="bg-gray-100 rounded-lg p-6 text-center relative">
+            <input
+              ref={inputRef}
+              data-testid="phone-input"
+              type="tel"
+              inputMode="numeric"
+              value={phone}
+              onChange={handleInputChange}
+              onKeyDown={handleInputKeyDown}
+              maxLength={10}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-default"
+              aria-label="Phone number"
+              autoFocus
+            />
             <p className="text-4xl font-mono font-bold text-gray-900 min-h-[3rem]">
               {phone ? formatPhone(phone) : '\u00A0'}
             </p>
@@ -92,18 +126,27 @@ export function PhoneSearch({ onSearch, loading }: PhoneSearchProps) {
         {/* Search Button */}
         <Button
           onClick={handleSearch}
-          disabled={phone.length < 4}
           loading={loading}
+          disabled={phone.length === 0}
           size="lg"
           className="w-full text-xl"
         >
           Search
         </Button>
 
+        {/* Validation Error */}
+        {validationError && (
+          <p className="text-center text-sm text-red-600 mt-4" role="alert">
+            {validationError}
+          </p>
+        )}
+
         {/* Helper Text */}
-        <p className="text-center text-sm text-gray-500 mt-4">
-          Enter at least 4 digits to search
-        </p>
+        {!validationError && (
+          <p className="text-center text-sm text-gray-500 mt-4">
+            Enter at least 4 digits to search
+          </p>
+        )}
       </div>
     </div>
   );

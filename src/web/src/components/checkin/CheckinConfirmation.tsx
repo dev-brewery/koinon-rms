@@ -23,7 +23,7 @@ export function CheckinConfirmation({
   printerAvailable = false,
 }: CheckinConfirmationProps) {
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto" data-testid="success-message">
       <div className="text-center mb-8">
         <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-4">
           <svg

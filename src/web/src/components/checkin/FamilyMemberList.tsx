@@ -41,7 +41,7 @@ export function FamilyMemberList({
   onToggleCheckin,
 }: FamilyMemberListProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="family-member-list">
       {opportunities.map((opp) => (
         <PersonCard
           key={opp.person.idKey}
@@ -114,8 +114,36 @@ function PersonCard({
     );
   }
 
+  const isSelected = selectedOptions.length > 0;
+
+  // Click card → toggle first available activity for quick selection
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't interfere if user clicked an activity checkbox button
+    if ((e.target as HTMLElement).closest('button[aria-label]')) return;
+
+    // Find first available schedule across all options
+    for (const option of availableOptions) {
+      for (const location of option.locations) {
+        for (const schedule of location.schedules) {
+          if (schedule.isSelected) {
+            onSelect(
+              option.groupIdKey,
+              location.locationIdKey,
+              schedule.scheduleIdKey,
+              option.groupName,
+              location.locationName,
+              schedule.scheduleName,
+              schedule.startTime
+            );
+            return;
+          }
+        }
+      }
+    }
+  };
+
   return (
-    <Card>
+    <Card data-testid="family-member-card" data-selected={isSelected ? 'true' : 'false'} onClick={handleCardClick} className="cursor-pointer">
       <div className="flex items-start gap-4">
         {person.photoUrl ? (
           <img
