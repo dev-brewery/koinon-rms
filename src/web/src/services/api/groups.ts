@@ -130,7 +130,8 @@ export async function getChildGroups(idKey: string): Promise<PagedResult<GroupSu
  * Get schedules for a group
  */
 export async function getGroupSchedules(groupIdKey: string): Promise<GroupScheduleDto[]> {
-  return get<GroupScheduleDto[]>(`/groups/${groupIdKey}/schedules`);
+  const response = await get<{ data: GroupScheduleDto[] }>(`/groups/${groupIdKey}/schedules`);
+  return response.data;
 }
 
 /**
@@ -140,7 +141,8 @@ export async function addGroupSchedule(
   groupIdKey: string,
   request: AddGroupScheduleRequest
 ): Promise<GroupScheduleDto> {
-  return post<GroupScheduleDto>(`/groups/${groupIdKey}/schedules`, request);
+  const response = await post<{ data: GroupScheduleDto }>(`/groups/${groupIdKey}/schedules`, request);
+  return response.data;
 }
 
 /**
