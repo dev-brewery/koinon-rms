@@ -69,9 +69,12 @@ public class DataSeeder
         foreach (var table in tables)
         {
             _logger.LogDebug("Truncating table: {Table}", table);
-            // Table names from pg_tables are safe, but use FormattableString to satisfy EF analyzer
-            FormattableString sql = $"TRUNCATE TABLE \"{table}\" RESTART IDENTITY CASCADE;";
-            await _context.Database.ExecuteSqlAsync(sql, cancellationToken);
+            // Table names cannot be parameterized in SQL - must use raw SQL.
+            // Table names come from pg_tables (system catalog), so this is safe.
+            var truncateSql = string.Format("TRUNCATE TABLE \"{0}\" RESTART IDENTITY CASCADE;", table);
+#pragma warning disable EF1002 // Table names from pg_tables are safe system catalog values
+            await _context.Database.ExecuteSqlRawAsync(truncateSql, cancellationToken);
+#pragma warning restore EF1002
         }
 
         // Re-enable triggers
@@ -97,7 +100,7 @@ public class DataSeeder
 
         // Seed families and people
         _logger.LogInformation("Seeding families and people...");
-        var (smithFamily, johnsonFamily, people) = await SeedFamiliesAsync(familyGroupType.Id, adultRole.Id, childRole.Id, now, cancellationToken);
+        var people = await SeedFamiliesAsync(adultRole.Id, childRole.Id, now, cancellationToken);
 
         // Seed check-in groups
         _logger.LogInformation("Seeding check-in groups...");
@@ -258,23 +261,21 @@ public class DataSeeder
         return (sunday9am, sunday11am, wednesday7pm);
     }
 
-    private async Task<(Group smithFamily, Group johnsonFamily, List<Person> people)> SeedFamiliesAsync(
-        int familyGroupTypeId, int adultRoleId, int childRoleId, DateTime now, CancellationToken cancellationToken = default)
+    private async Task<List<Person>> SeedFamiliesAsync(
+        int adultRoleId, int childRoleId, DateTime now, CancellationToken cancellationToken = default)
     {
         var people = new List<Person>();
 
-        // Smith family
-        var smithFamily = new Group
+        // Smith family (using Family entity, not Group)
+        var smithFamily = new Family
         {
             Guid = _smithFamilyGuid,
-            GroupTypeId = familyGroupTypeId,
             Name = "Smith Family",
-            IsSystem = false,
             IsActive = true,
             CreatedDateTime = now
         };
-        _context.Groups.Add(smithFamily);
-        // Save family group so we have its ID for people
+        _context.Families.Add(smithFamily);
+        // Save family so we have its ID for members
         await _context.SaveChangesAsync(cancellationToken);
 
         // John Smith (Adult) - Admin user for E2E tests
@@ -348,18 +349,16 @@ public class DataSeeder
         // Add all Smith family people
         _context.People.AddRange(johnSmith, janeSmith, johnnySmith, jennySmith);
 
-        // Johnson family
-        var johnsonFamily = new Group
+        // Johnson family (using Family entity, not Group)
+        var johnsonFamily = new Family
         {
             Guid = _johnsonFamilyGuid,
-            GroupTypeId = familyGroupTypeId,
             Name = "Johnson Family",
-            IsSystem = false,
             IsActive = true,
             CreatedDateTime = now
         };
-        _context.Groups.Add(johnsonFamily);
-        // Save Johnson family group so we have its ID for people
+        _context.Families.Add(johnsonFamily);
+        // Save Johnson family so we have its ID for members
         await _context.SaveChangesAsync(cancellationToken);
 
         // Bob Johnson (Adult)
@@ -413,25 +412,25 @@ public class DataSeeder
 
         // Add all Johnson family people
         _context.People.AddRange(bobJohnson, barbaraJohnson, billyJohnson);
-        // Save all people so we have their IDs for group members
+        // Save all people so we have their IDs for family members
         await _context.SaveChangesAsync(cancellationToken);
 
-        // Batch add all group members for both families
-        var groupMembers = new List<GroupMember>
+        // Batch add all family members (using FamilyMember entity, not GroupMember)
+        var familyMembers = new List<FamilyMember>
         {
-            new() { GroupId = smithFamily.Id, PersonId = johnSmith.Id, GroupRoleId = adultRoleId, GroupMemberStatus = GroupMemberStatus.Active, DateTimeAdded = now, CreatedDateTime = now },
-            new() { GroupId = smithFamily.Id, PersonId = janeSmith.Id, GroupRoleId = adultRoleId, GroupMemberStatus = GroupMemberStatus.Active, DateTimeAdded = now, CreatedDateTime = now },
-            new() { GroupId = smithFamily.Id, PersonId = johnnySmith.Id, GroupRoleId = childRoleId, GroupMemberStatus = GroupMemberStatus.Active, DateTimeAdded = now, CreatedDateTime = now },
-            new() { GroupId = smithFamily.Id, PersonId = jennySmith.Id, GroupRoleId = childRoleId, GroupMemberStatus = GroupMemberStatus.Active, DateTimeAdded = now, CreatedDateTime = now },
-            new() { GroupId = johnsonFamily.Id, PersonId = bobJohnson.Id, GroupRoleId = adultRoleId, GroupMemberStatus = GroupMemberStatus.Active, DateTimeAdded = now, CreatedDateTime = now },
-            new() { GroupId = johnsonFamily.Id, PersonId = barbaraJohnson.Id, GroupRoleId = adultRoleId, GroupMemberStatus = GroupMemberStatus.Active, DateTimeAdded = now, CreatedDateTime = now },
-            new() { GroupId = johnsonFamily.Id, PersonId = billyJohnson.Id, GroupRoleId = childRoleId, GroupMemberStatus = GroupMemberStatus.Active, DateTimeAdded = now, CreatedDateTime = now }
+            new() { FamilyId = smithFamily.Id, PersonId = johnSmith.Id, FamilyRoleId = adultRoleId, IsPrimary = true, DateAdded = now, CreatedDateTime = now },
+            new() { FamilyId = smithFamily.Id, PersonId = janeSmith.Id, FamilyRoleId = adultRoleId, IsPrimary = true, DateAdded = now, CreatedDateTime = now },
+            new() { FamilyId = smithFamily.Id, PersonId = johnnySmith.Id, FamilyRoleId = childRoleId, IsPrimary = true, DateAdded = now, CreatedDateTime = now },
+            new() { FamilyId = smithFamily.Id, PersonId = jennySmith.Id, FamilyRoleId = childRoleId, IsPrimary = true, DateAdded = now, CreatedDateTime = now },
+            new() { FamilyId = johnsonFamily.Id, PersonId = bobJohnson.Id, FamilyRoleId = adultRoleId, IsPrimary = true, DateAdded = now, CreatedDateTime = now },
+            new() { FamilyId = johnsonFamily.Id, PersonId = barbaraJohnson.Id, FamilyRoleId = adultRoleId, IsPrimary = true, DateAdded = now, CreatedDateTime = now },
+            new() { FamilyId = johnsonFamily.Id, PersonId = billyJohnson.Id, FamilyRoleId = childRoleId, IsPrimary = true, DateAdded = now, CreatedDateTime = now }
         };
-        _context.GroupMembers.AddRange(groupMembers);
-        // Save all group members
+        _context.FamilyMembers.AddRange(familyMembers);
+        // Save all family members
         await _context.SaveChangesAsync(cancellationToken);
 
-        return (smithFamily, johnsonFamily, people);
+        return people;
     }
 
     private Task SeedCheckinGroupsAsync(int checkinGroupTypeId, int memberRoleId, int scheduleId, DateTime now, CancellationToken cancellationToken = default)
