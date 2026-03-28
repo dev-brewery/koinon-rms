@@ -4,12 +4,13 @@ namespace Koinon.Application.DTOs;
 public record PersonNoteDto(
     string IdKey,
     string Text,
-    DateTime NoteDate,
-    string? NoteType,
-    string? CreatedByName,
+    DateTime NoteDateTime,
+    string? NoteTypeName,
+    string? NoteTypeValueIdKey,
+    string? AuthorPersonName,
     bool IsPrivate,
     bool IsAlert,
-    DateTime CreatedDateTime
+    DateTime? CreatedDateTime = null
 );
 
 /// <summary>Request to create a person note.</summary>

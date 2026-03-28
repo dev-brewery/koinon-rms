@@ -770,6 +770,7 @@ public class PersonService(
                 n.Text,
                 n.NoteDate,
                 n.NoteTypeDefinedValue != null ? n.NoteTypeDefinedValue.Value : null,
+                n.NoteTypeDefinedValueId != null ? IdKeyHelper.Encode(n.NoteTypeDefinedValueId.Value) : null,
                 n.CreatedByPersonAlias != null && n.CreatedByPersonAlias.Person != null
                     ? n.CreatedByPersonAlias.Person.FullName
                     : n.CreatedByPersonAlias != null
@@ -844,6 +845,7 @@ public class PersonService(
                 n.Text,
                 n.NoteDate,
                 n.NoteTypeDefinedValue != null ? n.NoteTypeDefinedValue.Value : null,
+                n.NoteTypeDefinedValueId != null ? IdKeyHelper.Encode(n.NoteTypeDefinedValueId.Value) : null,
                 n.CreatedByPersonAlias != null && n.CreatedByPersonAlias.Person != null
                     ? n.CreatedByPersonAlias.Person.FullName
                     : n.CreatedByPersonAlias != null
@@ -933,6 +935,7 @@ public class PersonService(
                 n.Text,
                 n.NoteDate,
                 n.NoteTypeDefinedValue != null ? n.NoteTypeDefinedValue.Value : null,
+                n.NoteTypeDefinedValueId != null ? IdKeyHelper.Encode(n.NoteTypeDefinedValueId.Value) : null,
                 n.CreatedByPersonAlias != null && n.CreatedByPersonAlias.Person != null
                     ? n.CreatedByPersonAlias.Person.FullName
                     : n.CreatedByPersonAlias != null
