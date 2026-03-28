@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   KioskLayout,
@@ -43,10 +43,11 @@ import { supervisorLogin, supervisorLogout, supervisorReprint, checkout } from '
 type CheckinStep = 'search' | 'select-family' | 'select-members' | 'confirmation' | 'register';
 type SearchMode = 'phone' | 'name' | 'qr';
 
-// Idle timeout configuration
+// Idle timeout configuration — shorter in dev/test for E2E
+const IS_DEV = import.meta.env.DEV;
 const IDLE_CONFIG = {
-  timeout: 60 * 1000, // 60 seconds total
-  warningTime: 50 * 1000, // Warning at 50 seconds (10s countdown)
+  timeout: IS_DEV ? 10 * 1000 : 60 * 1000,
+  warningTime: IS_DEV ? 5 * 1000 : 50 * 1000,
 };
 
 export function CheckinPage() {
@@ -327,7 +328,7 @@ export function CheckinPage() {
     }
   };
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     // Clear TanStack Query cache to prevent privacy leak
     queryClient.removeQueries({ queryKey: ['checkin-search'] });
     queryClient.removeQueries({ queryKey: ['checkin-opportunities'] });
@@ -343,7 +344,7 @@ export function CheckinPage() {
     setPrintError(null);
     checkinResultsRef.current = null;
     checkinLabelsRef.current = [];
-  };
+  }, [queryClient]);
 
   const handleDone = () => {
     handleReset();
@@ -423,8 +424,10 @@ export function CheckinPage() {
           </div>
 
           {/* Search Mode Toggle */}
-          <div className="flex justify-center gap-4 mb-8">
+          <div className="flex justify-center gap-4 mb-8" role="tablist" aria-label="Search mode">
             <button
+              role="tab"
+              aria-selected={searchMode === 'qr'}
               onClick={() => setSearchMode('qr')}
               className={`px-8 py-4 rounded-lg font-semibold transition-colors min-h-[56px] ${
                 searchMode === 'qr'
@@ -435,6 +438,8 @@ export function CheckinPage() {
               Scan QR Code
             </button>
             <button
+              role="tab"
+              aria-selected={searchMode === 'phone'}
               onClick={() => setSearchMode('phone')}
               className={`px-8 py-4 rounded-lg font-semibold transition-colors min-h-[56px] ${
                 searchMode === 'phone'
@@ -445,6 +450,8 @@ export function CheckinPage() {
               Search by Phone
             </button>
             <button
+              role="tab"
+              aria-selected={searchMode === 'name'}
               onClick={() => setSearchMode('name')}
               className={`px-8 py-4 rounded-lg font-semibold transition-colors min-h-[56px] ${
                 searchMode === 'name'

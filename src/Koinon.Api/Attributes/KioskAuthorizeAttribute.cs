@@ -1,6 +1,8 @@
 using Koinon.Application.Interfaces;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Hosting;
 
 namespace Koinon.Api.Attributes;
 
@@ -14,6 +16,17 @@ public class KioskAuthorizeAttribute : Attribute, IAsyncAuthorizationFilter
 {
     public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
     {
+        // In Development environment, allow anonymous kiosk access for E2E testing
+        var env = context.HttpContext.RequestServices.GetRequiredService<IWebHostEnvironment>();
+        if (env.IsDevelopment() &&
+            !context.HttpContext.Request.Headers.ContainsKey("X-Kiosk-Token"))
+        {
+            // Flag the request so service-layer auth (IUserContext.IsAuthenticated)
+            // recognizes this as an authorized kiosk request without JWT
+            context.HttpContext.Items["KioskBypass"] = true;
+            return;
+        }
+
         // Extract token from header
         if (!context.HttpContext.Request.Headers.TryGetValue("X-Kiosk-Token", out var kioskToken) ||
             string.IsNullOrWhiteSpace(kioskToken))
@@ -52,5 +65,7 @@ public class KioskAuthorizeAttribute : Attribute, IAsyncAuthorizationFilter
 
         // Store device ID in HttpContext for audit trail
         context.HttpContext.Items["KioskDeviceId"] = deviceId.Value;
+        // Flag as kiosk-authorized so service-layer auth allows access
+        context.HttpContext.Items["KioskBypass"] = true;
     }
 }

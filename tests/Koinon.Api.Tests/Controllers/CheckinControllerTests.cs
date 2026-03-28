@@ -57,6 +57,7 @@ public class CheckinControllerTests
             _supervisorServiceMock.Object,
             _rosterServiceMock.Object,
             _capacityServiceMock.Object,
+            new Mock<IApplicationDbContext>().Object,
             _loggerMock.Object);
 
         // Setup HttpContext for controller

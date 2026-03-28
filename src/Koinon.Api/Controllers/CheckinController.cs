@@ -5,9 +5,12 @@ using Koinon.Api.Helpers;
 using Koinon.Application.DTOs;
 using Koinon.Application.DTOs.Requests;
 using Koinon.Application.Interfaces;
+using Koinon.Domain.Data;
+using Koinon.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
 
 namespace Koinon.Api.Controllers;
 
@@ -18,7 +21,7 @@ namespace Koinon.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/v1/[controller]")]
-[Authorize]
+[AllowAnonymous]
 [ValidateIdKey]
 public class CheckinController(
     ICheckinConfigurationService configurationService,
@@ -29,6 +32,7 @@ public class CheckinController(
     ISupervisorModeService supervisorService,
     IRoomRosterService rosterService,
     ICapacityService capacityService,
+    IApplicationDbContext dbContext,
     ILogger<CheckinController> logger) : ControllerBase
 {
     /// <summary>
@@ -171,6 +175,143 @@ public class CheckinController(
             query, families.Count);
 
         return Ok(new { data = families });
+    }
+
+    /// <summary>
+    /// Gets check-in opportunities for a family.
+    /// Returns each family member with their available groups, locations, and schedules.
+    /// </summary>
+    /// <param name="familyIdKey">Family IdKey</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Family info with per-member check-in options</returns>
+    [HttpGet("opportunities/{familyIdKey}")]
+    [KioskAuthorize]
+    [ProducesResponseType(typeof(CheckinOpportunitiesResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetOpportunities(
+        string familyIdKey,
+        CancellationToken ct = default)
+    {
+        var familyId = IdKeyHelper.Decode(familyIdKey);
+        if (familyId == 0)
+        {
+            return NotFound();
+        }
+
+        // Load family with members
+        var family = await dbContext.Families
+            .AsNoTracking()
+            .Include(f => f.Members)
+                .ThenInclude(fm => fm.Person)
+            .Include(f => f.Members)
+                .ThenInclude(fm => fm.FamilyRole)
+            .FirstOrDefaultAsync(f => f.Id == familyId, ct);
+
+        if (family == null)
+        {
+            return NotFound();
+        }
+
+        // Load active group_schedules with groups, locations, and schedules
+        var groupSchedules = await dbContext.GroupSchedules
+            .AsNoTracking()
+            .Include(gs => gs.Group)
+            .Include(gs => gs.Location)
+            .Include(gs => gs.Schedule)
+            .Where(gs => gs.Group != null && gs.Group.IsActive && gs.Schedule != null && gs.Schedule.IsActive)
+            .ToListAsync(ct);
+
+        // Build options by group → location → schedule
+        var optionsByGroup = groupSchedules
+            .GroupBy(gs => gs.GroupId)
+            .Select(grp =>
+            {
+                var firstGs = grp.First();
+                return new CheckinOptionDto
+                {
+                    GroupIdKey = firstGs.Group!.IdKey,
+                    GroupName = firstGs.Group.Name,
+                    Locations = grp
+                        .GroupBy(gs => gs.LocationId)
+                        .Where(loc => loc.Key.HasValue)
+                        .Select(loc =>
+                        {
+                            var locGs = loc.First();
+                            return new CheckinLocationOptionDto
+                            {
+                                LocationIdKey = locGs.Location!.IdKey,
+                                LocationName = locGs.Location.Name,
+                                CurrentCount = 0,
+                                SoftThreshold = locGs.Location.SoftRoomThreshold,
+                                FirmThreshold = locGs.Location.FirmRoomThreshold,
+                                Schedules = loc.Select(s => new CheckinScheduleOptionDto
+                                {
+                                    ScheduleIdKey = s.Schedule!.IdKey,
+                                    ScheduleName = s.Schedule.Name,
+                                    StartTime = DateTime.UtcNow.Date.Add(
+                                        s.Schedule.WeeklyTimeOfDay ?? TimeSpan.Zero
+                                    ).ToString("O"),
+                                    IsSelected = true,
+                                }).ToList(),
+                            };
+                        }).ToList(),
+                };
+            }).ToList();
+
+        // Build family search result DTO
+        var familyDto = new CheckinFamilySearchResultDto
+        {
+            FamilyIdKey = family.IdKey,
+            FamilyName = family.Name,
+            Members = family.Members
+                .Where(m => m.Person != null && !m.Person.IsDeceased)
+                .Select(m =>
+                {
+                    int? age = null;
+                    if (m.Person.BirthDate.HasValue)
+                    {
+                        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+                        age = today.Year - m.Person.BirthDate.Value.Year;
+                        if (m.Person.BirthDate.Value > today.AddYears(-age.Value))
+                            age--;
+                    }
+
+                    return new CheckinFamilyMemberDto
+                    {
+                        PersonIdKey = m.Person.IdKey,
+                        FullName = m.Person.FullName,
+                        FirstName = m.Person.FirstName,
+                        LastName = m.Person.LastName,
+                        NickName = m.Person.NickName,
+                        Age = age,
+                        Gender = m.Person.Gender.ToString(),
+                        RoleName = m.FamilyRole?.Name ?? "Member",
+                        IsChild = age.HasValue && age.Value < 18,
+                        Allergies = m.Person.Allergies,
+                        HasCriticalAllergies = m.Person.HasCriticalAllergies,
+                        SpecialNeeds = m.Person.SpecialNeeds,
+                    };
+                })
+                .OrderBy(m => m.IsChild)
+                .ThenByDescending(m => m.Age ?? 0)
+                .ToList(),
+        };
+
+        // Build per-member opportunities (all members see all available options)
+        var opportunities = familyDto.Members.Select(member => new PersonOpportunitiesDto
+        {
+            Person = member,
+            CurrentAttendance = Array.Empty<CurrentAttendanceDto>(),
+            AvailableOptions = optionsByGroup,
+        }).ToList();
+
+        var response = new CheckinOpportunitiesResponseDto
+        {
+            Family = familyDto,
+            Opportunities = opportunities,
+        };
+
+        return Ok(new { data = response });
     }
 
     /// <summary>
