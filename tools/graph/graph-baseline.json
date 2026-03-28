@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-03-27T18:22:17-04:00",
+  "generated_at": "2026-03-27T20:34:25-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -11723,8 +11723,9 @@
         "idKey": "IdKey",
         "firstName": "string",
         "lastName": "string",
-        "email": "string",
-        "photoUrl": "string"
+        "email": "string | null",
+        "photoUrl": "string | null",
+        "roles": "string[]"
       },
       "path": "services/api/types.ts"
     },
@@ -12069,6 +12070,32 @@
       "properties": {
         "family": "FamilyDetailDto",
         "members": "FamilyMemberDto[]"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupAttendanceOccurrenceDto": {
+      "name": "GroupAttendanceOccurrenceDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "occurrenceDate": "DateOnly",
+        "attendeeCount": "number",
+        "anonymousCount": "number",
+        "didNotOccur": "boolean",
+        "locationName": "string | null",
+        "scheduleName": "string | null"
+      },
+      "path": "services/api/types.ts"
+    },
+    "GroupAttendanceDetailDto": {
+      "name": "GroupAttendanceDetailDto",
+      "kind": "interface",
+      "properties": {
+        "personIdKey": "IdKey",
+        "fullName": "string",
+        "photoUrl": "string | null",
+        "didAttend": "boolean",
+        "presentDateTime": "DateTime | null"
       },
       "path": "services/api/types.ts"
     },
@@ -20317,7 +20344,7 @@
     "dtos": 207,
     "services": 109,
     "controllers": 35,
-    "types": 308,
+    "types": 310,
     "api_functions": 177,
     "hooks": 155,
     "components": 134,
