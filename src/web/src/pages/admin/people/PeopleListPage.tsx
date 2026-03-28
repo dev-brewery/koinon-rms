@@ -86,7 +86,7 @@ export function PeopleListPage() {
             <PersonSearchBar
               value={searchQuery}
               onChange={handleSearchChange}
-              placeholder="Search by name, email, or phone..."
+              placeholder="Search people by name, email, or phone..."
             />
           </div>
 
