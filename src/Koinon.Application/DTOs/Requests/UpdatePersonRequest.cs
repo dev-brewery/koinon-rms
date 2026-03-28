@@ -21,4 +21,5 @@ public record UpdatePersonRequest
     public string? ConnectionStatusValueId { get; init; }
     public string? RecordStatusValueId { get; init; }
     public string? PrimaryCampusId { get; init; }
+    public IList<CreatePhoneNumberRequest>? PhoneNumbers { get; init; }
 }
