@@ -3,8 +3,8 @@
  * Provides authentication state and methods throughout the application
  */
 
-import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from 'react';
-import { authApi, setTokens, clearTokens, getAccessToken, getRefreshToken } from '../services/api';
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
+import { authApi, setTokens, clearTokens, getRefreshToken } from '../services/api';
 import type { LoginRequest, UserSummaryDto } from '../services/api/types';
 
 // ============================================================================
@@ -60,6 +60,20 @@ function clearUser(): void {
 // ============================================================================
 
 /**
+ * Decode a base64url-encoded string (used by JWT).
+ * Converts base64url to standard base64 before decoding.
+ */
+function base64UrlDecode(str: string): string {
+  // Replace base64url characters with standard base64
+  let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+  // Add padding if needed
+  const pad = base64.length % 4;
+  if (pad === 2) base64 += '==';
+  else if (pad === 3) base64 += '=';
+  return atob(base64);
+}
+
+/**
  * Check if a JWT access token is still valid (not expired).
  * Returns true if the token has at least 30 seconds of validity remaining.
  */
@@ -68,7 +82,7 @@ function isTokenValid(token: string): boolean {
     const parts = token.split('.');
     if (parts.length !== 3) return false;
 
-    const payload = JSON.parse(atob(parts[1]));
+    const payload = JSON.parse(base64UrlDecode(parts[1]));
     if (!payload.exp) return false;
 
     // Token is valid if it expires more than 30 seconds from now
@@ -93,16 +107,46 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-export function AuthProvider({ children }: AuthProviderProps) {
-  const [state, setState] = useState<AuthState>({
+/**
+ * Compute initial auth state synchronously from localStorage.
+ * If a valid access token exists, we start as authenticated immediately,
+ * avoiding the flash where ProtectedRoute would redirect to /login.
+ */
+function getInitialAuthState(): AuthState {
+  try {
+    const token = localStorage.getItem('koinon_access_token');
+    if (token && isTokenValid(token)) {
+      const user = loadUser();
+      return {
+        user,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      };
+    }
+    // Token exists but is expired - need async refresh
+    if (token) {
+      return {
+        user: null,
+        isAuthenticated: false,
+        isLoading: true,
+        error: null,
+      };
+    }
+  } catch {
+    // localStorage unavailable
+  }
+  // No token at all - not authenticated, done loading
+  return {
     user: null,
     isAuthenticated: false,
-    isLoading: true,
+    isLoading: false,
     error: null,
-  });
+  };
+}
 
-  // Track if we've already checked auth on mount to prevent race conditions
-  const hasCheckedAuth = useRef(false);
+export function AuthProvider({ children }: AuthProviderProps) {
+  const [state, setState] = useState<AuthState>(getInitialAuthState);
 
   /**
    * Login with username and password
@@ -195,46 +239,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   /**
-   * Check for existing authentication on mount.
-   * If the access token is still valid, trust it without calling refresh.
-   * This avoids token rotation race conditions during rapid page navigations.
+   * Handle expired token refresh on mount.
+   * Valid tokens are handled synchronously in getInitialAuthState.
+   * This effect only runs when we have an expired token that needs refreshing.
    */
   useEffect(() => {
-    // Prevent race condition - only check auth once on mount
-    if (hasCheckedAuth.current) {
-      return;
-    }
+    // Only attempt refresh if we're still in loading state
+    // (meaning getInitialAuthState found an expired token)
+    if (!state.isLoading) return;
 
-    hasCheckedAuth.current = true;
-
-    const checkAuth = async () => {
-      const accessToken = getAccessToken();
-
-      if (!accessToken) {
-        setState(prev => ({ ...prev, isLoading: false }));
-        return;
-      }
-
-      // If the access token is still valid, use it directly without refreshing.
-      // This prevents race conditions when navigating quickly between pages
-      // (token rotation during refresh could invalidate tokens before they're saved).
-      if (isTokenValid(accessToken)) {
-        const storedUser = loadUser();
-        setState({
-          user: storedUser,
-          isAuthenticated: true,
-          isLoading: false,
-          error: null,
-        });
-        return;
-      }
-
-      // Token is expired or about to expire - try to refresh
+    const attemptRefresh = async () => {
       await refreshAuth();
     };
 
-    checkAuth();
-    // Empty dependency array - only run once on mount
+    attemptRefresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

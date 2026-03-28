@@ -11,7 +11,6 @@ import { ToastProvider } from './contexts/ToastContext';
 import { ToastContainer } from './components/ui';
 import {
   DashboardPage,
-  GroupsPage,
   SettingsPage,
   AnalyticsPage,
 } from './pages/admin';
@@ -256,8 +255,8 @@ function App() {
           <Route path="families/new" element={<FamilyFormPage />} />
           <Route path="families/:idKey" element={<FamilyDetailPage />} />
           <Route path="families/:idKey/edit" element={<FamilyFormPage />} />
-          <Route path="groups" element={<GroupsPage />} />
-          <Route path="groups/tree" element={<GroupsTreePage />} />
+          <Route path="groups" element={<GroupsTreePage />} />
+          <Route path="groups/tree" element={<Navigate to="/admin/groups" replace />} />
           <Route path="groups/new" element={<GroupFormPage />} />
           <Route path="groups/:idKey" element={<GroupDetailPage />} />
           <Route path="groups/:idKey/edit" element={<GroupFormPage />} />

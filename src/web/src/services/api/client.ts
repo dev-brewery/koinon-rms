@@ -28,6 +28,32 @@ const ACCESS_TOKEN_KEY = 'koinon_access_token';
 const REFRESH_TOKEN_KEY = 'koinon_refresh_token';
 
 let tokenRefreshPromise: Promise<boolean> | null = null;
+let lastRefreshTime = 0;
+const REFRESH_COOLDOWN_MS = 10000; // Don't re-refresh within 10 seconds
+
+/**
+ * Check if the current access token is still fresh (not expired).
+ * If the token is fresh but a request returns 401, it's an authorization issue,
+ * not an authentication issue, and refreshing won't help.
+ */
+function isAccessTokenFresh(): boolean {
+  if (!accessToken) return false;
+  try {
+    const parts = accessToken.split('.');
+    if (parts.length !== 3) return false;
+    // Decode base64url
+    let base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const pad = base64.length % 4;
+    if (pad === 2) base64 += '==';
+    else if (pad === 3) base64 += '=';
+    const payload = JSON.parse(atob(base64));
+    if (!payload.exp) return false;
+    // Token is fresh if it has more than 60 seconds of validity
+    return payload.exp * 1000 > Date.now() + 60000;
+  } catch {
+    return false;
+  }
+}
 
 // Initialize tokens from localStorage on module load
 let accessToken: string | null = null;
@@ -60,6 +86,7 @@ export function clearTokens(): void {
   accessToken = null;
   refreshToken = null;
   tokenRefreshPromise = null;
+  lastRefreshTime = 0;
 
   try {
     localStorage.removeItem(ACCESS_TOKEN_KEY);
@@ -214,6 +241,17 @@ async function tryRefreshToken(): Promise<boolean> {
     return false;
   }
 
+  // Cooldown: don't re-refresh if we just refreshed recently.
+  // This prevents cascading token rotation when an endpoint consistently returns 401
+  // (e.g., authorization issues unrelated to token validity).
+  const now = Date.now();
+  if (now - lastRefreshTime < REFRESH_COOLDOWN_MS) {
+    if (import.meta.env.DEV) {
+      console.warn('Token refresh skipped: cooldown active');
+    }
+    return false;
+  }
+
   // Create the refresh promise
   tokenRefreshPromise = (async () => {
     try {
@@ -269,8 +307,9 @@ async function tryRefreshToken(): Promise<boolean> {
         'token refresh'
       );
 
-      accessToken = validated.accessToken;
-      refreshToken = validated.refreshToken;
+      // Persist new tokens to both memory and localStorage
+      setTokens(validated.accessToken, validated.refreshToken);
+      lastRefreshTime = Date.now();
 
       if (import.meta.env.DEV) {
         console.info('Token refresh successful');
@@ -367,7 +406,10 @@ export async function apiClient<T>(
     clearTimeout(timeoutId);
 
     // Handle 401 - try to refresh token and retry
-    if (response.status === 401 && !skipAuth && refreshToken) {
+    // Only refresh if the access token might be expired. If the token is still valid
+    // but the server returns 401, it's an authorization issue (not authentication)
+    // and refreshing won't help. This prevents unnecessary token rotation cascades.
+    if (response.status === 401 && !skipAuth && refreshToken && !isAccessTokenFresh()) {
       if (import.meta.env.DEV) {
         console.info('Received 401, attempting token refresh');
       }
