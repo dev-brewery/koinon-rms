@@ -136,7 +136,7 @@ export function PersonDetailPage() {
             )}
 
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{person.fullName}</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{person.firstName} {person.lastName}</h1>
               <div className="flex items-center gap-2 mt-1 text-gray-600">
                 {person.age !== undefined && <span>{person.age} years old</span>}
                 {person.gender !== 'Unknown' && (
