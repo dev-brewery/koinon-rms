@@ -3,8 +3,8 @@
  * Main page for viewing and searching people
  */
 
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useCallback } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { usePeople } from '@/hooks/usePeople';
 import { useDefinedTypeValues } from '@/hooks/useDefinedTypes';
 import { useCampuses } from '@/hooks/useCampuses';
@@ -15,7 +15,21 @@ import type { PersonSearchParams } from '@/services/api/types';
 
 export function PeopleListPage() {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [urlSearchParams, setUrlSearchParams] = useSearchParams();
+
+  // Persist search query in URL so it survives navigation (back button)
+  const searchQuery = urlSearchParams.get('q') || '';
+  const setSearchQuery = useCallback((value: string) => {
+    setUrlSearchParams(prev => {
+      if (value) {
+        prev.set('q', value);
+      } else {
+        prev.delete('q');
+      }
+      return prev;
+    }, { replace: true });
+  }, [setUrlSearchParams]);
+
   const [pageSize, setPageSize] = useState(25);
   const [currentPage, setCurrentPage] = useState(1);
   const [connectionStatusId, setConnectionStatusId] = useState<string | undefined>();
