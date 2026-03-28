@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useGroup, useChildGroups, useDeleteGroup } from '@/hooks/useGroups';
-import { GroupSchedulesSection } from '@/components/admin/groups';
+import { GroupSchedulesSection, GroupAttendanceHistorySection } from '@/components/admin/groups';
 
 export function GroupDetailPage() {
   const { idKey } = useParams<{ idKey: string }>();
@@ -266,6 +266,9 @@ export function GroupDetailPage() {
 
           {/* Schedules */}
           <GroupSchedulesSection groupIdKey={idKey!} />
+
+          {/* Attendance History */}
+          <GroupAttendanceHistorySection groupIdKey={idKey!} />
         </div>
 
         {/* Sidebar */}

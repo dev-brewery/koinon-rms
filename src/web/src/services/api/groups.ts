@@ -15,6 +15,8 @@ import type {
   UpdateGroupRequest,
   GroupScheduleDto,
   AddGroupScheduleRequest,
+  GroupAttendanceOccurrenceDto,
+  GroupAttendanceDetailDto,
 } from './types';
 
 /**
@@ -153,4 +155,26 @@ export async function removeGroupSchedule(
   scheduleIdKey: string
 ): Promise<void> {
   await del<void>(`/groups/${groupIdKey}/schedules/${scheduleIdKey}`);
+}
+
+/**
+ * Get attendance history for a group (paginated list of occurrences)
+ */
+export async function getGroupAttendanceHistory(
+  groupIdKey: string
+): Promise<PagedResult<GroupAttendanceOccurrenceDto>> {
+  return get<PagedResult<GroupAttendanceOccurrenceDto>>(`/groups/${groupIdKey}/attendance`);
+}
+
+/**
+ * Get attendance detail for a specific occurrence
+ */
+export async function getGroupAttendanceDetail(
+  groupIdKey: string,
+  occurrenceIdKey: string
+): Promise<GroupAttendanceDetailDto[]> {
+  const response = await get<{ data: GroupAttendanceDetailDto[] }>(
+    `/groups/${groupIdKey}/attendance/${occurrenceIdKey}`
+  );
+  return response.data;
 }
