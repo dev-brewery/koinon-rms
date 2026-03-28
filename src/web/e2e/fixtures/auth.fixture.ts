@@ -17,7 +17,7 @@ export const test = base.extend<AuthFixture>({
       await page.getByLabel('Email').fill('john.smith@example.com');
       await page.getByLabel('Password').fill('admin123');
       await page.getByRole('button', { name: 'Sign In' }).click();
-      await expect(page).toHaveURL('/dashboard');
+      await expect(page).toHaveURL('/admin');
     };
     await use(login);
   },

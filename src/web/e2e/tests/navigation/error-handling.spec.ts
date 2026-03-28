@@ -77,12 +77,12 @@ test.describe('Error Handling', () => {
   });
 });
 
-test.describe('Error Boundaries', () => {
-  test.beforeEach(async ({ loginAsAdmin }) => {
+authTest.describe('Error Boundaries', () => {
+  authTest.beforeEach(async ({ loginAsAdmin }) => {
     await loginAsAdmin();
   });
 
-  test('should catch errors within admin routes', async ({ page }) => {
+  authTest('should catch errors within admin routes', async ({ page }) => {
     // This test would need a way to trigger an error in the component
     // For now, we verify the error boundary component exists and is configured
     await page.goto('/admin');
@@ -94,7 +94,7 @@ test.describe('Error Boundaries', () => {
     // Actual error testing would require injecting errors via test utilities
   });
 
-  test('should display error UI with retry and home options', async ({ page }) => {
+  authTest('should display error UI with retry and home options', async ({ page }) => {
     // Navigate to a page that might have errors
     await page.goto('/admin/people');
 
@@ -147,12 +147,12 @@ test.describe('Protected Routes', () => {
   });
 });
 
-test.describe('Navigation Resilience', () => {
-  test.beforeEach(async ({ loginAsAdmin }) => {
+authTest.describe('Navigation Resilience', () => {
+  authTest.beforeEach(async ({ loginAsAdmin }) => {
     await loginAsAdmin();
   });
 
-  test('should handle browser back/forward buttons', async ({ page }) => {
+  authTest('should handle browser back/forward buttons', async ({ page }) => {
     await page.goto('/admin');
     await page.getByRole('link', { name: 'People' }).click();
     await expect(page).toHaveURL('/admin/people');
@@ -169,7 +169,7 @@ test.describe('Navigation Resilience', () => {
     await expect(page).toHaveURL('/admin/groups');
   });
 
-  test('should handle rapid navigation clicks', async ({ page }) => {
+  authTest('should handle rapid navigation clicks', async ({ page }) => {
     await page.goto('/admin');
 
     // Click multiple nav links rapidly
@@ -182,7 +182,7 @@ test.describe('Navigation Resilience', () => {
     await expect(page.getByRole('heading', { name: 'Families' })).toBeVisible();
   });
 
-  test('should preserve URL parameters during navigation', async ({ page }) => {
+  authTest('should preserve URL parameters during navigation', async ({ page }) => {
     // Navigate to people with search param
     await page.goto('/admin/people?search=john');
     await expect(page).toHaveURL(/\/admin\/people\?search=john/);
@@ -195,7 +195,7 @@ test.describe('Navigation Resilience', () => {
     await expect(page).toHaveURL(/\/admin\/people/);
   });
 
-  test('@smoke should handle complete navigation workflow', async ({ page }) => {
+  authTest('@smoke should handle complete navigation workflow', async ({ page }) => {
     // Start at dashboard
     await page.goto('/admin');
     await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();

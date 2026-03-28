@@ -109,7 +109,7 @@ function LoginPage() {
 
   // Redirect to home if already authenticated
   if (isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/admin" replace />;
   }
 
   return (
