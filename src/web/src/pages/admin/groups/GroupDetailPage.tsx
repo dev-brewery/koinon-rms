@@ -101,7 +101,7 @@ export function GroupDetailPage() {
             onClick={() => setShowDeleteConfirm(true)}
             className="px-4 py-2 text-red-600 bg-white border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
           >
-            Delete
+            Delete Group
           </button>
         </div>
       </div>
@@ -160,10 +160,10 @@ export function GroupDetailPage() {
                 )}
               </div>
 
-              {group.capacity && (
+              {group.groupCapacity && (
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Capacity</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{group.capacity} people</dd>
+                  <dd className="mt-1 text-sm text-gray-900">{group.groupCapacity} people</dd>
                 </div>
               )}
 

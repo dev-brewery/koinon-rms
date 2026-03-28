@@ -6,6 +6,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useGroup, useCreateGroup, useUpdateGroup } from '@/hooks/useGroups';
+import { useGroupTypes } from '@/hooks/useGroupTypes';
 import type { CreateGroupRequest, UpdateGroupRequest } from '@/services/api/types';
 import { groupFormSchema, groupFormSchemaForEdit } from '@/schemas/group.schema';
 
@@ -16,6 +17,7 @@ export function GroupFormPage() {
   const isEditMode = !!idKey;
 
   const { data: group, isLoading } = useGroup(idKey);
+  const { data: groupTypes } = useGroupTypes();
   const createGroup = useCreateGroup();
   const updateGroup = useUpdateGroup();
 
@@ -45,7 +47,7 @@ export function GroupFormPage() {
       setGroupTypeId(group.groupType.idKey);
       setParentGroupId(group.parentGroup?.idKey || '');
       setCampusId(group.campus?.idKey || '');
-      setCapacity(group.capacity?.toString() || '');
+      setCapacity(group.groupCapacity?.toString() || '');
       setIsActive(group.isActive);
     }
   }, [group]);
@@ -238,9 +240,11 @@ export function GroupFormPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="">Select a group type...</option>
-                <option value="checkin-area">Check-in Area</option>
-                <option value="age-group">Age Group</option>
-                <option value="general">General</option>
+                {groupTypes?.map((gt) => (
+                  <option key={gt.idKey} value={gt.idKey}>
+                    {gt.name}
+                  </option>
+                ))}
               </select>
               {validationErrors.groupTypeId && (
                 <p className="text-sm text-red-600 mt-1">{validationErrors.groupTypeId}</p>

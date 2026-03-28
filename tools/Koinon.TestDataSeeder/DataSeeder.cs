@@ -35,9 +35,11 @@ public class DataSeeder
     private static readonly Guid _wednesday7pmScheduleGuid = new("ffffffff-ffff-ffff-ffff-ffffffffffff");
     private static readonly Guid _familyGroupTypeGuid = new("10101010-1010-1010-1010-101010101010");
     private static readonly Guid _checkinGroupTypeGuid = new("20202020-2020-2020-2020-202020202020");
+    private static readonly Guid _generalGroupTypeGuid = new("60606060-6060-6060-6060-606060606060");
     private static readonly Guid _adultRoleGuid = new("30303030-3030-3030-3030-303030303030");
     private static readonly Guid _childRoleGuid = new("40404040-4040-4040-4040-404040404040");
     private static readonly Guid _memberRoleGuid = new("50505050-5050-5050-5050-505050505050");
+    private static readonly Guid _adminSecurityRoleGuid = new("70707070-7070-7070-7070-707070707070");
 
     public DataSeeder(KoinonDbContext context, ILogger<DataSeeder> logger, IAuthService authService)
     {
@@ -109,6 +111,10 @@ public class DataSeeder
         // Final save for all check-in groups
         await _context.SaveChangesAsync(cancellationToken);
 
+        // Seed security roles and assign Admin to John Smith
+        _logger.LogInformation("Seeding security roles...");
+        await SeedSecurityRolesAsync(people, now, cancellationToken);
+
         _logger.LogInformation("✅ Successfully seeded all test data");
     }
 
@@ -144,8 +150,24 @@ public class DataSeeder
             CreatedDateTime = now
         };
 
+        // General group type (for generic groups created in E2E tests)
+        var generalGroupType = new GroupType
+        {
+            Guid = _generalGroupTypeGuid,
+            Name = "General",
+            Description = "General purpose groups",
+            GroupTerm = "Group",
+            GroupMemberTerm = "Member",
+            IsSystem = false,
+            ShowInGroupList = true,
+            ShowInNavigation = true,
+            TakesAttendance = false,
+            CreatedDateTime = now
+        };
+
         _context.GroupTypes.Add(familyGroupType);
         _context.GroupTypes.Add(checkinGroupType);
+        _context.GroupTypes.Add(generalGroupType);
         // Save group types first so we have their IDs for roles
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -431,6 +453,34 @@ public class DataSeeder
         await _context.SaveChangesAsync(cancellationToken);
 
         return people;
+    }
+
+    private async Task SeedSecurityRolesAsync(List<Person> people, DateTime now, CancellationToken cancellationToken = default)
+    {
+        var adminRole = new SecurityRole
+        {
+            Guid = _adminSecurityRoleGuid,
+            Name = "Admin",
+            Description = "Full administrative access",
+            IsSystemRole = true,
+            IsActive = true,
+            CreatedDateTime = now
+        };
+
+        _context.SecurityRoles.Add(adminRole);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        // Assign Admin role to John Smith (first person, the E2E test admin user)
+        var johnSmith = people.First(p => p.Email == "john.smith@example.com");
+        var adminAssignment = new PersonSecurityRole
+        {
+            PersonId = johnSmith.Id,
+            SecurityRoleId = adminRole.Id,
+            CreatedDateTime = now
+        };
+
+        _context.PersonSecurityRoles.Add(adminAssignment);
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
     private Task SeedCheckinGroupsAsync(int checkinGroupTypeId, int memberRoleId, int scheduleId, DateTime now, CancellationToken cancellationToken = default)

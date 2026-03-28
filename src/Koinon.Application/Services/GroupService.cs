@@ -269,13 +269,14 @@ public class GroupService(
             return Result<GroupDto>.Failure(Error.FromFluentValidation(validation));
         }
 
-        // Get group
+        // Get group (must use AsTracking since DbContext defaults to NoTracking)
         if (!IdKeyHelper.TryDecode(idKey, out int id))
         {
             return Result<GroupDto>.Failure(Error.NotFound("Group", idKey));
         }
 
         var group = await context.Groups
+            .AsTracking()
             .Include(g => g.GroupType)
             .FirstOrDefaultAsync(g => g.Id == id, ct);
 
@@ -357,6 +358,7 @@ public class GroupService(
         }
 
         var group = await context.Groups
+            .AsTracking()
             .Include(g => g.GroupType)
             .FirstOrDefaultAsync(g => g.Id == id, ct);
 

@@ -464,7 +464,7 @@ export interface GroupDetailDto {
   groupType: GroupTypeSummaryDto;
   parentGroup?: GroupSummaryDto;
   campus?: CampusSummaryDto;
-  capacity?: number;
+  groupCapacity?: number;
   isActive: boolean;
   isArchived: boolean;
   schedule?: ScheduleDto;
