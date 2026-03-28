@@ -248,6 +248,29 @@ export function PersonDetailPage() {
         </div>
       </div>
 
+      {/* Metadata */}
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Record Information</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-medium text-gray-700">Created</label>
+            <p className="text-gray-900">
+              {person.createdDateTime
+                ? new Date(person.createdDateTime).toLocaleDateString()
+                : 'Unknown'}
+            </p>
+          </div>
+          {person.modifiedDateTime && (
+            <div>
+              <label className="text-sm font-medium text-gray-700">Last Modified</label>
+              <p className="text-gray-900">
+                {new Date(person.modifiedDateTime).toLocaleDateString()}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Communication Preferences */}
       <CommunicationPreferences personIdKey={idKey!} />
 
