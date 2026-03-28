@@ -216,9 +216,7 @@ export function PersonDetailPage() {
             <div>
               <label className="text-sm font-medium text-gray-700">Email</label>
               <p className="text-gray-900">
-                <a href={`mailto:${person.email}`} className="text-primary-600 hover:text-primary-700">
-                  {person.email}
-                </a>
+                <span>{person.email}</span>
                 {!person.isEmailActive && (
                   <span className="ml-2 text-xs text-red-600">(Inactive)</span>
                 )}
