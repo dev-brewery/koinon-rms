@@ -66,7 +66,7 @@ export function AnalyticsPage() {
     <div className="space-y-6">
       {/* Page header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Attendance Analytics</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Analytics</h1>
         <p className="mt-2 text-gray-600">
           View attendance metrics, trends, and group breakdowns
         </p>
