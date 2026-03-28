@@ -9,6 +9,7 @@ export interface LocationPickerProps {
   campusIdKey?: string;
   className?: string;
   disabled?: boolean;
+  'data-testid'?: string;
 }
 
 /**
@@ -28,6 +29,7 @@ export function LocationPicker({
   campusIdKey,
   className = '',
   disabled = false,
+  'data-testid': dataTestId,
 }: LocationPickerProps) {
   const [locations, setLocations] = useState<CheckinLocationDto[]>([]);
 
@@ -66,7 +68,7 @@ export function LocationPicker({
   }
 
   return (
-    <div className={className}>
+    <div className={className} data-testid={dataTestId}>
       <label htmlFor="location-picker" className="block text-sm font-medium text-gray-700 mb-2">
         Select Room
       </label>
