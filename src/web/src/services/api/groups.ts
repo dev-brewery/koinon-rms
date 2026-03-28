@@ -25,7 +25,7 @@ export async function searchGroups(
 ): Promise<PagedResult<GroupSummaryDto>> {
   const queryParams = new URLSearchParams();
 
-  if (params.q) queryParams.set('q', params.q);
+  if (params.q) queryParams.set('query', params.q);
   if (params.groupTypeId) queryParams.set('groupTypeId', params.groupTypeId);
   if (params.parentGroupId) queryParams.set('parentGroupId', params.parentGroupId);
   if (params.campusId) queryParams.set('campusId', params.campusId);
