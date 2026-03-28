@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using FluentValidation;
@@ -12,7 +13,6 @@ using Koinon.Domain.Entities;
 using Koinon.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
 
 namespace Koinon.Application.Services;
 

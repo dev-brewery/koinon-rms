@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-03-27T16:12:10-04:00",
+  "generated_at": "2026-03-27T18:22:17-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -12020,6 +12020,24 @@
         "PaginationParams"
       ]
     },
+    "PersonGroupMembershipDto": {
+      "name": "PersonGroupMembershipDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "guid": "Guid",
+        "groupIdKey": "IdKey",
+        "groupName": "string",
+        "groupTypeIdKey": "IdKey",
+        "groupTypeName": "string",
+        "roleIdKey": "IdKey",
+        "roleName": "string",
+        "memberStatus": "string",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
     "AddGroupMemberRequest": {
       "name": "AddGroupMemberRequest",
       "kind": "interface",
@@ -12961,6 +12979,45 @@
         "amount": "number",
         "fundName": "string",
         "transactionType": "string"
+      },
+      "path": "services/api/types.ts"
+    },
+    "PersonNoteDto": {
+      "name": "PersonNoteDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "text": "string",
+        "noteDate": "DateTime",
+        "noteType": "string | null",
+        "createdByName": "string | null",
+        "isPrivate": "boolean",
+        "isAlert": "boolean",
+        "createdDateTime": "DateTime"
+      },
+      "path": "services/api/types.ts"
+    },
+    "CreatePersonNoteRequest": {
+      "name": "CreatePersonNoteRequest",
+      "kind": "interface",
+      "properties": {
+        "text": "string",
+        "noteDate": "DateTime",
+        "noteTypeDefinedValueIdKey": "IdKey | null",
+        "isPrivate": "boolean",
+        "isAlert": "boolean"
+      },
+      "path": "services/api/types.ts"
+    },
+    "UpdatePersonNoteRequest": {
+      "name": "UpdatePersonNoteRequest",
+      "kind": "interface",
+      "properties": {
+        "text": "string",
+        "noteDate": "DateTime",
+        "noteTypeDefinedValueIdKey": "IdKey | null",
+        "isPrivate": "boolean",
+        "isAlert": "boolean"
       },
       "path": "services/api/types.ts"
     },
@@ -14598,6 +14655,58 @@
         "getPersonGivingSummary"
       ]
     },
+    "usePersonNotes": {
+      "name": "usePersonNotes",
+      "path": "hooks/usePeople.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "people"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getPersonNotes"
+      ]
+    },
+    "useCreatePersonNote": {
+      "name": "useCreatePersonNote",
+      "path": "hooks/usePeople.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "people"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "createPersonNote"
+      ]
+    },
+    "useUpdatePersonNote": {
+      "name": "useUpdatePersonNote",
+      "path": "hooks/usePeople.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "people"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "updatePersonNote"
+      ]
+    },
+    "useDeletePersonNote": {
+      "name": "useDeletePersonNote",
+      "path": "hooks/usePeople.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "people"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "deletePersonNote"
+      ]
+    },
     "useDuplicates": {
       "name": "useDuplicates",
       "path": "hooks/usePersonMerge.ts",
@@ -16009,6 +16118,34 @@
       "method": "GET",
       "responseType": "PersonGivingSummaryDto"
     },
+    "getPersonNotes": {
+      "name": "getPersonNotes",
+      "path": "services/api/people.ts",
+      "endpoint": "/people/${personIdKey}/notes",
+      "method": "GET",
+      "responseType": "PersonNoteDto[]"
+    },
+    "createPersonNote": {
+      "name": "createPersonNote",
+      "path": "services/api/people.ts",
+      "endpoint": "/people/${personIdKey}/notes",
+      "method": "POST",
+      "responseType": "PersonNoteDto"
+    },
+    "updatePersonNote": {
+      "name": "updatePersonNote",
+      "path": "services/api/people.ts",
+      "endpoint": "/people/${personIdKey}/notes/${noteIdKey}",
+      "method": "PUT",
+      "responseType": "PersonNoteDto"
+    },
+    "deletePersonNote": {
+      "name": "deletePersonNote",
+      "path": "services/api/people.ts",
+      "endpoint": "/people/${personIdKey}/notes/${noteIdKey}",
+      "method": "DELETE",
+      "responseType": "void"
+    },
     "uploadPersonPhoto": {
       "name": "uploadPersonPhoto",
       "path": "services/api/people.ts",
@@ -16495,6 +16632,17 @@
       "name": "GroupMembershipsSection",
       "path": "components/admin/people/GroupMembershipsSection.tsx",
       "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "NotesSection": {
+      "name": "NotesSection",
+      "path": "components/admin/people/NotesSection.tsx",
+      "hooksUsed": [
+        "usePersonNotes",
+        "useCreatePersonNote",
+        "useUpdatePersonNote",
+        "useDeletePersonNote"
+      ],
       "apiCallsDirectly": false
     },
     "PersonCard": {
@@ -19757,6 +19905,26 @@
       "type": "uses_hook"
     },
     {
+      "from": "NotesSection",
+      "to": "usePersonNotes",
+      "type": "uses_hook"
+    },
+    {
+      "from": "NotesSection",
+      "to": "useCreatePersonNote",
+      "type": "uses_hook"
+    },
+    {
+      "from": "NotesSection",
+      "to": "useUpdatePersonNote",
+      "type": "uses_hook"
+    },
+    {
+      "from": "NotesSection",
+      "to": "useDeletePersonNote",
+      "type": "uses_hook"
+    },
+    {
       "from": "PersonComparisonView",
       "to": "usePersonComparison",
       "type": "uses_hook"
@@ -20068,12 +20236,16 @@
     "dto:DefinedValueDto": "type:DefinedValueDto",
     "dto:FamilySummaryDto": "type:FamilySummaryDto",
     "dto:CampusSummaryDto": "type:CampusSummaryDto",
+    "dto:PersonGroupMembershipDto": "type:PersonGroupMembershipDto",
     "dto:DuplicateMatchDto": "type:DuplicateMatchDto",
     "dto:IgnoreDuplicateRequestDto": "type:IgnoreDuplicateRequestDto",
     "dto:PersonComparisonDto": "type:PersonComparisonDto",
     "dto:PersonMergeHistoryDto": "type:PersonMergeHistoryDto",
     "dto:PersonMergeRequestDto": "type:PersonMergeRequestDto",
     "dto:PersonMergeResultDto": "type:PersonMergeResultDto",
+    "dto:PersonNoteDto": "type:PersonNoteDto",
+    "dto:CreatePersonNoteRequest": "type:CreatePersonNoteRequest",
+    "dto:UpdatePersonNoteRequest": "type:UpdatePersonNoteRequest",
     "dto:PickupLogDto": "type:PickupLogDto",
     "dto:PickupVerificationResultDto": "type:PickupVerificationResultDto",
     "dto:PublicGroupDto": "type:PublicGroupDto",
@@ -20145,10 +20317,10 @@
     "dtos": 207,
     "services": 109,
     "controllers": 35,
-    "types": 304,
-    "api_functions": 173,
-    "hooks": 151,
-    "components": 133,
-    "total_edges": 567
+    "types": 308,
+    "api_functions": 177,
+    "hooks": 155,
+    "components": 134,
+    "total_edges": 571
   }
 }
