@@ -112,6 +112,9 @@ export function PersonFormPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Filter out empty phone numbers before validation
+    const filledPhoneNumbers = phoneNumbers.filter((p) => p.number.trim());
+
     // Validate all fields before submit
     const formData = {
       firstName,
@@ -122,7 +125,7 @@ export function PersonFormPage() {
       gender,
       birthDate,
       campusId,
-      phoneNumbers,
+      phoneNumbers: filledPhoneNumbers,
     };
 
     const result = personFormSchema.safeParse(formData);
@@ -158,6 +161,9 @@ export function PersonFormPage() {
         if (gender !== person?.gender) request.gender = gender;
         if (birthDate !== person?.birthDate) request.birthDate = birthDate || null;
         if (campusId !== person?.primaryCampus?.idKey) request.primaryCampusId = campusId || null;
+
+        // Always send phone numbers on update (replace strategy)
+        request.phoneNumbers = phoneNumbersData.length > 0 ? phoneNumbersData : [];
 
         const result = await updateMutation.mutateAsync({ idKey: idKey!, request });
         navigate(`/admin/people/${result.idKey}`);

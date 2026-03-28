@@ -306,6 +306,7 @@ public class PersonService(
         }
 
         var person = await context.People
+            .AsTracking()
             .Include(p => p.PhoneNumbers)
             .FirstOrDefaultAsync(p => p.Id == id, ct);
 
@@ -421,6 +422,29 @@ public class PersonService(
         if (request.AnniversaryDate.HasValue)
         {
             person.AnniversaryDate = request.AnniversaryDate.Value;
+        }
+
+        // Update phone numbers (replace all if provided)
+        if (request.PhoneNumbers != null)
+        {
+            // Remove existing phone numbers
+            person.PhoneNumbers.Clear();
+
+            // Add new phone numbers
+            foreach (var phoneRequest in request.PhoneNumbers)
+            {
+                var phone = mapper.Map<PhoneNumber>(phoneRequest);
+
+                if (!string.IsNullOrWhiteSpace(phoneRequest.PhoneTypeValueId))
+                {
+                    if (IdKeyHelper.TryDecode(phoneRequest.PhoneTypeValueId, out int phoneTypeId))
+                    {
+                        phone.NumberTypeValueId = phoneTypeId;
+                    }
+                }
+
+                person.PhoneNumbers.Add(phone);
+            }
         }
 
         person.ModifiedDateTime = DateTime.UtcNow;

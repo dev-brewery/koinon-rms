@@ -315,6 +315,7 @@ export interface UpdatePersonRequest {
   recordStatusValueId?: IdKey;
 
   primaryCampusId?: IdKey | null;
+  phoneNumbers?: CreatePhoneNumberRequest[];
 }
 
 // ============================================================================
