@@ -339,9 +339,11 @@ export interface FamilyDetailDto {
   idKey: IdKey;
   guid: Guid;
   name: string;
+  description?: string;
+  isActive: boolean;
   campus?: CampusSummaryDto;
+  address?: AddressDto;
   members: FamilyMemberDto[];
-  addresses: FamilyAddressDto[];
   createdDateTime: DateTime;
   modifiedDateTime?: DateTime;
 }
@@ -351,7 +353,6 @@ export interface FamilyMemberDto {
   person: PersonSummaryDto;
   role: GroupTypeRoleDto;
   status: string;
-  isPersonPrimaryFamily: boolean;
   dateTimeAdded?: DateTime;
 }
 

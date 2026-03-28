@@ -266,9 +266,7 @@ export function PersonDetailPage() {
                   {member.person.fullName}
                 </Link>
                 <span className="text-xs text-gray-500">({member.role.name})</span>
-                {member.isPersonPrimaryFamily && (
-                  <span className="text-xs text-blue-600">(Primary)</span>
-                )}
+                {/* Primary family indicator - future enhancement */}
               </li>
             ))}
           </ul>
