@@ -34,7 +34,6 @@ export function PersonFormPage() {
   const [birthDate, setBirthDate] = useState('');
   const [campusId, setCampusId] = useState('');
   const [phoneNumbers, setPhoneNumbers] = useState<PhoneNumberForm[]>([]);
-  const [isDirty, setIsDirty] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -58,21 +57,15 @@ export function PersonFormPage() {
   }, [person]);
 
   const handleAddPhoneNumber = () => {
-    setPhoneNumbers([...phoneNumbers, { number: '', isMessagingEnabled: true }]);
-    setIsDirty(true);
-  };
+    setPhoneNumbers([...phoneNumbers, { number: '', isMessagingEnabled: true }]);  };
 
   const handleRemovePhoneNumber = (index: number) => {
-    setPhoneNumbers(phoneNumbers.filter((_, i) => i !== index));
-    setIsDirty(true);
-  };
+    setPhoneNumbers(phoneNumbers.filter((_, i) => i !== index));  };
 
   const handlePhoneNumberChange = (index: number, field: keyof PhoneNumberForm, value: string | boolean) => {
     const updated = [...phoneNumbers];
     updated[index] = { ...updated[index], [field]: value };
-    setPhoneNumbers(updated);
-    setIsDirty(true);
-  };
+    setPhoneNumbers(updated);  };
 
   const validateField = (fieldName: string, value: unknown) => {
     const formData = {
@@ -190,10 +183,6 @@ export function PersonFormPage() {
   };
 
   const handleCancel = () => {
-    if (isDirty) {
-      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to leave?');
-      if (!confirmed) return;
-    }
     navigate(isEdit ? `/admin/people/${idKey}` : '/admin/people');
   };
 
@@ -260,7 +249,6 @@ export function PersonFormPage() {
                 value={firstName}
                 onChange={(e) => {
                   setFirstName(e.target.value);
-                  setIsDirty(true);
                 }}
                 onBlur={() => validateField('firstName', firstName)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -282,7 +270,6 @@ export function PersonFormPage() {
                 value={lastName}
                 onChange={(e) => {
                   setLastName(e.target.value);
-                  setIsDirty(true);
                 }}
                 onBlur={() => validateField('lastName', lastName)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -303,7 +290,6 @@ export function PersonFormPage() {
                 value={nickName}
                 onChange={(e) => {
                   setNickName(e.target.value);
-                  setIsDirty(true);
                 }}
                 onBlur={() => validateField('nickName', nickName)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -324,7 +310,6 @@ export function PersonFormPage() {
                 value={middleName}
                 onChange={(e) => {
                   setMiddleName(e.target.value);
-                  setIsDirty(true);
                 }}
                 onBlur={() => validateField('middleName', middleName)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -346,7 +331,6 @@ export function PersonFormPage() {
                 value={gender}
                 onChange={(e) => {
                   setGender(e.target.value as Gender);
-                  setIsDirty(true);
                 }}
                 onBlur={() => validateField('gender', gender)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -370,7 +354,6 @@ export function PersonFormPage() {
                 value={birthDate}
                 onChange={(e) => {
                   setBirthDate(e.target.value);
-                  setIsDirty(true);
                 }}
                 onBlur={() => validateField('birthDate', birthDate)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -393,7 +376,6 @@ export function PersonFormPage() {
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
-                  setIsDirty(true);
                 }}
                 onBlur={() => validateField('email', email)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -412,7 +394,6 @@ export function PersonFormPage() {
                 value={campusId}
                 onChange={(e) => {
                   setCampusId(e.target.value);
-                  setIsDirty(true);
                 }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
