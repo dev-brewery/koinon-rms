@@ -1510,12 +1510,13 @@ export interface RecentContributionDto {
 export interface PersonNoteDto {
   idKey: IdKey;
   text: string;
-  noteDate: DateTime;
-  noteType: string | null;
-  createdByName: string | null;
+  noteDateTime: DateTime;
+  noteTypeName: string | null;
+  noteTypeValueIdKey: IdKey | null;
+  authorPersonName: string | null;
   isPrivate: boolean;
   isAlert: boolean;
-  createdDateTime: DateTime;
+  createdDateTime?: DateTime;
 }
 
 export interface CreatePersonNoteRequest {
