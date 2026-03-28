@@ -503,10 +503,10 @@ export interface GroupMembershipDto {
   dateAdded?: DateTime;
 }
 
-/** Flat DTO returned by GET /api/v1/people/:idKey/groups */
+/** Flat DTO returned by GET /people/:idKey/groups — mirrors PersonGroupMembershipDto on the backend. */
 export interface PersonGroupMembershipDto {
   idKey: IdKey;
-  guid: string;
+  guid: Guid;
   groupIdKey: IdKey;
   groupName: string;
   groupTypeIdKey: IdKey;
@@ -1499,6 +1499,37 @@ export interface RecentContributionDto {
   amount: number;
   fundName: string;
   transactionType?: string;
+}
+
+// ============================================================================
+// Person Note Types
+// ============================================================================
+
+export interface PersonNoteDto {
+  idKey: IdKey;
+  text: string;
+  noteDate: DateTime;
+  noteType: string | null;
+  createdByName: string | null;
+  isPrivate: boolean;
+  isAlert: boolean;
+  createdDateTime: DateTime;
+}
+
+export interface CreatePersonNoteRequest {
+  text: string;
+  noteDate: DateTime;
+  noteTypeDefinedValueIdKey?: IdKey | null;
+  isPrivate?: boolean;
+  isAlert?: boolean;
+}
+
+export interface UpdatePersonNoteRequest {
+  text: string;
+  noteDate: DateTime;
+  noteTypeDefinedValueIdKey?: IdKey | null;
+  isPrivate?: boolean;
+  isAlert?: boolean;
 }
 
 // ============================================================================

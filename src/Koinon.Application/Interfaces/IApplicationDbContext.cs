@@ -13,6 +13,7 @@ public interface IApplicationDbContext
 {
     DbSet<Person> People { get; }
     DbSet<PersonAlias> PersonAliases { get; }
+    DbSet<PersonNote> PersonNotes { get; }
     DbSet<PhoneNumber> PhoneNumbers { get; }
     DbSet<Group> Groups { get; }
     DbSet<GroupType> GroupTypes { get; }

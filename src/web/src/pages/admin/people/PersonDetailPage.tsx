@@ -10,6 +10,7 @@ import { CommunicationPreferences } from '@/components/admin/people/Communicatio
 import { AttendanceHistorySection } from '@/components/admin/people/AttendanceHistorySection';
 import { GroupMembershipsSection } from '@/components/admin/people/GroupMembershipsSection';
 import { GivingHistorySection } from '@/components/admin/people/GivingHistorySection';
+import { NotesSection } from '@/components/admin/people/NotesSection';
 import { useToast } from '@/contexts/ToastContext';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
@@ -279,6 +280,8 @@ export function PersonDetailPage() {
       <GivingHistorySection personIdKey={idKey!} />
 
       <AttendanceHistorySection personIdKey={idKey!} />
+
+      <NotesSection personIdKey={idKey!} />
 
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog

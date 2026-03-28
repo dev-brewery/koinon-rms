@@ -15,6 +15,9 @@ import type {
   PersonGroupsParams,
   AttendanceSummaryDto,
   PersonGivingSummaryDto,
+  PersonNoteDto,
+  CreatePersonNoteRequest,
+  UpdatePersonNoteRequest,
 } from './types';
 
 /**
@@ -130,6 +133,47 @@ export async function getPersonGivingSummary(
     `/people/${personIdKey}/giving-summary`
   );
   return response.data;
+}
+
+/**
+ * Get notes for a person
+ */
+export async function getPersonNotes(personIdKey: string): Promise<PersonNoteDto[]> {
+  const response = await get<{ data: PersonNoteDto[] }>(`/people/${personIdKey}/notes`);
+  return response.data;
+}
+
+/**
+ * Create a note for a person
+ */
+export async function createPersonNote(
+  personIdKey: string,
+  request: CreatePersonNoteRequest
+): Promise<PersonNoteDto> {
+  const response = await post<{ data: PersonNoteDto }>(`/people/${personIdKey}/notes`, request);
+  return response.data;
+}
+
+/**
+ * Update an existing note for a person
+ */
+export async function updatePersonNote(
+  personIdKey: string,
+  noteIdKey: string,
+  request: UpdatePersonNoteRequest
+): Promise<PersonNoteDto> {
+  const response = await put<{ data: PersonNoteDto }>(
+    `/people/${personIdKey}/notes/${noteIdKey}`,
+    request
+  );
+  return response.data;
+}
+
+/**
+ * Delete a note from a person
+ */
+export async function deletePersonNote(personIdKey: string, noteIdKey: string): Promise<void> {
+  await del<void>(`/people/${personIdKey}/notes/${noteIdKey}`);
 }
 
 /**

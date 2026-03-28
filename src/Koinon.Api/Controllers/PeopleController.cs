@@ -422,6 +422,155 @@ public class PeopleController(
     }
 
     /// <summary>
+    /// Gets all notes for a person, ordered by note date descending.
+    /// </summary>
+    /// <param name="idKey">The person's IdKey</param>
+    /// <param name="page">Page number (1-based, default 1)</param>
+    /// <param name="pageSize">Items per page (1-100, default 25)</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>List of person notes</returns>
+    /// <response code="200">Returns list of notes</response>
+    [HttpGet("{idKey}/notes")]
+    [ValidateIdKey]
+    [ProducesResponseType(typeof(IEnumerable<PersonNoteDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<PersonNoteDto>>> GetPersonNotes(
+        string idKey,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 25,
+        CancellationToken ct = default)
+    {
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+        var notes = await personService.GetNotesAsync(idKey, page, pageSize, ct);
+
+        logger.LogDebug("Notes retrieved for person: IdKey={IdKey}", idKey);
+
+        return Ok(new { data = notes });
+    }
+
+    /// <summary>
+    /// Creates a new note on a person record.
+    /// </summary>
+    /// <param name="idKey">The person's IdKey</param>
+    /// <param name="request">Note creation details</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Created note</returns>
+    /// <response code="201">Note created successfully</response>
+    /// <response code="404">Person not found</response>
+    [HttpPost("{idKey}/notes")]
+    [ValidateIdKey]
+    [ProducesResponseType(typeof(PersonNoteDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<PersonNoteDto>> CreatePersonNote(
+        string idKey,
+        [FromBody] CreatePersonNoteRequest request,
+        CancellationToken ct)
+    {
+        try
+        {
+            var note = await personService.CreateNoteAsync(idKey, request, ct);
+
+            logger.LogInformation(
+                "Note created for person: IdKey={IdKey}, NoteIdKey={NoteIdKey}",
+                idKey, note.IdKey);
+
+            return CreatedAtAction(
+                nameof(GetPersonNotes),
+                new { idKey },
+                new { data = note });
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new ProblemDetails
+            {
+                Title = "Person not found",
+                Detail = $"No person found with IdKey '{idKey}'",
+                Status = StatusCodes.Status404NotFound,
+                Instance = HttpContext.Request.Path
+            });
+        }
+    }
+
+    /// <summary>
+    /// Updates an existing note on a person record.
+    /// </summary>
+    /// <param name="idKey">The person's IdKey</param>
+    /// <param name="noteIdKey">The note's IdKey</param>
+    /// <param name="request">Note update details</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Updated note</returns>
+    /// <response code="200">Note updated successfully</response>
+    /// <response code="404">Person or note not found</response>
+    [HttpPut("{idKey}/notes/{noteIdKey}")]
+    [ValidateIdKey]
+    [ProducesResponseType(typeof(PersonNoteDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<PersonNoteDto>> UpdatePersonNote(
+        string idKey,
+        string noteIdKey,
+        [FromBody] UpdatePersonNoteRequest request,
+        CancellationToken ct)
+    {
+        try
+        {
+            var note = await personService.UpdateNoteAsync(idKey, noteIdKey, request, ct);
+
+            logger.LogInformation(
+                "Note updated: IdKey={IdKey}, NoteIdKey={NoteIdKey}",
+                idKey, noteIdKey);
+
+            return Ok(new { data = note });
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new ProblemDetails
+            {
+                Title = "Note not found",
+                Detail = $"No note '{noteIdKey}' found for person '{idKey}'",
+                Status = StatusCodes.Status404NotFound,
+                Instance = HttpContext.Request.Path
+            });
+        }
+    }
+
+    /// <summary>
+    /// Deletes a note from a person record.
+    /// </summary>
+    /// <param name="idKey">The person's IdKey</param>
+    /// <param name="noteIdKey">The note's IdKey</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>No content</returns>
+    /// <response code="204">Note deleted successfully</response>
+    /// <response code="404">Person or note not found</response>
+    [HttpDelete("{idKey}/notes/{noteIdKey}")]
+    [ValidateIdKey]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> DeletePersonNote(string idKey, string noteIdKey, CancellationToken ct)
+    {
+        try
+        {
+            await personService.DeleteNoteAsync(idKey, noteIdKey, ct);
+
+            logger.LogInformation(
+                "Note deleted: IdKey={IdKey}, NoteIdKey={NoteIdKey}",
+                idKey, noteIdKey);
+
+            return NoContent();
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new ProblemDetails
+            {
+                Title = "Note not found",
+                Detail = $"No note '{noteIdKey}' found for person '{idKey}'",
+                Status = StatusCodes.Status404NotFound,
+                Instance = HttpContext.Request.Path
+            });
+        }
+    }
+
+    /// <summary>
     /// Maximum photo file size in bytes (5MB).
     /// </summary>
     private const long MaxPhotoSizeBytes = 5 * 1024 * 1024;

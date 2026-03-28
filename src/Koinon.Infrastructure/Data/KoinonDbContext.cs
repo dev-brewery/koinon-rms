@@ -20,6 +20,7 @@ public class KoinonDbContext : DbContext, IApplicationDbContext
     public DbSet<Person> People { get; set; } = null!;
     public DbSet<PersonAlias> PersonAliases { get; set; } = null!;
     public DbSet<PhoneNumber> PhoneNumbers { get; set; } = null!;
+    public DbSet<PersonNote> PersonNotes { get; set; } = null!;
 
     // Security entities
     public DbSet<SecurityRole> SecurityRoles { get; set; } = null!;

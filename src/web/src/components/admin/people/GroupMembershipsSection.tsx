@@ -72,7 +72,9 @@ export function GroupMembershipsSection({ memberships, isLoading }: GroupMembers
                   </td>
                   <td className="py-3 pr-4 text-gray-600">{membership.groupTypeName}</td>
                   <td className="py-3 pr-4 text-gray-600">{membership.roleName}</td>
-                  <td className="py-3 pr-4"><StatusBadge status={membership.memberStatus} /></td>
+                  <td className="py-3 pr-4">
+                    <StatusBadge status={membership.memberStatus} />
+                  </td>
                   <td className="py-3 text-gray-600">{formatJoinDate(membership.createdDateTime)}</td>
                 </tr>
               ))}
