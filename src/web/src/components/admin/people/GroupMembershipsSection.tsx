@@ -4,34 +4,36 @@
  */
 
 import { Link } from 'react-router-dom';
-import type { GroupMembershipDto, GroupMemberStatus } from '@/services/api/types';
+import type { PersonGroupMembershipDto } from '@/services/api/types';
 
 interface GroupMembershipsSectionProps {
-  memberships: GroupMembershipDto[];
+  memberships: PersonGroupMembershipDto[];
   isLoading: boolean;
 }
 
-function StatusBadge({ status }: { status: GroupMemberStatus }) {
-  const styles: Record<GroupMemberStatus, string> = {
+function StatusBadge({ status }: { status: string }) {
+  const styles: Record<string, string> = {
     Active: 'bg-green-100 text-green-800',
     Inactive: 'bg-gray-100 text-gray-700',
     Pending: 'bg-yellow-100 text-yellow-800',
   };
 
+  const style = styles[status] ?? 'bg-gray-100 text-gray-700';
+
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${styles[status]}`}>
+    <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${style}`}>
       {status}
     </span>
   );
 }
 
-function formatJoinDate(dateAdded?: string): string {
-  if (!dateAdded) return '\u2014';
+function formatJoinDate(dateStr?: string): string {
+  if (!dateStr) return '\u2014';
   return new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
-  }).format(new Date(dateAdded));
+  }).format(new Date(dateStr));
 }
 
 export function GroupMembershipsSection({ memberships, isLoading }: GroupMembershipsSectionProps) {
@@ -59,19 +61,19 @@ export function GroupMembershipsSection({ memberships, isLoading }: GroupMembers
             </thead>
             <tbody className="divide-y divide-gray-100">
               {memberships.map((membership) => (
-                <tr key={membership.group.idKey} className="hover:bg-gray-50">
+                <tr key={membership.idKey} className="hover:bg-gray-50">
                   <td className="py-3 pr-4">
                     <Link
-                      to={`/admin/groups/${membership.group.idKey}`}
+                      to={`/admin/groups/${membership.groupIdKey}`}
                       className="text-primary-600 hover:text-primary-700 font-medium"
                     >
-                      {membership.group.name}
+                      {membership.groupName}
                     </Link>
                   </td>
-                  <td className="py-3 pr-4 text-gray-600">{membership.group.groupTypeName}</td>
-                  <td className="py-3 pr-4 text-gray-600">{membership.role.name}</td>
-                  <td className="py-3 pr-4"><StatusBadge status={membership.status} /></td>
-                  <td className="py-3 text-gray-600">{formatJoinDate(membership.dateAdded)}</td>
+                  <td className="py-3 pr-4 text-gray-600">{membership.groupTypeName}</td>
+                  <td className="py-3 pr-4 text-gray-600">{membership.roleName}</td>
+                  <td className="py-3 pr-4"><StatusBadge status={membership.memberStatus} /></td>
+                  <td className="py-3 text-gray-600">{formatJoinDate(membership.createdDateTime)}</td>
                 </tr>
               ))}
             </tbody>

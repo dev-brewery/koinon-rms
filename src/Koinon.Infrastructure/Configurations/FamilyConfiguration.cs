@@ -51,6 +51,12 @@ public class FamilyConfiguration : IEntityTypeConfiguration<Family>
         builder.Property(f => f.ModifiedDateTime)
             .HasColumnName("modified_date_time");
 
+        builder.Property(f => f.CreatedByPersonAliasId)
+            .HasColumnName("created_by_person_alias_id");
+
+        builder.Property(f => f.ModifiedByPersonAliasId)
+            .HasColumnName("modified_by_person_alias_id");
+
         // Relationships
         builder.HasOne(f => f.Campus)
             .WithMany()

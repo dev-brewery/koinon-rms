@@ -97,8 +97,9 @@ export interface UserSummaryDto {
   idKey: IdKey;
   firstName: string;
   lastName: string;
-  email: string;
-  photoUrl?: string;
+  email?: string | null;
+  photoUrl?: string | null;
+  roles: string[];
 }
 
 export interface RefreshRequest {
@@ -502,6 +503,21 @@ export interface GroupMembershipDto {
   dateAdded?: DateTime;
 }
 
+/** Flat DTO returned by GET /api/v1/people/:idKey/groups */
+export interface PersonGroupMembershipDto {
+  idKey: IdKey;
+  guid: string;
+  groupIdKey: IdKey;
+  groupName: string;
+  groupTypeIdKey: IdKey;
+  groupTypeName: string;
+  roleIdKey: IdKey;
+  roleName: string;
+  memberStatus: string;
+  createdDateTime: DateTime;
+  modifiedDateTime?: DateTime;
+}
+
 export interface AddGroupMemberRequest {
   personId: IdKey;
   roleId: IdKey;
@@ -517,6 +533,24 @@ export interface PersonGroupsParams extends PaginationParams {
 export interface PersonFamilyResponse {
   family: FamilyDetailDto;
   members: FamilyMemberDto[];
+}
+
+export interface GroupAttendanceOccurrenceDto {
+  idKey: IdKey;
+  occurrenceDate: DateOnly;
+  attendeeCount: number;
+  anonymousCount: number;
+  didNotOccur: boolean;
+  locationName: string | null;
+  scheduleName: string | null;
+}
+
+export interface GroupAttendanceDetailDto {
+  personIdKey: IdKey;
+  fullName: string;
+  photoUrl: string | null;
+  didAttend: boolean;
+  presentDateTime: DateTime | null;
 }
 
 // ============================================================================

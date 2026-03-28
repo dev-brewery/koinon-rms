@@ -20,21 +20,24 @@ export async function getCampuses(includeInactive = false): Promise<CampusDto[]>
   const query = queryParams.toString();
   const endpoint = `${BASE_URL}${query ? `?${query}` : ''}`;
 
-  return get<CampusDto[]>(endpoint);
+  const response = await get<{ data: CampusDto[] }>(endpoint);
+  return response.data;
 }
 
 /**
  * Get campus details by IdKey
  */
 export async function getCampus(idKey: string): Promise<CampusDto> {
-  return get<CampusDto>(`${BASE_URL}/${idKey}`);
+  const response = await get<{ data: CampusDto }>(`${BASE_URL}/${idKey}`);
+  return response.data;
 }
 
 /**
  * Create a new campus
  */
 export async function createCampus(request: CreateCampusRequest): Promise<CampusDto> {
-  return post<CampusDto>(BASE_URL, request);
+  const response = await post<{ data: CampusDto }>(BASE_URL, request);
+  return response.data;
 }
 
 /**
@@ -44,7 +47,8 @@ export async function updateCampus(
   idKey: string,
   request: UpdateCampusRequest
 ): Promise<CampusDto> {
-  return put<CampusDto>(`${BASE_URL}/${idKey}`, request);
+  const response = await put<{ data: CampusDto }>(`${BASE_URL}/${idKey}`, request);
+  return response.data;
 }
 
 /**
