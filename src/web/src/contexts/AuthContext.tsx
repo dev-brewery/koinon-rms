@@ -25,6 +25,61 @@ interface AuthContextValue extends AuthState {
 }
 
 // ============================================================================
+// User Storage (localStorage for persistence across page loads)
+// ============================================================================
+
+const USER_STORAGE_KEY = 'koinon_user';
+
+function saveUser(user: UserSummaryDto): void {
+  try {
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+  } catch {
+    // Silently fail if localStorage is unavailable
+  }
+}
+
+function loadUser(): UserSummaryDto | null {
+  try {
+    const stored = localStorage.getItem(USER_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : null;
+  } catch {
+    return null;
+  }
+}
+
+function clearUser(): void {
+  try {
+    localStorage.removeItem(USER_STORAGE_KEY);
+  } catch {
+    // Silently fail
+  }
+}
+
+// ============================================================================
+// Token Expiry Check
+// ============================================================================
+
+/**
+ * Check if a JWT access token is still valid (not expired).
+ * Returns true if the token has at least 30 seconds of validity remaining.
+ */
+function isTokenValid(token: string): boolean {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return false;
+
+    const payload = JSON.parse(atob(parts[1]));
+    if (!payload.exp) return false;
+
+    // Token is valid if it expires more than 30 seconds from now
+    const expiresAt = payload.exp * 1000; // Convert to milliseconds
+    return expiresAt > Date.now() + 30000;
+  } catch {
+    return false;
+  }
+}
+
+// ============================================================================
 // Context
 // ============================================================================
 
@@ -59,6 +114,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const response = await authApi.login(request);
 
+      // Persist user info for page reloads
+      saveUser(response.user);
+
       setState({
         user: response.user,
         isAuthenticated: true,
@@ -88,6 +146,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
     } finally {
       clearTokens();
+      clearUser();
       setState({
         user: null,
         isAuthenticated: false,
@@ -116,8 +175,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Store the new tokens from the response (token rotation)
       setTokens(response.accessToken, response.refreshToken);
 
-      // FIX: Keep existing user data - refresh endpoint doesn't return user info
-      // The user was set during login and remains valid
+      // Keep existing user data - refresh endpoint doesn't return user info
       setState(prev => ({
         ...prev,
         isAuthenticated: true,
@@ -126,6 +184,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }));
     } catch {
       clearTokens();
+      clearUser();
       setState({
         user: null,
         isAuthenticated: false,
@@ -136,8 +195,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   /**
-   * Check for existing authentication on mount
-   * Attempts to refresh token if one exists
+   * Check for existing authentication on mount.
+   * If the access token is still valid, trust it without calling refresh.
+   * This avoids token rotation race conditions during rapid page navigations.
    */
   useEffect(() => {
     // Prevent race condition - only check auth once on mount
@@ -148,14 +208,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
     hasCheckedAuth.current = true;
 
     const checkAuth = async () => {
-      const token = getAccessToken();
+      const accessToken = getAccessToken();
 
-      if (token) {
-        // Try to refresh to validate token
-        await refreshAuth();
-      } else {
+      if (!accessToken) {
         setState(prev => ({ ...prev, isLoading: false }));
+        return;
       }
+
+      // If the access token is still valid, use it directly without refreshing.
+      // This prevents race conditions when navigating quickly between pages
+      // (token rotation during refresh could invalidate tokens before they're saved).
+      if (isTokenValid(accessToken)) {
+        const storedUser = loadUser();
+        setState({
+          user: storedUser,
+          isAuthenticated: true,
+          isLoading: false,
+          error: null,
+        });
+        return;
+      }
+
+      // Token is expired or about to expire - try to refresh
+      await refreshAuth();
     };
 
     checkAuth();

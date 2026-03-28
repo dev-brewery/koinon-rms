@@ -230,7 +230,7 @@ export function PersonFormPage() {
           {isEdit ? 'Edit Person' : 'Add Person'}
         </h1>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} noValidate className="space-y-6">
           {/* Photo Upload - Edit Mode Only */}
           {isEdit && idKey && (
             <div className="pb-6 border-b border-gray-200">
