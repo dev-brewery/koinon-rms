@@ -33,13 +33,12 @@ export function FamilyFormPage() {
       setName(family.name);
       setCampusId(family.campus?.idKey || '');
 
-      const primaryAddress = family.addresses.find((addr) => addr.isMailingAddress);
-      if (primaryAddress) {
-        setStreet1(primaryAddress.address.street1);
-        setStreet2(primaryAddress.address.street2 || '');
-        setCity(primaryAddress.address.city);
-        setState(primaryAddress.address.state);
-        setPostalCode(primaryAddress.address.postalCode);
+      if (family.address) {
+        setStreet1(family.address.street1 || '');
+        setStreet2(family.address.street2 || '');
+        setCity(family.address.city || '');
+        setState(family.address.state || '');
+        setPostalCode(family.address.postalCode || '');
       }
     }
   }, [family]);

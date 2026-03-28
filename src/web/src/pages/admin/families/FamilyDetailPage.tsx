@@ -100,7 +100,7 @@ export function FamilyDetailPage() {
     );
   }
 
-  const primaryAddress = family.addresses.find((addr) => addr.isMailingAddress);
+  const primaryAddress = family.address;
 
   // Get role IDs from existing family members (if available) or use first member's role
   const adultRoleId = family.members.find(m => m.role.name.toLowerCase() === 'adult')?.role.idKey || '';
@@ -180,7 +180,7 @@ export function FamilyDetailPage() {
               />
             </svg>
             <address className="not-italic whitespace-pre-line">
-              {primaryAddress.address.formattedAddress}
+              {primaryAddress.formattedAddress}
             </address>
           </div>
         </div>

@@ -13,7 +13,7 @@ interface FamilyMemberCardProps {
 }
 
 export function FamilyMemberCard({ member, onRemove, readOnly = false }: FamilyMemberCardProps) {
-  const { person, role, isPersonPrimaryFamily } = member;
+  const { person, role } = member;
   const isAdult = role.name === 'Adult';
 
   return (
@@ -73,13 +73,6 @@ export function FamilyMemberCard({ member, onRemove, readOnly = false }: FamilyM
           >
             {role.name}
           </span>
-
-          {/* Primary Family Badge */}
-          {isPersonPrimaryFamily && (
-            <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-purple-100 text-purple-800">
-              Primary Family
-            </span>
-          )}
 
           {person.email && (
             <span className="text-xs text-gray-500 truncate">{person.email}</span>
