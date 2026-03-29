@@ -4152,8 +4152,8 @@
     "searchFamiliesForCheckin": {
       "name": "searchFamiliesForCheckin",
       "path": "services/api/checkin.ts",
-      "endpoint": "/checkin/search",
-      "method": "POST",
+      "endpoint": "/checkin/search?${queryParams.toString()}",
+      "method": "GET",
       "responseType": "CheckinFamilyDto[]"
     },
     "getCheckinOpportunities": {
@@ -4715,6 +4715,13 @@
       "endpoint": "/groups/${groupIdKey}/schedules/${scheduleIdKey}",
       "method": "DELETE",
       "responseType": "void"
+    },
+    "getGroupAttendanceDetail": {
+      "name": "getGroupAttendanceDetail",
+      "path": "services/api/groups.ts",
+      "endpoint": "/groups/${groupIdKey}/attendance/${occurrenceIdKey}",
+      "method": "GET",
+      "responseType": "GroupAttendanceDetailDto[]"
     },
     "uploadCsvPreview": {
       "name": "uploadCsvPreview",
@@ -6327,6 +6334,30 @@
         "removeGroupSchedule"
       ]
     },
+    "useGroupAttendanceHistory": {
+      "name": "useGroupAttendanceHistory",
+      "path": "hooks/useGroups.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "groups"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useGroupAttendanceDetail": {
+      "name": "useGroupAttendanceDetail",
+      "path": "hooks/useGroups.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "groups"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getGroupAttendanceDetail"
+      ]
+    },
     "useImport": {
       "name": "useImport",
       "path": "hooks/useImport.ts",
@@ -7440,6 +7471,15 @@
       ],
       "apiCallsDirectly": false
     },
+    "GroupAttendanceHistorySection": {
+      "name": "GroupAttendanceHistorySection",
+      "path": "components/admin/groups/GroupAttendanceHistorySection.tsx",
+      "hooksUsed": [
+        "useGroupAttendanceHistory",
+        "useGroupAttendanceDetail"
+      ],
+      "apiCallsDirectly": false
+    },
     "GroupCard": {
       "name": "GroupCard",
       "path": "components/groups/GroupCard.tsx",
@@ -8234,6 +8274,16 @@
     {
       "from": "FamilyMemberCard",
       "to": "useUpdateFamilyMember",
+      "type": "uses_hook"
+    },
+    {
+      "from": "GroupAttendanceHistorySection",
+      "to": "useGroupAttendanceHistory",
+      "type": "uses_hook"
+    },
+    {
+      "from": "GroupAttendanceHistorySection",
+      "to": "useGroupAttendanceDetail",
       "type": "uses_hook"
     },
     {

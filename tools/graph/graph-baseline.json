@@ -1770,6 +1770,68 @@
       },
       "linked_entity": "Schedule"
     },
+    "CheckinOpportunitiesResponseDto": {
+      "name": "CheckinOpportunitiesResponseDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Family": "CheckinFamilySearchResultDto",
+        "Opportunities": "IReadOnlyList<PersonOpportunitiesDto>"
+      }
+    },
+    "PersonOpportunitiesDto": {
+      "name": "PersonOpportunitiesDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Person": "CheckinFamilyMemberDto",
+        "CurrentAttendance": "IReadOnlyList<CurrentAttendanceDto>",
+        "AvailableOptions": "IReadOnlyList<CheckinOptionDto>"
+      },
+      "linked_entity": "Person"
+    },
+    "CurrentAttendanceDto": {
+      "name": "CurrentAttendanceDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "AttendanceIdKey": "string",
+        "Group": "string",
+        "Location": "string",
+        "Schedule": "string",
+        "SecurityCode": "string",
+        "CheckInTime": "DateTime",
+        "CanCheckOut": "bool"
+      }
+    },
+    "CheckinOptionDto": {
+      "name": "CheckinOptionDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "GroupIdKey": "string",
+        "GroupName": "string",
+        "Locations": "IReadOnlyList<CheckinLocationOptionDto>"
+      }
+    },
+    "CheckinLocationOptionDto": {
+      "name": "CheckinLocationOptionDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "LocationIdKey": "string",
+        "LocationName": "string",
+        "Schedules": "IReadOnlyList<CheckinScheduleOptionDto>",
+        "CurrentCount": "int",
+        "SoftThreshold": "int?",
+        "FirmThreshold": "int?"
+      }
+    },
+    "CheckinScheduleOptionDto": {
+      "name": "CheckinScheduleOptionDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "ScheduleIdKey": "string",
+        "ScheduleName": "string",
+        "StartTime": "string",
+        "IsSelected": "bool"
+      }
+    },
     "CheckinFamilySearchResultDto": {
       "name": "CheckinFamilySearchResultDto",
       "namespace": "Koinon.Application.DTOs",
@@ -2514,41 +2576,6 @@
         "CategoryCounts": "Dictionary<string, int>"
       },
       "linked_entity": "System"
-    },
-    "GroupAttendanceOccurrenceDto": {
-      "name": "GroupAttendanceOccurrenceDto",
-      "namespace": "Koinon.Application.DTOs",
-      "properties": {
-        "OccurrenceIdKey": "string",
-        "OccurrenceDate": "DateTime",
-        "AttendeeCount": "int",
-        "TotalMembers": "int",
-        "DidNotOccur": "bool"
-      },
-      "linked_entity": "Group"
-    },
-    "GroupAttendanceEntryDto": {
-      "name": "GroupAttendanceEntryDto",
-      "namespace": "Koinon.Application.DTOs",
-      "properties": {
-        "PersonIdKey": "string",
-        "FullName": "string",
-        "PhotoUrl": "string?",
-        "DidAttend": "bool",
-        "PresentDateTime": "DateTime?",
-        "IsFirstTime": "bool"
-      },
-      "linked_entity": "Group"
-    },
-    "GroupAttendanceHistoryDto": {
-      "name": "GroupAttendanceHistoryDto",
-      "namespace": "Koinon.Application.DTOs",
-      "properties": {
-        "Occurrences": "IReadOnlyList<GroupAttendanceOccurrenceDto>",
-        "AverageAttendance": "double",
-        "TrendDirection": "string"
-      },
-      "linked_entity": "Group"
     },
     "GroupDto": {
       "name": "GroupDto",
@@ -6807,12 +6834,6 @@
       "methods": [],
       "dependencies": []
     },
-    "IGroupAttendanceService": {
-      "name": "IGroupAttendanceService",
-      "namespace": "Koinon.Application.Interfaces",
-      "methods": [],
-      "dependencies": []
-    },
     "IGroupMemberRequestService": {
       "name": "IGroupMemberRequestService",
       "namespace": "Koinon.Application.Interfaces",
@@ -7249,6 +7270,15 @@
           "required_roles": []
         },
         {
+          "name": "GetOpportunities",
+          "method": "GET",
+          "route": "opportunities/{familyIdKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "GetAttendanceLabels",
           "method": "GET",
           "route": "labels/{attendanceIdKey}",
@@ -7381,6 +7411,7 @@
         "ISupervisorModeService",
         "IRoomRosterService",
         "ICapacityService",
+        "IApplicationDbContext",
         "ILogger<CheckinController>"
       ]
     },
@@ -14309,6 +14340,30 @@
         "removeGroupSchedule"
       ]
     },
+    "useGroupAttendanceHistory": {
+      "name": "useGroupAttendanceHistory",
+      "path": "hooks/useGroups.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "groups"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useGroupAttendanceDetail": {
+      "name": "useGroupAttendanceDetail",
+      "path": "hooks/useGroups.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "groups"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getGroupAttendanceDetail"
+      ]
+    },
     "useImport": {
       "name": "useImport",
       "path": "hooks/useImport.ts",
@@ -15351,8 +15406,8 @@
     "searchFamiliesForCheckin": {
       "name": "searchFamiliesForCheckin",
       "path": "services/api/checkin.ts",
-      "endpoint": "/checkin/search",
-      "method": "POST",
+      "endpoint": "/checkin/search?${queryParams.toString()}",
+      "method": "GET",
       "responseType": "CheckinFamilyDto[]"
     },
     "getCheckinOpportunities": {
@@ -15914,6 +15969,13 @@
       "endpoint": "/groups/${groupIdKey}/schedules/${scheduleIdKey}",
       "method": "DELETE",
       "responseType": "void"
+    },
+    "getGroupAttendanceDetail": {
+      "name": "getGroupAttendanceDetail",
+      "path": "services/api/groups.ts",
+      "endpoint": "/groups/${groupIdKey}/attendance/${occurrenceIdKey}",
+      "method": "GET",
+      "responseType": "GroupAttendanceDetailDto[]"
     },
     "uploadCsvPreview": {
       "name": "uploadCsvPreview",
@@ -16660,6 +16722,15 @@
       "path": "components/profile/FamilyMemberCard.tsx",
       "hooksUsed": [
         "useUpdateFamilyMember"
+      ],
+      "apiCallsDirectly": false
+    },
+    "GroupAttendanceHistorySection": {
+      "name": "GroupAttendanceHistorySection",
+      "path": "components/admin/groups/GroupAttendanceHistorySection.tsx",
+      "hooksUsed": [
+        "useGroupAttendanceHistory",
+        "useGroupAttendanceDetail"
       ],
       "apiCallsDirectly": false
     },
@@ -17480,6 +17551,11 @@
       "relationship": "maps_to"
     },
     {
+      "source": "PersonOpportunitiesDto",
+      "target": "Person",
+      "relationship": "maps_to"
+    },
+    {
       "source": "CheckinFamilySearchResultDto",
       "target": "Family",
       "relationship": "maps_to"
@@ -17737,21 +17813,6 @@
     {
       "source": "GlobalSearchResponse",
       "target": "System",
-      "relationship": "maps_to"
-    },
-    {
-      "source": "GroupAttendanceOccurrenceDto",
-      "target": "Group",
-      "relationship": "maps_to"
-    },
-    {
-      "source": "GroupAttendanceEntryDto",
-      "target": "Group",
-      "relationship": "maps_to"
-    },
-    {
-      "source": "GroupAttendanceHistoryDto",
-      "target": "Group",
       "relationship": "maps_to"
     },
     {
@@ -19965,6 +20026,16 @@
       "type": "uses_hook"
     },
     {
+      "from": "GroupAttendanceHistorySection",
+      "to": "useGroupAttendanceHistory",
+      "type": "uses_hook"
+    },
+    {
+      "from": "GroupAttendanceHistorySection",
+      "to": "useGroupAttendanceDetail",
+      "type": "uses_hook"
+    },
+    {
       "from": "GroupSchedulesSection",
       "to": "useGroupSchedules",
       "type": "uses_hook"
@@ -20259,6 +20330,12 @@
     "dto:CheckinAreaDto": "type:CheckinAreaDto",
     "dto:CheckinLocationDto": "type:CheckinLocationDto",
     "dto:ScheduleDto": "type:ScheduleDto",
+    "dto:CheckinOpportunitiesResponseDto": "type:CheckinOpportunitiesResponse",
+    "dto:PersonOpportunitiesDto": "type:PersonOpportunitiesDto",
+    "dto:CurrentAttendanceDto": "type:CurrentAttendanceDto",
+    "dto:CheckinOptionDto": "type:CheckinOptionDto",
+    "dto:CheckinLocationOptionDto": "type:CheckinLocationOptionDto",
+    "dto:CheckinScheduleOptionDto": "type:CheckinScheduleOptionDto",
     "dto:CheckinFamilySearchResultDto": "type:CheckinFamilySearchResultDto",
     "dto:CheckinFamilyMemberDto": "type:CheckinFamilyMemberDto",
     "dto:CommunicationDto": "type:CommunicationDto",
@@ -20305,7 +20382,6 @@
     "dto:PersonLookupDto": "type:PersonLookupDto",
     "dto:GlobalSearchResultDto": "type:GlobalSearchResult",
     "dto:GlobalSearchResponse": "type:GlobalSearchResponse",
-    "dto:GroupAttendanceOccurrenceDto": "type:GroupAttendanceOccurrenceDto",
     "dto:GroupDto": "type:GroupDto",
     "dto:GroupSummaryDto": "type:GroupSummaryDto",
     "dto:GroupMemberDto": "type:GroupMemberDto",
@@ -20420,13 +20496,13 @@
   },
   "stats": {
     "entities": 60,
-    "dtos": 210,
-    "services": 110,
+    "dtos": 213,
+    "services": 109,
     "controllers": 35,
     "types": 310,
-    "api_functions": 177,
-    "hooks": 156,
-    "components": 134,
+    "api_functions": 178,
+    "hooks": 158,
+    "components": 135,
     "total_edges": 575
   }
 }
