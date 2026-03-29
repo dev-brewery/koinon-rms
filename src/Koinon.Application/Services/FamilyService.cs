@@ -82,10 +82,12 @@ public class FamilyService(
             query = query.Where(f => f.CampusId == campusId);
         }
 
-        // Filter by search term (search in name)
+        // Filter by search term (search in family name or member names)
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
-            query = query.Where(f => f.Name.Contains(searchTerm));
+            query = query.Where(f => f.Name.Contains(searchTerm) ||
+                f.Members.Any(m => m.Person.FirstName.Contains(searchTerm) ||
+                                   m.Person.LastName.Contains(searchTerm)));
         }
 
         // Get total count
