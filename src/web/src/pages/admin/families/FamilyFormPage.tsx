@@ -182,7 +182,7 @@ export function FamilyFormPage() {
         <button
           onClick={handleCancel}
           className="text-gray-400 hover:text-gray-600"
-          aria-label="Cancel"
+          aria-label="Go back"
         >
           <svg
             className="w-6 h-6"
