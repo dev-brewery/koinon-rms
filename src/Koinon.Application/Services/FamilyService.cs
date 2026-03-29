@@ -33,6 +33,7 @@ public class FamilyService(
         var family = await context.Families
             .AsNoTracking()
             .Include(f => f.Campus)
+            .Include(f => f.Location)
             .Include(f => f.Members)
                 .ThenInclude(m => m.Person)
             .Include(f => f.Members)
@@ -138,12 +139,13 @@ public class FamilyService(
         }
 
         // Create address if provided
-        Location? location = null;
         if (request.Address != null)
         {
-            location = mapper.Map<Location>(request.Address);
+            var location = mapper.Map<Location>(request.Address);
             location.CreatedDateTime = DateTime.UtcNow;
             await context.Locations.AddAsync(location, ct);
+            await context.SaveChangesAsync(ct);
+            family.LocationId = location.Id;
         }
 
         // Add to database
@@ -441,7 +443,7 @@ public class FamilyService(
             Description = familyDto.Description,
             IsActive = familyDto.IsActive,
             Campus = familyDto.Campus,
-            Address = null,
+            Address = family.Location != null ? mapper.Map<AddressDto>(family.Location) : null,
             Members = memberDtos,
             CreatedDateTime = familyDto.CreatedDateTime,
             ModifiedDateTime = familyDto.ModifiedDateTime
