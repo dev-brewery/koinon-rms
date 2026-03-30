@@ -10,9 +10,11 @@ interface FamilyMemberCardProps {
   member: FamilyMemberDto;
   onRemove?: () => void;
   readOnly?: boolean;
+  /** Combined role names to display as a legend (e.g., ["Adult", "Child"]) */
+  familyRoles?: string[];
 }
 
-export function FamilyMemberCard({ member, onRemove, readOnly = false }: FamilyMemberCardProps) {
+export function FamilyMemberCard({ member, onRemove, readOnly = false, familyRoles }: FamilyMemberCardProps) {
   const { person, role } = member;
   const isAdult = role.name === 'Adult';
 
@@ -63,16 +65,20 @@ export function FamilyMemberCard({ member, onRemove, readOnly = false }: FamilyM
         </Link>
 
         <div className="flex flex-wrap items-center gap-2">
-          {/* Role Badge - colored indicator with tooltip */}
-          <span
-            className={`inline-flex items-center w-2.5 h-2.5 rounded-full ${
-              isAdult
-                ? 'bg-blue-500'
-                : 'bg-green-500'
-            }`}
-            title={role.name}
-            aria-label={role.name}
-          />
+          {/* Role indicator */}
+          {familyRoles ? (
+            <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
+              {familyRoles.join(' · ')}
+            </span>
+          ) : (
+            <span
+              className={`inline-flex items-center w-2.5 h-2.5 rounded-full ${
+                isAdult ? 'bg-blue-500' : 'bg-green-500'
+              }`}
+              title={role.name}
+              aria-label={role.name}
+            />
+          )}
 
           {person.email && (
             <span className="text-xs text-gray-500 truncate">{person.email}</span>
