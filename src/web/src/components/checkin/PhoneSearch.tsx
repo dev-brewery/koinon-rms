@@ -137,7 +137,7 @@ export function PhoneSearch({ onSearch, loading, onInputChange }: PhoneSearchPro
         <Button
           onClick={handleSearch}
           loading={loading}
-          disabled={loading}
+          disabled={loading || phone.length === 0}
           size="lg"
           className="w-full text-xl"
         >
