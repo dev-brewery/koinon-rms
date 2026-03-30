@@ -14,28 +14,50 @@ export interface PinEntryProps {
  */
 export function PinEntry({ onSubmit, onCancel, loading, error }: PinEntryProps) {
   const [pin, setPin] = useState('');
+  const [validationError, setValidationError] = useState<string | null>(null);
+  // Track whether user has edited input (backspace/clear). Once they start
+  // editing, Submit becomes clickable so they can verify incomplete PINs
+  // and receive inline validation feedback instead of a dead button.
+  const [hasEdited, setHasEdited] = useState(false);
 
   const handleNumberClick = (digit: number) => {
     if (pin.length < 6) {
       setPin(pin + digit.toString());
+      setValidationError(null);
     }
+  };
+
+  const handleBackspace = () => {
+    setPin(prev => prev.slice(0, -1));
+    setValidationError(null);
+    setHasEdited(true);
   };
 
   const handleClear = () => {
     setPin('');
+    setValidationError(null);
+    setHasEdited(true);
   };
 
   const handleSubmit = () => {
-    if (pin.length >= 4 && pin.length <= 6) {
+    if (pin.length < 4) {
+      setValidationError('Please enter at least 4 digits to complete PIN');
+      return;
+    }
+    if (pin.length <= 6) {
+      setValidationError(null);
       onSubmit(pin);
     }
   };
+
+  // Submit is disabled when PIN is too short and user hasn't started editing
+  const isSubmitDisabled = loading || (pin.length < 4 && !hasEdited);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && pin.length >= 4) {
       handleSubmit();
     } else if (e.key === 'Backspace') {
-      setPin(pin.slice(0, -1));
+      handleBackspace();
     } else if (/^\d$/.test(e.key) && pin.length < 6) {
       setPin(pin + e.key);
     }
@@ -69,9 +91,9 @@ export function PinEntry({ onSubmit, onCancel, loading, error }: PinEntryProps) 
       </div>
 
       {/* Error Message */}
-      {error && (
+      {(error || validationError) && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-800 text-center text-sm">{error}</p>
+          <p className="text-red-800 text-center text-sm">{error || validationError}</p>
         </div>
       )}
 
@@ -102,7 +124,7 @@ export function PinEntry({ onSubmit, onCancel, loading, error }: PinEntryProps) 
           0
         </button>
         <button
-          onClick={() => setPin(pin.slice(0, -1))}
+          onClick={handleBackspace}
           disabled={loading || pin.length === 0}
           aria-label="Backspace"
           className="min-h-[64px] text-lg font-semibold bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 hover:border-yellow-400 active:bg-yellow-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -124,7 +146,7 @@ export function PinEntry({ onSubmit, onCancel, loading, error }: PinEntryProps) 
         </Button>
         <Button
           onClick={handleSubmit}
-          disabled={loading || pin.length < 4}
+          disabled={isSubmitDisabled}
           loading={loading}
           size="lg"
           className="flex-1"
@@ -133,11 +155,13 @@ export function PinEntry({ onSubmit, onCancel, loading, error }: PinEntryProps) 
         </Button>
       </div>
 
-      <p className="text-sm text-gray-600 text-center mt-4">
-        {pin.length < 4
-          ? 'Please enter at least 4 digits to complete PIN'
-          : 'PIN ready — press Submit'}
-      </p>
+      {!error && !validationError && (
+        <p className="text-sm text-gray-600 text-center mt-4">
+          {pin.length < 4
+            ? `Enter ${4 - pin.length} more digit${4 - pin.length !== 1 ? 's' : ''}`
+            : 'PIN ready — press Submit'}
+        </p>
+      )}
     </Card>
   );
 }
