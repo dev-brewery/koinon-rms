@@ -198,6 +198,12 @@ builder.Services.AddHealthChecks()
 
 var app = builder.Build();
 
+// Seed development test data (phone numbers, etc.) for E2E tests
+if (app.Environment.IsDevelopment())
+{
+    await Koinon.Api.Services.DevelopmentDataSeeder.SeedAsync(app.Services);
+}
+
 // Configure pipeline
 // Middleware order is critical for request processing
 
