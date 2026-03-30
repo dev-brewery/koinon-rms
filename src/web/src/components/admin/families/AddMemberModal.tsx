@@ -68,7 +68,7 @@ export function AddMemberModal({
         />
 
         {/* Modal */}
-        <div className="relative inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+        <div role="dialog" aria-modal="true" aria-label="Add Family Member" className="relative inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
           <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
             <div className="flex items-start justify-between mb-4">
               <h3 className="text-lg font-medium text-gray-900">Add Family Member</h3>
@@ -102,7 +102,7 @@ export function AddMemberModal({
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Search by name, email, or phone..."
+                  placeholder="Search for a person by name or email..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"

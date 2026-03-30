@@ -17,7 +17,7 @@ export function FamilyMemberCard({ member, onRemove, readOnly = false }: FamilyM
   const isAdult = role.name === 'Adult';
 
   return (
-    <div className="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow">
+    <div data-testid="family-member-card" className="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow">
       {/* Avatar */}
       <Link to={`/admin/people/${person.idKey}`} className="flex-shrink-0">
         {person.photoUrl ? (
@@ -57,7 +57,7 @@ export function FamilyMemberCard({ member, onRemove, readOnly = false }: FamilyM
               {person.fullName}
             </h3>
             {person.age !== undefined && (
-              <span className="text-xs text-gray-500">({person.age})</span>
+              <span className="text-xs text-gray-500">({person.age}y)</span>
             )}
           </div>
         </Link>
