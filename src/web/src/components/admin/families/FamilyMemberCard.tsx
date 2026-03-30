@@ -63,16 +63,16 @@ export function FamilyMemberCard({ member, onRemove, readOnly = false }: FamilyM
         </Link>
 
         <div className="flex flex-wrap items-center gap-2">
-          {/* Role Badge */}
+          {/* Role Badge - colored indicator with tooltip */}
           <span
-            className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${
+            className={`inline-flex items-center w-2.5 h-2.5 rounded-full ${
               isAdult
-                ? 'bg-blue-100 text-blue-800'
-                : 'bg-green-100 text-green-800'
+                ? 'bg-blue-500'
+                : 'bg-green-500'
             }`}
-          >
-            {role.name}
-          </span>
+            title={role.name}
+            aria-label={role.name}
+          />
 
           {person.email && (
             <span className="text-xs text-gray-500 truncate">{person.email}</span>
