@@ -160,6 +160,34 @@ export function parseErrorResponse(data: unknown): ParsedErrorResponse {
     }
   }
 
+  // Handle loose format: { error: "string message", details: { ... } }
+  if (typeof data === 'object' && data !== null) {
+    const obj = data as Record<string, unknown>;
+    if (typeof obj.error === 'string') {
+      const details = typeof obj.details === 'object' && obj.details !== null
+        ? obj.details as Record<string, string[]>
+        : undefined;
+      return {
+        format: 'legacy',
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: obj.error,
+          details,
+        },
+      };
+    }
+    // Try to extract any message-like field
+    if (typeof obj.message === 'string') {
+      return {
+        format: 'legacy',
+        error: {
+          code: 'ERROR',
+          message: obj.message,
+        },
+      };
+    }
+  }
+
   // Unknown format - return as-is wrapped in legacy format
   return {
     format: 'legacy',

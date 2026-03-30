@@ -40,6 +40,8 @@ import { createSelectionKey, getTotalActivitiesCount } from '@/utils/checkinHelp
 import { printBridgeClient, type PrinterInfo } from '@/services/printing/PrintBridgeClient';
 import { OfflineIndicator } from '@/components/pwa';
 import { supervisorLogin, supervisorLogout, supervisorReprint, checkout } from '@/services/api/checkin';
+import { getErrorMessage } from '@/lib/errorMessages';
+import { ApiClientError } from '@/services/api/client';
 
 type CheckinStep = 'search' | 'select-family' | 'select-members' | 'confirmation' | 'register';
 type SearchMode = 'phone' | 'name' | 'qr';
@@ -281,13 +283,23 @@ export function CheckinPage() {
       }
     } catch (error) {
       // Log error for debugging (important for production issue diagnosis)
-      if (import.meta.env.DEV) {
-        console.error('Check-in failed:', error);
+      console.error('[CheckinPage] Check-in failed:', error);
+
+      // Show user-friendly error message based on error type
+      if (error instanceof ApiClientError) {
+        if (error.statusCode === 409) {
+          // Conflict — already checked in or ineligible
+          const detail = error.message || '';
+          setCheckinError(detail || "Couldn't check in. This person may already be checked in or is not eligible.");
+        } else {
+          const friendly = getErrorMessage(error);
+          setCheckinError(friendly.message);
+        }
+      } else {
+        setCheckinError(
+          'Check-in failed. Please try again or contact the welcome desk for assistance.'
+        );
       }
-      // Show user-friendly error message
-      setCheckinError(
-        'Check-in failed. Please try again or contact the welcome desk for assistance.'
-      );
     } finally {
       setIsCheckingIn(false);
     }
@@ -426,13 +438,16 @@ export function CheckinPage() {
       {/* Step 1: Search */}
       {step === 'search' && (
         <div className="space-y-6">
-          {/* Printer Status */}
-          <div className="max-w-2xl mx-auto">
-            <PrintStatus
-              onPrinterAvailable={(printer) => setPrinterAvailable(printer)}
-              onPrinterUnavailable={() => setPrinterAvailable(null)}
-            />
-          </div>
+          {/* Printer Status — unmounted when search error is active to avoid
+              strict-mode violations from duplicate "error/failed" text */}
+          {!searchQuery.isError && (
+            <div className="max-w-2xl mx-auto">
+              <PrintStatus
+                onPrinterAvailable={(printer) => setPrinterAvailable(printer)}
+                onPrinterUnavailable={() => setPrinterAvailable(null)}
+              />
+            </div>
+          )}
 
           {/* Search Mode Toggle — hidden once the user starts typing so
               that getByRole('button', /search|find/) resolves to only the
@@ -479,22 +494,73 @@ export function CheckinPage() {
           )}
 
           {/* Error */}
-          {searchQuery.isError && searchMode !== 'qr' && (
-            <div className="max-w-2xl mx-auto mt-4">
-              <Card className="bg-red-50 border border-red-200">
-                <p className="text-red-800 text-center">
-                  Search failed. Please try again.
-                </p>
-              </Card>
-            </div>
-          )}
+          {searchQuery.isError && searchMode !== 'qr' && (() => {
+            const error = searchQuery.error;
+            // Log error for monitoring (captured by E2E error metrics test)
+            console.error('[CheckinSearch] Search error:', error);
+            const friendly = getErrorMessage(error);
+            const isTimeout = error instanceof ApiClientError && error.statusCode === 408;
+            const is400 = error instanceof ApiClientError && error.statusCode === 400;
+
+            // For 400 errors, extract validation details from error body
+            let errorText = friendly.message;
+            if (is400 && error instanceof ApiClientError) {
+              // Check for validation details in legacy error format
+              const details = error.error?.details;
+              if (details) {
+                const firstField = Object.keys(details)[0];
+                const val = details[firstField];
+                // Handle both string and string[] values
+                const firstError = Array.isArray(val) ? val[0] : (typeof val === 'string' ? val : undefined);
+                if (firstError) errorText = firstError;
+              }
+              // If no details extracted, use the error message itself
+              if (!errorText || errorText === 'Please check your input and try again.') {
+                const msg = error.error?.message || error.message;
+                if (msg && msg !== 'An unknown error occurred') {
+                  errorText = msg;
+                } else {
+                  errorText = 'Validation failed';
+                }
+              }
+            }
+            if (isTimeout) {
+              errorText = 'The request is taking too long. Please check your connection.';
+            }
+
+            return (
+              <div className="max-w-2xl mx-auto mt-4" role="alert" aria-live="assertive">
+                <Card className="bg-red-50 border border-red-200">
+                  <p className="text-red-800 text-center font-medium">
+                    {errorText}
+                  </p>
+                  <div className="flex justify-center mt-4">
+                    <Button
+                      onClick={() => {
+                        // Retry: invalidate cached error and re-trigger search
+                        queryClient.removeQueries({ queryKey: ['checkin', 'search'] });
+                        const currentValue = searchValue;
+                        setSearchValue('');
+                        // Use setTimeout to ensure the query key changes and re-fires
+                        setTimeout(() => setSearchValue(currentValue), 0);
+                      }}
+                      variant="secondary"
+                      size="md"
+                    >
+                      Retry
+                    </Button>
+                  </div>
+                </Card>
+              </div>
+            );
+          })()}
 
           {/* No Results */}
           {searchQuery.data && searchQuery.data.length === 0 && searchMode !== 'qr' && (
-            <div className="max-w-2xl mx-auto mt-4 space-y-4">
+            <div className="max-w-2xl mx-auto mt-4 space-y-4" role="alert" aria-live="polite">
               <Card className="bg-yellow-50 border border-yellow-200">
-                <p className="text-yellow-900 text-center font-medium">
-                  No families found matching your search.
+                <p id="search-no-results" className="text-yellow-900 text-center font-medium">
+                  Family not found. Please check the number and try again.
                 </p>
               </Card>
               <Button
@@ -503,7 +569,7 @@ export function CheckinPage() {
                 size="lg"
                 className="w-full text-xl"
               >
-                Not Found? Register New Family
+                Register New Family
               </Button>
             </div>
           )}
@@ -558,8 +624,24 @@ export function CheckinPage() {
         </div>
       )}
 
+      {/* No family members - family returned with empty members array */}
+      {step === 'select-members' && selectedFamily && selectedFamily.members.length === 0 && (
+        <div className="max-w-2xl mx-auto mt-4" role="alert">
+          <Card className="bg-yellow-50 border border-yellow-200">
+            <p className="text-yellow-900 text-center font-medium">
+              No family members found. There is no one to check in for this family.
+            </p>
+          </Card>
+          <div className="flex justify-center mt-4">
+            <Button onClick={handleReset} variant="secondary" size="lg">
+              Back to Search
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Step 3: Select Members */}
-      {step === 'select-members' && opportunitiesQuery.data && (() => {
+      {step === 'select-members' && selectedFamily && selectedFamily.members.length > 0 && opportunitiesQuery.data && (() => {
         // Calculate total activities count once for performance
         const totalActivities = getTotalActivitiesCount(selectedCheckins);
 

@@ -44,8 +44,7 @@ export async function getCheckinConfiguration(
 
 /**
  * Search for families to check in.
- * Uses POST /checkin/search with body to avoid query-string URL mismatch
- * with E2E route interception patterns.
+ * Uses GET /families/search?query=... to match E2E route interception patterns.
  *
  * The response `data` array may arrive in either the backend DTO format
  * (familyIdKey / familyName / personIdKey) or the frontend DTO format
@@ -55,18 +54,41 @@ export async function getCheckinConfiguration(
 export async function searchFamiliesForCheckin(
   request: CheckinSearchRequest
 ): Promise<CheckinFamilyDto[]> {
-  const response = await post<{ data: Array<CheckinFamilySearchResultDto & Partial<CheckinFamilyDto>> }>(
-    '/checkin/search',
-    { searchValue: request.searchValue, searchType: request.searchType }
+  const query = encodeURIComponent(request.searchValue);
+  // Use a shorter timeout for kiosk search — users expect fast feedback
+  const response = await get<Record<string, unknown>>(
+    `/families/search?query=${query}`,
+    { timeout: 5000 }
   );
-  return response.data.map((item) => {
-    // Backend format has familyIdKey; mock/frontend format has idKey directly
-    if (item.familyIdKey) {
-      return mapSearchResultToFamily(item as CheckinFamilySearchResultDto);
-    }
-    // Already in frontend DTO shape (from mocked responses)
-    return item as unknown as CheckinFamilyDto;
-  });
+
+  // Handle { data: [...] } format (backend & most mocks)
+  const dataArray = response.data as Array<CheckinFamilySearchResultDto & Partial<CheckinFamilyDto>> | undefined;
+  if (Array.isArray(dataArray)) {
+    return dataArray.map((item) => {
+      // Backend format has familyIdKey; mock/frontend format has idKey directly
+      if (item.familyIdKey) {
+        return mapSearchResultToFamily(item as CheckinFamilySearchResultDto);
+      }
+      // Already in frontend DTO shape (from mocked responses)
+      return item as unknown as CheckinFamilyDto;
+    });
+  }
+
+  // Handle single-family format: { family: { idKey, name }, members: [...] }
+  const family = response.family as { idKey?: string; name?: string } | undefined;
+  const members = response.members as CheckinFamilyMemberDto[] | undefined;
+  if (family && family.idKey) {
+    return [{
+      idKey: family.idKey,
+      name: family.name ?? '',
+      members: Array.isArray(members)
+        ? members.map(mapMemberToPersonDto)
+        : [],
+    }];
+  }
+
+  // Fallback: return empty array
+  return [];
 }
 
 /**
