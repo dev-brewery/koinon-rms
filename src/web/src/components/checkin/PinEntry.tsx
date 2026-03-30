@@ -49,6 +49,7 @@ export function PinEntry({ onSubmit, onCancel, loading, error }: PinEntryProps) 
 
       {/* PIN Display */}
       <div
+        data-testid="pin-display"
         className="mb-6 flex justify-center gap-3"
         onKeyDown={handleKeyPress}
         tabIndex={0}
@@ -91,7 +92,7 @@ export function PinEntry({ onSubmit, onCancel, loading, error }: PinEntryProps) 
           disabled={loading || pin.length === 0}
           className="min-h-[64px] text-lg font-semibold bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 hover:border-red-400 active:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          Clear
+          Reset
         </button>
         <button
           onClick={() => handleNumberClick(0)}
@@ -103,6 +104,7 @@ export function PinEntry({ onSubmit, onCancel, loading, error }: PinEntryProps) 
         <button
           onClick={() => setPin(pin.slice(0, -1))}
           disabled={loading || pin.length === 0}
+          aria-label="Backspace"
           className="min-h-[64px] text-lg font-semibold bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 hover:border-yellow-400 active:bg-yellow-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           ⌫
@@ -132,7 +134,9 @@ export function PinEntry({ onSubmit, onCancel, loading, error }: PinEntryProps) 
       </div>
 
       <p className="text-sm text-gray-600 text-center mt-4">
-        Enter your 4-6 digit supervisor PIN
+        {pin.length < 4
+          ? 'Please enter at least 4 digits to complete PIN'
+          : 'PIN ready — press Submit'}
       </p>
     </Card>
   );
