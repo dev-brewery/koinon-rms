@@ -189,9 +189,24 @@ export function FamilyDetailPage() {
       {/* Members Section */}
       <div className="bg-white rounded-lg border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Family Members ({family.members.length})
-          </h2>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">
+              Family Members ({family.members.length})
+            </h2>
+            {family.members.length > 0 && (() => {
+              const roleCounts = family.members.reduce((acc, m) => {
+                const roleName = m.role.name;
+                acc[roleName] = (acc[roleName] || 0) + 1;
+                return acc;
+              }, {} as Record<string, number>);
+              const summary = Object.entries(roleCounts)
+                .map(([role, count]) => `${count} ${role}${count > 1 ? 's' : ''}`)
+                .join(', ');
+              return (
+                <p className="text-sm text-gray-500 mt-0.5">{summary}</p>
+              );
+            })()}
+          </div>
           <button
             onClick={() => setIsAddMemberModalOpen(true)}
             className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
