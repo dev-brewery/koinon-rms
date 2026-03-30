@@ -1,3 +1,4 @@
+using Koinon.Api.Attributes;
 using Koinon.Api.Filters;
 using Koinon.Application.Common;
 using Koinon.Application.DTOs;
@@ -11,14 +12,49 @@ namespace Koinon.Api.Controllers;
 /// <summary>
 /// Controller for family (household) management operations.
 /// Provides endpoints for creating and managing family members.
+/// NOTE: [Authorize] is on each method (not the class) so the kiosk search
+/// endpoint can use [AllowAnonymous] + [KioskAuthorize] without conflict.
 /// </summary>
 [ApiController]
 [Route("api/v1/[controller]")]
-[Authorize]
 public class FamiliesController(
     IFamilyService familyService,
+    ICheckinSearchService checkinSearchService,
     ILogger<FamiliesController> logger) : ControllerBase
 {
+    /// <summary>
+    /// Searches for families by phone number or name for kiosk check-in.
+    /// No JWT required — uses kiosk device auth instead.
+    /// </summary>
+    [HttpGet("search")]
+    [AllowAnonymous]
+    [KioskAuthorize]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> SearchForCheckin(
+        [FromQuery] string? query = null,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid request",
+                Detail = "Search query is required",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        var families = await checkinSearchService.SearchAsync(query, ct);
+
+        logger.LogInformation(
+            "Family checkin search completed: Query={Query}, ResultCount={ResultCount}",
+            query, families.Count);
+
+        return Ok(new { data = families });
+    }
+
     /// <summary>
     /// Searches for families with optional filters and pagination.
     /// </summary>
@@ -31,6 +67,7 @@ public class FamiliesController(
     /// <returns>Paginated list of families</returns>
     /// <response code="200">Returns paginated list of families</response>
     [HttpGet]
+    [Authorize]
     [ValidateIdKey]
     [ProducesResponseType(typeof(PagedResult<FamilySummaryDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> Search(
@@ -87,6 +124,7 @@ public class FamiliesController(
     /// <response code="403">Not authorized to access this family</response>
     /// <response code="404">Family not found</response>
     [HttpGet("{idKey}")]
+    [Authorize]
     [ValidateIdKey]
     [ProducesResponseType(typeof(FamilyDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
@@ -135,6 +173,7 @@ public class FamiliesController(
     /// <response code="403">Not authorized to access this family</response>
     /// <response code="404">Family not found</response>
     [HttpGet("{idKey}/members")]
+    [Authorize]
     [ValidateIdKey]
     [ProducesResponseType(typeof(List<FamilyMemberDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
@@ -186,6 +225,7 @@ public class FamiliesController(
     /// <response code="400">Validation failed</response>
     /// <response code="422">Business rule violation</response>
     [HttpPost]
+    [Authorize]
     [ProducesResponseType(typeof(FamilyDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
@@ -245,6 +285,7 @@ public class FamiliesController(
     /// <response code="403">Not authorized to modify this family</response>
     /// <response code="404">Family not found</response>
     [HttpPut("{idKey}")]
+    [Authorize]
     [ValidateIdKey]
     [ProducesResponseType(typeof(FamilyDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -320,6 +361,7 @@ public class FamiliesController(
     /// <response code="404">Family or person not found</response>
     /// <response code="422">Business rule violation</response>
     [HttpPost("{idKey}/members")]
+    [Authorize]
     [ValidateIdKey]
     [ProducesResponseType(typeof(FamilyMemberDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -397,6 +439,7 @@ public class FamiliesController(
     /// <response code="404">Family or person not found</response>
     /// <response code="422">Business rule violation</response>
     [HttpDelete("{idKey}/members/{personIdKey}")]
+    [Authorize]
     [ValidateIdKey]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]

@@ -42,6 +42,8 @@ export function PhoneSearch({ onSearch, loading, onInputChange }: PhoneSearchPro
   const handleSearch = () => {
     if (phone.length < 10) {
       setValidationError('Invalid phone number — please enter at least 10 digits');
+      // Keep focus on phone input for accessibility
+      inputRef.current?.focus();
       return;
     }
     setValidationError(null);
@@ -96,6 +98,7 @@ export function PhoneSearch({ onSearch, loading, onInputChange }: PhoneSearchPro
               maxLength={10}
               className="absolute inset-0 w-full h-full opacity-0 cursor-default"
               aria-label="Phone number"
+              aria-describedby={validationError ? 'phone-validation-error' : undefined}
               autoFocus
             />
             <p className="text-4xl font-mono font-bold text-gray-900 min-h-[3rem]">
@@ -146,7 +149,7 @@ export function PhoneSearch({ onSearch, loading, onInputChange }: PhoneSearchPro
 
         {/* Validation Error */}
         {validationError && (
-          <p className="text-center text-sm text-red-600 mt-4" role="alert">
+          <p id="phone-validation-error" className="text-center text-sm text-red-600 mt-4" role="alert">
             {validationError}
           </p>
         )}
