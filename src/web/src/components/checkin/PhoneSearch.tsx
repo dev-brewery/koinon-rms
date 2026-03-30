@@ -138,7 +138,7 @@ export function PhoneSearch({ onSearch, loading, onInputChange }: PhoneSearchPro
           size="lg"
           className="w-full text-xl"
         >
-          Find Family
+          Search
         </Button>
 
         {/* Validation Error */}
