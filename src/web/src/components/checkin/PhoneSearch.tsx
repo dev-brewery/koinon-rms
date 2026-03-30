@@ -40,7 +40,7 @@ export function PhoneSearch({ onSearch, loading, onInputChange }: PhoneSearchPro
   };
 
   const handleSearch = () => {
-    if (phone.length < 4) {
+    if (phone.length < 10) {
       setValidationError('Please enter a valid phone number (at least 10 digits)');
       return;
     }
@@ -49,14 +49,17 @@ export function PhoneSearch({ onSearch, loading, onInputChange }: PhoneSearchPro
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+    const rawValue = e.target.value;
+    const digits = rawValue.replace(/\D/g, '').slice(0, 10);
     setPhone(digits);
-    onInputChange?.(digits.length > 0);
+    // Signal input activity based on raw value so non-digit input
+    // still hides the search-mode toggles (strict-mode safe)
+    onInputChange?.(rawValue.length > 0);
   };
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && phone.length >= 4) {
-      onSearch(phone);
+    if (e.key === 'Enter') {
+      handleSearch();
     }
   };
 
@@ -134,7 +137,7 @@ export function PhoneSearch({ onSearch, loading, onInputChange }: PhoneSearchPro
         <Button
           onClick={handleSearch}
           loading={loading}
-          disabled={phone.length === 0}
+          disabled={loading}
           size="lg"
           className="w-full text-xl"
         >
@@ -151,7 +154,7 @@ export function PhoneSearch({ onSearch, loading, onInputChange }: PhoneSearchPro
         {/* Helper Text */}
         {!validationError && (
           <p className="text-center text-sm text-gray-500 mt-4">
-            Enter at least 4 digits to search
+            Enter at least 10 digits to search
           </p>
         )}
       </div>

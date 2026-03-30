@@ -124,6 +124,11 @@ export function CheckoutFlow({ currentAttendance, onCheckout }: CheckoutFlowProp
                   ? 'No matching check-ins found'
                   : 'No one is currently checked in'}
               </p>
+              {!searchQuery && (
+                <p className="text-gray-500 text-sm mt-2">
+                  When families check in, you can verify a security code to check them out.
+                </p>
+              )}
             </div>
           ) : (
             <div className="space-y-3">
