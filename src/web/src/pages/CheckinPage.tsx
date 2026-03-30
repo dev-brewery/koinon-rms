@@ -49,8 +49,8 @@ type SearchMode = 'phone' | 'name' | 'qr';
 // for multi-step E2E tests (~15-20s) to complete without triggering.
 const IS_DEV = import.meta.env.DEV;
 const IDLE_CONFIG = {
-  timeout: IS_DEV ? 120 * 1000 : 60 * 1000,
-  warningTime: IS_DEV ? 110 * 1000 : 50 * 1000,
+  timeout: IS_DEV ? 12 * 1000 : 60 * 1000,
+  warningTime: IS_DEV ? 8 * 1000 : 50 * 1000,
 };
 
 export function CheckinPage() {
