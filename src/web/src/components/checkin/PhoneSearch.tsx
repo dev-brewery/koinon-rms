@@ -41,7 +41,7 @@ export function PhoneSearch({ onSearch, loading, onInputChange }: PhoneSearchPro
 
   const handleSearch = () => {
     if (phone.length < 10) {
-      setValidationError('Please enter a valid phone number (at least 10 digits)');
+      setValidationError('Invalid phone number — please enter at least 10 digits');
       return;
     }
     setValidationError(null);
@@ -137,7 +137,7 @@ export function PhoneSearch({ onSearch, loading, onInputChange }: PhoneSearchPro
         <Button
           onClick={handleSearch}
           loading={loading}
-          disabled={loading || phone.length === 0}
+          disabled={loading}
           size="lg"
           className="w-full text-xl"
         >

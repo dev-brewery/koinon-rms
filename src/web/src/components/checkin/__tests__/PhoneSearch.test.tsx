@@ -66,11 +66,16 @@ describe('PhoneSearch', () => {
     expect(mockOnSearch).toHaveBeenCalledWith('5551234567');
   });
 
-  it('should disable search button with less than 4 digits', () => {
+  it('should show validation error when searching with no digits', async () => {
+    const user = userEvent.setup();
     render(<PhoneSearch onSearch={mockOnSearch} />);
 
     const submitButton = screen.getByRole('button', { name: /search/i });
-    expect(submitButton).toBeDisabled();
+    await user.click(submitButton);
+
+    // Should show validation error instead of calling onSearch
+    expect(screen.getByText(/invalid phone|10 digits/i)).toBeInTheDocument();
+    expect(mockOnSearch).not.toHaveBeenCalled();
   });
 
   it('should format phone number as typed', async () => {
