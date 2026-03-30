@@ -234,6 +234,81 @@ public class FamiliesController(
     }
 
     /// <summary>
+    /// Updates a family's basic details (name, campus).
+    /// </summary>
+    /// <param name="idKey">The family's unique IdKey</param>
+    /// <param name="request">Fields to update</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Updated family details</returns>
+    /// <response code="200">Family updated successfully</response>
+    /// <response code="400">Validation failed</response>
+    /// <response code="403">Not authorized to modify this family</response>
+    /// <response code="404">Family not found</response>
+    [HttpPut("{idKey}")]
+    [ValidateIdKey]
+    [ProducesResponseType(typeof(FamilyDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Update(
+        string idKey,
+        [FromBody] UpdateFamilyRequest request,
+        CancellationToken ct = default)
+    {
+        var result = await familyService.UpdateFamilyAsync(idKey, request, ct);
+
+        if (result.IsFailure)
+        {
+            logger.LogWarning(
+                "Failed to update family: IdKey={IdKey}, Code={Code}, Message={Message}",
+                idKey, result.Error!.Code, result.Error.Message);
+
+            return result.Error.Code switch
+            {
+                "NOT_FOUND" => NotFound(new ProblemDetails
+                {
+                    Title = "Family not found",
+                    Detail = result.Error.Message,
+                    Status = StatusCodes.Status404NotFound,
+                    Instance = HttpContext.Request.Path
+                }),
+                "VALIDATION_ERROR" => BadRequest(new ProblemDetails
+                {
+                    Title = result.Error.Message,
+                    Detail = result.Error.Details != null
+                        ? string.Join("; ", result.Error.Details.SelectMany(kvp => kvp.Value))
+                        : null,
+                    Status = StatusCodes.Status400BadRequest,
+                    Instance = HttpContext.Request.Path,
+                    Extensions = { ["errors"] = result.Error.Details }
+                }),
+                "FORBIDDEN" => StatusCode(StatusCodes.Status403Forbidden, new ProblemDetails
+                {
+                    Title = "Access denied",
+                    Detail = result.Error.Message,
+                    Status = StatusCodes.Status403Forbidden,
+                    Instance = HttpContext.Request.Path
+                }),
+                _ => UnprocessableEntity(new ProblemDetails
+                {
+                    Title = result.Error.Code,
+                    Detail = result.Error.Message,
+                    Status = StatusCodes.Status422UnprocessableEntity,
+                    Instance = HttpContext.Request.Path
+                })
+            };
+        }
+
+        var family = result.Value!;
+
+        logger.LogInformation(
+            "Family updated successfully: IdKey={IdKey}, Name={Name}",
+            family.IdKey, family.Name);
+
+        return Ok(new { data = family });
+    }
+
+    /// <summary>
     /// Adds a member to a family.
     /// </summary>
     /// <param name="idKey">The family's IdKey</param>

@@ -117,7 +117,7 @@ export function Header({ onMenuClick }: HeaderProps) {
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsUserMenuOpen(!isUserMenuOpen); } }}
               aria-haspopup="true"
               aria-expanded={isUserMenuOpen}
-              aria-label={`User menu for ${user?.firstName} ${user?.lastName}`}
+              aria-label={`Account options for ${user?.firstName} ${user?.lastName}`}
               className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
             >
               <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center">
