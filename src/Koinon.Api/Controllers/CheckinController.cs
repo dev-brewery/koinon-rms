@@ -178,6 +178,42 @@ public class CheckinController(
     }
 
     /// <summary>
+    /// Searches for families by phone number, name, or security code (POST variant).
+    /// Accepts search parameters in request body instead of query string.
+    /// </summary>
+    /// <param name="request">Search request containing query value</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>List of matching families</returns>
+    [HttpPost("search")]
+    [KioskAuthorize]
+    [ProducesResponseType(typeof(List<CheckinFamilySearchResultDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> SearchFamiliesPost(
+        [FromBody] CheckinSearchRequestDto request,
+        CancellationToken ct = default)
+    {
+        var query = request.SearchValue;
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid request",
+                Detail = "Search query is required",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        var families = await searchService.SearchAsync(query, ct);
+
+        logger.LogInformation(
+            "Family search (POST) completed: Query={Query}, ResultCount={ResultCount}",
+            query, families.Count);
+
+        return Ok(new { data = families });
+    }
+
+    /// <summary>
     /// Gets check-in opportunities for a family.
     /// Returns each family member with their available groups, locations, and schedules.
     /// </summary>

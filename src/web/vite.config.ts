@@ -9,6 +9,9 @@ export default defineConfig(({ mode }) => ({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      devOptions: {
+        enabled: true,
+      },
       includeAssets: ['icons/icon-192x192.png', 'icons/icon-512x512.png'],
       manifest: {
         name: 'Koinon Check-in',

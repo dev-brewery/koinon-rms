@@ -5,12 +5,13 @@ import { Button } from '@/components/ui/Button';
 export interface FamilySearchProps {
   onSearch: (name: string) => void;
   loading?: boolean;
+  onInputChange?: (hasInput: boolean) => void;
 }
 
 /**
  * Search by name alternative to phone search
  */
-export function FamilySearch({ onSearch, loading }: FamilySearchProps) {
+export function FamilySearch({ onSearch, loading, onInputChange }: FamilySearchProps) {
   const [name, setName] = useState('');
 
   const handleSearch = (e: React.FormEvent) => {
@@ -33,7 +34,10 @@ export function FamilySearch({ onSearch, loading }: FamilySearchProps) {
         <form onSubmit={handleSearch} className="space-y-6">
           <Input
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => {
+              setName(e.target.value);
+              onInputChange?.(e.target.value.length > 0);
+            }}
             placeholder="Last name..."
             className="text-2xl py-6"
             autoFocus
@@ -46,7 +50,7 @@ export function FamilySearch({ onSearch, loading }: FamilySearchProps) {
             size="lg"
             className="w-full text-xl"
           >
-            Search
+            Find Family
           </Button>
 
           <p className="text-center text-sm text-gray-500">

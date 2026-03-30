@@ -66,17 +66,16 @@ export function useSupervisorAttendance(
   locationIdKeys: string[] | undefined,
   enabled: boolean = true
 ) {
-  const isEnabled = enabled && !!locationIdKeys && locationIdKeys.length > 0;
+  // Enable query whenever supervisor mode is active, even without location IDs.
+  // An empty locationIdKeys array fetches all locations (server returns all rosters).
+  const isEnabled = enabled;
 
   return useQuery({
     queryKey: ['supervisor', 'attendance', locationIdKeys],
     queryFn: async () => {
-      if (!locationIdKeys || locationIdKeys.length === 0) {
-        return [];
-      }
-
       try {
-        const rosters = await checkinApi.getMultipleRoomRosters(locationIdKeys);
+        const keys = locationIdKeys ?? [];
+        const rosters = await checkinApi.getMultipleRoomRosters(keys);
         return aggregateRostersToAttendance(rosters);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';

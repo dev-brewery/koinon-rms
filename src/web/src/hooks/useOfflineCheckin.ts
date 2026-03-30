@@ -7,6 +7,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { CheckinRequestItem, BatchCheckinResultDto } from '@/services/api/types';
 import { recordAttendance } from '@/services/api/checkin';
+import { ApiClientError } from '@/services/api/client';
 import { offlineCheckinQueue, type SyncResult } from '@/services/offline/OfflineCheckinQueue';
 
 export type CheckinMode = 'online' | 'offline';
@@ -63,7 +64,9 @@ export function useOfflineCheckin(): UseOfflineCheckinResult {
    * Sync queue with server
    */
   const syncQueue = useCallback(async () => {
-    if (!isOnline) {
+    // Use navigator.onLine instead of React state to avoid stale closure
+    // when called from the 'online' event handler (state update not yet committed).
+    if (!navigator.onLine) {
       return;
     }
 
@@ -104,7 +107,7 @@ export function useOfflineCheckin(): UseOfflineCheckinResult {
         setSyncStatus('idle');
       }, 3000);
     }
-  }, [isOnline, queryClient, updateQueuedCount]);
+  }, [queryClient, updateQueuedCount]);
 
   /**
    * Clear entire queue
@@ -125,8 +128,12 @@ export function useOfflineCheckin(): UseOfflineCheckinResult {
           const response = await onlineCheckinMutation.mutateAsync(items);
           return response;
         } catch (error) {
-          // If online check-in fails, fall back to queue
-          console.warn('Online check-in failed, adding to queue:', error);
+          // Server errors (4xx/5xx) should propagate to caller for user-facing error
+          if (error instanceof ApiClientError) {
+            throw error;
+          }
+          // Network errors (TypeError: Failed to fetch, etc.) fall back to offline queue
+          console.warn('Online check-in failed (network), adding to queue:', error);
           await offlineCheckinQueue.addToQueue(items);
           await updateQueuedCount();
           // Don't throw - let caller know it was queued
