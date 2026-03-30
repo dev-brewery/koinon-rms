@@ -415,6 +415,67 @@ public class FamilyService(
         return Result.Success();
     }
 
+    public async Task<Result<FamilyDto>> UpdateFamilyAsync(
+        string idKey,
+        UpdateFamilyRequest request,
+        CancellationToken ct = default)
+    {
+        if (!IdKeyHelper.TryDecode(idKey, out int familyId))
+        {
+            return Result<FamilyDto>.Failure(Error.NotFound("Family", idKey));
+        }
+
+        // Authorization check - throws if user doesn't have access
+        try
+        {
+            await AuthorizeFamilyAccessAsync(familyId, nameof(UpdateFamilyAsync), ct);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            logger.LogWarning(ex, "Unauthorized attempt to update family {FamilyId}", familyId);
+            return Result<FamilyDto>.Failure(Error.Forbidden("Not authorized to modify this family"));
+        }
+
+        // AsTracking required: global QueryTrackingBehavior is NoTracking
+        var family = await context.Families
+            .AsTracking()
+            .FirstOrDefaultAsync(f => f.Id == familyId, ct);
+
+        if (family is null)
+        {
+            return Result<FamilyDto>.Failure(Error.NotFound("Family", idKey));
+        }
+
+        if (request.Name is not null)
+        {
+            family.Name = request.Name;
+        }
+
+        if (request.CampusId is not null)
+        {
+            if (IdKeyHelper.TryDecode(request.CampusId, out int campusId))
+            {
+                family.CampusId = campusId;
+            }
+            else
+            {
+                return Result<FamilyDto>.Failure(
+                    Error.Validation("Invalid campus IdKey"));
+            }
+        }
+
+        family.ModifiedDateTime = DateTime.UtcNow;
+
+        await context.SaveChangesAsync(ct);
+
+        logger.LogInformation("Updated family {FamilyId}: Name={Name}", family.Id, family.Name);
+
+        var updatedFamily = await GetByIdAsync(family.Id, ct);
+        return updatedFamily != null
+            ? Result<FamilyDto>.Success(updatedFamily)
+            : Result<FamilyDto>.Failure(Error.UnprocessableEntity("Failed to retrieve updated family"));
+    }
+
     public Task<Result<FamilyDto>> UpdateAddressAsync(
         string familyIdKey,
         UpdateFamilyAddressRequest request,
