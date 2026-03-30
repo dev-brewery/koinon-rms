@@ -1,6 +1,22 @@
 namespace Koinon.Application.DTOs;
 
 /// <summary>
+/// Request body for POST /checkin/search.
+/// </summary>
+public record CheckinSearchRequestDto
+{
+    /// <summary>
+    /// Search query (phone number, name, or security code).
+    /// </summary>
+    public required string SearchValue { get; init; }
+
+    /// <summary>
+    /// Optional search type hint (Phone, Name, Auto). Defaults to Auto.
+    /// </summary>
+    public string? SearchType { get; init; }
+}
+
+/// <summary>
 /// Family search result for check-in kiosk operations.
 /// Includes family summary and all active members for quick selection.
 /// </summary>

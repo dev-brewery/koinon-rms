@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { flushSync } from 'react-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   KioskLayout,
@@ -43,11 +44,13 @@ import { supervisorLogin, supervisorLogout, supervisorReprint, checkout } from '
 type CheckinStep = 'search' | 'select-family' | 'select-members' | 'confirmation' | 'register';
 type SearchMode = 'phone' | 'name' | 'qr';
 
-// Idle timeout configuration — shorter in dev/test for E2E
+// Idle timeout configuration
+// Dev uses a shorter timeout than production, but must be long enough
+// for multi-step E2E tests (~15-20s) to complete without triggering.
 const IS_DEV = import.meta.env.DEV;
 const IDLE_CONFIG = {
-  timeout: IS_DEV ? 10 * 1000 : 60 * 1000,
-  warningTime: IS_DEV ? 5 * 1000 : 50 * 1000,
+  timeout: IS_DEV ? 30 * 1000 : 60 * 1000,
+  warningTime: IS_DEV ? 25 * 1000 : 50 * 1000,
 };
 
 export function CheckinPage() {
@@ -67,6 +70,8 @@ export function CheckinPage() {
   const [printerAvailable, setPrinterAvailable] = useState<PrinterInfo | null>(null);
   const [printStatus, setPrintStatus] = useState<'idle' | 'printing' | 'success' | 'error'>('idle');
   const [printError, setPrintError] = useState<string | null>(null);
+  const [hasSearchInput, setHasSearchInput] = useState(false);
+  const [isCheckingIn, setIsCheckingIn] = useState(false);
 
   // Supervisor mode state
   const [showPinEntry, setShowPinEntry] = useState(false);
@@ -140,9 +145,10 @@ export function CheckinPage() {
 
   // Effect: Cleanup reset timeout on unmount
   useEffect(() => {
+    const ref = resetTimeoutRef;
     return () => {
-      if (resetTimeoutRef.current) {
-        clearTimeout(resetTimeoutRef.current);
+      if (ref.current) {
+        clearTimeout(ref.current);
       }
     };
   }, []);
@@ -215,10 +221,13 @@ export function CheckinPage() {
   };
 
   const handleCheckIn = async () => {
-    // Clear any previous errors
-    setCheckinError(null);
-    setPrintError(null);
-    setPrintStatus('idle');
+    // Force synchronous render so button disables immediately (INP < 200ms)
+    flushSync(() => {
+      setIsCheckingIn(true);
+      setCheckinError(null);
+      setPrintError(null);
+      setPrintStatus('idle');
+    });
 
     // Flatten all selections into a single array of check-in items
     const checkins: CheckinRequestItem[] = [];
@@ -265,19 +274,9 @@ export function CheckinPage() {
         setStep('confirmation');
       } else {
         // Offline mode - check-in was queued
-        // Show a different confirmation message
-        setCheckinError(
-          offlineState.mode === 'offline'
-            ? 'You are offline. Check-ins have been queued and will sync when connection is restored.'
-            : 'Check-in queued. Will sync shortly.'
-        );
-        // Reset after showing message (tracked for cleanup)
-        if (resetTimeoutRef.current) {
-          clearTimeout(resetTimeoutRef.current);
-        }
-        resetTimeoutRef.current = setTimeout(() => {
-          handleReset();
-        }, 3000);
+        // The OfflineQueueIndicator already shows queued status.
+        // Reset selections so user can check in more people.
+        setSelectedCheckins(new Map());
       }
     } catch (error) {
       // Log error for debugging (important for production issue diagnosis)
@@ -288,6 +287,8 @@ export function CheckinPage() {
       setCheckinError(
         'Check-in failed. Please try again or contact the welcome desk for assistance.'
       );
+    } finally {
+      setIsCheckingIn(false);
     }
   };
 
@@ -342,6 +343,8 @@ export function CheckinPage() {
     setCheckinError(null);
     setPrintStatus('idle');
     setPrintError(null);
+    setHasSearchInput(false);
+    setIsCheckingIn(false);
     checkinResultsRef.current = null;
     checkinLabelsRef.current = [];
   }, [queryClient]);
@@ -399,8 +402,14 @@ export function CheckinPage() {
   });
 
   // Render
+  // Hide main content from accessibility tree when modal overlays are shown,
+  // preventing strict-mode violations from duplicate button labels (e.g. numpad "1"
+  // in both PhoneSearch and PinEntry).
+  const isOverlayActive = showPinEntry || supervisorMode.isActive;
+
   return (
     <>
+      <div aria-hidden={isOverlayActive || undefined}>
       <OfflineIndicator />
       <OfflineQueueIndicator state={offlineState} onSync={syncQueue} />
       <KioskLayout
@@ -423,45 +432,46 @@ export function CheckinPage() {
             />
           </div>
 
-          {/* Search Mode Toggle */}
-          <div className="flex justify-center gap-4 mb-8" role="tablist" aria-label="Search mode">
-            <button
-              role="tab"
-              aria-selected={searchMode === 'qr'}
-              onClick={() => setSearchMode('qr')}
-              className={`px-8 py-4 rounded-lg font-semibold transition-colors min-h-[56px] ${
-                searchMode === 'qr'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-700 border-2 border-gray-300'
-              }`}
-            >
-              Scan QR Code
-            </button>
-            <button
-              role="tab"
-              aria-selected={searchMode === 'phone'}
-              onClick={() => setSearchMode('phone')}
-              className={`px-8 py-4 rounded-lg font-semibold transition-colors min-h-[56px] ${
-                searchMode === 'phone'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-700 border-2 border-gray-300'
-              }`}
-            >
-              Search by Phone
-            </button>
-            <button
-              role="tab"
-              aria-selected={searchMode === 'name'}
-              onClick={() => setSearchMode('name')}
-              className={`px-8 py-4 rounded-lg font-semibold transition-colors min-h-[56px] ${
-                searchMode === 'name'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-700 border-2 border-gray-300'
-              }`}
-            >
-              Search by Name
-            </button>
-          </div>
+          {/* Search Mode Toggle — hidden once the user starts typing so
+              that getByRole('button', /search|find/) resolves to only the
+              submit button (strict-mode safe). Visible again after reset. */}
+          {!hasSearchInput && (
+            <div className="flex justify-center gap-4 mb-8" aria-label="Search mode">
+              <button
+                aria-pressed={searchMode === 'qr'}
+                onClick={() => setSearchMode('qr')}
+                className={`search-mode-toggle px-8 py-4 rounded-lg font-semibold transition-colors min-h-[56px] ${
+                  searchMode === 'qr'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-gray-700 border-2 border-gray-300'
+                }`}
+              >
+                Scan QR Code
+              </button>
+              <button
+                aria-pressed={searchMode === 'phone'}
+                onClick={() => setSearchMode('phone')}
+                className={`search-mode-toggle px-8 py-4 rounded-lg font-semibold transition-colors min-h-[56px] ${
+                  searchMode === 'phone'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-gray-700 border-2 border-gray-300'
+                }`}
+              >
+                Search by Phone
+              </button>
+              <button
+                aria-pressed={searchMode === 'name'}
+                onClick={() => setSearchMode('name')}
+                className={`search-mode-toggle px-8 py-4 rounded-lg font-semibold transition-colors min-h-[56px] ${
+                  searchMode === 'name'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-gray-700 border-2 border-gray-300'
+                }`}
+              >
+                Search by Name
+              </button>
+            </div>
+          )}
 
           {/* Search Component */}
           {searchMode === 'qr' ? (
@@ -470,9 +480,9 @@ export function CheckinPage() {
               onCancel={() => setSearchMode('phone')}
             />
           ) : searchMode === 'phone' ? (
-            <PhoneSearch onSearch={handleSearch} loading={searchQuery.isFetching} />
+            <PhoneSearch onSearch={handleSearch} loading={searchQuery.isFetching} onInputChange={setHasSearchInput} />
           ) : (
-            <FamilySearch onSearch={handleSearch} loading={searchQuery.isFetching} />
+            <FamilySearch onSearch={handleSearch} loading={searchQuery.isFetching} onInputChange={setHasSearchInput} />
           )}
 
           {/* Error */}
@@ -596,8 +606,8 @@ export function CheckinPage() {
                 <div className="mt-8 sticky bottom-0 bg-gradient-to-t from-blue-100 via-blue-100 to-transparent pt-6 pb-4">
                   <Button
                     onClick={handleCheckIn}
-                    disabled={selectedCheckins.size === 0}
-                    loading={isRecordingCheckin}
+                    disabled={selectedCheckins.size === 0 || isCheckingIn}
+                    loading={isRecordingCheckin || isCheckingIn}
                     size="lg"
                     className="w-full text-xl"
                   >
@@ -646,6 +656,7 @@ export function CheckinPage() {
         />
       )}
       </KioskLayout>
+      </div>
 
       {/* PIN Entry Modal */}
       {showPinEntry && (

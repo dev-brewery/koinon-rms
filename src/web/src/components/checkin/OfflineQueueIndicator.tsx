@@ -65,8 +65,8 @@ export function OfflineQueueIndicator({ state, onSync }: OfflineQueueIndicatorPr
               </p>
               <p className="text-sm text-blue-700">
                 {mode === 'offline'
-                  ? 'Will sync when online'
-                  : 'Ready to sync'}
+                  ? 'Awaiting connection'
+                  : 'Ready'}
               </p>
             </div>
             {mode === 'online' && onSync && (
@@ -74,7 +74,7 @@ export function OfflineQueueIndicator({ state, onSync }: OfflineQueueIndicatorPr
                 onClick={onSync}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors text-sm"
               >
-                Sync Now
+                Send Now
               </button>
             )}
           </div>
@@ -116,7 +116,7 @@ export function OfflineQueueIndicator({ state, onSync }: OfflineQueueIndicatorPr
               </svg>
             </div>
             <div>
-              <p className="font-semibold text-green-900">Sync complete!</p>
+              <p className="font-semibold text-green-900">All done!</p>
               <p className="text-sm text-green-700">
                 {lastSyncResults.filter(r => r.success).length} check-ins synced
                 {lastSyncResults.some(r => r.isDuplicate) &&

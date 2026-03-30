@@ -4,12 +4,13 @@ import { Button } from '@/components/ui/Button';
 export interface PhoneSearchProps {
   onSearch: (phone: string) => void;
   loading?: boolean;
+  onInputChange?: (hasInput: boolean) => void;
 }
 
 /**
  * Phone number entry with large numpad for kiosk
  */
-export function PhoneSearch({ onSearch, loading }: PhoneSearchProps) {
+export function PhoneSearch({ onSearch, loading, onInputChange }: PhoneSearchProps) {
   const [phone, setPhone] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -21,16 +22,21 @@ export function PhoneSearch({ onSearch, loading }: PhoneSearchProps) {
 
   const handleDigit = (digit: string) => {
     if (phone.length < 10) {
-      setPhone(phone + digit);
+      const newPhone = phone + digit;
+      setPhone(newPhone);
+      onInputChange?.(newPhone.length > 0);
     }
   };
 
   const handleClear = () => {
     setPhone('');
+    onInputChange?.(false);
   };
 
   const handleBackspace = () => {
-    setPhone(phone.slice(0, -1));
+    const newPhone = phone.slice(0, -1);
+    setPhone(newPhone);
+    onInputChange?.(newPhone.length > 0);
   };
 
   const handleSearch = () => {
@@ -45,6 +51,7 @@ export function PhoneSearch({ onSearch, loading }: PhoneSearchProps) {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
     setPhone(digits);
+    onInputChange?.(digits.length > 0);
   };
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -131,7 +138,7 @@ export function PhoneSearch({ onSearch, loading }: PhoneSearchProps) {
           size="lg"
           className="w-full text-xl"
         >
-          Search
+          Find Family
         </Button>
 
         {/* Validation Error */}
