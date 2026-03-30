@@ -62,6 +62,7 @@ export function CheckinPage() {
   const [searchMode, setSearchMode] = useState<SearchMode>('phone');
   const [searchValue, setSearchValue] = useState<string>('');
   const [qrScannedIdKey, setQrScannedIdKey] = useState<string | null>(null);
+  const [showQrScanner, setShowQrScanner] = useState(false);
   const [selectedFamily, setSelectedFamily] = useState<CheckinFamilyDto | null>(null);
   const [selectedCheckins, setSelectedCheckins] = useState<
     Map<string, OpportunitySelection[]>
@@ -338,6 +339,7 @@ export function CheckinPage() {
     setStep('search');
     setSearchValue('');
     setQrScannedIdKey(null);
+    setShowQrScanner(false);
     setSelectedFamily(null);
     setSelectedCheckins(new Map());
     setCheckinError(null);
@@ -405,7 +407,7 @@ export function CheckinPage() {
   // Hide main content from accessibility tree when modal overlays are shown,
   // preventing strict-mode violations from duplicate button labels (e.g. numpad "1"
   // in both PhoneSearch and PinEntry).
-  const isOverlayActive = showPinEntry || supervisorMode.isActive;
+  const isOverlayActive = showPinEntry || supervisorMode.isActive || showQrScanner;
 
   return (
     <>
@@ -438,13 +440,9 @@ export function CheckinPage() {
           {!hasSearchInput && (
             <div className="flex justify-center gap-4 mb-8" aria-label="Search mode">
               <button
-                aria-pressed={searchMode === 'qr'}
-                onClick={() => setSearchMode('qr')}
-                className={`search-mode-toggle px-8 py-4 rounded-lg font-semibold transition-colors min-h-[56px] ${
-                  searchMode === 'qr'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-700 border-2 border-gray-300'
-                }`}
+                data-testid="qr-scanner-button"
+                onClick={() => setShowQrScanner(true)}
+                className="search-mode-toggle px-8 py-4 rounded-lg font-semibold transition-colors min-h-[56px] bg-white text-gray-700 border-2 border-gray-300"
               >
                 Scan QR Code
               </button>
@@ -474,15 +472,10 @@ export function CheckinPage() {
           )}
 
           {/* Search Component */}
-          {searchMode === 'qr' ? (
-            <QrScanner
-              onScan={handleQrScan}
-              onCancel={() => setSearchMode('phone')}
-            />
-          ) : searchMode === 'phone' ? (
-            <PhoneSearch onSearch={handleSearch} loading={searchQuery.isFetching} onInputChange={setHasSearchInput} />
-          ) : (
+          {searchMode === 'name' ? (
             <FamilySearch onSearch={handleSearch} loading={searchQuery.isFetching} onInputChange={setHasSearchInput} />
+          ) : (
+            <PhoneSearch onSearch={handleSearch} loading={searchQuery.isFetching} onInputChange={setHasSearchInput} />
           )}
 
           {/* Error */}
@@ -657,6 +650,26 @@ export function CheckinPage() {
       )}
       </KioskLayout>
       </div>
+
+      {/* QR Scanner Modal */}
+      {showQrScanner && (
+        <QrScanner
+          onScan={(idKey) => {
+            setShowQrScanner(false);
+            handleQrScan(idKey);
+          }}
+          onCancel={() => setShowQrScanner(false)}
+          onManualEntry={() => {
+            setShowQrScanner(false);
+            setSearchMode('phone');
+            // Focus phone input after modal closes
+            requestAnimationFrame(() => {
+              const phoneInput = document.querySelector('[data-testid="phone-input"]') as HTMLInputElement | null;
+              phoneInput?.focus();
+            });
+          }}
+        />
+      )}
 
       {/* PIN Entry Modal */}
       {showPinEntry && (
