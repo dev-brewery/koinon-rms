@@ -288,8 +288,8 @@ function App() {
           <Route path="checkin" element={<CheckinConfigPage />} />
         </Route>
 
-        {/* Check-in route — requires authentication */}
-        <Route path="/checkin" element={<ProtectedRoute><CheckinPage /></ProtectedRoute>} />
+        {/* Check-in kiosk — uses its own kiosk auth, not ProtectedRoute */}
+        <Route path="/checkin" element={<CheckinPage />} />
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
