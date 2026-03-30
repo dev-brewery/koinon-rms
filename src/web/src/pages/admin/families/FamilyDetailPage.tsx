@@ -193,19 +193,11 @@ export function FamilyDetailPage() {
             <h2 className="text-lg font-semibold text-gray-900">
               Family Members ({family.members.length})
             </h2>
-            {family.members.length > 0 && (() => {
-              const roleCounts = family.members.reduce((acc, m) => {
-                const roleName = m.role.name;
-                acc[roleName] = (acc[roleName] || 0) + 1;
-                return acc;
-              }, {} as Record<string, number>);
-              const summary = Object.entries(roleCounts)
-                .map(([role, count]) => `${count} ${role}${count > 1 ? 's' : ''}`)
-                .join(', ');
-              return (
-                <p className="text-sm text-gray-500 mt-0.5">{summary}</p>
-              );
-            })()}
+            {family.members.length > 0 && (
+              <p className="text-sm text-gray-500 mt-0.5">
+                {family.members.length} {family.members.length === 1 ? 'member' : 'members'}
+              </p>
+            )}
           </div>
           <button
             onClick={() => setIsAddMemberModalOpen(true)}
@@ -241,14 +233,18 @@ export function FamilyDetailPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {family.members.map((member) => (
-              <FamilyMemberCard
-                key={member.person.idKey}
-                member={member}
-                onRemove={() => handleRemoveMember(member.person.idKey)}
-                readOnly={removingMemberId === member.person.idKey}
-              />
-            ))}
+            {(() => {
+              const uniqueRoles = [...new Set(family.members.map(m => m.role.name))];
+              return family.members.map((member, index) => (
+                <FamilyMemberCard
+                  key={member.person.idKey}
+                  member={member}
+                  onRemove={() => handleRemoveMember(member.person.idKey)}
+                  readOnly={removingMemberId === member.person.idKey}
+                  familyRoles={index === 0 ? uniqueRoles : undefined}
+                />
+              ));
+            })()}
           </div>
         )}
       </div>
