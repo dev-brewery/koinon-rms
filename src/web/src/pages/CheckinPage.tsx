@@ -565,7 +565,7 @@ export function CheckinPage() {
             <div className="max-w-2xl mx-auto mt-4 space-y-4" role="alert" aria-live="polite">
               <Card className="bg-yellow-50 border border-yellow-200">
                 <p id="search-no-results" className="text-yellow-900 text-center font-medium">
-                  No families found. Please check the number and try again.
+                  No families found. Phone number not found in our records.
                 </p>
               </Card>
               <Button
