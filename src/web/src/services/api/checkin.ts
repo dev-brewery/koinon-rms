@@ -44,7 +44,8 @@ export async function getCheckinConfiguration(
 
 /**
  * Search for families to check in.
- * Uses POST /checkin/search with a JSON body containing the search value.
+ * Uses GET /families/search?query=<value> to leverage the families controller
+ * search endpoint (AllowAnonymous + KioskAuthorize).
  *
  * The response `data` array may arrive in either the backend DTO format
  * (familyIdKey / familyName / personIdKey) or the frontend DTO format
@@ -55,9 +56,8 @@ export async function searchFamiliesForCheckin(
   request: CheckinSearchRequest
 ): Promise<CheckinFamilyDto[]> {
   // Use a shorter timeout for kiosk search — users expect fast feedback
-  const response = await post<Record<string, unknown>>(
-    '/checkin/search',
-    { searchValue: request.searchValue },
+  const response = await get<Record<string, unknown>>(
+    `/families/search?query=${encodeURIComponent(request.searchValue)}`,
     { timeout: 5000 }
   );
 
