@@ -250,31 +250,31 @@ export function CheckinPage() {
       const response = await recordCheckin(checkins);
       setCheckinError(null);
 
-      // If we got a response (online mode), show confirmation with labels
+      // If we got a response (online mode), show confirmation immediately
       if (response) {
-        // Store results for confirmation page
+        // Store results and show confirmation right away (don't block on label fetch)
         checkinResultsRef.current = response;
+        checkinLabelsRef.current = [];
+        setStep('confirmation');
 
-        // Fetch labels for successful check-ins
+        // Fetch labels in the background — check-in is already confirmed
         const successfulResults = response.results.filter(r => r.success && r.attendanceIdKey);
-        const allLabels: LabelDto[] = [];
-
-        for (const result of successfulResults) {
-          if (result.attendanceIdKey) {
-            try {
-              const labels = await getLabels(result.attendanceIdKey);
-              allLabels.push(...labels);
-            } catch (labelError) {
-              // Log but don't fail - check-in succeeded even if label fetch failed
-              if (import.meta.env.DEV) {
-                console.warn('Failed to fetch labels for', result.attendanceIdKey, labelError);
+        (async () => {
+          const allLabels: LabelDto[] = [];
+          for (const result of successfulResults) {
+            if (result.attendanceIdKey) {
+              try {
+                const labels = await getLabels(result.attendanceIdKey);
+                allLabels.push(...labels);
+              } catch (labelError) {
+                if (import.meta.env.DEV) {
+                  console.warn('Failed to fetch labels for', result.attendanceIdKey, labelError);
+                }
               }
             }
           }
-        }
-
-        checkinLabelsRef.current = allLabels;
-        setStep('confirmation');
+          checkinLabelsRef.current = allLabels;
+        })();
       } else {
         // Offline mode - check-in was queued
         // The OfflineQueueIndicator already shows queued status.
@@ -287,8 +287,8 @@ export function CheckinPage() {
 
       // Show user-friendly error message based on error type
       if (error instanceof ApiClientError) {
-        if (error.statusCode === 409) {
-          // Conflict — already checked in or ineligible
+        if (error.statusCode === 409 || error.statusCode === 422) {
+          // Conflict / Unprocessable — already checked in or ineligible
           const detail = error.message || '';
           setCheckinError(detail || "Couldn't check in. This person may already be checked in or is not eligible.");
         } else {
