@@ -26,6 +26,11 @@ async function globalSetup() {
     const personIds = SEED_PERSON_IDS.join(',');
     const familyIds = SEED_FAMILY_IDS.join(',');
 
+    // Clean attendance data so check-in tests start from a known state
+    await client.query('DELETE FROM follow_up');
+    await client.query('DELETE FROM attendance');
+    await client.query('DELETE FROM attendance_occurrence');
+
     await client.query(`DELETE FROM family_member WHERE family_id NOT IN (${familyIds})`);
     await client.query(`DELETE FROM family WHERE id NOT IN (${familyIds})`);
     await client.query(`DELETE FROM person_alias WHERE person_id NOT IN (${personIds})`);
