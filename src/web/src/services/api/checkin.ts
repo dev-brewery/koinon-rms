@@ -44,7 +44,7 @@ export async function getCheckinConfiguration(
 
 /**
  * Search for families to check in.
- * Uses GET /families/search?query=... to match E2E route interception patterns.
+ * Uses POST /checkin/search with a JSON body containing the search value.
  *
  * The response `data` array may arrive in either the backend DTO format
  * (familyIdKey / familyName / personIdKey) or the frontend DTO format
@@ -54,10 +54,10 @@ export async function getCheckinConfiguration(
 export async function searchFamiliesForCheckin(
   request: CheckinSearchRequest
 ): Promise<CheckinFamilyDto[]> {
-  const query = encodeURIComponent(request.searchValue);
   // Use a shorter timeout for kiosk search — users expect fast feedback
-  const response = await get<Record<string, unknown>>(
-    `/families/search?query=${query}`,
+  const response = await post<Record<string, unknown>>(
+    '/checkin/search',
+    { searchValue: request.searchValue },
     { timeout: 5000 }
   );
 
