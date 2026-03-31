@@ -202,8 +202,9 @@ export function PersonFormPage() {
 
   const handleCancel = () => {
     if (isFormDirty()) {
-      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to leave?');
-      if (!confirmed) return;
+      window.confirm(
+        'You have unsaved changes. Are you sure you want to leave?'
+      );
     }
     navigate(isEdit ? `/admin/people/${idKey}` : '/admin/people');
   };
