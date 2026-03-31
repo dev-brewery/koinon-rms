@@ -292,8 +292,9 @@ export function CheckinPage() {
           const detail = error.message || '';
           setCheckinError(detail || "Couldn't check in. This person may already be checked in or is not eligible.");
         } else {
-          const friendly = getErrorMessage(error);
-          setCheckinError(friendly.message);
+          setCheckinError(
+            'Check-in failed. Please try again or contact the welcome desk for assistance.'
+          );
         }
       } else {
         setCheckinError(
@@ -502,8 +503,12 @@ export function CheckinPage() {
             const isTimeout = error instanceof ApiClientError && error.statusCode === 408;
             const is400 = error instanceof ApiClientError && error.statusCode === 400;
 
+            const isServerError = error instanceof ApiClientError && error.statusCode >= 500;
+
             // For 400 errors, extract validation details from error body
-            let errorText = friendly.message;
+            let errorText = isServerError
+              ? 'Search failed. Please try again.'
+              : friendly.message;
             if (is400 && error instanceof ApiClientError) {
               // Check for validation details in legacy error format
               const details = error.error?.details;
@@ -560,7 +565,7 @@ export function CheckinPage() {
             <div className="max-w-2xl mx-auto mt-4 space-y-4" role="alert" aria-live="polite">
               <Card className="bg-yellow-50 border border-yellow-200">
                 <p id="search-no-results" className="text-yellow-900 text-center font-medium">
-                  Family not found. Please check the number and try again.
+                  No families found. Please check the number and try again.
                 </p>
               </Card>
               <Button
