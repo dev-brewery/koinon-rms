@@ -25,8 +25,6 @@ export function FamilyFormPage() {
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
   const [postalCode, setPostalCode] = useState('');
-  // isDirty tracking disabled: Playwright auto-dismisses confirm dialogs,
-  // causing cancel tests to fail. Re-enable when tests use dialog handlers.
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -141,7 +139,20 @@ export function FamilyFormPage() {
     }
   };
 
+  const isFormDirty = () => {
+    if (isEdit) {
+      return name !== (family?.name ?? '') ||
+        campusId !== (family?.campus?.idKey ?? '');
+    }
+    return name !== '' || campusId !== '' || street1 !== '' ||
+      street2 !== '' || city !== '' || state !== '' || postalCode !== '';
+  };
+
   const handleCancel = () => {
+    if (isFormDirty()) {
+      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to leave?');
+      if (!confirmed) return;
+    }
     if (isEdit && idKey) {
       navigate(`/admin/families/${idKey}`);
     } else {
