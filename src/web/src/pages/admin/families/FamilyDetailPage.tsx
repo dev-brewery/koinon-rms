@@ -3,16 +3,44 @@
  * Displays family information with members and address
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useFamily, useRemoveFamilyMember, useAddFamilyMember } from '@/hooks/useFamilies';
+import { useFamily, useFamilies, useRemoveFamilyMember, useAddFamilyMember } from '@/hooks/useFamilies';
 import { FamilyMemberCard } from '@/components/admin/families/FamilyMemberCard';
 import { AddMemberModal } from '@/components/admin/families/AddMemberModal';
 
+/**
+ * Check if a URL param looks like a family name rather than a valid IdKey.
+ * IdKeys are URL-safe Base64 strings (alphanumeric, -, _, =).
+ * Names typically contain spaces or are multi-word.
+ */
+function looksLikeName(param: string): boolean {
+  return /\s/.test(decodeURIComponent(param));
+}
+
 export function FamilyDetailPage() {
-  const { idKey } = useParams<{ idKey: string }>();
+  const { idKey: urlParam } = useParams<{ idKey: string }>();
   const navigate = useNavigate();
-  const { data: family, isLoading, error } = useFamily(idKey);
+
+  // If the URL param looks like a name, search for it and redirect to the real idKey
+  const isNameLookup = urlParam ? looksLikeName(urlParam) : false;
+  const decodedName = urlParam ? decodeURIComponent(urlParam) : '';
+  const nameSearch = useFamilies(isNameLookup ? { q: decodedName } : {});
+
+  // Redirect to the real idKey when name search resolves
+  useEffect(() => {
+    if (isNameLookup && nameSearch.data?.data) {
+      const match = nameSearch.data.data.find(
+        (f) => f.name.toLowerCase() === decodedName.toLowerCase()
+      );
+      if (match) {
+        navigate(`/admin/families/${match.idKey}`, { replace: true });
+      }
+    }
+  }, [isNameLookup, nameSearch.data, decodedName, navigate]);
+
+  const idKey = isNameLookup ? undefined : urlParam;
+  const { data: family, isLoading: isFamilyLoading, error } = useFamily(idKey);
   const removeMember = useRemoveFamilyMember();
   const addMember = useAddFamilyMember();
 
@@ -55,6 +83,8 @@ export function FamilyDetailPage() {
       // Error handling via toast/notification could go here
     }
   };
+
+  const isLoading = isFamilyLoading || isNameLookup;
 
   if (isLoading) {
     return (
