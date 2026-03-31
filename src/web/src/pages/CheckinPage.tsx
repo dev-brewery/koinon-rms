@@ -507,7 +507,7 @@ export function CheckinPage() {
 
             // For 400 errors, extract validation details from error body
             let errorText = isServerError
-              ? 'Something went wrong. Please try again later.'
+              ? 'Search failed. Please try again later.'
               : friendly.message;
             if (is400 && error instanceof ApiClientError) {
               // Check for validation details in legacy error format
