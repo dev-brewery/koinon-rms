@@ -179,7 +179,7 @@ export class ApiClientError extends Error {
 async function parseErrorResponse(response: Response): Promise<ApiClientError> {
   const contentType = response.headers.get('content-type');
 
-  if (contentType?.includes('application/json')) {
+  if (contentType?.includes('application/json') || contentType?.includes('application/problem+json')) {
     try {
       const text = await response.text();
       const json = safeJsonParse(text);

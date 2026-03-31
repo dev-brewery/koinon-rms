@@ -136,8 +136,8 @@ export type ParsedErrorResponse =
  * Parse error response supporting both ProblemDetails and legacy ApiError formats
  */
 export function parseErrorResponse(data: unknown): ParsedErrorResponse {
-  // Check if it's ProblemDetails format (has 'type' field)
-  if (typeof data === 'object' && data !== null && 'type' in data) {
+  // Check if it's ProblemDetails format (has 'type' or 'title'+'detail' fields)
+  if (typeof data === 'object' && data !== null && ('type' in data || ('title' in data && 'detail' in data))) {
     try {
       const problemDetails = ProblemDetailsSchema.parse(data);
       return { format: 'problemDetails', error: problemDetails };
