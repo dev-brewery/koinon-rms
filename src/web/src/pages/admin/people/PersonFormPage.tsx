@@ -182,7 +182,29 @@ export function PersonFormPage() {
     }
   };
 
+  const isFormDirty = () => {
+    if (isEdit) {
+      return (
+        firstName !== (person?.firstName ?? '') ||
+        lastName !== (person?.lastName ?? '') ||
+        nickName !== (person?.nickName ?? '') ||
+        middleName !== (person?.middleName ?? '') ||
+        email !== (person?.email ?? '') ||
+        gender !== (person?.gender ?? 'Unknown') ||
+        birthDate !== (person?.birthDate ?? '')
+      );
+    }
+    // For create form, any filled field means dirty
+    return firstName !== '' || lastName !== '' || nickName !== '' ||
+           middleName !== '' || email !== '' || birthDate !== '' ||
+           phoneNumbers.length > 0;
+  };
+
   const handleCancel = () => {
+    if (isFormDirty()) {
+      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to leave?');
+      if (!confirmed) return;
+    }
     navigate(isEdit ? `/admin/people/${idKey}` : '/admin/people');
   };
 

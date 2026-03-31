@@ -6,6 +6,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useFamily, useFamilies, useRemoveFamilyMember, useAddFamilyMember } from '@/hooks/useFamilies';
+import { useGroupTypes, useGroupType } from '@/hooks/useGroupTypes';
 import { FamilyMemberCard } from '@/components/admin/families/FamilyMemberCard';
 import { AddMemberModal } from '@/components/admin/families/AddMemberModal';
 
@@ -43,6 +44,10 @@ export function FamilyDetailPage() {
   const { data: family, isLoading: isFamilyLoading, error } = useFamily(idKey);
   const removeMember = useRemoveFamilyMember();
   const addMember = useAddFamilyMember();
+  const { data: groupTypes } = useGroupTypes();
+  const familyGroupTypeIdKey = groupTypes?.find(gt => gt.name.toLowerCase() === 'family')?.idKey;
+  // Fetch family group type to get available roles for member assignment
+  useGroupType(familyGroupTypeIdKey);
 
   const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
   const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
