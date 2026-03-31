@@ -561,21 +561,37 @@ export function CheckinPage() {
           })()}
 
           {/* No Results */}
-          {searchQuery.data && searchQuery.data.length === 0 && searchMode !== 'qr' && (
+          {searchQuery.data && searchQuery.data.length === 0 && (
             <div className="max-w-2xl mx-auto mt-4 space-y-4" role="alert" aria-live="polite">
               <Card className="bg-yellow-50 border border-yellow-200">
                 <p id="search-no-results" className="text-yellow-900 text-center font-medium">
-                  No families found. Phone number not found in our records.
+                  {searchMode === 'qr'
+                    ? 'No family found for this QR code.'
+                    : 'No families found. Phone number not found in our records.'}
                 </p>
               </Card>
-              <Button
-                onClick={() => setStep('register')}
-                variant="primary"
-                size="lg"
-                className="w-full text-xl"
-              >
-                Register New Family
-              </Button>
+              {searchMode === 'qr' ? (
+                <Button
+                  onClick={() => {
+                    setSearchValue('');
+                    setSearchMode('phone');
+                  }}
+                  variant="primary"
+                  size="lg"
+                  className="w-full text-xl"
+                >
+                  Try Again
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => setStep('register')}
+                  variant="primary"
+                  size="lg"
+                  className="w-full text-xl"
+                >
+                  Register New Family
+                </Button>
+              )}
             </div>
           )}
         </div>

@@ -7,12 +7,14 @@ export interface QrScannerProps {
   onManualEntry?: () => void;
 }
 
-// Use shorter timeout in test/dev environments
+// Use shorter timeout in test/dev environments.
+// Dev needs enough headroom for E2E tests to observe the 'active' state
+// before auto-timeout fires (tests run on resource-constrained machines).
 const SCANNER_TIMEOUT =
   import.meta.env.VITE_QR_SCANNER_TIMEOUT
     ? Number(import.meta.env.VITE_QR_SCANNER_TIMEOUT)
     : import.meta.env.DEV
-      ? 5000
+      ? 10000
       : 60000;
 
 type ScannerStatus = 'active' | 'invalid' | 'not-found' | 'timed-out';
@@ -124,16 +126,26 @@ export function QrScanner({ onScan, onCancel, onManualEntry }: QrScannerProps) {
       lastScanRef.current = detail;
       lastScanTimeRef.current = now;
 
+      // Check if it's a plain phone number first (digits only, 7-15 chars).
+      // This must come before JSON.parse because numeric strings like
+      // '5551234567' parse as valid JSON numbers, bypassing the catch block.
+      if (/^\d{7,15}$/.test(detail)) {
+        hasScannedRef.current = true;
+        setStatusMessage('Family found — loading');
+        onScan(detail);
+        return;
+      }
+
       // Try to parse as JSON
       try {
         const parsed = JSON.parse(detail);
         if (parsed && typeof parsed === 'object') {
-          // JSON format: extract id or phone
-          const idKey = parsed.id || parsed.phone;
-          if (idKey) {
+          // JSON format: prefer phone (reliable search) over id (may be stale)
+          const searchValue = parsed.phone || parsed.id;
+          if (searchValue) {
             hasScannedRef.current = true;
             setStatusMessage('Family found — loading');
-            onScan(idKey);
+            onScan(String(searchValue));
             return;
           }
         }
@@ -141,14 +153,6 @@ export function QrScanner({ onScan, onCancel, onManualEntry }: QrScannerProps) {
         setStatus('invalid');
         setErrorMessage('Invalid QR code — not recognized');
       } catch {
-        // Not JSON — check if it's a plain phone number (digits only, 7-15 chars)
-        if (/^\d{7,15}$/.test(detail)) {
-          hasScannedRef.current = true;
-          setStatusMessage('Family found — loading');
-          onScan(detail);
-          return;
-        }
-
         // Not a valid format
         setStatus('invalid');
         setErrorMessage('Invalid QR code — not recognized');
