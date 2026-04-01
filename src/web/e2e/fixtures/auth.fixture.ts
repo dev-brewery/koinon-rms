@@ -11,6 +11,19 @@ export interface AuthFixture {
 }
 
 export const test = base.extend<AuthFixture>({
+  page: async ({ page }, use) => {
+    // Fallback auto-accept for confirm dialogs.
+    // Playwright auto-DISMISSES unhandled dialogs (confirm returns false).
+    // This handler auto-accepts after yielding, so tests with explicit
+    // dialog handlers (e.g. dismiss) take priority via synchronous execution.
+    page.on('dialog', async (dialog) => {
+      setTimeout(async () => {
+        try { await dialog.accept(); } catch { /* already handled by test */ }
+      }, 0);
+    });
+    await use(page);
+  },
+
   loginAsAdmin: async ({ page }, use) => {
     const login = async () => {
       await page.goto('/login');
