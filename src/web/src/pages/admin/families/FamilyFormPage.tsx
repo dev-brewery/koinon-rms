@@ -150,9 +150,10 @@ export function FamilyFormPage() {
 
   const handleCancel = () => {
     if (isFormDirty()) {
-      window.confirm(
+      const confirmed = window.confirm(
         'You have unsaved changes. Are you sure you want to leave?'
       );
+      if (!confirmed) return;
     }
     if (isEdit && idKey) {
       navigate(`/admin/families/${idKey}`);
