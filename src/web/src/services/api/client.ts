@@ -16,7 +16,7 @@ import { isNetworkError } from '../../lib/networkUtils';
 // Configuration
 // ============================================================================
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 const DEFAULT_TIMEOUT_MS = 10000; // 10 seconds
 const UPLOAD_TIMEOUT_MS = 60000; // 60 seconds for uploads
 

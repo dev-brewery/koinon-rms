@@ -1,65 +1,60 @@
-import { useEffect, useRef } from 'react';
+import { lazy, Suspense, useEffect, useRef } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { LoginForm, ProtectedRoute } from './components/auth';
 import { useAuth } from './hooks/useAuth';
-import { CheckinPage } from './pages/CheckinPage';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { RouteErrorBoundary } from './components/RouteErrorBoundary';
 import { AdminLayout } from './layouts/AdminLayout';
 import { ToastProvider } from './contexts/ToastContext';
 import { ToastContainer } from './components/ui';
-import {
-  DashboardPage,
-  SettingsPage,
-  AnalyticsPage,
-} from './pages/admin';
-import {
-  GroupsTreePage,
-  GroupDetailPage,
-  GroupFormPage,
-} from './pages/admin/groups';
-import {
-  PeopleListPage,
-  PersonDetailPage,
-  PersonFormPage,
-  DuplicateReviewPage,
-  PersonComparisonPage,
-  PersonMergePage,
-  MergeHistoryPage,
-} from './pages/admin/people';
-import {
-  FamilyListPage,
-  FamilyDetailPage,
-  FamilyFormPage,
-} from './pages/admin/families';
-import {
-  ScheduleListPage,
-  ScheduleDetailPage,
-  ScheduleFormPage,
-} from './pages/admin/schedules';
-import { GroupTypesPage } from './pages/admin/settings/GroupTypesPage';
-import { ImportSettingsPage } from './pages/admin/settings/ImportSettingsPage';
-import { CampusesPage } from './pages/admin/settings/CampusesPage';
-import { LocationsPage } from './pages/admin/settings/LocationsPage';
-import { AuditLogsPage } from './pages/admin/settings/AuditLogsPage';
+import { DashboardPage } from './pages/admin/DashboardPage';
 import { PWAUpdatePrompt, InstallPrompt } from './components/pwa';
-import { GroupFinderPage } from './pages/public/GroupFinderPage';
-import { MyGroupsPage } from './pages/MyGroupsPage';
-import { CommunicationsPage } from './pages/communications/CommunicationsPage';
-import { CommunicationDetailPage } from './pages/communications/CommunicationDetailPage';
-import { TemplatesPage } from './pages/communications/TemplatesPage';
-import { TemplateFormPage } from './pages/communications/TemplateFormPage';
-import { MyProfilePage } from './pages/profile';
-import { UserSettingsPage } from './pages/settings/UserSettingsPage';
-import { RosterPage } from './pages/admin/RosterPage';
-import { BatchListPage, BatchDetailPage, BatchFormPage, StatementsPage } from './pages/admin/giving';
-import { DataExportsPage } from './features/admin/DataExportsPage';
-import { PeopleImportPage } from './pages/admin/import/PeopleImportPage';
-import { FamiliesImportPage } from './pages/admin/import/FamiliesImportPage';
-import { ImportHistoryPage } from './pages/admin/import/ImportHistoryPage';
-import { SearchResultsPage } from './pages/SearchResultsPage';
-import { CheckinConfigPage } from './pages/admin/checkin/CheckinConfigPage';
+
+// Lazy-loaded pages — only loaded when their route is visited
+const CheckinPage = lazy(() => import('./pages/CheckinPage').then(m => ({ default: m.CheckinPage })));
+const SettingsPage = lazy(() => import('./pages/admin').then(m => ({ default: m.SettingsPage })));
+const AnalyticsPage = lazy(() => import('./pages/admin').then(m => ({ default: m.AnalyticsPage })));
+const GroupsTreePage = lazy(() => import('./pages/admin/groups').then(m => ({ default: m.GroupsTreePage })));
+const GroupDetailPage = lazy(() => import('./pages/admin/groups').then(m => ({ default: m.GroupDetailPage })));
+const GroupFormPage = lazy(() => import('./pages/admin/groups').then(m => ({ default: m.GroupFormPage })));
+const PeopleListPage = lazy(() => import('./pages/admin/people').then(m => ({ default: m.PeopleListPage })));
+const PersonDetailPage = lazy(() => import('./pages/admin/people').then(m => ({ default: m.PersonDetailPage })));
+const PersonFormPage = lazy(() => import('./pages/admin/people').then(m => ({ default: m.PersonFormPage })));
+const DuplicateReviewPage = lazy(() => import('./pages/admin/people').then(m => ({ default: m.DuplicateReviewPage })));
+const PersonComparisonPage = lazy(() => import('./pages/admin/people').then(m => ({ default: m.PersonComparisonPage })));
+const PersonMergePage = lazy(() => import('./pages/admin/people').then(m => ({ default: m.PersonMergePage })));
+const MergeHistoryPage = lazy(() => import('./pages/admin/people').then(m => ({ default: m.MergeHistoryPage })));
+const FamilyListPage = lazy(() => import('./pages/admin/families').then(m => ({ default: m.FamilyListPage })));
+const FamilyDetailPage = lazy(() => import('./pages/admin/families').then(m => ({ default: m.FamilyDetailPage })));
+const FamilyFormPage = lazy(() => import('./pages/admin/families').then(m => ({ default: m.FamilyFormPage })));
+const ScheduleListPage = lazy(() => import('./pages/admin/schedules').then(m => ({ default: m.ScheduleListPage })));
+const ScheduleDetailPage = lazy(() => import('./pages/admin/schedules').then(m => ({ default: m.ScheduleDetailPage })));
+const ScheduleFormPage = lazy(() => import('./pages/admin/schedules').then(m => ({ default: m.ScheduleFormPage })));
+const GroupTypesPage = lazy(() => import('./pages/admin/settings/GroupTypesPage').then(m => ({ default: m.GroupTypesPage })));
+const ImportSettingsPage = lazy(() => import('./pages/admin/settings/ImportSettingsPage').then(m => ({ default: m.ImportSettingsPage })));
+const CampusesPage = lazy(() => import('./pages/admin/settings/CampusesPage').then(m => ({ default: m.CampusesPage })));
+const LocationsPage = lazy(() => import('./pages/admin/settings/LocationsPage').then(m => ({ default: m.LocationsPage })));
+const AuditLogsPage = lazy(() => import('./pages/admin/settings/AuditLogsPage').then(m => ({ default: m.AuditLogsPage })));
+const GroupFinderPage = lazy(() => import('./pages/public/GroupFinderPage').then(m => ({ default: m.GroupFinderPage })));
+const MyGroupsPage = lazy(() => import('./pages/MyGroupsPage').then(m => ({ default: m.MyGroupsPage })));
+const CommunicationsPage = lazy(() => import('./pages/communications/CommunicationsPage').then(m => ({ default: m.CommunicationsPage })));
+const CommunicationDetailPage = lazy(() => import('./pages/communications/CommunicationDetailPage').then(m => ({ default: m.CommunicationDetailPage })));
+const TemplatesPage = lazy(() => import('./pages/communications/TemplatesPage').then(m => ({ default: m.TemplatesPage })));
+const TemplateFormPage = lazy(() => import('./pages/communications/TemplateFormPage').then(m => ({ default: m.TemplateFormPage })));
+const MyProfilePage = lazy(() => import('./pages/profile').then(m => ({ default: m.MyProfilePage })));
+const UserSettingsPage = lazy(() => import('./pages/settings/UserSettingsPage').then(m => ({ default: m.UserSettingsPage })));
+const RosterPage = lazy(() => import('./pages/admin/RosterPage').then(m => ({ default: m.RosterPage })));
+const BatchListPage = lazy(() => import('./pages/admin/giving').then(m => ({ default: m.BatchListPage })));
+const BatchDetailPage = lazy(() => import('./pages/admin/giving').then(m => ({ default: m.BatchDetailPage })));
+const BatchFormPage = lazy(() => import('./pages/admin/giving').then(m => ({ default: m.BatchFormPage })));
+const StatementsPage = lazy(() => import('./pages/admin/giving').then(m => ({ default: m.StatementsPage })));
+const DataExportsPage = lazy(() => import('./features/admin/DataExportsPage').then(m => ({ default: m.DataExportsPage })));
+const PeopleImportPage = lazy(() => import('./pages/admin/import/PeopleImportPage').then(m => ({ default: m.PeopleImportPage })));
+const FamiliesImportPage = lazy(() => import('./pages/admin/import/FamiliesImportPage').then(m => ({ default: m.FamiliesImportPage })));
+const ImportHistoryPage = lazy(() => import('./pages/admin/import/ImportHistoryPage').then(m => ({ default: m.ImportHistoryPage })));
+const SearchResultsPage = lazy(() => import('./pages/SearchResultsPage').then(m => ({ default: m.SearchResultsPage })));
+const CheckinConfigPage = lazy(() => import('./pages/admin/checkin/CheckinConfigPage').then(m => ({ default: m.CheckinConfigPage })));
 
 function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -184,6 +179,7 @@ function App() {
         <PWAUpdatePrompt onUpdate={handleUpdate} offlineReady={needRefresh} />
         <InstallPrompt />
         <ToastContainer />
+        <Suspense fallback={null}>
         <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -293,6 +289,7 @@ function App() {
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+      </Suspense>
       </ToastProvider>
     </ErrorBoundary>
   );
