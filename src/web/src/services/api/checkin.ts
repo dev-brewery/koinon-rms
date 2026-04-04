@@ -3,6 +3,7 @@
  */
 
 import { get, post } from './client';
+import { offlineFamilyCache } from '@/services/offline/OfflineFamilyCache';
 import type {
   CheckinConfigDto,
   CheckinConfigParams,
@@ -55,40 +56,59 @@ export async function getCheckinConfiguration(
 export async function searchFamiliesForCheckin(
   request: CheckinSearchRequest
 ): Promise<CheckinFamilyDto[]> {
-  // Use a shorter timeout for kiosk search — users expect fast feedback
-  const response = await get<Record<string, unknown>>(
-    `/families/search?query=${encodeURIComponent(request.searchValue)}`,
-    { timeout: 5000 }
-  );
+  try {
+    // Use a shorter timeout for kiosk search — users expect fast feedback
+    const response = await get<Record<string, unknown>>(
+      `/families/search?query=${encodeURIComponent(request.searchValue)}`,
+      { timeout: 5000 }
+    );
 
-  // Handle { data: [...] } format (backend & most mocks)
-  const dataArray = response.data as Array<CheckinFamilySearchResultDto & Partial<CheckinFamilyDto>> | undefined;
-  if (Array.isArray(dataArray)) {
-    return dataArray.map((item) => {
-      // Backend format has familyIdKey; mock/frontend format has idKey directly
-      if (item.familyIdKey) {
-        return mapSearchResultToFamily(item as CheckinFamilySearchResultDto);
+    // Handle { data: [...] } format (backend & most mocks)
+    const dataArray = response.data as Array<CheckinFamilySearchResultDto & Partial<CheckinFamilyDto>> | undefined;
+    let results: CheckinFamilyDto[];
+
+    if (Array.isArray(dataArray)) {
+      results = dataArray.map((item) => {
+        // Backend format has familyIdKey; mock/frontend format has idKey directly
+        if (item.familyIdKey) {
+          return mapSearchResultToFamily(item as CheckinFamilySearchResultDto);
+        }
+        // Already in frontend DTO shape (from mocked responses)
+        return item as unknown as CheckinFamilyDto;
+      });
+    } else {
+      // Handle single-family format: { family: { idKey, name }, members: [...] }
+      const family = response.family as { idKey?: string; name?: string } | undefined;
+      const members = response.members as CheckinFamilyMemberDto[] | undefined;
+      if (family && family.idKey) {
+        results = [{
+          idKey: family.idKey,
+          name: family.name ?? '',
+          members: Array.isArray(members)
+            ? members.map(mapMemberToPersonDto)
+            : [],
+        }];
+      } else {
+        results = [];
       }
-      // Already in frontend DTO shape (from mocked responses)
-      return item as unknown as CheckinFamilyDto;
-    });
-  }
+    }
 
-  // Handle single-family format: { family: { idKey, name }, members: [...] }
-  const family = response.family as { idKey?: string; name?: string } | undefined;
-  const members = response.members as CheckinFamilyMemberDto[] | undefined;
-  if (family && family.idKey) {
-    return [{
-      idKey: family.idKey,
-      name: family.name ?? '',
-      members: Array.isArray(members)
-        ? members.map(mapMemberToPersonDto)
-        : [],
-    }];
-  }
+    // Cache results for offline use
+    if (results.length > 0) {
+      offlineFamilyCache.cacheResults(request.searchValue, results).catch(() => {
+        // Silently ignore cache write failures
+      });
+    }
 
-  // Fallback: return empty array
-  return [];
+    return results;
+  } catch (error) {
+    // When offline, fall back to cached results
+    if (!navigator.onLine) {
+      const cached = await offlineFamilyCache.getCachedResults(request.searchValue);
+      if (cached) return cached;
+    }
+    throw error;
+  }
 }
 
 /**

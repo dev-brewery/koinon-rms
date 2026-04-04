@@ -8,8 +8,8 @@ import type { CheckinRequestItem, BatchCheckinResultDto } from '@/services/api/t
 import { recordAttendance } from '@/services/api/checkin';
 import { ApiClientError } from '@/services/api/client';
 
-const DB_NAME = 'koinon-checkin-offline';
-const STORE_NAME = 'queue';
+const DB_NAME = 'checkin-queue';
+const STORE_NAME = 'pending';
 const DB_VERSION = 1;
 
 export type QueueStatus = 'pending' | 'syncing' | 'failed' | 'success';
