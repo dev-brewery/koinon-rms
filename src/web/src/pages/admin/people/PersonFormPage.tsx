@@ -9,6 +9,7 @@ import { usePerson, useCreatePerson, useUpdatePerson } from '@/hooks/usePeople';
 import type { CreatePersonRequest, UpdatePersonRequest, Gender } from '@/services/api/types';
 import { personFormSchema } from '@/schemas/person.schema';
 import { PersonPhotoUpload } from '@/components/admin/people/PersonPhotoUpload';
+import { AccessibleSelect } from '@/components/ui/AccessibleSelect';
 
 interface PhoneNumberForm {
   number: string;
@@ -347,25 +348,19 @@ export function PersonFormPage() {
           {/* Demographics */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-1">
-                Gender
-              </label>
-              <select
+              <AccessibleSelect
                 id="gender"
+                label="Gender"
                 value={gender}
-                onChange={(e) => {
-                  setGender(e.target.value as Gender);
-                }}
+                options={[
+                  { value: 'Unknown', label: 'Unknown' },
+                  { value: 'Male', label: 'Male' },
+                  { value: 'Female', label: 'Female' },
+                ]}
+                onChange={(val) => setGender(val as Gender)}
                 onBlur={() => validateField('gender', gender)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              >
-                <option value="Unknown">Unknown</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-              </select>
-              {validationErrors.gender && (
-                <p className="text-sm text-red-600 mt-1">{validationErrors.gender}</p>
-              )}
+                error={validationErrors.gender}
+              />
             </div>
 
             <div>

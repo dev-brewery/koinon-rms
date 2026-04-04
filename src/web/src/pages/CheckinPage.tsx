@@ -287,10 +287,14 @@ export function CheckinPage() {
 
       // Show user-friendly error message based on error type
       if (error instanceof ApiClientError) {
-        if (error.statusCode === 409 || error.statusCode === 422) {
-          // Conflict / Unprocessable — already checked in or ineligible
+        if (error.statusCode === 409) {
+          // Conflict — already checked in
           const detail = error.message || '';
-          setCheckinError(detail || "Couldn't check in. This person may already be checked in or is not eligible.");
+          setCheckinError(detail || 'Already checked in.');
+        } else if (error.statusCode === 422) {
+          // Unprocessable — ineligible
+          const detail = error.message || '';
+          setCheckinError(detail || "Couldn't check in. This person is not eligible.");
         } else {
           setCheckinError(
             'Check-in failed. Please try again or contact the welcome desk for assistance.'
@@ -491,7 +495,7 @@ export function CheckinPage() {
           {searchMode === 'name' ? (
             <FamilySearch onSearch={handleSearch} loading={searchQuery.isFetching} onInputChange={setHasSearchInput} />
           ) : (
-            <PhoneSearch onSearch={handleSearch} loading={searchQuery.isFetching} onInputChange={setHasSearchInput} />
+            <PhoneSearch onSearch={handleSearch} loading={searchQuery.isFetching} onInputChange={setHasSearchInput} externalErrorId={searchQuery.data?.length === 0 ? 'search-no-results' : undefined} />
           )}
 
           {/* Error */}

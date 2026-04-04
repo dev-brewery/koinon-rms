@@ -521,7 +521,7 @@ test.describe('Person Form Validation', () => {
 
     // Should have Unknown, Male, Female options
     await expect(page.getByRole('option', { name: 'Unknown' })).toBeVisible();
-    await expect(page.getByRole('option', { name: 'Male' })).toBeVisible();
-    await expect(page.getByRole('option', { name: 'Female' })).toBeVisible();
+    await expect(page.getByRole('option', { name: 'Male', exact: true })).toBeVisible();
+    await expect(page.getByRole('option', { name: 'Female', exact: true })).toBeVisible();
   });
 });

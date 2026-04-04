@@ -116,9 +116,10 @@ test.describe('Protected Routes', () => {
     await expect(page).toHaveURL(/\/login/);
   });
 
-  test('should redirect unauthenticated users from check-in', async ({ page }) => {
+  test('should allow unauthenticated access to check-in kiosk', async ({ page }) => {
     await page.goto('/checkin');
-    await expect(page).toHaveURL(/\/login/);
+    await expect(page).toHaveURL(/\/checkin/);
+    await expect(page).not.toHaveURL(/\/login/);
   });
 
   test('should allow access to public routes without auth', async ({ page }) => {

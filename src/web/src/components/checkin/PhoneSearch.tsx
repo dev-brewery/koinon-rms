@@ -5,12 +5,13 @@ export interface PhoneSearchProps {
   onSearch: (phone: string) => void;
   loading?: boolean;
   onInputChange?: (hasInput: boolean) => void;
+  externalErrorId?: string;
 }
 
 /**
  * Phone number entry with large numpad for kiosk
  */
-export function PhoneSearch({ onSearch, loading, onInputChange }: PhoneSearchProps) {
+export function PhoneSearch({ onSearch, loading, onInputChange, externalErrorId }: PhoneSearchProps) {
   const [phone, setPhone] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -98,7 +99,7 @@ export function PhoneSearch({ onSearch, loading, onInputChange }: PhoneSearchPro
               maxLength={10}
               className="absolute inset-0 w-full h-full opacity-0 cursor-default"
               aria-label="Phone number"
-              aria-describedby={validationError ? 'phone-validation-error' : undefined}
+              aria-describedby={validationError ? 'phone-validation-error' : externalErrorId || undefined}
               autoFocus
             />
             <p className="text-4xl font-mono font-bold text-gray-900 min-h-[3rem]">
@@ -138,6 +139,7 @@ export function PhoneSearch({ onSearch, loading, onInputChange }: PhoneSearchPro
 
         {/* Search Button */}
         <Button
+          data-testid="search-submit"
           onClick={handleSearch}
           loading={loading}
           disabled={loading}
