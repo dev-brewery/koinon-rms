@@ -56,8 +56,12 @@ export function useOfflineCheckin(): UseOfflineCheckinResult {
    * Update queued count from IndexedDB
    */
   const updateQueuedCount = useCallback(async () => {
-    const count = await offlineCheckinQueue.getQueuedCount();
-    setQueuedCount(count);
+    try {
+      const count = await offlineCheckinQueue.getQueuedCount();
+      setQueuedCount(count);
+    } catch {
+      // Queue may be closed after cache clear — ignore
+    }
   }, []);
 
   /**
