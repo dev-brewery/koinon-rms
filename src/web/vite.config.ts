@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => ({
     VitePWA({
       registerType: 'autoUpdate',
       devOptions: {
-        enabled: true,
+        enabled: false,
       },
       includeAssets: ['icons/icon-192x192.png', 'icons/icon-512x512.png'],
       manifest: {
