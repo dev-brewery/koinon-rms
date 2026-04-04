@@ -295,7 +295,7 @@ async function setupCheckinMocks(
   );
 
   // Search (POST /checkin/search)
-  await page.route('**/api/v1/checkin/search', (route) =>
+  await page.route('**/api/v1/families/search*', (route) =>
     route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -487,7 +487,7 @@ test.describe('Complete Check-in Flow', () => {
 
   test('multiple families — select-family step shown, user picks one', async ({ page }) => {
     // Override search to return two families
-    await page.route('**/api/v1/checkin/search', (route) =>
+    await page.route('**/api/v1/families/search*', (route) =>
       route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -514,7 +514,7 @@ test.describe('Complete Check-in Flow', () => {
   });
 
   test('no results — shows not-found message', async ({ page }) => {
-    await page.route('**/api/v1/checkin/search', (route) =>
+    await page.route('**/api/v1/families/search*', (route) =>
       route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -530,7 +530,7 @@ test.describe('Complete Check-in Flow', () => {
   });
 
   test('API error during search — error message shown', async ({ page }) => {
-    await page.route('**/api/v1/checkin/search', (route) =>
+    await page.route('**/api/v1/families/search*', (route) =>
       route.fulfill({ status: 500, contentType: 'application/json', body: '{}' })
     );
 
