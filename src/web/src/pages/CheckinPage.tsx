@@ -42,6 +42,8 @@ import { OfflineIndicator } from '@/components/pwa';
 import { supervisorLogin, supervisorLogout, supervisorReprint, checkout } from '@/services/api/checkin';
 import { getErrorMessage } from '@/lib/errorMessages';
 import { ApiClientError } from '@/services/api/client';
+import { offlineFamilyCache } from '@/services/offline/OfflineFamilyCache';
+import { offlineCheckinQueue } from '@/services/offline/OfflineCheckinQueue';
 
 type CheckinStep = 'search' | 'select-family' | 'select-members' | 'confirmation' | 'register';
 type SearchMode = 'phone' | 'name' | 'qr';
@@ -51,8 +53,8 @@ type SearchMode = 'phone' | 'name' | 'qr';
 // for multi-step E2E tests (~15-20s) to complete without triggering.
 const IS_DEV = import.meta.env.DEV;
 const IDLE_CONFIG = {
-  timeout: IS_DEV ? 12 * 1000 : 60 * 1000,
-  warningTime: IS_DEV ? 8 * 1000 : 50 * 1000,
+  timeout: IS_DEV ? 18 * 1000 : 60 * 1000,
+  warningTime: IS_DEV ? 13 * 1000 : 50 * 1000,
 };
 
 export function CheckinPage() {
@@ -81,6 +83,10 @@ export function CheckinPage() {
   const [pinError, setPinError] = useState<string | null>(null);
   const [isPinLoading, setIsPinLoading] = useState(false);
   const supervisorMode = useSupervisorMode();
+
+  // Admin menu state
+  const [showAdminMenu, setShowAdminMenu] = useState(false);
+  const [showClearCacheConfirm, setShowClearCacheConfirm] = useState(false);
 
   // Fetch check-in configuration for kiosk locations
   const configQuery = useCheckinConfiguration();
@@ -372,6 +378,28 @@ export function CheckinPage() {
     handleReset();
   };
 
+  const handleClearCache = useCallback(async () => {
+    // Close open connections so deleteDatabase isn't blocked
+    offlineFamilyCache.close();
+    offlineCheckinQueue.close();
+    // Delete all IndexedDB databases before resetting state,
+    // so hooks don't re-create them between delete and the test's check
+    const databases = await window.indexedDB.databases();
+    for (const db of databases) {
+      if (db.name) {
+        await new Promise<void>((resolve) => {
+          const req = window.indexedDB.deleteDatabase(db.name!);
+          req.onsuccess = () => resolve();
+          req.onerror = () => resolve();
+          req.onblocked = () => resolve();
+        });
+      }
+    }
+    setShowClearCacheConfirm(false);
+    setShowAdminMenu(false);
+    handleReset();
+  }, [handleReset]);
+
   // Supervisor mode handlers
   const handlePinSubmit = async (pin: string) => {
     setIsPinLoading(true);
@@ -431,6 +459,56 @@ export function CheckinPage() {
       <div aria-hidden={isOverlayActive || undefined}>
       <OfflineIndicator />
       <OfflineQueueIndicator state={offlineState} onSync={syncQueue} />
+
+      {/* Admin Menu — gear icon in top-right corner */}
+      <div className="fixed top-4 left-4 z-40">
+        <button
+          data-testid="admin-menu-button"
+          onClick={() => setShowAdminMenu(!showAdminMenu)}
+          className="p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-lg"
+          aria-label="Admin menu"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </button>
+        {showAdminMenu && (
+          <div className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg border py-1 min-w-[160px]">
+            <button
+              onClick={() => { setShowClearCacheConfirm(true); setShowAdminMenu(false); }}
+              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            >
+              Clear cache
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Clear Cache Confirmation Dialog */}
+      {showClearCacheConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl shadow-xl p-6 max-w-sm mx-4" role="alertdialog" aria-label="Clear cache confirmation">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Clear Cache</h3>
+            <p className="text-sm text-gray-600 mb-4">This will delete all cached family data and queued check-ins. This action cannot be undone.</p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowClearCacheConfirm(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleClearCache}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <KioskLayout
         title={
           step === 'select-members' && selectedFamily

@@ -19,8 +19,12 @@ interface CachedFamily {
 
 class OfflineFamilyCache {
   private db: IDBPDatabase | null = null;
+  private destroyed = false;
 
   private async getDB(): Promise<IDBPDatabase> {
+    if (this.destroyed) {
+      throw new Error('OfflineFamilyCache has been closed');
+    }
     if (this.db) {
       return this.db;
     }
@@ -66,6 +70,17 @@ class OfflineFamilyCache {
   async clearCache(): Promise<void> {
     const db = await this.getDB();
     await db.clear(STORE_NAME);
+  }
+
+  /**
+   * Close the database connection (required before deleteDatabase)
+   */
+  close(): void {
+    this.destroyed = true;
+    if (this.db) {
+      this.db.close();
+      this.db = null;
+    }
   }
 
   /**
