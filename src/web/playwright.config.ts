@@ -12,6 +12,14 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: 1,
 
+  // Screenshot comparison tolerances — covers antialiasing / font-rendering noise
+  // without hiding real regressions. Feature specs under e2e/tests/ use toHaveScreenshot.
+  expect: {
+    toHaveScreenshot: {
+      maxDiffPixelRatio: 0.02,
+    },
+  },
+
   reporter: [
     ['html', { outputFolder: 'playwright-report' }],
     ['json', { outputFile: 'e2e-results.json' }],
