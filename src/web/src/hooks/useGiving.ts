@@ -6,7 +6,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as givingApi from '@/services/api/giving';
 import { getCampuses } from '@/services/api/reference';
 import type { BatchFilterParams } from '@/services/api/giving';
-import type { AddContributionRequest, CreateBatchRequest, GenerateStatementRequest } from '@/types/giving';
+import type {
+  AddContributionRequest,
+  CreateBatchRequest,
+  GenerateStatementRequest,
+  CreateFundRequest,
+  UpdateFundRequest,
+} from '@/types/giving';
 
 /**
  * Get financial batches with filters
@@ -224,6 +230,60 @@ export function useGenerateStatement() {
     mutationFn: (request: GenerateStatementRequest) => givingApi.generateStatement(request),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['statements'] });
+    },
+  });
+}
+
+// ============================================================================
+// Fund Admin Hooks
+// ============================================================================
+
+/**
+ * Get all funds including inactive ones for admin management
+ */
+export function useAdminFunds() {
+  return useQuery({
+    queryKey: ['funds', 'admin', 'all'],
+    queryFn: () => givingApi.getAllFundsAdmin(),
+  });
+}
+
+/**
+ * Create a new fund
+ */
+export function useCreateFund() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (request: CreateFundRequest) => givingApi.createFund(request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['funds'] });
+    },
+  });
+}
+
+/**
+ * Update an existing fund
+ */
+export function useUpdateFund() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ idKey, request }: { idKey: string; request: UpdateFundRequest }) =>
+      givingApi.updateFund(idKey, request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['funds'] });
+    },
+  });
+}
+
+/**
+ * Deactivate (soft delete) a fund
+ */
+export function useDeactivateFund() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (idKey: string) => givingApi.deactivateFund(idKey),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['funds'] });
     },
   });
 }
