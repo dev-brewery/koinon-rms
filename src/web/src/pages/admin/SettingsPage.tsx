@@ -159,6 +159,34 @@ export function SettingsPage() {
             View system activity and track changes to records
           </p>
         </Link>
+
+        <Link
+          to="/admin/settings/defined-types"
+          className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow"
+        >
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-2 bg-teal-100 rounded-lg">
+              <svg
+                className="w-6 h-6 text-teal-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 10h16M4 14h16M4 18h16"
+                />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">Defined Types</h3>
+          </div>
+          <p className="text-sm text-gray-600">
+            Manage configurable lookup values used system-wide
+          </p>
+        </Link>
       </div>
     </div>
   );

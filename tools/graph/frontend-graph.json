@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-03-28T01:17:36.394Z",
+  "generated_at": "2026-04-16T17:39:50.515Z",
   "types": {
     "AttendanceAnalyticsDto": {
       "name": "AttendanceAnalyticsDto",
@@ -4152,7 +4152,7 @@
     "searchFamiliesForCheckin": {
       "name": "searchFamiliesForCheckin",
       "path": "services/api/checkin.ts",
-      "endpoint": "/checkin/search?${queryParams.toString()}",
+      "endpoint": "/unknown",
       "method": "GET",
       "responseType": "CheckinFamilyDto[]"
     },
@@ -7244,9 +7244,7 @@
       ],
       "usesQuery": true,
       "usesMutation": false,
-      "dependencies": [
-        "getMultipleRoomRosters"
-      ]
+      "dependencies": []
     }
   },
   "components": {
@@ -8106,6 +8104,12 @@
         "useSessions",
         "useRevokeSession"
       ],
+      "apiCallsDirectly": false
+    },
+    "AccessibleSelect": {
+      "name": "AccessibleSelect",
+      "path": "components/ui/AccessibleSelect.tsx",
+      "hooksUsed": [],
       "apiCallsDirectly": false
     },
     "Button": {

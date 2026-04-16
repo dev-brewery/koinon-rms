@@ -47,6 +47,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IMyGroupsService, MyGroupsService>();
         services.AddScoped<IFamilyService, FamilyService>();
         services.AddScoped<ICampusService, CampusService>();
+        services.AddScoped<IDefinedTypeService, DefinedTypeService>();
         services.AddScoped<ILocationService, LocationService>();
         services.AddScoped<IScheduleService, ScheduleService>();
         services.AddScoped<IDashboardService, DashboardService>();
