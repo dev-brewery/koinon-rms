@@ -36,6 +36,7 @@ const ImportSettingsPage = lazy(() => import('./pages/admin/settings/ImportSetti
 const CampusesPage = lazy(() => import('./pages/admin/settings/CampusesPage').then(m => ({ default: m.CampusesPage })));
 const LocationsPage = lazy(() => import('./pages/admin/settings/LocationsPage').then(m => ({ default: m.LocationsPage })));
 const AuditLogsPage = lazy(() => import('./pages/admin/settings/AuditLogsPage').then(m => ({ default: m.AuditLogsPage })));
+const DefinedTypesPage = lazy(() => import('./pages/admin/settings/DefinedTypesPage').then(m => ({ default: m.DefinedTypesPage })));
 const GroupFinderPage = lazy(() => import('./pages/public/GroupFinderPage').then(m => ({ default: m.GroupFinderPage })));
 const MyGroupsPage = lazy(() => import('./pages/MyGroupsPage').then(m => ({ default: m.MyGroupsPage })));
 const CommunicationsPage = lazy(() => import('./pages/communications/CommunicationsPage').then(m => ({ default: m.CommunicationsPage })));
@@ -277,6 +278,7 @@ function App() {
           <Route path="settings/campuses" element={<CampusesPage />} />
           <Route path="settings/locations" element={<LocationsPage />} />
           <Route path="settings/audit-logs" element={<AuditLogsPage />} />
+          <Route path="settings/defined-types" element={<DefinedTypesPage />} />
           <Route path="exports" element={<DataExportsPage />} />
           <Route path="import/history" element={<ImportHistoryPage />} />
           <Route path="import/people" element={<PeopleImportPage />} />
