@@ -19,6 +19,7 @@ public class ContributionStatementsControllerTests
 {
     private readonly Mock<IBatchDonationEntryService> _batchDonationServiceMock;
     private readonly Mock<IContributionStatementService> _statementServiceMock;
+    private readonly Mock<IFundService> _fundServiceMock;
     private readonly Mock<ILogger<GivingController>> _loggerMock;
     private readonly GivingController _controller;
 
@@ -30,10 +31,12 @@ public class ContributionStatementsControllerTests
     {
         _batchDonationServiceMock = new Mock<IBatchDonationEntryService>();
         _statementServiceMock = new Mock<IContributionStatementService>();
+        _fundServiceMock = new Mock<IFundService>();
         _loggerMock = new Mock<ILogger<GivingController>>();
         _controller = new GivingController(
             _batchDonationServiceMock.Object,
             _statementServiceMock.Object,
+            _fundServiceMock.Object,
             _loggerMock.Object);
 
         // Setup HttpContext for controller

@@ -6,6 +6,9 @@ import { get, post, put, del } from './client';
 import type { PaginationMeta } from './types';
 import type {
   FundDto,
+  FundAdminDto,
+  CreateFundRequest,
+  UpdateFundRequest,
   ContributionBatchDto,
   BatchSummaryDto,
   CreateBatchRequest,
@@ -43,6 +46,41 @@ export async function getActiveFunds(): Promise<FundDto[]> {
 export async function getFund(idKey: string): Promise<FundDto> {
   const response = await get<{ data: FundDto }>(`/giving/funds/${idKey}`);
   return response.data;
+}
+
+/**
+ * Gets all funds (including inactive) for admin management.
+ * Requires authentication
+ */
+export async function getAllFundsAdmin(): Promise<FundAdminDto[]> {
+  const response = await get<{ data: FundAdminDto[] }>('/giving/admin/funds');
+  return response.data;
+}
+
+/**
+ * Creates a new fund.
+ * Requires authentication
+ */
+export async function createFund(request: CreateFundRequest): Promise<FundAdminDto> {
+  const response = await post<{ data: FundAdminDto }>('/giving/admin/funds', request);
+  return response.data;
+}
+
+/**
+ * Updates an existing fund.
+ * Requires authentication
+ */
+export async function updateFund(idKey: string, request: UpdateFundRequest): Promise<FundAdminDto> {
+  const response = await put<{ data: FundAdminDto }>(`/giving/admin/funds/${idKey}`, request);
+  return response.data;
+}
+
+/**
+ * Deactivates (soft deletes) a fund.
+ * Requires authentication
+ */
+export async function deactivateFund(idKey: string): Promise<void> {
+  await del(`/giving/admin/funds/${idKey}`);
 }
 
 // ============================================================================

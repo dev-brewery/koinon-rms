@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-04-04T18:39:13-04:00",
+  "generated_at": "2026-04-16T15:05:31-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -2567,6 +2567,24 @@
       },
       "linked_entity": "ContributionStatement"
     },
+    "FundAdminDto": {
+      "name": "FundAdminDto",
+      "namespace": "Koinon.Application.DTOs.Giving",
+      "properties": {
+        "IdKey": "string",
+        "Name": "string",
+        "PublicName": "string?",
+        "Description": "string?",
+        "GlCode": "string?",
+        "IsActive": "bool",
+        "IsPublic": "bool",
+        "IsTaxDeductible": "bool",
+        "Order": "int",
+        "CreatedDateTime": "DateTime",
+        "ModifiedDateTime": "DateTime?"
+      },
+      "linked_entity": "Fund"
+    },
     "FundDto": {
       "name": "FundDto",
       "namespace": "Koinon.Application.DTOs.Giving",
@@ -3795,6 +3813,19 @@
       },
       "linked_entity": "Family"
     },
+    "CreateFundRequest": {
+      "name": "CreateFundRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Name": "string",
+        "PublicName": "string?",
+        "Description": "string?",
+        "GlCode": "string?",
+        "IsPublic": "bool",
+        "IsTaxDeductible": "bool"
+      },
+      "linked_entity": "Fund"
+    },
     "CreateGroupRequest": {
       "name": "CreateGroupRequest",
       "namespace": "Koinon.Application.DTOs.Requests",
@@ -4144,6 +4175,19 @@
         "CampusId": "string?"
       },
       "linked_entity": "Family"
+    },
+    "UpdateFundRequest": {
+      "name": "UpdateFundRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Name": "string",
+        "PublicName": "string?",
+        "Description": "string?",
+        "GlCode": "string?",
+        "IsPublic": "bool",
+        "IsTaxDeductible": "bool"
+      },
+      "linked_entity": "Fund"
     },
     "UpdateGroupMemberRequest": {
       "name": "UpdateGroupMemberRequest",
@@ -5790,6 +5834,46 @@
         "ILogger<FollowUpService>"
       ]
     },
+    "FundService": {
+      "name": "FundService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "FundService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetAllFundsAsync",
+          "return_type": "Task<IReadOnlyList<FundAdminDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetFundAdminAsync",
+          "return_type": "Task<Result<FundAdminDto>>",
+          "is_async": false
+        },
+        {
+          "name": "CreateFundAsync",
+          "return_type": "Task<Result<FundAdminDto>>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateFundAsync",
+          "return_type": "Task<Result<FundAdminDto>>",
+          "is_async": false
+        },
+        {
+          "name": "DeactivateFundAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "ILogger<FundService>"
+      ]
+    },
     "GlobalSearchService": {
       "name": "GlobalSearchService",
       "namespace": "Koinon.Application.Services",
@@ -6966,6 +7050,12 @@
       "methods": [],
       "dependencies": []
     },
+    "IFundService": {
+      "name": "IFundService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
     "IGlobalSearchService": {
       "name": "IGlobalSearchService",
       "namespace": "Koinon.Application.Interfaces",
@@ -8104,6 +8194,15 @@
           "required_roles": []
         },
         {
+          "name": "GetAllFundsAdminAsync",
+          "method": "GET",
+          "route": "admin/funds",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "GetBatchesAsync",
           "method": "GET",
           "route": "batches",
@@ -8185,6 +8284,15 @@
           "required_roles": []
         },
         {
+          "name": "CreateFundAsync",
+          "method": "POST",
+          "route": "admin/funds",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "CreateBatchAsync",
           "method": "POST",
           "route": "batches",
@@ -8239,9 +8347,27 @@
           "required_roles": []
         },
         {
+          "name": "UpdateFundAsync",
+          "method": "PUT",
+          "route": "admin/funds/{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "UpdateContributionAsync",
           "method": "PUT",
           "route": "contributions/{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "DeactivateFundAsync",
+          "method": "DELETE",
+          "route": "admin/funds/{idKey}",
           "request_type": null,
           "response_type": null,
           "requires_auth": true,
@@ -8266,6 +8392,7 @@
       "dependencies": [
         "IBatchDonationEntryService",
         "IContributionStatementService",
+        "IFundService",
         "ILogger<GivingController>"
       ]
     },
@@ -10562,6 +10689,50 @@
         "publicName": "string",
         "isActive": "boolean",
         "isPublic": "boolean"
+      },
+      "path": "types/giving.ts"
+    },
+    "FundAdminDto": {
+      "name": "FundAdminDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "publicName": "string",
+        "description": "string",
+        "glCode": "string",
+        "isActive": "boolean",
+        "isPublic": "boolean",
+        "isTaxDeductible": "boolean",
+        "order": "number",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "types/giving.ts"
+    },
+    "CreateFundRequest": {
+      "name": "CreateFundRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "publicName": "string",
+        "description": "string",
+        "glCode": "string",
+        "isPublic": "boolean",
+        "isTaxDeductible": "boolean"
+      },
+      "path": "types/giving.ts"
+    },
+    "UpdateFundRequest": {
+      "name": "UpdateFundRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "publicName": "string",
+        "description": "string",
+        "glCode": "string",
+        "isPublic": "boolean",
+        "isTaxDeductible": "boolean"
       },
       "path": "types/giving.ts"
     },
@@ -14359,6 +14530,58 @@
         "generateStatement"
       ]
     },
+    "useAdminFunds": {
+      "name": "useAdminFunds",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "funds"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getAllFundsAdmin"
+      ]
+    },
+    "useCreateFund": {
+      "name": "useCreateFund",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "funds"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "createFund"
+      ]
+    },
+    "useUpdateFund": {
+      "name": "useUpdateFund",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "funds"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "updateFund"
+      ]
+    },
+    "useDeactivateFund": {
+      "name": "useDeactivateFund",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "funds"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "deactivateFund"
+      ]
+    },
     "useDownloadStatementPdf": {
       "name": "useDownloadStatementPdf",
       "path": "hooks/useGiving.ts",
@@ -15977,6 +16200,34 @@
       "endpoint": "/giving/funds/${idKey}",
       "method": "GET",
       "responseType": "FundDto"
+    },
+    "getAllFundsAdmin": {
+      "name": "getAllFundsAdmin",
+      "path": "services/api/giving.ts",
+      "endpoint": "/giving/admin/funds",
+      "method": "GET",
+      "responseType": "FundAdminDto[]"
+    },
+    "createFund": {
+      "name": "createFund",
+      "path": "services/api/giving.ts",
+      "endpoint": "/giving/admin/funds",
+      "method": "POST",
+      "responseType": "FundAdminDto"
+    },
+    "updateFund": {
+      "name": "updateFund",
+      "path": "services/api/giving.ts",
+      "endpoint": "/giving/admin/funds/${idKey}",
+      "method": "PUT",
+      "responseType": "FundAdminDto"
+    },
+    "deactivateFund": {
+      "name": "deactivateFund",
+      "path": "services/api/giving.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "void"
     },
     "getBatches": {
       "name": "getBatches",
@@ -18044,6 +18295,11 @@
       "relationship": "maps_to"
     },
     {
+      "source": "FundAdminDto",
+      "target": "Fund",
+      "relationship": "maps_to"
+    },
+    {
       "source": "FundDto",
       "target": "Fund",
       "relationship": "maps_to"
@@ -18444,6 +18700,11 @@
       "relationship": "maps_to"
     },
     {
+      "source": "CreateFundRequest",
+      "target": "Fund",
+      "relationship": "maps_to"
+    },
+    {
       "source": "CreateGroupRequest",
       "target": "Group",
       "relationship": "maps_to"
@@ -18561,6 +18822,11 @@
     {
       "source": "UpdateFamilyRequest",
       "target": "Family",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdateFundRequest",
+      "target": "Fund",
       "relationship": "maps_to"
     },
     {
@@ -18826,6 +19092,11 @@
     {
       "source": "GivingController",
       "target": "IContributionStatementService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "GivingController",
+      "target": "IFundService",
       "relationship": "depends_on"
     },
     {
@@ -19494,6 +19765,26 @@
       "relationship": "returns"
     },
     {
+      "source": "FundService",
+      "target": "FundAdminDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "FundService",
+      "target": "FundAdminDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "FundService",
+      "target": "FundAdminDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "FundService",
+      "target": "FundAdminDto",
+      "relationship": "returns"
+    },
+    {
       "source": "GlobalSearchService",
       "target": "GlobalSearchResponse",
       "relationship": "returns"
@@ -20114,6 +20405,11 @@
       "relationship": "uses"
     },
     {
+      "source": "FundService",
+      "target": "Fund",
+      "relationship": "uses"
+    },
+    {
       "source": "GroupMemberRequestService",
       "target": "Group",
       "relationship": "uses"
@@ -20691,6 +20987,7 @@
     "dto:GenerateStatementRequest": "type:GenerateStatementRequest",
     "dto:StatementPreviewDto": "type:StatementPreviewDto",
     "dto:EligiblePersonDto": "type:EligiblePersonDto",
+    "dto:FundAdminDto": "type:FundAdminDto",
     "dto:FundDto": "type:FundDto",
     "dto:PersonGivingSummaryDto": "type:PersonGivingSummaryDto",
     "dto:RecentContributionDto": "type:RecentContributionDto",
@@ -20762,6 +21059,7 @@
     "dto:CreateFamilyRequest": "type:CreateFamilyRequest",
     "dto:AddFamilyMemberRequest": "type:AddFamilyMemberRequest",
     "dto:UpdateFamilyAddressRequest": "type:UpdateFamilyAddressRequest",
+    "dto:CreateFundRequest": "type:CreateFundRequest",
     "dto:CreateGroupRequest": "type:CreateGroupRequest",
     "dto:UpdateGroupRequest": "type:UpdateGroupRequest",
     "dto:AddGroupMemberRequest": "type:AddGroupMemberRequest",
@@ -20785,6 +21083,7 @@
     "dto:UpdateDeviceRequest": "type:UpdateDeviceRequest",
     "dto:UpdateFamilyMemberRequest": "type:UpdateFamilyMemberRequest",
     "dto:UpdateFamilyRequest": "type:UpdateFamilyRequest",
+    "dto:UpdateFundRequest": "type:UpdateFundRequest",
     "dto:UpdateGroupMemberRequest": "type:UpdateGroupMemberRequest",
     "dto:UpdateGroupTypeRequest": "type:UpdateGroupTypeRequest",
     "dto:UpdateLocationRequest": "type:UpdateLocationRequest",
@@ -20811,13 +21110,13 @@
   },
   "stats": {
     "entities": 60,
-    "dtos": 220,
-    "services": 111,
+    "dtos": 223,
+    "services": 113,
     "controllers": 36,
-    "types": 310,
-    "api_functions": 178,
-    "hooks": 158,
+    "types": 313,
+    "api_functions": 182,
+    "hooks": 162,
     "components": 136,
-    "total_edges": 590
+    "total_edges": 599
   }
 }
