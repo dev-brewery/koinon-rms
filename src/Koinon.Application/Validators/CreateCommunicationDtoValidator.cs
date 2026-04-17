@@ -10,9 +10,16 @@ public class CreateCommunicationDtoValidator : AbstractValidator<CreateCommunica
 {
     public CreateCommunicationDtoValidator()
     {
+        RuleFor(x => x)
+            .Must(x => x.GroupIdKeys.Count > 0 || x.PersonIdKeys.Count > 0)
+            .WithMessage("At least one group or individual recipient is required")
+            .WithName("Recipients");
+
         RuleFor(x => x.GroupIdKeys)
-            .NotEmpty().WithMessage("At least one group must be specified")
             .Must(x => x.Count <= 50).WithMessage("Cannot specify more than 50 groups per communication");
+
+        RuleFor(x => x.PersonIdKeys)
+            .Must(x => x.Count <= 200).WithMessage("Cannot add more than 200 individual recipients");
 
         RuleFor(x => x.Subject)
             .NotEmpty().WithMessage("Subject is required for email communications")
