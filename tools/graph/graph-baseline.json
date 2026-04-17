@@ -1949,8 +1949,7 @@
         "ReplyToEmail": "string?",
         "ScheduledDateTime": "DateTime?",
         "Note": "string?",
-        "GroupIdKeys": "IReadOnlyList<string>",
-        "PersonIdKeys": "IReadOnlyList<string>"
+        "GroupIdKeys": "IReadOnlyList<string>"
       },
       "linked_entity": "Communication"
     },
@@ -2652,6 +2651,32 @@
         "CategoryCounts": "Dictionary<string, int>"
       },
       "linked_entity": "System"
+    },
+    "GroupAttendanceDetailDto": {
+      "name": "GroupAttendanceDetailDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "PersonIdKey": "string",
+        "FullName": "string",
+        "PhotoUrl": "string?",
+        "DidAttend": "bool",
+        "PresentDateTime": "DateTime?"
+      },
+      "linked_entity": "Group"
+    },
+    "GroupAttendanceOccurrenceDto": {
+      "name": "GroupAttendanceOccurrenceDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "IdKey": "string",
+        "OccurrenceDate": "DateOnly",
+        "AttendeeCount": "int",
+        "AnonymousCount": "int",
+        "DidNotOccur": "bool",
+        "LocationName": "string?",
+        "ScheduleName": "string?"
+      },
+      "linked_entity": "Group"
     },
     "GroupDto": {
       "name": "GroupDto",
@@ -6024,6 +6049,16 @@
           "name": "RemoveScheduleAsync",
           "return_type": "Task<Result>",
           "is_async": false
+        },
+        {
+          "name": "GetAttendanceHistoryAsync",
+          "return_type": "Task<IReadOnlyList<GroupAttendanceOccurrenceDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetAttendanceDetailAsync",
+          "return_type": "Task<Result<IReadOnlyList<GroupAttendanceDetailDto>>>",
+          "is_async": false
         }
       ],
       "dependencies": [
@@ -8534,6 +8569,24 @@
           "required_roles": []
         },
         {
+          "name": "GetAttendanceHistory",
+          "method": "GET",
+          "route": "{idKey}/attendance",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetAttendanceDetail",
+          "method": "GET",
+          "route": "{idKey}/attendance/{occurrenceIdKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "AddMember",
           "method": "POST",
           "route": "{idKey}/members",
@@ -10322,7 +10375,6 @@
         "replyToEmail": "string",
         "note": "string",
         "groupIdKeys": "string[]",
-        "personIdKeys": "string[]",
         "scheduledDateTime": "string"
       },
       "path": "types/communication.ts"
@@ -17563,16 +17615,6 @@
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
-    "RecipientBuilder": {
-      "name": "RecipientBuilder",
-      "path": "components/communication/RecipientBuilder.tsx",
-      "hooksUsed": [
-        "useCampuses",
-        "useDefinedTypeValues",
-        "usePeople"
-      ],
-      "apiCallsDirectly": false
-    },
     "RecipientStatusBadge": {
       "name": "RecipientStatusBadge",
       "path": "components/communication/RecipientStatusBadge.tsx",
@@ -17591,12 +17633,6 @@
       "hooksUsed": [
         "useCreateCommunicationTemplate"
       ],
-      "apiCallsDirectly": false
-    },
-    "SelectedPersonsTable": {
-      "name": "SelectedPersonsTable",
-      "path": "components/communication/SelectedPersonsTable.tsx",
-      "hooksUsed": [],
       "apiCallsDirectly": false
     },
     "SmsComposer": {
@@ -18356,6 +18392,16 @@
     {
       "source": "GlobalSearchResponse",
       "target": "System",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "GroupAttendanceDetailDto",
+      "target": "Group",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "GroupAttendanceOccurrenceDto",
+      "target": "Group",
       "relationship": "maps_to"
     },
     {
@@ -19894,6 +19940,16 @@
       "relationship": "returns"
     },
     {
+      "source": "GroupService",
+      "target": "GroupAttendanceOccurrenceDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "GroupService",
+      "target": "GroupAttendanceDetailDto",
+      "relationship": "returns"
+    },
+    {
       "source": "GroupTypeService",
       "target": "GroupTypeDto",
       "relationship": "returns"
@@ -20809,21 +20865,6 @@
       "type": "uses_hook"
     },
     {
-      "from": "RecipientBuilder",
-      "to": "useCampuses",
-      "type": "uses_hook"
-    },
-    {
-      "from": "RecipientBuilder",
-      "to": "useDefinedTypeValues",
-      "type": "uses_hook"
-    },
-    {
-      "from": "RecipientBuilder",
-      "to": "usePeople",
-      "type": "uses_hook"
-    },
-    {
       "from": "SaveAsTemplateModal",
       "to": "useCreateCommunicationTemplate",
       "type": "uses_hook"
@@ -21043,6 +21084,8 @@
     "dto:PersonLookupDto": "type:PersonLookupDto",
     "dto:GlobalSearchResultDto": "type:GlobalSearchResult",
     "dto:GlobalSearchResponse": "type:GlobalSearchResponse",
+    "dto:GroupAttendanceDetailDto": "type:GroupAttendanceDetailDto",
+    "dto:GroupAttendanceOccurrenceDto": "type:GroupAttendanceOccurrenceDto",
     "dto:GroupDto": "type:GroupDto",
     "dto:GroupSummaryDto": "type:GroupSummaryDto",
     "dto:GroupMemberDto": "type:GroupMemberDto",
@@ -21159,13 +21202,13 @@
   },
   "stats": {
     "entities": 60,
-    "dtos": 223,
+    "dtos": 225,
     "services": 113,
     "controllers": 37,
     "types": 313,
     "api_functions": 182,
     "hooks": 162,
-    "components": 138,
-    "total_edges": 602
+    "components": 136,
+    "total_edges": 603
   }
 }

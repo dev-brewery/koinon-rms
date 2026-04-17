@@ -540,6 +540,75 @@ public class GroupsController(
     }
 
     /// <summary>
+    /// Gets attendance occurrence history for a group.
+    /// </summary>
+    /// <param name="idKey">The group's IdKey</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Paginated list of attendance occurrences</returns>
+    /// <response code="200">Returns attendance history</response>
+    [HttpGet("{idKey}/attendance")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAttendanceHistory(string idKey, CancellationToken ct = default)
+    {
+        var occurrences = await groupService.GetAttendanceHistoryAsync(idKey, ct);
+
+        logger.LogDebug(
+            "Attendance history retrieved: IdKey={IdKey}, OccurrenceCount={Count}",
+            idKey, occurrences.Count);
+
+        return Ok(new
+        {
+            data = occurrences,
+            meta = new { page = 1, pageSize = 50, totalCount = occurrences.Count, totalPages = 1 }
+        });
+    }
+
+    /// <summary>
+    /// Gets individual attendance records for a specific group occurrence.
+    /// </summary>
+    /// <param name="idKey">The group's IdKey</param>
+    /// <param name="occurrenceIdKey">The occurrence's IdKey</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>List of attendance detail records</returns>
+    /// <response code="200">Returns attendance detail</response>
+    /// <response code="404">Group or occurrence not found</response>
+    [HttpGet("{idKey}/attendance/{occurrenceIdKey}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetAttendanceDetail(
+        string idKey,
+        string occurrenceIdKey,
+        CancellationToken ct = default)
+    {
+        var result = await groupService.GetAttendanceDetailAsync(idKey, occurrenceIdKey, ct);
+
+        if (result.IsFailure)
+        {
+            logger.LogDebug(
+                "Attendance detail not found: GroupIdKey={IdKey}, OccurrenceIdKey={OccurrenceIdKey}, Code={Code}",
+                idKey, occurrenceIdKey, result.Error!.Code);
+
+            return result.Error!.Code switch
+            {
+                "NOT_FOUND" => NotFound(new ProblemDetails
+                {
+                    Title = "Resource not found",
+                    Detail = result.Error.Message,
+                    Status = StatusCodes.Status404NotFound,
+                    Instance = HttpContext.Request.Path
+                }),
+                _ => BadRequest(result.Error)
+            };
+        }
+
+        logger.LogDebug(
+            "Attendance detail retrieved: GroupIdKey={IdKey}, OccurrenceIdKey={OccurrenceIdKey}, Count={Count}",
+            idKey, occurrenceIdKey, result.Value!.Count);
+
+        return Ok(new { data = result.Value });
+    }
+
+    /// <summary>
     /// Removes a schedule from a group.
     /// </summary>
     /// <param name="idKey">The group's IdKey</param>
