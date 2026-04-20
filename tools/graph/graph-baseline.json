@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-04-16T15:05:31-04:00",
+  "generated_at": "2026-04-16T17:48:03-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -1949,7 +1949,8 @@
         "ReplyToEmail": "string?",
         "ScheduledDateTime": "DateTime?",
         "Note": "string?",
-        "GroupIdKeys": "IReadOnlyList<string>"
+        "GroupIdKeys": "IReadOnlyList<string>",
+        "PersonIdKeys": "IReadOnlyList<string>"
       },
       "linked_entity": "Communication"
     },
@@ -8170,6 +8171,59 @@
         "ILogger<FollowUpController>"
       ]
     },
+    "FundsController": {
+      "name": "FundsController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/giving/admin/funds",
+      "endpoints": [
+        {
+          "name": "GetAllFundsAdminAsync",
+          "method": "GET",
+          "route": "",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "CreateFundAsync",
+          "method": "POST",
+          "route": "",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "UpdateFundAsync",
+          "method": "PUT",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "DeactivateFundAsync",
+          "method": "DELETE",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": true,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "IFundService",
+        "ILogger<FundsController>"
+      ]
+    },
     "GivingController": {
       "name": "GivingController",
       "namespace": "Koinon.Api.Controllers",
@@ -8188,15 +8242,6 @@
           "name": "GetFundAsync",
           "method": "GET",
           "route": "funds/{idKey}",
-          "request_type": null,
-          "response_type": null,
-          "requires_auth": true,
-          "required_roles": []
-        },
-        {
-          "name": "GetAllFundsAdminAsync",
-          "method": "GET",
-          "route": "admin/funds",
           "request_type": null,
           "response_type": null,
           "requires_auth": true,
@@ -8284,15 +8329,6 @@
           "required_roles": []
         },
         {
-          "name": "CreateFundAsync",
-          "method": "POST",
-          "route": "admin/funds",
-          "request_type": null,
-          "response_type": null,
-          "requires_auth": true,
-          "required_roles": []
-        },
-        {
           "name": "CreateBatchAsync",
           "method": "POST",
           "route": "batches",
@@ -8347,27 +8383,9 @@
           "required_roles": []
         },
         {
-          "name": "UpdateFundAsync",
-          "method": "PUT",
-          "route": "admin/funds/{idKey}",
-          "request_type": null,
-          "response_type": null,
-          "requires_auth": true,
-          "required_roles": []
-        },
-        {
           "name": "UpdateContributionAsync",
           "method": "PUT",
           "route": "contributions/{idKey}",
-          "request_type": null,
-          "response_type": null,
-          "requires_auth": true,
-          "required_roles": []
-        },
-        {
-          "name": "DeactivateFundAsync",
-          "method": "DELETE",
-          "route": "admin/funds/{idKey}",
           "request_type": null,
           "response_type": null,
           "requires_auth": true,
@@ -8392,7 +8410,6 @@
       "dependencies": [
         "IBatchDonationEntryService",
         "IContributionStatementService",
-        "IFundService",
         "ILogger<GivingController>"
       ]
     },
@@ -10305,6 +10322,7 @@
         "replyToEmail": "string",
         "note": "string",
         "groupIdKeys": "string[]",
+        "personIdKeys": "string[]",
         "scheduledDateTime": "string"
       },
       "path": "types/communication.ts"
@@ -17545,6 +17563,16 @@
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
+    "RecipientBuilder": {
+      "name": "RecipientBuilder",
+      "path": "components/communication/RecipientBuilder.tsx",
+      "hooksUsed": [
+        "useCampuses",
+        "useDefinedTypeValues",
+        "usePeople"
+      ],
+      "apiCallsDirectly": false
+    },
     "RecipientStatusBadge": {
       "name": "RecipientStatusBadge",
       "path": "components/communication/RecipientStatusBadge.tsx",
@@ -17563,6 +17591,12 @@
       "hooksUsed": [
         "useCreateCommunicationTemplate"
       ],
+      "apiCallsDirectly": false
+    },
+    "SelectedPersonsTable": {
+      "name": "SelectedPersonsTable",
+      "path": "components/communication/SelectedPersonsTable.tsx",
+      "hooksUsed": [],
       "apiCallsDirectly": false
     },
     "SmsComposer": {
@@ -19085,6 +19119,11 @@
       "relationship": "depends_on"
     },
     {
+      "source": "FundsController",
+      "target": "IFundService",
+      "relationship": "depends_on"
+    },
+    {
       "source": "GivingController",
       "target": "IBatchDonationEntryService",
       "relationship": "depends_on"
@@ -19092,11 +19131,6 @@
     {
       "source": "GivingController",
       "target": "IContributionStatementService",
-      "relationship": "depends_on"
-    },
-    {
-      "source": "GivingController",
-      "target": "IFundService",
       "relationship": "depends_on"
     },
     {
@@ -20775,6 +20809,21 @@
       "type": "uses_hook"
     },
     {
+      "from": "RecipientBuilder",
+      "to": "useCampuses",
+      "type": "uses_hook"
+    },
+    {
+      "from": "RecipientBuilder",
+      "to": "useDefinedTypeValues",
+      "type": "uses_hook"
+    },
+    {
+      "from": "RecipientBuilder",
+      "to": "usePeople",
+      "type": "uses_hook"
+    },
+    {
       "from": "SaveAsTemplateModal",
       "to": "useCreateCommunicationTemplate",
       "type": "uses_hook"
@@ -21112,11 +21161,11 @@
     "entities": 60,
     "dtos": 223,
     "services": 113,
-    "controllers": 36,
+    "controllers": 37,
     "types": 313,
     "api_functions": 182,
     "hooks": 162,
-    "components": 136,
-    "total_edges": 599
+    "components": 138,
+    "total_edges": 602
   }
 }

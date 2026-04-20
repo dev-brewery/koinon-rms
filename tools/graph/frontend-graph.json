@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-04-16T17:39:50.515Z",
+  "generated_at": "2026-04-17T06:36:14.789Z",
   "types": {
     "AttendanceAnalyticsDto": {
       "name": "AttendanceAnalyticsDto",
@@ -690,6 +690,7 @@
         "replyToEmail": "string",
         "note": "string",
         "groupIdKeys": "string[]",
+        "personIdKeys": "string[]",
         "scheduledDateTime": "string"
       },
       "path": "types/communication.ts"
@@ -1074,6 +1075,50 @@
         "publicName": "string",
         "isActive": "boolean",
         "isPublic": "boolean"
+      },
+      "path": "types/giving.ts"
+    },
+    "FundAdminDto": {
+      "name": "FundAdminDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "publicName": "string",
+        "description": "string",
+        "glCode": "string",
+        "isActive": "boolean",
+        "isPublic": "boolean",
+        "isTaxDeductible": "boolean",
+        "order": "number",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "types/giving.ts"
+    },
+    "CreateFundRequest": {
+      "name": "CreateFundRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "publicName": "string",
+        "description": "string",
+        "glCode": "string",
+        "isPublic": "boolean",
+        "isTaxDeductible": "boolean"
+      },
+      "path": "types/giving.ts"
+    },
+    "UpdateFundRequest": {
+      "name": "UpdateFundRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "publicName": "string",
+        "description": "string",
+        "glCode": "string",
+        "isPublic": "boolean",
+        "isTaxDeductible": "boolean"
       },
       "path": "types/giving.ts"
     },
@@ -4492,6 +4537,34 @@
       "method": "GET",
       "responseType": "FundDto"
     },
+    "getAllFundsAdmin": {
+      "name": "getAllFundsAdmin",
+      "path": "services/api/giving.ts",
+      "endpoint": "/giving/admin/funds",
+      "method": "GET",
+      "responseType": "FundAdminDto[]"
+    },
+    "createFund": {
+      "name": "createFund",
+      "path": "services/api/giving.ts",
+      "endpoint": "/giving/admin/funds",
+      "method": "POST",
+      "responseType": "FundAdminDto"
+    },
+    "updateFund": {
+      "name": "updateFund",
+      "path": "services/api/giving.ts",
+      "endpoint": "/giving/admin/funds/${idKey}",
+      "method": "PUT",
+      "responseType": "FundAdminDto"
+    },
+    "deactivateFund": {
+      "name": "deactivateFund",
+      "path": "services/api/giving.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "void"
+    },
     "getBatches": {
       "name": "getBatches",
       "path": "services/api/giving.ts",
@@ -6117,6 +6190,58 @@
       "usesMutation": true,
       "dependencies": [
         "generateStatement"
+      ]
+    },
+    "useAdminFunds": {
+      "name": "useAdminFunds",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "funds"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getAllFundsAdmin"
+      ]
+    },
+    "useCreateFund": {
+      "name": "useCreateFund",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "funds"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "createFund"
+      ]
+    },
+    "useUpdateFund": {
+      "name": "useUpdateFund",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "funds"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "updateFund"
+      ]
+    },
+    "useDeactivateFund": {
+      "name": "useDeactivateFund",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "funds"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "deactivateFund"
       ]
     },
     "useDownloadStatementPdf": {
@@ -7806,6 +7931,16 @@
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
+    "RecipientBuilder": {
+      "name": "RecipientBuilder",
+      "path": "components/communication/RecipientBuilder.tsx",
+      "hooksUsed": [
+        "useCampuses",
+        "useDefinedTypeValues",
+        "usePeople"
+      ],
+      "apiCallsDirectly": false
+    },
     "RecipientStatusBadge": {
       "name": "RecipientStatusBadge",
       "path": "components/communication/RecipientStatusBadge.tsx",
@@ -7824,6 +7959,12 @@
       "hooksUsed": [
         "useCreateCommunicationTemplate"
       ],
+      "apiCallsDirectly": false
+    },
+    "SelectedPersonsTable": {
+      "name": "SelectedPersonsTable",
+      "path": "components/communication/SelectedPersonsTable.tsx",
+      "hooksUsed": [],
       "apiCallsDirectly": false
     },
     "SmsComposer": {
@@ -8418,6 +8559,21 @@
     {
       "from": "MergeFieldPicker",
       "to": "useMergeFields",
+      "type": "uses_hook"
+    },
+    {
+      "from": "RecipientBuilder",
+      "to": "useCampuses",
+      "type": "uses_hook"
+    },
+    {
+      "from": "RecipientBuilder",
+      "to": "useDefinedTypeValues",
+      "type": "uses_hook"
+    },
+    {
+      "from": "RecipientBuilder",
+      "to": "usePeople",
       "type": "uses_hook"
     },
     {

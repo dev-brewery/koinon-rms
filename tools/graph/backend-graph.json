@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-04-04T18:39:13-04:00",
+  "generated_at": "2026-04-16T17:48:03-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -1949,7 +1949,8 @@
         "ReplyToEmail": "string?",
         "ScheduledDateTime": "DateTime?",
         "Note": "string?",
-        "GroupIdKeys": "IReadOnlyList<string>"
+        "GroupIdKeys": "IReadOnlyList<string>",
+        "PersonIdKeys": "IReadOnlyList<string>"
       },
       "linked_entity": "Communication"
     },
@@ -2566,6 +2567,24 @@
         "ContributionCount": "int"
       },
       "linked_entity": "ContributionStatement"
+    },
+    "FundAdminDto": {
+      "name": "FundAdminDto",
+      "namespace": "Koinon.Application.DTOs.Giving",
+      "properties": {
+        "IdKey": "string",
+        "Name": "string",
+        "PublicName": "string?",
+        "Description": "string?",
+        "GlCode": "string?",
+        "IsActive": "bool",
+        "IsPublic": "bool",
+        "IsTaxDeductible": "bool",
+        "Order": "int",
+        "CreatedDateTime": "DateTime",
+        "ModifiedDateTime": "DateTime?"
+      },
+      "linked_entity": "Fund"
     },
     "FundDto": {
       "name": "FundDto",
@@ -3795,6 +3814,19 @@
       },
       "linked_entity": "Family"
     },
+    "CreateFundRequest": {
+      "name": "CreateFundRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Name": "string",
+        "PublicName": "string?",
+        "Description": "string?",
+        "GlCode": "string?",
+        "IsPublic": "bool",
+        "IsTaxDeductible": "bool"
+      },
+      "linked_entity": "Fund"
+    },
     "CreateGroupRequest": {
       "name": "CreateGroupRequest",
       "namespace": "Koinon.Application.DTOs.Requests",
@@ -4144,6 +4176,19 @@
         "CampusId": "string?"
       },
       "linked_entity": "Family"
+    },
+    "UpdateFundRequest": {
+      "name": "UpdateFundRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Name": "string",
+        "PublicName": "string?",
+        "Description": "string?",
+        "GlCode": "string?",
+        "IsPublic": "bool",
+        "IsTaxDeductible": "bool"
+      },
+      "linked_entity": "Fund"
     },
     "UpdateGroupMemberRequest": {
       "name": "UpdateGroupMemberRequest",
@@ -5790,6 +5835,46 @@
         "ILogger<FollowUpService>"
       ]
     },
+    "FundService": {
+      "name": "FundService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "FundService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetAllFundsAsync",
+          "return_type": "Task<IReadOnlyList<FundAdminDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetFundAdminAsync",
+          "return_type": "Task<Result<FundAdminDto>>",
+          "is_async": false
+        },
+        {
+          "name": "CreateFundAsync",
+          "return_type": "Task<Result<FundAdminDto>>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateFundAsync",
+          "return_type": "Task<Result<FundAdminDto>>",
+          "is_async": false
+        },
+        {
+          "name": "DeactivateFundAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "ILogger<FundService>"
+      ]
+    },
     "GlobalSearchService": {
       "name": "GlobalSearchService",
       "namespace": "Koinon.Application.Services",
@@ -6966,6 +7051,12 @@
       "methods": [],
       "dependencies": []
     },
+    "IFundService": {
+      "name": "IFundService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
     "IGlobalSearchService": {
       "name": "IGlobalSearchService",
       "namespace": "Koinon.Application.Interfaces",
@@ -8078,6 +8169,59 @@
       "dependencies": [
         "IFollowUpService",
         "ILogger<FollowUpController>"
+      ]
+    },
+    "FundsController": {
+      "name": "FundsController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/giving/admin/funds",
+      "endpoints": [
+        {
+          "name": "GetAllFundsAdminAsync",
+          "method": "GET",
+          "route": "",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "CreateFundAsync",
+          "method": "POST",
+          "route": "",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "UpdateFundAsync",
+          "method": "PUT",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "DeactivateFundAsync",
+          "method": "DELETE",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": true,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "IFundService",
+        "ILogger<FundsController>"
       ]
     },
     "GivingController": {
@@ -9866,6 +10010,11 @@
       "relationship": "maps_to"
     },
     {
+      "source": "FundAdminDto",
+      "target": "Fund",
+      "relationship": "maps_to"
+    },
+    {
       "source": "FundDto",
       "target": "Fund",
       "relationship": "maps_to"
@@ -10266,6 +10415,11 @@
       "relationship": "maps_to"
     },
     {
+      "source": "CreateFundRequest",
+      "target": "Fund",
+      "relationship": "maps_to"
+    },
+    {
       "source": "CreateGroupRequest",
       "target": "Group",
       "relationship": "maps_to"
@@ -10383,6 +10537,11 @@
     {
       "source": "UpdateFamilyRequest",
       "target": "Family",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdateFundRequest",
+      "target": "Fund",
       "relationship": "maps_to"
     },
     {
@@ -10638,6 +10797,11 @@
     {
       "source": "FollowUpController",
       "target": "IFollowUpService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "FundsController",
+      "target": "IFundService",
       "relationship": "depends_on"
     },
     {
@@ -11316,6 +11480,26 @@
       "relationship": "returns"
     },
     {
+      "source": "FundService",
+      "target": "FundAdminDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "FundService",
+      "target": "FundAdminDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "FundService",
+      "target": "FundAdminDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "FundService",
+      "target": "FundAdminDto",
+      "relationship": "returns"
+    },
+    {
       "source": "GlobalSearchService",
       "target": "GlobalSearchResponse",
       "relationship": "returns"
@@ -11936,6 +12120,11 @@
       "relationship": "uses"
     },
     {
+      "source": "FundService",
+      "target": "Fund",
+      "relationship": "uses"
+    },
+    {
       "source": "GroupMemberRequestService",
       "target": "Group",
       "relationship": "uses"
@@ -12063,9 +12252,9 @@
   ],
   "summary": {
     "total_entities": 60,
-    "total_dtos": 220,
-    "total_services": 111,
-    "total_controllers": 36,
-    "total_relationships": 514
+    "total_dtos": 223,
+    "total_services": 113,
+    "total_controllers": 37,
+    "total_relationships": 523
   }
 }

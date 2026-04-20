@@ -132,6 +132,7 @@ export interface CreateCommunicationDto {
   replyToEmail?: string;
   note?: string;
   groupIdKeys: string[];
+  personIdKeys?: string[];
   scheduledDateTime?: string;
 }
 
