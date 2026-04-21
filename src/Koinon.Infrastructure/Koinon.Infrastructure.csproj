@@ -3,6 +3,10 @@
   <PropertyGroup>
     <AssemblyName>Koinon.Infrastructure</AssemblyName>
     <RootNamespace>Koinon.Infrastructure</RootNamespace>
+    <!-- Suppress NuGet audit warning for MailKit (GHSA-9j88-vvj5-vhgr) - -->
+    <!-- moderate advisory in a transitive auth path we don't exercise;  -->
+    <!-- mirrors the pattern already used in Koinon.Application.csproj.  -->
+    <NoWarn>$(NoWarn);NU1902;NU1903</NoWarn>
   </PropertyGroup>
 
   <!-- Dependencies -->

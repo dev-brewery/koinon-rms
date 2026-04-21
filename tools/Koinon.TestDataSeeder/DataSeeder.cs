@@ -55,6 +55,20 @@ public class DataSeeder
     }
 
     /// <summary>
+    /// Tables whose data is owned by EF migrations (reference data) and must
+    /// NOT be truncated by the seeder. Wiping these would drop migration-seeded
+    /// enumerations such as the "Transaction Type" and "Transaction Source"
+    /// DefinedValues that the giving flow (AddContribution) requires. After a
+    /// reset the migrations aren't re-run, so the rows would never come back.
+    /// </summary>
+    private static readonly HashSet<string> ExcludedTables =
+        new(StringComparer.Ordinal)
+        {
+            "defined_type",
+            "defined_value"
+        };
+
+    /// <summary>
     /// Reset database by truncating all tables and resetting sequences.
     /// </summary>
     public async Task ResetDatabaseAsync(CancellationToken cancellationToken = default)
@@ -73,8 +87,10 @@ public class DataSeeder
                   AND tablename != '__EFMigrationsHistory'")
             .ToListAsync(cancellationToken);
 
-        // Truncate each table
-        foreach (var table in tables)
+        var truncatedCount = 0;
+
+        // Truncate each table (except migration-owned reference tables).
+        foreach (var table in tables.Where(t => !ExcludedTables.Contains(t)))
         {
             _logger.LogDebug("Truncating table: {Table}", table);
             // Table names cannot be parameterized in SQL - must use raw SQL.
@@ -83,12 +99,17 @@ public class DataSeeder
 #pragma warning disable EF1002 // Table names from pg_tables are safe system catalog values
             await _context.Database.ExecuteSqlRawAsync(truncateSql, cancellationToken);
 #pragma warning restore EF1002
+            truncatedCount++;
         }
 
         // Re-enable triggers
         await _context.Database.ExecuteSqlRawAsync("SET session_replication_role = 'origin';", cancellationToken);
 
-        _logger.LogInformation("Truncated {Count} tables", tables.Count);
+        _logger.LogInformation(
+            "Truncated {Count} tables (skipped {SkippedCount} migration-owned tables: {Skipped})",
+            truncatedCount,
+            ExcludedTables.Count,
+            string.Join(", ", ExcludedTables));
     }
 
     /// <summary>
@@ -109,6 +130,13 @@ public class DataSeeder
         // Seed families and people
         _logger.LogInformation("Seeding families and people...");
         var people = await SeedFamiliesAsync(adultRole.Id, childRole.Id, now, cancellationToken);
+
+        // Seed one primary PersonAlias per seeded person. The giving flow's
+        // AddContribution resolves the contributor by looking up
+        // PersonAlias.PersonId == personId; without an alias the request 404s
+        // even though the person exists.
+        _logger.LogInformation("Seeding person aliases...");
+        await SeedPersonAliasesAsync(people, now, cancellationToken);
 
         // Seed check-in groups
         _logger.LogInformation("Seeding check-in groups...");
@@ -463,6 +491,64 @@ public class DataSeeder
         await _context.SaveChangesAsync(cancellationToken);
 
         return people;
+    }
+
+    /// <summary>
+    /// Seeds one primary PersonAlias per seeded person.
+    /// BatchDonationEntryService.AddContribution resolves contributors via
+    /// PersonAliases.FirstOrDefaultAsync(pa => pa.PersonId == personId); without
+    /// an alias the giving flow rejects otherwise-valid contributors. Idempotent
+    /// against existing aliases so repeated seeds don't duplicate rows.
+    /// </summary>
+    private async Task SeedPersonAliasesAsync(
+        List<Person> people,
+        DateTime now,
+        CancellationToken cancellationToken = default)
+    {
+        var personIds = people.Select(p => p.Id).ToList();
+
+        var alreadyAliased = await _context.PersonAliases
+            .Where(pa => pa.PersonId != null && personIds.Contains(pa.PersonId.Value) && pa.AliasPersonId == null)
+            .Select(pa => pa.PersonId!.Value)
+            .ToListAsync(cancellationToken);
+
+        var existingSet = new HashSet<int>(alreadyAliased);
+
+        foreach (var person in people)
+        {
+            if (existingSet.Contains(person.Id))
+            {
+                continue;
+            }
+
+            _context.PersonAliases.Add(new PersonAlias
+            {
+                // Derive a stable GUID from the person's GUID so repeated seeds
+                // produce the same alias identity (aids E2E test stability).
+                Guid = DeriveAliasGuid(person.Guid),
+                PersonId = person.Id,
+                Name = null,
+                AliasPersonId = null,
+                AliasPersonGuid = null,
+                CreatedDateTime = now
+            });
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Derives a stable Guid for a PersonAlias from its Person's Guid.
+    /// Flips the variant nibble so the alias Guid never collides with the
+    /// Person Guid but remains deterministic across reset+seed cycles.
+    /// </summary>
+    private static Guid DeriveAliasGuid(Guid personGuid)
+    {
+        var bytes = personGuid.ToByteArray();
+        // Toggle the first byte so the alias Guid differs deterministically
+        // from the source Person Guid while remaining reproducible.
+        bytes[0] ^= 0xA1;
+        return new Guid(bytes);
     }
 
     private async Task SeedSecurityRolesAsync(List<Person> people, DateTime now, CancellationToken cancellationToken = default)
