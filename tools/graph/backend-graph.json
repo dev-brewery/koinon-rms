@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-04-16T21:15:43-04:00",
+  "generated_at": "2026-04-21T09:20:17-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -2652,32 +2652,6 @@
         "CategoryCounts": "Dictionary<string, int>"
       },
       "linked_entity": "System"
-    },
-    "GroupAttendanceDetailDto": {
-      "name": "GroupAttendanceDetailDto",
-      "namespace": "Koinon.Application.DTOs",
-      "properties": {
-        "PersonIdKey": "string",
-        "FullName": "string",
-        "PhotoUrl": "string?",
-        "DidAttend": "bool",
-        "PresentDateTime": "DateTime?"
-      },
-      "linked_entity": "Group"
-    },
-    "GroupAttendanceOccurrenceDto": {
-      "name": "GroupAttendanceOccurrenceDto",
-      "namespace": "Koinon.Application.DTOs",
-      "properties": {
-        "IdKey": "string",
-        "OccurrenceDate": "DateOnly",
-        "AttendeeCount": "int",
-        "AnonymousCount": "int",
-        "DidNotOccur": "bool",
-        "LocationName": "string?",
-        "ScheduleName": "string?"
-      },
-      "linked_entity": "Group"
     },
     "GroupDto": {
       "name": "GroupDto",
@@ -5526,6 +5500,11 @@
           "is_async": false
         },
         {
+          "name": "GetValuesByTypeAsync",
+          "return_type": "Task<Result<IReadOnlyList<DefinedValueDto>>>",
+          "is_async": false
+        },
+        {
           "name": "CreateValueAsync",
           "return_type": "Task<Result<DefinedValueManagementDto>>",
           "is_async": false
@@ -6050,16 +6029,6 @@
           "name": "RemoveScheduleAsync",
           "return_type": "Task<Result>",
           "is_async": false
-        },
-        {
-          "name": "GetAttendanceHistoryAsync",
-          "return_type": "Task<IReadOnlyList<GroupAttendanceOccurrenceDto>>",
-          "is_async": false
-        },
-        {
-          "name": "GetAttendanceDetailAsync",
-          "return_type": "Task<Result<IReadOnlyList<GroupAttendanceDetailDto>>>",
-          "is_async": false
         }
       ],
       "dependencies": [
@@ -6246,11 +6215,6 @@
         {
           "name": "RecordAttendanceAsync",
           "return_type": "Task<Result>",
-          "is_async": false
-        },
-        {
-          "name": "IsGroupLeaderOrStaffAsync",
-          "return_type": "Task<bool>",
           "is_async": false
         }
       ],
@@ -7902,6 +7866,15 @@
           "required_roles": []
         },
         {
+          "name": "GetValues",
+          "method": "GET",
+          "route": "{idKeyOrGuid}/values",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "CreateValue",
           "method": "POST",
           "route": "{typeIdKey}/values",
@@ -8575,24 +8548,6 @@
           "required_roles": []
         },
         {
-          "name": "GetAttendanceHistory",
-          "method": "GET",
-          "route": "{idKey}/attendance",
-          "request_type": null,
-          "response_type": null,
-          "requires_auth": true,
-          "required_roles": []
-        },
-        {
-          "name": "GetAttendanceDetail",
-          "method": "GET",
-          "route": "{idKey}/attendance/{occurrenceIdKey}",
-          "request_type": null,
-          "response_type": null,
-          "requires_auth": true,
-          "required_roles": []
-        },
-        {
           "name": "AddMember",
           "method": "POST",
           "route": "{idKey}/members",
@@ -8655,7 +8610,6 @@
       },
       "dependencies": [
         "IGroupService",
-        "IMyGroupsService",
         "ILogger<GroupsController>"
       ]
     },
@@ -10100,16 +10054,6 @@
       "relationship": "maps_to"
     },
     {
-      "source": "GroupAttendanceDetailDto",
-      "target": "Group",
-      "relationship": "maps_to"
-    },
-    {
-      "source": "GroupAttendanceOccurrenceDto",
-      "target": "Group",
-      "relationship": "maps_to"
-    },
-    {
       "source": "GroupDto",
       "target": "Group",
       "relationship": "maps_to"
@@ -10900,11 +10844,6 @@
       "relationship": "depends_on"
     },
     {
-      "source": "GroupsController",
-      "target": "IMyGroupsService",
-      "relationship": "depends_on"
-    },
-    {
       "source": "LocationsController",
       "target": "ILocationService",
       "relationship": "depends_on"
@@ -11441,6 +11380,11 @@
     },
     {
       "source": "DefinedTypeService",
+      "target": "DefinedValueDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "DefinedTypeService",
       "target": "DefinedValueManagementDto",
       "relationship": "returns"
     },
@@ -11647,16 +11591,6 @@
     {
       "source": "GroupService",
       "target": "ScheduleDto",
-      "relationship": "returns"
-    },
-    {
-      "source": "GroupService",
-      "target": "GroupAttendanceOccurrenceDto",
-      "relationship": "returns"
-    },
-    {
-      "source": "GroupService",
-      "target": "GroupAttendanceDetailDto",
       "relationship": "returns"
     },
     {
@@ -12337,9 +12271,9 @@
   ],
   "summary": {
     "total_entities": 60,
-    "total_dtos": 225,
+    "total_dtos": 223,
     "total_services": 113,
     "total_controllers": 37,
-    "total_relationships": 528
+    "total_relationships": 524
   }
 }

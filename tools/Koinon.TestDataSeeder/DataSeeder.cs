@@ -40,6 +40,13 @@ public class DataSeeder
     private static readonly Guid _childRoleGuid = new("40404040-4040-4040-4040-404040404040");
     private static readonly Guid _memberRoleGuid = new("50505050-5050-5050-5050-505050505050");
     private static readonly Guid _adminSecurityRoleGuid = new("70707070-7070-7070-7070-707070707070");
+    private static readonly Guid _financialViewClaimGuid = new("a1b2c3d4-e5f6-4a1b-8c9d-111111111111");
+    private static readonly Guid _financialEditClaimGuid = new("a1b2c3d4-e5f6-4a1b-8c9d-222222222222");
+    private static readonly Guid _financialBatchCloseClaimGuid = new("a1b2c3d4-e5f6-4a1b-8c9d-333333333333");
+    private static readonly Guid _adminFinancialViewRscGuid = new("80808080-8080-4080-8080-111111111111");
+    private static readonly Guid _adminFinancialEditRscGuid = new("80808080-8080-4080-8080-222222222222");
+    private static readonly Guid _adminFinancialBatchCloseRscGuid = new("80808080-8080-4080-8080-333333333333");
+    private static readonly Guid _generalFundGuid = new("90909090-9090-4090-8090-111111111111");
 
     public DataSeeder(KoinonDbContext context, ILogger<DataSeeder> logger, IAuthService authService)
     {
@@ -114,6 +121,10 @@ public class DataSeeder
         // Seed security roles and assign Admin to John Smith
         _logger.LogInformation("Seeding security roles...");
         await SeedSecurityRolesAsync(people, now, cancellationToken);
+
+        // Seed funds (needed for contribution entry in giving flow)
+        _logger.LogInformation("Seeding funds...");
+        await SeedFundsAsync(now, cancellationToken);
 
         _logger.LogInformation("✅ Successfully seeded all test data");
     }
@@ -480,6 +491,111 @@ public class DataSeeder
         };
 
         _context.PersonSecurityRoles.Add(adminAssignment);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        // Ensure financial claims exist (may be truncated by ResetDatabaseAsync) and grant
+        // them to the Admin role so the admin user can hit every /api/v1/giving/* endpoint.
+        // Using fixed GUIDs so the data round-trips across reset+seed deterministically.
+        await EnsureFinancialClaimsForAdminAsync(adminRole, now, cancellationToken);
+    }
+
+    /// <summary>
+    /// Ensures the three financial SecurityClaims exist and are linked (ALLOW) to the Admin role.
+    /// On fresh seed, Admin should be able to hit all /api/v1/giving/* endpoints.
+    /// </summary>
+    private async Task EnsureFinancialClaimsForAdminAsync(
+        SecurityRole adminRole,
+        DateTime now,
+        CancellationToken cancellationToken)
+    {
+        var claimSpecs = new (Guid Guid, string Value, string Description)[]
+        {
+            (_financialViewClaimGuid, "view", "View financial data including contributions and batches"),
+            (_financialEditClaimGuid, "edit", "Create and edit contributions and batches"),
+            (_financialBatchCloseClaimGuid, "batch.close", "Close contribution batches")
+        };
+
+        var existingClaims = await _context.SecurityClaims
+            .Where(c => claimSpecs.Select(s => s.Guid).Contains(c.Guid))
+            .ToDictionaryAsync(c => c.Guid, cancellationToken);
+
+        foreach (var (guid, value, description) in claimSpecs)
+        {
+            if (!existingClaims.ContainsKey(guid))
+            {
+                var claim = new SecurityClaim
+                {
+                    Guid = guid,
+                    ClaimType = "financial",
+                    ClaimValue = value,
+                    Description = description,
+                    CreatedDateTime = now
+                };
+                _context.SecurityClaims.Add(claim);
+                existingClaims[guid] = claim;
+            }
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        var rscSpecs = new (Guid Guid, Guid ClaimGuid)[]
+        {
+            (_adminFinancialViewRscGuid, _financialViewClaimGuid),
+            (_adminFinancialEditRscGuid, _financialEditClaimGuid),
+            (_adminFinancialBatchCloseRscGuid, _financialBatchCloseClaimGuid)
+        };
+
+        foreach (var (rscGuid, claimGuid) in rscSpecs)
+        {
+            var claim = existingClaims[claimGuid];
+            var alreadyLinked = await _context.RoleSecurityClaims
+                .AnyAsync(
+                    r => r.SecurityRoleId == adminRole.Id && r.SecurityClaimId == claim.Id,
+                    cancellationToken);
+            if (alreadyLinked)
+            {
+                continue;
+            }
+
+            _context.RoleSecurityClaims.Add(new RoleSecurityClaim
+            {
+                Guid = rscGuid,
+                SecurityRoleId = adminRole.Id,
+                SecurityClaimId = claim.Id,
+                AllowOrDeny = 'A',
+                CreatedDateTime = now
+            });
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Seeds a default General Fund so the Contribution entry form has at least one
+    /// selectable fund. Uses a fixed GUID for deterministic test targeting.
+    /// </summary>
+    private async Task SeedFundsAsync(DateTime now, CancellationToken cancellationToken = default)
+    {
+        var exists = await _context.Funds.AnyAsync(f => f.Guid == _generalFundGuid, cancellationToken);
+        if (exists)
+        {
+            return;
+        }
+
+        var generalFund = new Fund
+        {
+            Guid = _generalFundGuid,
+            Name = "General Fund",
+            PublicName = "General Fund",
+            Description = "Default fund for undesignated contributions and tithes.",
+            IsActive = true,
+            IsPublic = true,
+            IsTaxDeductible = true,
+            Order = 0,
+            CreatedDateTime = now
+        };
+
+        _context.Funds.Add(generalFund);
         await _context.SaveChangesAsync(cancellationToken);
     }
 

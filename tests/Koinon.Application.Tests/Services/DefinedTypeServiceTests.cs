@@ -164,6 +164,59 @@ public class DefinedTypeServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task GetValuesByTypeAsync_WithValidIdKey_ReturnsValuesInOrder()
+    {
+        // Arrange
+        var type = await _context.DefinedTypes.FindAsync(1);
+        var idKey = type!.IdKey;
+
+        // Act
+        var result = await _service.GetValuesByTypeAsync(idKey);
+
+        // Assert — frontend-facing endpoint used to populate dropdowns; must succeed by IdKey.
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().HaveCount(2);
+        result.Value![0].Value.Should().Be("Active");
+        result.Value[1].Value.Should().Be("Inactive");
+    }
+
+    [Fact]
+    public async Task GetValuesByTypeAsync_WithValidGuid_ReturnsValues()
+    {
+        // Arrange — frontend calls this with a stable GUID from seed data, not the Hashid IdKey.
+        var type = await _context.DefinedTypes.FindAsync(1);
+
+        // Act
+        var result = await _service.GetValuesByTypeAsync(type!.Guid.ToString());
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task GetValuesByTypeAsync_WithUnknownGuid_ReturnsNotFound()
+    {
+        // Act
+        var result = await _service.GetValuesByTypeAsync(Guid.NewGuid().ToString());
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Code.Should().Be("NOT_FOUND");
+    }
+
+    [Fact]
+    public async Task GetValuesByTypeAsync_WithEmptyInput_ReturnsNotFound()
+    {
+        // Act
+        var result = await _service.GetValuesByTypeAsync(string.Empty);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Code.Should().Be("NOT_FOUND");
+    }
+
+    [Fact]
     public async Task CreateValueAsync_WithValidRequest_CreatesValueWithAutoOrder()
     {
         // Arrange

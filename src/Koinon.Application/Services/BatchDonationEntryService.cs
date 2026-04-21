@@ -61,10 +61,12 @@ public class BatchDonationEntryService(
         EnsureAuthenticated();
 
         // Create batch
+        // Normalize BatchDate to UTC — JSON-bound DateTimes from the frontend arrive
+        // as Kind=Unspecified, which PostgreSQL refuses to persist into a timestamptz column.
         var batch = new ContributionBatch
         {
             Name = request.Name,
-            BatchDate = request.BatchDate,
+            BatchDate = NormalizeToUtc(request.BatchDate),
             Status = BatchStatus.Open,
             ControlAmount = request.ControlAmount,
             ControlItemCount = request.ControlItemCount,
@@ -362,7 +364,7 @@ public class BatchDonationEntryService(
         {
             PersonAliasId = personAliasId,
             BatchId = batchId,
-            TransactionDateTime = request.TransactionDateTime,
+            TransactionDateTime = NormalizeToUtc(request.TransactionDateTime),
             TransactionCode = request.TransactionCode,
             TransactionTypeValueId = transactionTypeValueId,
             SourceTypeValueId = sourceTypeValue.Id,
@@ -528,7 +530,7 @@ public class BatchDonationEntryService(
 
         // Update contribution
         contribution.PersonAliasId = personAliasId;
-        contribution.TransactionDateTime = request.TransactionDateTime;
+        contribution.TransactionDateTime = NormalizeToUtc(request.TransactionDateTime);
         contribution.TransactionCode = request.TransactionCode;
         contribution.TransactionTypeValueId = transactionTypeValueId;
         contribution.Summary = request.Summary;
@@ -886,5 +888,21 @@ public class BatchDonationEntryService(
         };
 
         await context.FinancialAuditLogs.AddAsync(auditLog, ct);
+    }
+
+    /// <summary>
+    /// Normalizes a DateTime to UTC Kind for persistence to PostgreSQL timestamptz columns.
+    /// Incoming JSON-bound DateTimes have Kind=Unspecified, which Npgsql refuses to write.
+    /// Assumes Unspecified values are already expressed in UTC (the frontend sends date-only
+    /// strings and UTC-ISO timestamps).
+    /// </summary>
+    private static DateTime NormalizeToUtc(DateTime value)
+    {
+        return value.Kind switch
+        {
+            DateTimeKind.Utc => value,
+            DateTimeKind.Local => value.ToUniversalTime(),
+            _ => DateTime.SpecifyKind(value, DateTimeKind.Utc)
+        };
     }
 }

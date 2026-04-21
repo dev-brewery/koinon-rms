@@ -61,6 +61,45 @@ public class DefinedTypeService(
         return Result<DefinedTypeDto>.Success(mapper.Map<DefinedTypeDto>(entity));
     }
 
+    public async Task<Result<IReadOnlyList<DefinedValueDto>>> GetValuesByTypeAsync(
+        string idKeyOrGuid,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(idKeyOrGuid))
+        {
+            return Result<IReadOnlyList<DefinedValueDto>>.Failure(Error.NotFound("DefinedType", idKeyOrGuid));
+        }
+
+        // Accept either IdKey (Hashids-encoded int) or a raw GUID.
+        // The frontend populates transaction-type dropdowns with the GUID from seed data.
+        var query = context.DefinedTypes.AsNoTracking();
+
+        if (Guid.TryParse(idKeyOrGuid, out var guid))
+        {
+            query = query.Where(t => t.Guid == guid);
+        }
+        else if (IdKeyHelper.TryDecode(idKeyOrGuid, out var id))
+        {
+            query = query.Where(t => t.Id == id);
+        }
+        else
+        {
+            return Result<IReadOnlyList<DefinedValueDto>>.Failure(Error.NotFound("DefinedType", idKeyOrGuid));
+        }
+
+        var entity = await query
+            .Include(t => t.DefinedValues.OrderBy(v => v.Order))
+            .FirstOrDefaultAsync(ct);
+
+        if (entity == null)
+        {
+            return Result<IReadOnlyList<DefinedValueDto>>.Failure(Error.NotFound("DefinedType", idKeyOrGuid));
+        }
+
+        var values = mapper.Map<IReadOnlyList<DefinedValueDto>>(entity.DefinedValues);
+        return Result<IReadOnlyList<DefinedValueDto>>.Success(values);
+    }
+
     public async Task<Result<DefinedValueManagementDto>> CreateValueAsync(
         string typeIdKey,
         CreateDefinedValueRequest request,
