@@ -206,7 +206,9 @@ test.describe('Feature #493 — End-to-end giving flow', () => {
 
   test('AC3 — Admin adds a contribution to the batch for John Smith', async ({ page }) => {
     const batchName = `E2E 493 Contrib ${uniqueSuffix('b')}`;
-    await createBatchViaUi(page, batchName, '75.50');
+    // Distinct control vs contribution amounts: proves the $75.50 assertion below
+    // tracks Actual, not Control (which is $100.00 here).
+    await createBatchViaUi(page, batchName, '100.00');
 
     // Sanity: empty state first
     await expect(page.getByText('Contributions (0)')).toBeVisible({ timeout: 10_000 });
