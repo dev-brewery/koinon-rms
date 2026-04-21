@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-04-16T21:15:43-04:00",
+  "generated_at": "2026-04-21T12:14:02-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -5526,6 +5526,11 @@
           "is_async": false
         },
         {
+          "name": "GetValuesByTypeAsync",
+          "return_type": "Task<Result<IReadOnlyList<DefinedValueDto>>>",
+          "is_async": false
+        },
+        {
           "name": "CreateValueAsync",
           "return_type": "Task<Result<DefinedValueManagementDto>>",
           "is_async": false
@@ -7896,6 +7901,15 @@
           "name": "GetByIdKey",
           "method": "GET",
           "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetValues",
+          "method": "GET",
+          "route": "{idKeyOrGuid}/values",
           "request_type": null,
           "response_type": null,
           "requires_auth": true,
@@ -19760,6 +19774,11 @@
     },
     {
       "source": "DefinedTypeService",
+      "target": "DefinedValueDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "DefinedTypeService",
       "target": "DefinedValueManagementDto",
       "relationship": "returns"
     },
@@ -21253,6 +21272,6 @@
     "api_functions": 182,
     "hooks": 162,
     "components": 138,
-    "total_edges": 607
+    "total_edges": 608
   }
 }

@@ -70,6 +70,42 @@ public class DefinedTypesController(
     }
 
     /// <summary>
+    /// Gets the DefinedValues for a DefinedType. Accepts either IdKey or GUID as the
+    /// identifier so the frontend can look up values using the stable GUID from seed data.
+    /// </summary>
+    /// <param name="idKeyOrGuid">The DefinedType's IdKey or GUID</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Array of DefinedValues ordered by Order</returns>
+    /// <response code="200">Returns list of values</response>
+    /// <response code="404">DefinedType not found</response>
+    [HttpGet("{idKeyOrGuid}/values")]
+    [ProducesResponseType(typeof(IReadOnlyList<DefinedValueDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetValues(string idKeyOrGuid, CancellationToken ct = default)
+    {
+        var result = await definedTypeService.GetValuesByTypeAsync(idKeyOrGuid, ct);
+
+        if (result.IsFailure)
+        {
+            logger.LogDebug("DefinedType not found for values lookup: {IdKeyOrGuid}", idKeyOrGuid);
+
+            return NotFound(new ProblemDetails
+            {
+                Title = "DefinedType not found",
+                Detail = result.Error!.Message,
+                Status = StatusCodes.Status404NotFound,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        logger.LogDebug(
+            "DefinedType values retrieved: IdKeyOrGuid={IdKeyOrGuid}, Count={Count}",
+            idKeyOrGuid, result.Value!.Count);
+
+        return Ok(new { data = result.Value });
+    }
+
+    /// <summary>
     /// Creates a new DefinedValue within the specified DefinedType.
     /// </summary>
     /// <param name="typeIdKey">The DefinedType's IdKey</param>

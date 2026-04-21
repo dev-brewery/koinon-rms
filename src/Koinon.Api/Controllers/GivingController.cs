@@ -200,8 +200,10 @@ public class GivingController(
 
         logger.LogInformation("Created batch: {IdKey}", result.Value!.IdKey);
 
+        // ASP.NET strips the "Async" suffix from action names by default, so use the
+        // stripped name literal instead of nameof() — otherwise URL generation fails.
         return CreatedAtAction(
-            nameof(GetBatchAsync),
+            "GetBatch",
             new { idKey = result.Value.IdKey },
             result.Value);
     }
@@ -376,7 +378,7 @@ public class GivingController(
         logger.LogInformation("Added contribution {IdKey} to batch {BatchIdKey}", result.Value!.IdKey, batchIdKey);
 
         return CreatedAtAction(
-            nameof(GetContributionAsync),
+            "GetContribution",
             new { idKey = result.Value.IdKey },
             result.Value);
     }
@@ -575,7 +577,10 @@ public class GivingController(
     /// <returns>The contribution statement if found</returns>
     /// <response code="200">Returns the contribution statement</response>
     /// <response code="404">Statement not found</response>
+    // Preserve the "GetStatementAsync" action name (instead of ASP.NET's default strip)
+    // so that CreatedAtAction(nameof(GetStatementAsync), ...) resolves correctly.
     [HttpGet("statements/{idKey}")]
+    [ActionName(nameof(GetStatementAsync))]
     [ValidateIdKey]
     [RequiresClaim("financial", "view")]
     [ProducesResponseType(typeof(ContributionStatementDto), StatusCodes.Status200OK)]

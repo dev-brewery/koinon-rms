@@ -23,6 +23,12 @@ public interface IDefinedTypeService
     Task<Result<DefinedTypeDto>> GetTypeByIdKeyAsync(string idKey, CancellationToken ct = default);
 
     /// <summary>
+    /// Returns the DefinedValues for a DefinedType, identified by either IdKey or GUID.
+    /// Values are ordered by Order. Used by the frontend to populate dropdowns.
+    /// </summary>
+    Task<Result<IReadOnlyList<DefinedValueDto>>> GetValuesByTypeAsync(string idKeyOrGuid, CancellationToken ct = default);
+
+    /// <summary>
     /// Creates a new DefinedValue within the specified DefinedType.
     /// Order defaults to max(existing)+1.
     /// </summary>
