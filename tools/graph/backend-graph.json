@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-04-16T17:48:03-04:00",
+  "generated_at": "2026-04-16T21:15:43-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -1949,7 +1949,8 @@
         "ReplyToEmail": "string?",
         "ScheduledDateTime": "DateTime?",
         "Note": "string?",
-        "GroupIdKeys": "IReadOnlyList<string>"
+        "GroupIdKeys": "IReadOnlyList<string>",
+        "PersonIdKeys": "IReadOnlyList<string>"
       },
       "linked_entity": "Communication"
     },
@@ -6246,6 +6247,11 @@
           "name": "RecordAttendanceAsync",
           "return_type": "Task<Result>",
           "is_async": false
+        },
+        {
+          "name": "IsGroupLeaderOrStaffAsync",
+          "return_type": "Task<bool>",
+          "is_async": false
         }
       ],
       "dependencies": [
@@ -8649,6 +8655,7 @@
       },
       "dependencies": [
         "IGroupService",
+        "IMyGroupsService",
         "ILogger<GroupsController>"
       ]
     },
@@ -10893,6 +10900,11 @@
       "relationship": "depends_on"
     },
     {
+      "source": "GroupsController",
+      "target": "IMyGroupsService",
+      "relationship": "depends_on"
+    },
+    {
       "source": "LocationsController",
       "target": "ILocationService",
       "relationship": "depends_on"
@@ -12328,6 +12340,6 @@
     "total_dtos": 225,
     "total_services": 113,
     "total_controllers": 37,
-    "total_relationships": 527
+    "total_relationships": 528
   }
 }

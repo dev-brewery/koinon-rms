@@ -85,6 +85,11 @@ export function useRecordAttendance(groupIdKey: string) {
     onSuccess: () => {
       // Invalidate groups list to update last meeting date
       queryClient.invalidateQueries({ queryKey: ['my-groups'] });
+      // Invalidate attendance history + detail on the group detail page so
+      // GroupAttendanceHistorySection refreshes immediately instead of
+      // waiting for the 2-minute staleTime. Query keys live in
+      // useGroupAttendanceHistory / useGroupAttendanceDetail in useGroups.ts.
+      queryClient.invalidateQueries({ queryKey: ['groups', groupIdKey, 'attendance'] });
     },
   });
 }

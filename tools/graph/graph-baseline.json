@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-04-16T17:48:03-04:00",
+  "generated_at": "2026-04-16T21:15:43-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -1949,7 +1949,8 @@
         "ReplyToEmail": "string?",
         "ScheduledDateTime": "DateTime?",
         "Note": "string?",
-        "GroupIdKeys": "IReadOnlyList<string>"
+        "GroupIdKeys": "IReadOnlyList<string>",
+        "PersonIdKeys": "IReadOnlyList<string>"
       },
       "linked_entity": "Communication"
     },
@@ -6246,6 +6247,11 @@
           "name": "RecordAttendanceAsync",
           "return_type": "Task<Result>",
           "is_async": false
+        },
+        {
+          "name": "IsGroupLeaderOrStaffAsync",
+          "return_type": "Task<bool>",
+          "is_async": false
         }
       ],
       "dependencies": [
@@ -8649,6 +8655,7 @@
       },
       "dependencies": [
         "IGroupService",
+        "IMyGroupsService",
         "ILogger<GroupsController>"
       ]
     },
@@ -10375,6 +10382,7 @@
         "replyToEmail": "string",
         "note": "string",
         "groupIdKeys": "string[]",
+        "personIdKeys": "string[]",
         "scheduledDateTime": "string"
       },
       "path": "types/communication.ts"
@@ -17615,6 +17623,16 @@
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
+    "RecipientBuilder": {
+      "name": "RecipientBuilder",
+      "path": "components/communication/RecipientBuilder.tsx",
+      "hooksUsed": [
+        "useCampuses",
+        "useDefinedTypeValues",
+        "usePeople"
+      ],
+      "apiCallsDirectly": false
+    },
     "RecipientStatusBadge": {
       "name": "RecipientStatusBadge",
       "path": "components/communication/RecipientStatusBadge.tsx",
@@ -17633,6 +17651,12 @@
       "hooksUsed": [
         "useCreateCommunicationTemplate"
       ],
+      "apiCallsDirectly": false
+    },
+    "SelectedPersonsTable": {
+      "name": "SelectedPersonsTable",
+      "path": "components/communication/SelectedPersonsTable.tsx",
+      "hooksUsed": [],
       "apiCallsDirectly": false
     },
     "SmsComposer": {
@@ -19192,6 +19216,11 @@
     {
       "source": "GroupsController",
       "target": "IGroupService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "GroupsController",
+      "target": "IMyGroupsService",
       "relationship": "depends_on"
     },
     {
@@ -20865,6 +20894,21 @@
       "type": "uses_hook"
     },
     {
+      "from": "RecipientBuilder",
+      "to": "useCampuses",
+      "type": "uses_hook"
+    },
+    {
+      "from": "RecipientBuilder",
+      "to": "useDefinedTypeValues",
+      "type": "uses_hook"
+    },
+    {
+      "from": "RecipientBuilder",
+      "to": "usePeople",
+      "type": "uses_hook"
+    },
+    {
       "from": "SaveAsTemplateModal",
       "to": "useCreateCommunicationTemplate",
       "type": "uses_hook"
@@ -21208,7 +21252,7 @@
     "types": 313,
     "api_functions": 182,
     "hooks": 162,
-    "components": 136,
-    "total_edges": 603
+    "components": 138,
+    "total_edges": 607
   }
 }

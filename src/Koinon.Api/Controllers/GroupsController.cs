@@ -19,6 +19,7 @@ namespace Koinon.Api.Controllers;
 [ValidateIdKey]
 public class GroupsController(
     IGroupService groupService,
+    IMyGroupsService myGroupsService,
     ILogger<GroupsController> logger) : ControllerBase
 {
     /// <summary>
@@ -541,15 +542,33 @@ public class GroupsController(
 
     /// <summary>
     /// Gets attendance occurrence history for a group.
+    /// Only accessible to group leaders and staff/admin users.
     /// </summary>
     /// <param name="idKey">The group's IdKey</param>
     /// <param name="ct">Cancellation token</param>
     /// <returns>Paginated list of attendance occurrences</returns>
     /// <response code="200">Returns attendance history</response>
+    /// <response code="403">Caller is not a leader of this group or staff/admin</response>
     [HttpGet("{idKey}/attendance")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetAttendanceHistory(string idKey, CancellationToken ct = default)
     {
+        if (!await myGroupsService.IsGroupLeaderOrStaffAsync(idKey, ct))
+        {
+            logger.LogWarning(
+                "Unauthorized attempt to read group attendance history: GroupIdKey={IdKey}",
+                idKey);
+
+            return StatusCode(StatusCodes.Status403Forbidden, new ProblemDetails
+            {
+                Title = "Forbidden",
+                Detail = "You must be a leader of this group or staff to view attendance history.",
+                Status = StatusCodes.Status403Forbidden,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
         var occurrences = await groupService.GetAttendanceHistoryAsync(idKey, ct);
 
         logger.LogDebug(
@@ -565,21 +584,39 @@ public class GroupsController(
 
     /// <summary>
     /// Gets individual attendance records for a specific group occurrence.
+    /// Only accessible to group leaders and staff/admin users.
     /// </summary>
     /// <param name="idKey">The group's IdKey</param>
     /// <param name="occurrenceIdKey">The occurrence's IdKey</param>
     /// <param name="ct">Cancellation token</param>
     /// <returns>List of attendance detail records</returns>
     /// <response code="200">Returns attendance detail</response>
+    /// <response code="403">Caller is not a leader of this group or staff/admin</response>
     /// <response code="404">Group or occurrence not found</response>
     [HttpGet("{idKey}/attendance/{occurrenceIdKey}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetAttendanceDetail(
         string idKey,
         string occurrenceIdKey,
         CancellationToken ct = default)
     {
+        if (!await myGroupsService.IsGroupLeaderOrStaffAsync(idKey, ct))
+        {
+            logger.LogWarning(
+                "Unauthorized attempt to read group attendance detail: GroupIdKey={IdKey}, OccurrenceIdKey={OccurrenceIdKey}",
+                idKey, occurrenceIdKey);
+
+            return StatusCode(StatusCodes.Status403Forbidden, new ProblemDetails
+            {
+                Title = "Forbidden",
+                Detail = "You must be a leader of this group or staff to view attendance detail.",
+                Status = StatusCodes.Status403Forbidden,
+                Instance = HttpContext.Request.Path
+            });
+        }
+
         var result = await groupService.GetAttendanceDetailAsync(idKey, occurrenceIdKey, ct);
 
         if (result.IsFailure)

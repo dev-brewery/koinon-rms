@@ -46,4 +46,13 @@ public interface IMyGroupsService
         string groupIdKey,
         RecordAttendanceRequest request,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// Checks whether the current user is a leader of the specified group, or a staff/admin user.
+    /// Used by other controllers to enforce leader-or-staff authorization on group-scoped endpoints.
+    /// </summary>
+    /// <param name="groupIdKey">The group's IdKey.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>True if the current user is a leader of the group or has staff/admin role.</returns>
+    Task<bool> IsGroupLeaderOrStaffAsync(string groupIdKey, CancellationToken ct = default);
 }

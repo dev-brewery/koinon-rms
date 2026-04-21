@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-04-17T01:01:32.864Z",
+  "generated_at": "2026-04-21T13:52:33.472Z",
   "types": {
     "AttendanceAnalyticsDto": {
       "name": "AttendanceAnalyticsDto",
@@ -690,6 +690,7 @@
         "replyToEmail": "string",
         "note": "string",
         "groupIdKeys": "string[]",
+        "personIdKeys": "string[]",
         "scheduledDateTime": "string"
       },
       "path": "types/communication.ts"
@@ -7930,6 +7931,16 @@
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
+    "RecipientBuilder": {
+      "name": "RecipientBuilder",
+      "path": "components/communication/RecipientBuilder.tsx",
+      "hooksUsed": [
+        "useCampuses",
+        "useDefinedTypeValues",
+        "usePeople"
+      ],
+      "apiCallsDirectly": false
+    },
     "RecipientStatusBadge": {
       "name": "RecipientStatusBadge",
       "path": "components/communication/RecipientStatusBadge.tsx",
@@ -7948,6 +7959,12 @@
       "hooksUsed": [
         "useCreateCommunicationTemplate"
       ],
+      "apiCallsDirectly": false
+    },
+    "SelectedPersonsTable": {
+      "name": "SelectedPersonsTable",
+      "path": "components/communication/SelectedPersonsTable.tsx",
+      "hooksUsed": [],
       "apiCallsDirectly": false
     },
     "SmsComposer": {
@@ -8542,6 +8559,21 @@
     {
       "from": "MergeFieldPicker",
       "to": "useMergeFields",
+      "type": "uses_hook"
+    },
+    {
+      "from": "RecipientBuilder",
+      "to": "useCampuses",
+      "type": "uses_hook"
+    },
+    {
+      "from": "RecipientBuilder",
+      "to": "useDefinedTypeValues",
+      "type": "uses_hook"
+    },
+    {
+      "from": "RecipientBuilder",
+      "to": "usePeople",
       "type": "uses_hook"
     },
     {
