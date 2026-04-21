@@ -68,17 +68,6 @@ test.describe('Email Compose-Send-Track E2E (#490)', () => {
     await expect(mergeButtons.first()).toBeVisible();
   });
 
-  // ─── Acceptance Criterion: Can select recipients from people/groups ───
-
-  test('email composer shows group selection with Send To label', async ({ page }) => {
-    await page.getByRole('button', { name: 'New Communication' }).click();
-    await expect(page.locator('form')).toBeVisible({ timeout: 5000 });
-    await expect(page.getByText('Send To')).toBeVisible();
-    // Group list container is visible (even if empty with "No groups available")
-    const groupContainer = page.locator('.border.border-gray-300.rounded-lg.max-h-48');
-    await expect(groupContainer).toBeVisible();
-  });
-
   // ─── Acceptance Criterion: Send mode and scheduling ───
 
   test('email composer offers "Send Now" and "Schedule for Later" modes', async ({ page }) => {

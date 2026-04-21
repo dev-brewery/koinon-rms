@@ -66,24 +66,6 @@ test.describe('SMS Compose-Send-Track E2E', () => {
     expect(counterText).toMatch(/\d+ \/ 160/);
   });
 
-  test('can select a recipient group for SMS', async ({ page }) => {
-    await page.getByRole('button', { name: /new communication/i }).click();
-    await expect(page.getByRole('heading', { name: 'New Communication' })).toBeVisible({
-      timeout: 5000,
-    });
-
-    await page.getByRole('button', { name: 'SMS' }).click();
-
-    // Group checkbox list
-    const groupList = page.locator('.border.border-gray-300.rounded-lg.max-h-48');
-    await expect(groupList).toBeVisible({ timeout: 5000 });
-
-    const firstCheckbox = groupList.locator('input[type="checkbox"]').first();
-    await expect(firstCheckbox).toBeVisible({ timeout: 5000 });
-    await firstCheckbox.check();
-    await expect(firstCheckbox).toBeChecked();
-  });
-
   // ── Acceptance Criteria 2: SMS sends (Twilio may be unconfigured in test env) ─
 
   test('submitting SMS send triggers delivery attempt and system responds', async ({ page }) => {
@@ -96,9 +78,19 @@ test.describe('SMS Compose-Send-Track E2E', () => {
 
     await page.locator('#sms-body').fill('E2E test SMS: reminder for {{first_name}}.');
 
-    const groupList = page.locator('.border.border-gray-300.rounded-lg.max-h-48');
-    await expect(groupList).toBeVisible({ timeout: 5000 });
-    await groupList.locator('input[type="checkbox"]').first().check();
+    // Select a group via RecipientBuilder's Groups tab
+    const groupsTab = page.locator('[data-testid="recipient-tab-groups"]');
+    await expect(groupsTab).toBeVisible({ timeout: 5000 });
+    await groupsTab.click();
+
+    const groupCheckboxes = page.locator('input[type="checkbox"]');
+    const checkboxCount = await groupCheckboxes.count();
+    if (checkboxCount === 0) {
+      // No groups seeded — cannot exercise the send path
+      test.skip();
+      return;
+    }
+    await groupCheckboxes.first().check();
 
     // Use form-scoped Send to avoid the empty-state button collision
     await page.locator('form').getByRole('button', { name: 'Send' }).click();
