@@ -40,12 +40,11 @@ public class DataSeeder
     private static readonly Guid _childRoleGuid = new("40404040-4040-4040-4040-404040404040");
     private static readonly Guid _memberRoleGuid = new("50505050-5050-5050-5050-505050505050");
     private static readonly Guid _adminSecurityRoleGuid = new("70707070-7070-7070-7070-707070707070");
-    private static readonly Guid _financialViewClaimGuid = new("a1b2c3d4-e5f6-4a1b-8c9d-111111111111");
-    private static readonly Guid _financialEditClaimGuid = new("a1b2c3d4-e5f6-4a1b-8c9d-222222222222");
-    private static readonly Guid _financialBatchCloseClaimGuid = new("a1b2c3d4-e5f6-4a1b-8c9d-333333333333");
-    private static readonly Guid _adminFinancialViewRscGuid = new("80808080-8080-4080-8080-111111111111");
-    private static readonly Guid _adminFinancialEditRscGuid = new("80808080-8080-4080-8080-222222222222");
-    private static readonly Guid _adminFinancialBatchCloseRscGuid = new("80808080-8080-4080-8080-333333333333");
+    // Production-provisioned "Financial Admin" role from the SeedFinancialClaims
+    // migration. The admin user gets assigned to this role in addition to the
+    // generic Admin role so it inherits financial:* claims the same way as in
+    // prod (role separation preserved).
+    private static readonly Guid _financialAdminSecurityRoleGuid = new("F1F1F1F1-AAAA-4444-BBBB-CCCCCCCCCCCC");
     private static readonly Guid _generalFundGuid = new("90909090-9090-4090-8090-111111111111");
 
     public DataSeeder(KoinonDbContext context, ILogger<DataSeeder> logger, IAuthService authService)
@@ -481,42 +480,88 @@ public class DataSeeder
         _context.SecurityRoles.Add(adminRole);
         await _context.SaveChangesAsync(cancellationToken);
 
-        // Assign Admin role to John Smith (first person, the E2E test admin user)
+        // The "Financial Admin" role and financial:* claims are provisioned by the
+        // SeedFinancialClaims migration, but ResetDatabaseAsync truncates that data
+        // ahead of every seed. Re-provision both here so the role row (with its
+        // canonical GUID from production) and its claim links round-trip across
+        // reset+seed deterministically. This preserves the production role
+        // separation (Admin != Financial Admin) — we just give the seeded admin
+        // user BOTH roles below so giving endpoints are reachable in tests/dev.
+        var financialAdminRole = await EnsureFinancialAdminRoleAsync(now, cancellationToken);
+
+        // Assign Admin AND Financial Admin roles to John Smith (the E2E test admin user).
+        // Matches production semantics: to exercise /api/v1/giving/* an admin must
+        // also hold the Financial Admin role.
         var johnSmith = people.First(p => p.Email == "john.smith@example.com");
-        var adminAssignment = new PersonSecurityRole
+
+        _context.PersonSecurityRoles.Add(new PersonSecurityRole
         {
             PersonId = johnSmith.Id,
             SecurityRoleId = adminRole.Id,
             CreatedDateTime = now
-        };
+        });
 
-        _context.PersonSecurityRoles.Add(adminAssignment);
+        _context.PersonSecurityRoles.Add(new PersonSecurityRole
+        {
+            PersonId = johnSmith.Id,
+            SecurityRoleId = financialAdminRole.Id,
+            CreatedDateTime = now
+        });
+
         await _context.SaveChangesAsync(cancellationToken);
-
-        // Ensure financial claims exist (may be truncated by ResetDatabaseAsync) and grant
-        // them to the Admin role so the admin user can hit every /api/v1/giving/* endpoint.
-        // Using fixed GUIDs so the data round-trips across reset+seed deterministically.
-        await EnsureFinancialClaimsForAdminAsync(adminRole, now, cancellationToken);
     }
 
     /// <summary>
-    /// Ensures the three financial SecurityClaims exist and are linked (ALLOW) to the Admin role.
-    /// On fresh seed, Admin should be able to hit all /api/v1/giving/* endpoints.
+    /// Ensures the "Financial Admin" SecurityRole and its three financial SecurityClaims
+    /// exist (re-seeding what ResetDatabaseAsync truncated from the SeedFinancialClaims
+    /// migration) and that the role is linked (ALLOW) to all three claims. The GUIDs
+    /// below intentionally match the production migration so prod and dev/test share
+    /// a single definition of the Financial Admin role.
     /// </summary>
-    private async Task EnsureFinancialClaimsForAdminAsync(
-        SecurityRole adminRole,
+    private async Task<SecurityRole> EnsureFinancialAdminRoleAsync(
         DateTime now,
         CancellationToken cancellationToken)
     {
+        // GUIDs match 20260103165412_SeedFinancialClaims.cs so data round-trips
+        // identically whether provisioned by the migration (prod) or by this
+        // seeder (tests/dev) after a reset.
+        var financialViewClaimGuid = Guid.Parse("A1B2C3D4-E5F6-4A1B-8C9D-111111111111");
+        var financialEditClaimGuid = Guid.Parse("A1B2C3D4-E5F6-4A1B-8C9D-222222222222");
+        var financialBatchCloseClaimGuid = Guid.Parse("A1B2C3D4-E5F6-4A1B-8C9D-333333333333");
+        var financialViewRscGuid = Guid.Parse("11111111-1111-4AAA-BBBB-111111111111");
+        var financialEditRscGuid = Guid.Parse("22222222-2222-4AAA-BBBB-222222222222");
+        var financialBatchCloseRscGuid = Guid.Parse("33333333-3333-4AAA-BBBB-333333333333");
+
+        // 1. Ensure the Financial Admin role exists.
+        var financialAdminRole = await _context.SecurityRoles
+            .FirstOrDefaultAsync(r => r.Guid == _financialAdminSecurityRoleGuid, cancellationToken);
+
+        if (financialAdminRole is null)
+        {
+            financialAdminRole = new SecurityRole
+            {
+                Guid = _financialAdminSecurityRoleGuid,
+                Name = "Financial Admin",
+                Description = "Administrator role for financial operations",
+                IsSystemRole = true,
+                IsActive = true,
+                CreatedDateTime = now
+            };
+            _context.SecurityRoles.Add(financialAdminRole);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        // 2. Ensure the three financial claims exist.
         var claimSpecs = new (Guid Guid, string Value, string Description)[]
         {
-            (_financialViewClaimGuid, "view", "View financial data including contributions and batches"),
-            (_financialEditClaimGuid, "edit", "Create and edit contributions and batches"),
-            (_financialBatchCloseClaimGuid, "batch.close", "Close contribution batches")
+            (financialViewClaimGuid, "view", "View financial data including contributions and batches"),
+            (financialEditClaimGuid, "edit", "Create and edit contributions and batches"),
+            (financialBatchCloseClaimGuid, "batch.close", "Close contribution batches")
         };
 
+        var claimGuids = claimSpecs.Select(s => s.Guid).ToList();
         var existingClaims = await _context.SecurityClaims
-            .Where(c => claimSpecs.Select(s => s.Guid).Contains(c.Guid))
+            .Where(c => claimGuids.Contains(c.Guid))
             .ToDictionaryAsync(c => c.Guid, cancellationToken);
 
         foreach (var (guid, value, description) in claimSpecs)
@@ -535,14 +580,14 @@ public class DataSeeder
                 existingClaims[guid] = claim;
             }
         }
-
         await _context.SaveChangesAsync(cancellationToken);
 
-        var rscSpecs = new (Guid Guid, Guid ClaimGuid)[]
+        // 3. Ensure the role -> claim links exist (ALLOW).
+        var rscSpecs = new (Guid RscGuid, Guid ClaimGuid)[]
         {
-            (_adminFinancialViewRscGuid, _financialViewClaimGuid),
-            (_adminFinancialEditRscGuid, _financialEditClaimGuid),
-            (_adminFinancialBatchCloseRscGuid, _financialBatchCloseClaimGuid)
+            (financialViewRscGuid, financialViewClaimGuid),
+            (financialEditRscGuid, financialEditClaimGuid),
+            (financialBatchCloseRscGuid, financialBatchCloseClaimGuid)
         };
 
         foreach (var (rscGuid, claimGuid) in rscSpecs)
@@ -550,7 +595,7 @@ public class DataSeeder
             var claim = existingClaims[claimGuid];
             var alreadyLinked = await _context.RoleSecurityClaims
                 .AnyAsync(
-                    r => r.SecurityRoleId == adminRole.Id && r.SecurityClaimId == claim.Id,
+                    r => r.SecurityRoleId == financialAdminRole.Id && r.SecurityClaimId == claim.Id,
                     cancellationToken);
             if (alreadyLinked)
             {
@@ -560,7 +605,7 @@ public class DataSeeder
             _context.RoleSecurityClaims.Add(new RoleSecurityClaim
             {
                 Guid = rscGuid,
-                SecurityRoleId = adminRole.Id,
+                SecurityRoleId = financialAdminRole.Id,
                 SecurityClaimId = claim.Id,
                 AllowOrDeny = 'A',
                 CreatedDateTime = now
@@ -568,6 +613,7 @@ public class DataSeeder
         }
 
         await _context.SaveChangesAsync(cancellationToken);
+        return financialAdminRole;
     }
 
     /// <summary>

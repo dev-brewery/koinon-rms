@@ -3,6 +3,7 @@ using FluentValidation;
 using Koinon.Application.Common;
 using Koinon.Application.DTOs.Giving;
 using Koinon.Application.DTOs.Requests;
+using Koinon.Application.Helpers;
 using Koinon.Application.Interfaces;
 using Koinon.Domain.Data;
 using Koinon.Domain.Entities;
@@ -66,7 +67,7 @@ public class BatchDonationEntryService(
         var batch = new ContributionBatch
         {
             Name = request.Name,
-            BatchDate = NormalizeToUtc(request.BatchDate),
+            BatchDate = DateTimeNormalization.NormalizeToUtc(request.BatchDate),
             Status = BatchStatus.Open,
             ControlAmount = request.ControlAmount,
             ControlItemCount = request.ControlItemCount,
@@ -364,7 +365,7 @@ public class BatchDonationEntryService(
         {
             PersonAliasId = personAliasId,
             BatchId = batchId,
-            TransactionDateTime = NormalizeToUtc(request.TransactionDateTime),
+            TransactionDateTime = DateTimeNormalization.NormalizeToUtc(request.TransactionDateTime),
             TransactionCode = request.TransactionCode,
             TransactionTypeValueId = transactionTypeValueId,
             SourceTypeValueId = sourceTypeValue.Id,
@@ -530,7 +531,7 @@ public class BatchDonationEntryService(
 
         // Update contribution
         contribution.PersonAliasId = personAliasId;
-        contribution.TransactionDateTime = NormalizeToUtc(request.TransactionDateTime);
+        contribution.TransactionDateTime = DateTimeNormalization.NormalizeToUtc(request.TransactionDateTime);
         contribution.TransactionCode = request.TransactionCode;
         contribution.TransactionTypeValueId = transactionTypeValueId;
         contribution.Summary = request.Summary;
@@ -888,21 +889,5 @@ public class BatchDonationEntryService(
         };
 
         await context.FinancialAuditLogs.AddAsync(auditLog, ct);
-    }
-
-    /// <summary>
-    /// Normalizes a DateTime to UTC Kind for persistence to PostgreSQL timestamptz columns.
-    /// Incoming JSON-bound DateTimes have Kind=Unspecified, which Npgsql refuses to write.
-    /// Assumes Unspecified values are already expressed in UTC (the frontend sends date-only
-    /// strings and UTC-ISO timestamps).
-    /// </summary>
-    private static DateTime NormalizeToUtc(DateTime value)
-    {
-        return value.Kind switch
-        {
-            DateTimeKind.Utc => value,
-            DateTimeKind.Local => value.ToUniversalTime(),
-            _ => DateTime.SpecifyKind(value, DateTimeKind.Utc)
-        };
     }
 }
