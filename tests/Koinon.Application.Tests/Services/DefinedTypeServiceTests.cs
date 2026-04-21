@@ -67,23 +67,25 @@ public class DefinedTypeServiceTests : IDisposable
             IsSystem = true,
             Order = 1,
             CreatedDateTime = DateTime.UtcNow,
+            // Seed Inactive (Order=2) BEFORE Active (Order=1) so insertion order ≠ expected order.
+            // Ordering tests must fail if the service drops OrderBy(v => v.Order).
             DefinedValues =
             [
-                new DefinedValue
-                {
-                    Id = 10,
-                    DefinedTypeId = 1,
-                    Value = "Active",
-                    Order = 1,
-                    IsActive = true,
-                    CreatedDateTime = DateTime.UtcNow
-                },
                 new DefinedValue
                 {
                     Id = 11,
                     DefinedTypeId = 1,
                     Value = "Inactive",
                     Order = 2,
+                    IsActive = true,
+                    CreatedDateTime = DateTime.UtcNow
+                },
+                new DefinedValue
+                {
+                    Id = 10,
+                    DefinedTypeId = 1,
+                    Value = "Active",
+                    Order = 1,
                     IsActive = true,
                     CreatedDateTime = DateTime.UtcNow
                 }

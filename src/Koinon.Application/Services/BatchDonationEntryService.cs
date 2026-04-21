@@ -715,12 +715,14 @@ public class BatchDonationEntryService(
         // Apply date filters
         if (filter.StartDate.HasValue)
         {
-            query = query.Where(b => b.BatchDate >= filter.StartDate.Value);
+            var startDateUtc = DateTimeNormalization.NormalizeToUtc(filter.StartDate.Value);
+            query = query.Where(b => b.BatchDate >= startDateUtc);
         }
 
         if (filter.EndDate.HasValue)
         {
-            query = query.Where(b => b.BatchDate <= filter.EndDate.Value);
+            var endDateUtc = DateTimeNormalization.NormalizeToUtc(filter.EndDate.Value);
+            query = query.Where(b => b.BatchDate <= endDateUtc);
         }
 
         // Get total count
