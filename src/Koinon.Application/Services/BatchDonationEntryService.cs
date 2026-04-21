@@ -163,7 +163,12 @@ public class BatchDonationEntryService(
             return Result.Failure(Error.NotFound("ContributionBatch", batchIdKey));
         }
 
-        var batch = await context.ContributionBatches.FindAsync(new object[] { batchId }, ct);
+        // The DbContext defaults to QueryTrackingBehavior.NoTracking for performance
+        // (see PostgreSqlProvider). Use AsTracking() explicitly here so status
+        // mutations below are picked up by SaveChangesAsync.
+        var batch = await context.ContributionBatches
+            .AsTracking()
+            .FirstOrDefaultAsync(b => b.Id == batchId, ct);
         if (batch is null)
         {
             return Result.Failure(Error.NotFound("ContributionBatch", batchIdKey));
@@ -205,7 +210,12 @@ public class BatchDonationEntryService(
             return Result.Failure(Error.NotFound("ContributionBatch", batchIdKey));
         }
 
-        var batch = await context.ContributionBatches.FindAsync(new object[] { batchId }, ct);
+        // The DbContext defaults to QueryTrackingBehavior.NoTracking for performance
+        // (see PostgreSqlProvider). Use AsTracking() explicitly here so status
+        // mutations below are picked up by SaveChangesAsync.
+        var batch = await context.ContributionBatches
+            .AsTracking()
+            .FirstOrDefaultAsync(b => b.Id == batchId, ct);
         if (batch is null)
         {
             return Result.Failure(Error.NotFound("ContributionBatch", batchIdKey));
