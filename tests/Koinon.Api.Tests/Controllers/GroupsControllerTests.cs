@@ -16,6 +16,7 @@ namespace Koinon.Api.Tests.Controllers;
 public class GroupsControllerTests
 {
     private readonly Mock<IGroupService> _groupServiceMock;
+    private readonly Mock<IMyGroupsService> _myGroupsServiceMock;
     private readonly Mock<ILogger<GroupsController>> _loggerMock;
     private readonly GroupsController _controller;
 
@@ -32,8 +33,15 @@ public class GroupsControllerTests
     public GroupsControllerTests()
     {
         _groupServiceMock = new Mock<IGroupService>();
+        _myGroupsServiceMock = new Mock<IMyGroupsService>();
         _loggerMock = new Mock<ILogger<GroupsController>>();
-        _controller = new GroupsController(_groupServiceMock.Object, _loggerMock.Object);
+
+        // Default: allow all attendance calls through; individual tests can override.
+        _myGroupsServiceMock
+            .Setup(s => s.IsGroupLeaderOrStaffAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        _controller = new GroupsController(_groupServiceMock.Object, _myGroupsServiceMock.Object, _loggerMock.Object);
 
         // Setup HttpContext for controller
         _controller.ControllerContext = new ControllerContext

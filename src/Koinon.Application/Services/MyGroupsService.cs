@@ -495,4 +495,14 @@ public class MyGroupsService(
                 && gm.GroupMemberStatus == GroupMemberStatus.Active
                 && gm.GroupRole != null && gm.GroupRole.IsLeader, ct);
     }
+
+    public async Task<bool> IsGroupLeaderOrStaffAsync(string groupIdKey, CancellationToken ct = default)
+    {
+        if (!IdKeyHelper.TryDecode(groupIdKey, out int groupId))
+        {
+            return false;
+        }
+
+        return await IsGroupLeaderAsync(groupId, ct);
+    }
 }
