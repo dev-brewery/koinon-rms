@@ -236,7 +236,7 @@ public class SecurityClaimService : ISecurityClaimService
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<SecurityRoleDto>> GetPersonRolesAsync(int personId)
+    public async Task<IEnumerable<PersonRoleAssignmentDto>> GetPersonRolesAsync(int personId)
     {
         var now = DateTime.UtcNow;
 
@@ -244,7 +244,7 @@ public class SecurityClaimService : ISecurityClaimService
             .Include(psr => psr.SecurityRole)
             .Where(psr => psr.PersonId == personId &&
                          (psr.ExpiresDateTime == null || psr.ExpiresDateTime > now))
-            .Select(psr => new SecurityRoleDto
+            .Select(psr => new PersonRoleAssignmentDto
             {
                 IdKey = psr.SecurityRole.IdKey,
                 Name = psr.SecurityRole.Name,

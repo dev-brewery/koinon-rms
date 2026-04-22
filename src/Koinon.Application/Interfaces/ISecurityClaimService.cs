@@ -47,6 +47,6 @@ public interface ISecurityClaimService
     /// Gets all active security roles for a person (non-expired roles only).
     /// </summary>
     /// <param name="personId">The person's ID.</param>
-    /// <returns>List of security roles with their details.</returns>
-    Task<IEnumerable<SecurityRoleDto>> GetPersonRolesAsync(int personId);
+    /// <returns>List of security role assignments with their details.</returns>
+    Task<IEnumerable<PersonRoleAssignmentDto>> GetPersonRolesAsync(int personId);
 }

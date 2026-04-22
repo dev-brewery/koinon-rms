@@ -155,7 +155,6 @@ public class DataSeeder
 
         _logger.LogInformation("✅ Successfully seeded all test data");
     }
-
     private async Task<(GroupType familyGroupType, GroupType checkinGroupType, GroupTypeRole adultRole, GroupTypeRole childRole, GroupTypeRole memberRole)> SeedGroupTypesAsync(DateTime now, CancellationToken cancellationToken = default)
     {
         // Family group type
@@ -564,6 +563,34 @@ public class DataSeeder
         };
 
         _context.SecurityRoles.Add(adminRole);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        // Seed the "security:manage" claim used by the Security Roles admin UI (#497)
+        // and link it to the Admin role so admins can manage roles and permissions.
+        var securityManageClaimGuid = Guid.Parse("A1B2C3D4-E5F6-4A1B-8C9D-AAAAAAAAAAAA");
+        var securityManageClaim = await _context.SecurityClaims
+            .FirstOrDefaultAsync(c => c.Guid == securityManageClaimGuid, cancellationToken);
+        if (securityManageClaim is null)
+        {
+            securityManageClaim = new SecurityClaim
+            {
+                Guid = securityManageClaimGuid,
+                ClaimType = "security",
+                ClaimValue = "manage",
+                Description = "Manage security roles, claims, and role memberships",
+                CreatedDateTime = now
+            };
+            _context.SecurityClaims.Add(securityManageClaim);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        _context.RoleSecurityClaims.Add(new RoleSecurityClaim
+        {
+            SecurityRoleId = adminRole.Id,
+            SecurityClaimId = securityManageClaim.Id,
+            AllowOrDeny = 'A',
+            CreatedDateTime = now
+        });
         await _context.SaveChangesAsync(cancellationToken);
 
         // The "Financial Admin" role and financial:* claims are provisioned by the

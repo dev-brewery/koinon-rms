@@ -1,10 +1,10 @@
 namespace Koinon.Application.DTOs.Security;
 
 /// <summary>
-/// Summary DTO for a security role in the admin management UI.
-/// Includes counts of associated claims and members for at-a-glance administration.
+/// Detailed DTO for a security role including its claims and members.
+/// Used in the admin role-detail view.
 /// </summary>
-public record SecurityRoleDto
+public record SecurityRoleDetailDto
 {
     /// <summary>
     /// Gets the encoded identifier for API responses.
@@ -32,13 +32,12 @@ public record SecurityRoleDto
     public required bool IsActive { get; init; }
 
     /// <summary>
-    /// Gets the number of claims currently granted or denied by this role.
+    /// Gets the list of claims currently associated with this role.
     /// </summary>
-    public required int ClaimCount { get; init; }
+    public required IReadOnlyList<RoleSecurityClaimDto> Claims { get; init; }
 
     /// <summary>
-    /// Gets the number of people currently assigned to this role
-    /// (non-expired assignments only).
+    /// Gets the list of people currently assigned to this role (non-expired assignments).
     /// </summary>
-    public required int MemberCount { get; init; }
+    public required IReadOnlyList<PersonSecurityRoleMemberDto> Members { get; init; }
 }

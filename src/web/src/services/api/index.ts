@@ -49,4 +49,5 @@ export * as publicGroupsApi from './publicGroups';
 export * as referenceApi from './reference';
 export * as schedulesApi from './schedules';
 export * as searchApi from './search';
+export * as securityRolesApi from './securityRoles';
 export * as settingsApi from './settings';
