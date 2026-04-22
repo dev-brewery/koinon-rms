@@ -96,19 +96,6 @@ async function openSecurityRoleDetail(page: Page, roleName: string): Promise<voi
 // token mid-test.
 test.describe.serial('feat(#497) Security role and permissions management UI', () => {
   test.beforeEach(async ({ page }) => {
-    // The notifications/unread-count endpoint is broken in the demo app
-    // (pre-existing bug unrelated to #497 — it uses a JWT claim name the
-    // AuthService does not emit). Its 401 response triggers the web client's
-    // token-refresh logic repeatedly, which can invalidate the admin session
-    // mid-test. Stub it to an empty success response so the page can
-    // authenticate normally for admin operations.
-    await page.route('**/api/v1/notifications/**', (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ data: { count: 0 } }),
-      }),
-    );
     await loginAsAdmin(page);
   });
 
