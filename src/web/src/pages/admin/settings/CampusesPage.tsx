@@ -7,6 +7,8 @@ import { useState } from 'react';
 import { useCampuses, useDeleteCampus } from '@/hooks/useCampuses';
 import { CampusCard } from '@/components/admin/CampusCard';
 import { CampusEditorModal } from '@/components/admin/CampusEditorModal';
+import { Loading, EmptyState, ErrorState } from '@/components/ui';
+import { getErrorMessage } from '@/lib/errorMessages';
 import type { CampusDto } from '@/services/api/types';
 
 export function CampusesPage() {
@@ -14,7 +16,7 @@ export function CampusesPage() {
   const [editingCampus, setEditingCampus] = useState<CampusDto | null>(null);
   const [isCreating, setIsCreating] = useState(false);
 
-  const { data: campuses = [], isLoading, error } = useCampuses(includeInactive);
+  const { data: campuses = [], isLoading, error, refetch } = useCampuses(includeInactive);
   const deleteMutation = useDeleteCampus();
 
   const handleEdit = (campus: CampusDto) => {
@@ -76,31 +78,19 @@ export function CampusesPage() {
 
       {/* Loading State */}
       {isLoading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="inline-block w-8 h-8 border-4 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+        <div className="bg-white rounded-lg border border-gray-200">
+          <Loading text="Loading campuses..." />
         </div>
       )}
 
       {/* Error State */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex items-center gap-2">
-            <svg
-              className="w-5 h-5 text-red-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <p className="text-sm font-medium text-red-800">Failed to load campuses</p>
-          </div>
+        <div className="bg-white rounded-lg border border-gray-200">
+          <ErrorState
+            title="Failed to load campuses"
+            message={getErrorMessage(error).message}
+            onRetry={() => refetch()}
+          />
         </div>
       )}
 
@@ -108,28 +98,15 @@ export function CampusesPage() {
       {!isLoading && !error && (
         <div className="space-y-4">
           {campuses.length === 0 ? (
-            <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-              <svg
-                className="w-12 h-12 text-gray-400 mx-auto mb-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                />
-              </svg>
-              <p className="text-gray-500 mb-4">No campuses found</p>
-              <button
-                onClick={handleCreate}
-                className="inline-block px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-              >
-                Create First Campus
-              </button>
+            <div className="bg-white rounded-lg border border-gray-200">
+              <EmptyState
+                title="No campuses yet"
+                description="Campuses represent physical or virtual locations where your ministry meets. Create one to organize people and events."
+                action={{
+                  label: 'Create First Campus',
+                  onClick: handleCreate,
+                }}
+              />
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

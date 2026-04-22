@@ -11,6 +11,8 @@ import {
   AuditLogTable,
   AuditLogDetailModal,
 } from '@/components/admin/audit';
+import { ErrorState } from '@/components/ui';
+import { getErrorMessage } from '@/lib/errorMessages';
 import type { AuditLogSearchParams, AuditLogDto } from '@/services/api/types';
 import { ExportFormat } from '@/services/api/types';
 
@@ -23,7 +25,7 @@ export function AuditLogsPage() {
   const [selectedLog, setSelectedLog] = useState<AuditLogDto | null>(null);
 
   // Queries
-  const { data, isLoading, error } = useAuditLogs(filters);
+  const { data, isLoading, error, refetch } = useAuditLogs(filters);
   const exportMutation = useExportAuditLogs();
 
   // Handlers
@@ -136,24 +138,12 @@ export function AuditLogsPage() {
 
       {/* Error State */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex items-center gap-2">
-            <svg
-              className="w-5 h-5 text-red-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <p className="text-sm font-medium text-red-800">Failed to load audit logs</p>
-          </div>
+        <div className="bg-white rounded-lg border border-gray-200">
+          <ErrorState
+            title="Failed to load audit logs"
+            message={getErrorMessage(error).message}
+            onRetry={() => refetch()}
+          />
         </div>
       )}
 

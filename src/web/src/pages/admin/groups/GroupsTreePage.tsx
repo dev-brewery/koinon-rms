@@ -7,6 +7,8 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useGroups } from '@/hooks/useGroups';
 import { GroupTree } from '@/components/admin/groups/GroupTree';
+import { Loading, EmptyState, ErrorState } from '@/components/ui';
+import { getErrorMessage } from '@/lib/errorMessages';
 
 type ViewMode = 'tree' | 'list';
 
@@ -16,7 +18,7 @@ export function GroupsTreePage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch top-level groups (no parent)
-  const { data, isLoading, error } = useGroups({
+  const { data, isLoading, error, refetch } = useGroups({
     q: searchQuery || undefined,
     includeInactive: false,
   });
@@ -118,59 +120,30 @@ export function GroupsTreePage() {
       {/* Content */}
       <div className="bg-white rounded-lg border border-gray-200">
         {isLoading ? (
-          <div className="p-12 text-center">
-            <div className="inline-block w-8 h-8 border-4 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
-            <p className="mt-4 text-gray-500">Loading groups...</p>
-          </div>
+          <Loading text="Loading groups..." />
         ) : error ? (
-          <div className="p-12 text-center">
-            <svg
-              className="w-12 h-12 text-red-400 mx-auto mb-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <p className="text-red-600">Failed to load groups</p>
-            <p className="text-sm text-gray-500 mt-2">
-              {error instanceof Error ? error.message : 'Unknown error'}
-            </p>
-          </div>
+          <ErrorState
+            title="Failed to load groups"
+            message={getErrorMessage(error).message}
+            onRetry={() => refetch()}
+          />
         ) : groups.length === 0 ? (
-          <div className="p-12 text-center">
-            <svg
-              className="w-12 h-12 text-gray-400 mx-auto mb-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-              />
-            </svg>
-            <p className="text-gray-500">
-              {searchQuery ? 'No groups found matching your search' : 'No groups yet'}
-            </p>
-            {!searchQuery && (
-              <Link
-                to="/admin/groups/new"
-                className="inline-block mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-              >
-                Create your first group
-              </Link>
-            )}
-          </div>
+          <EmptyState
+            title={searchQuery ? 'No groups found' : 'No groups yet'}
+            description={
+              searchQuery
+                ? 'Try adjusting your search or create a new group.'
+                : 'Organize your ministry by creating groups for classes, teams, or serving areas.'
+            }
+            action={
+              !searchQuery
+                ? {
+                    label: 'Create your first group',
+                    onClick: () => navigate('/admin/groups/new'),
+                  }
+                : undefined
+            }
+          />
         ) : viewMode === 'tree' ? (
           <div className="p-4">
             {topLevelGroups.map((group) => (

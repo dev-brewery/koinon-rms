@@ -16,6 +16,8 @@ import {
   useReorderDefinedValues,
 } from '@/features/admin/defined-types';
 import type { DefinedTypeSummary, DefinedValueDto } from '@/features/admin/defined-types';
+import { Loading, EmptyState, ErrorState } from '@/components/ui';
+import { getErrorMessage } from '@/lib/errorMessages';
 import type { IdKey } from '@/services/api/types';
 
 // ============================================================================
@@ -527,7 +529,7 @@ function DefinedTypeRow({ type, isExpanded, onToggle }: DefinedTypeRowProps) {
 export function DefinedTypesPage() {
   const [expandedIdKey, setExpandedIdKey] = useState<IdKey | null>(null);
 
-  const { data: definedTypes = [], isLoading, error } = useDefinedTypes();
+  const { data: definedTypes = [], isLoading, error, refetch } = useDefinedTypes();
 
   const handleToggle = (idKey: IdKey) => {
     setExpandedIdKey((prev) => (prev === idKey ? null : idKey));
@@ -557,52 +559,29 @@ export function DefinedTypesPage() {
 
       {/* Loading State */}
       {isLoading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="inline-block w-8 h-8 border-4 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+        <div className="bg-white rounded-lg border border-gray-200">
+          <Loading text="Loading defined types..." />
         </div>
       )}
 
       {/* Error State */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex items-center gap-2">
-            <svg
-              className="w-5 h-5 text-red-600 flex-shrink-0"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <p className="text-sm font-medium text-red-800">Failed to load defined types</p>
-          </div>
+        <div className="bg-white rounded-lg border border-gray-200">
+          <ErrorState
+            title="Failed to load defined types"
+            message={getErrorMessage(error).message}
+            onRetry={() => refetch()}
+          />
         </div>
       )}
 
       {/* Empty State */}
       {!isLoading && !error && definedTypes.length === 0 && (
-        <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-          <svg
-            className="w-12 h-12 text-gray-400 mx-auto mb-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 6h16M4 10h16M4 14h16M4 18h16"
-            />
-          </svg>
-          <p className="text-gray-500">No defined types found</p>
+        <div className="bg-white rounded-lg border border-gray-200">
+          <EmptyState
+            title="No defined types configured"
+            description="Defined types power dropdown lists throughout the system (e.g., phone types, connection statuses). These are typically seeded on install."
+          />
         </div>
       )}
 

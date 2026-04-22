@@ -27,6 +27,8 @@ import {
   useUpdateSecurityRole,
 } from '@/hooks/useSecurityRoles';
 import { peopleApi } from '@/services/api';
+import { Loading, EmptyState, ErrorState } from '@/components/ui';
+import { getErrorMessage } from '@/lib/errorMessages';
 import type {
   RoleSecurityClaimDto,
   SecurityRoleDto,
@@ -55,7 +57,7 @@ function Badge({
 }
 
 export function SecurityRolesPage() {
-  const { data: roles = [], isLoading, error } = useSecurityRoles();
+  const { data: roles = [], isLoading, error, refetch } = useSecurityRoles();
   const [selectedIdKey, setSelectedIdKey] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
 
@@ -106,22 +108,38 @@ export function SecurityRolesPage() {
       </div>
 
       {isLoading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="inline-block w-8 h-8 border-4 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+        <div className="bg-white rounded-lg border border-gray-200">
+          <Loading text="Loading security roles..." />
         </div>
       )}
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4" role="alert">
-          <p className="text-sm font-medium text-red-800">
-            Failed to load security roles. You may not have the
-            <code className="mx-1 bg-red-100 px-1 rounded">security:manage</code>
-            permission.
-          </p>
+        <div className="bg-white rounded-lg border border-gray-200">
+          <ErrorState
+            title="Failed to load security roles"
+            message={
+              getErrorMessage(error).message +
+              ' You may not have the security:manage permission.'
+            }
+            onRetry={() => refetch()}
+          />
         </div>
       )}
 
-      {!isLoading && !error && (
+      {!isLoading && !error && roles.length === 0 && (
+        <div className="bg-white rounded-lg border border-gray-200">
+          <EmptyState
+            title="No security roles yet"
+            description="Security roles group permissions that can be assigned to people. Create a role (e.g., 'Check-in Staff') and assign claims and members."
+            action={{
+              label: 'Create Role',
+              onClick: () => setIsCreating(true),
+            }}
+          />
+        </div>
+      )}
+
+      {!isLoading && !error && roles.length > 0 && (
         <div
           className="bg-white rounded-lg border border-gray-200 overflow-hidden"
           data-testid="security-roles-list"
@@ -148,13 +166,7 @@ export function SecurityRolesPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {roles.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="px-6 py-10 text-center text-gray-500">
-                    No security roles yet. Create one to get started.
-                  </td>
-                </tr>
-              )}
+
               {roles.map((role) => (
                 <tr
                   key={role.idKey}

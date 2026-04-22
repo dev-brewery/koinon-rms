@@ -8,6 +8,8 @@ import { Link } from 'react-router-dom';
 import { useCommunications } from '@/hooks/useCommunications';
 import { useGroups } from '@/hooks/useGroups';
 import { CommunicationComposer } from '@/components/communication/CommunicationComposer';
+import { Loading, EmptyState, ErrorState } from '@/components/ui';
+import { getErrorMessage } from '@/lib/errorMessages';
 import type { CommunicationSummaryDto } from '@/services/api/communications';
 
 const STATUS_OPTIONS = [
@@ -147,7 +149,7 @@ export function CommunicationsPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [isComposerOpen, setIsComposerOpen] = useState(false);
 
-  const { data: communicationsData, isLoading, error } = useCommunications({
+  const { data: communicationsData, isLoading, error, refetch } = useCommunications({
     status: statusFilter || undefined,
     pageSize: 50,
   });
@@ -212,30 +214,19 @@ export function CommunicationsPage() {
 
       {/* Loading State */}
       {isLoading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="inline-block w-8 h-8 border-4 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+        <div className="bg-white rounded-lg border border-gray-200">
+          <Loading text="Loading communications..." />
         </div>
       )}
 
       {/* Error State */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex items-center gap-2">
-            <svg
-              className="w-5 h-5 text-red-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <p className="text-sm font-medium text-red-800">Failed to load communications</p>
-          </div>
+        <div className="bg-white rounded-lg border border-gray-200">
+          <ErrorState
+            title="Failed to load communications"
+            message={getErrorMessage(error).message}
+            onRetry={() => refetch()}
+          />
         </div>
       )}
 
@@ -243,27 +234,19 @@ export function CommunicationsPage() {
       {!isLoading && !error && (
         <div className="space-y-4">
           {communications.length === 0 ? (
-            <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-              <svg
-                className="w-12 h-12 text-gray-400 mx-auto mb-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                />
-              </svg>
-              <p className="text-gray-500 mb-4">No communications found</p>
-              <button
-                onClick={() => setIsComposerOpen(true)}
-                className="inline-block px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-              >
-                Send First Communication
-              </button>
+            <div className="bg-white rounded-lg border border-gray-200">
+              <EmptyState
+                title="No communications found"
+                description={
+                  statusFilter
+                    ? 'Try selecting a different status filter, or compose a new communication.'
+                    : 'Send targeted emails or SMS to people and groups. Messages you send will appear here.'
+                }
+                action={{
+                  label: statusFilter ? 'Compose New' : 'Send First Communication',
+                  onClick: () => setIsComposerOpen(true),
+                }}
+              />
             </div>
           ) : (
             <div className="space-y-3">
