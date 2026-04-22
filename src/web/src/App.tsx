@@ -44,6 +44,7 @@ import { ImportSettingsPage } from './pages/admin/settings/ImportSettingsPage';
 import { CampusesPage } from './pages/admin/settings/CampusesPage';
 import { LocationsPage } from './pages/admin/settings/LocationsPage';
 import { AuditLogsPage } from './pages/admin/settings/AuditLogsPage';
+import { SecurityRolesPage } from './pages/admin/settings/SecurityRolesPage';
 import { PWAUpdatePrompt, InstallPrompt } from './components/pwa';
 import { GroupFinderPage } from './pages/public/GroupFinderPage';
 import { MyGroupsPage } from './pages/MyGroupsPage';
@@ -282,6 +283,7 @@ function App() {
           <Route path="settings/campuses" element={<CampusesPage />} />
           <Route path="settings/locations" element={<LocationsPage />} />
           <Route path="settings/audit-logs" element={<AuditLogsPage />} />
+          <Route path="settings/security-roles" element={<SecurityRolesPage />} />
           <Route path="exports" element={<DataExportsPage />} />
           <Route path="import/history" element={<ImportHistoryPage />} />
           <Route path="import/people" element={<PeopleImportPage />} />

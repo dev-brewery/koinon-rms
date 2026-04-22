@@ -38,6 +38,7 @@ public static class ServiceCollectionExtensions
 
         // Security services
         services.AddScoped<ISecurityClaimService, SecurityClaimService>();
+        services.AddScoped<ISecurityRoleService, SecurityRoleService>();
 
         // Core entity services
         services.AddScoped<IPersonService, PersonService>();

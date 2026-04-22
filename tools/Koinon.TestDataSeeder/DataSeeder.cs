@@ -106,7 +106,98 @@ public class DataSeeder
         // Final save for all check-in groups
         await _context.SaveChangesAsync(cancellationToken);
 
+        // Seed the Admin security role with the security:manage claim,
+        // and put john.smith in it so E2E tests can exercise the admin UI.
+        _logger.LogInformation("Seeding security roles and claims...");
+        await SeedSecurityRolesAsync(people, cancellationToken);
+
         _logger.LogInformation("✅ Successfully seeded all test data");
+    }
+
+    /// <summary>
+    /// Seeds the "Admin" security role with a "security:manage" claim and assigns
+    /// john.smith to the role. Idempotent — safe to re-run against existing data.
+    /// </summary>
+    private async Task SeedSecurityRolesAsync(
+        List<Person> people,
+        CancellationToken cancellationToken = default)
+    {
+        var now = DateTime.UtcNow;
+        var adminRoleGuid = new Guid("70707070-7070-7070-7070-707070707070");
+        var securityManageClaimGuid = new Guid("A1B2C3D4-E5F6-4A1B-8C9D-AAAAAAAAAAAA");
+
+        // Ensure the "security:manage" claim exists
+        var securityManageClaim = await _context.SecurityClaims
+            .FirstOrDefaultAsync(c => c.Guid == securityManageClaimGuid, cancellationToken);
+        if (securityManageClaim == null)
+        {
+            securityManageClaim = new SecurityClaim
+            {
+                Guid = securityManageClaimGuid,
+                ClaimType = "security",
+                ClaimValue = "manage",
+                Description = "Manage security roles, claims, and role memberships",
+                CreatedDateTime = now
+            };
+            _context.SecurityClaims.Add(securityManageClaim);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        // Ensure the "Admin" role exists
+        var adminRole = await _context.SecurityRoles
+            .FirstOrDefaultAsync(r => r.Guid == adminRoleGuid, cancellationToken);
+        if (adminRole == null)
+        {
+            adminRole = new SecurityRole
+            {
+                Guid = adminRoleGuid,
+                Name = "Admin",
+                Description = "System administrators with full access to security settings",
+                IsSystemRole = true,
+                IsActive = true,
+                CreatedDateTime = now
+            };
+            _context.SecurityRoles.Add(adminRole);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        // Ensure Admin -> security:manage association exists
+        var existingLink = await _context.RoleSecurityClaims
+            .FirstOrDefaultAsync(
+                rsc => rsc.SecurityRoleId == adminRole.Id && rsc.SecurityClaimId == securityManageClaim.Id,
+                cancellationToken);
+        if (existingLink == null)
+        {
+            _context.RoleSecurityClaims.Add(new RoleSecurityClaim
+            {
+                SecurityRoleId = adminRole.Id,
+                SecurityClaimId = securityManageClaim.Id,
+                AllowOrDeny = 'A',
+                CreatedDateTime = now
+            });
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        // Ensure john.smith is in the Admin role
+        var johnSmith = people.FirstOrDefault(p => p.Guid == _johnSmithGuid);
+        if (johnSmith != null)
+        {
+            var existingMembership = await _context.PersonSecurityRoles
+                .FirstOrDefaultAsync(
+                    psr => psr.PersonId == johnSmith.Id && psr.SecurityRoleId == adminRole.Id,
+                    cancellationToken);
+            if (existingMembership == null)
+            {
+                _context.PersonSecurityRoles.Add(new PersonSecurityRole
+                {
+                    PersonId = johnSmith.Id,
+                    SecurityRoleId = adminRole.Id,
+                    ExpiresDateTime = null,
+                    CreatedDateTime = now
+                });
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+        }
     }
 
     private async Task<(GroupType familyGroupType, GroupType checkinGroupType, GroupTypeRole adultRole, GroupTypeRole childRole, GroupTypeRole memberRole)> SeedGroupTypesAsync(DateTime now, CancellationToken cancellationToken = default)
