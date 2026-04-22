@@ -31,17 +31,17 @@ export default defineConfig({
         'src/vite-env.d.ts',
       ],
       thresholds: {
-        // Honest-denominator floor. Previous config excluded ~81% of the FE
-        // (pages, components, features, contexts, api, layouts, printing,
-        // errorTracking) from the denominator and enforced 70/70/70/60 against
-        // only ~16% of the codebase. Those exclusions have been restored to
-        // the coverage measurement; the threshold here is the honest achieved
-        // floor (lines 10.87, statements 10.90, functions 7.17, branches 7.45)
-        // minus a small buffer. Raise as real coverage grows.
-        lines: 9,
-        statements: 9,
-        functions: 6,
-        branches: 6,
+        // Honest-denominator floor. Wave 2 (#498) added tests for contexts,
+        // UI primitives, data-display components, and check-in flows against
+        // the full honest denominator. No new exclusions were added — every
+        // point of movement comes from real tests. Achieved floor:
+        //   lines 18.21, statements 18.23, functions 14.27, branches 15.33
+        // Thresholds set just below the achieved number (small buffer so
+        // minor churn does not break CI). Raise further in wave 3.
+        lines: 17,
+        statements: 17,
+        functions: 13,
+        branches: 14,
         // Critical path: offline services must stay well tested.
         // These are higher than the global floor because offline queue bugs
         // cause silent check-in data loss.
