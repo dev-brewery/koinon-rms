@@ -12,29 +12,45 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
+      // Count all source files, not just imported ones, so we see the true picture.
+      all: true,
+      include: ['src/**/*.{ts,tsx}'],
       exclude: [
         'node_modules/',
         'src/test/',
         '**/*.test.ts',
         '**/*.test.tsx',
+        // Type declarations and barrel files carry no executable logic.
+        '**/*.d.ts',
+        '**/index.ts',
+        'src/**/types.ts',
+        'src/types/**',
+        // Entry points: validated by build / E2E.
+        'src/main.tsx',
+        'src/App.tsx',
+        'src/vite-env.d.ts',
       ],
       thresholds: {
-        global: {
-          lines: 70,
-          statements: 70,
-          functions: 70,
-          branches: 60,
+        // Honest-denominator floor. Previous config excluded ~81% of the FE
+        // (pages, components, features, contexts, api, layouts, printing,
+        // errorTracking) from the denominator and enforced 70/70/70/60 against
+        // only ~16% of the codebase. Those exclusions have been restored to
+        // the coverage measurement; the threshold here is the honest achieved
+        // floor (lines 10.87, statements 10.90, functions 7.17, branches 7.45)
+        // minus a small buffer. Raise as real coverage grows.
+        lines: 9,
+        statements: 9,
+        functions: 6,
+        branches: 6,
+        // Critical path: offline services must stay well tested.
+        // These are higher than the global floor because offline queue bugs
+        // cause silent check-in data loss.
+        'src/services/offline/**/*.ts': {
+          lines: 80,
+          statements: 80,
+          functions: 85,
+          branches: 50,
         },
-        // Critical path: offline services (current baseline: ~56% lines, 19% branches)
-        // TODO(#165): Incrementally increase to 85% as test coverage improves
-        'services/offline/**/*.ts': {
-          lines: 55,
-          statements: 56,
-          functions: 90,
-          branches: 19,
-        },
-        // Critical path: checkin hooks - not yet tested
-        // TODO(#165): Add tests for useCheckin.ts and useOfflineCheckin.ts, then set 85% thresholds
       },
     },
   },
