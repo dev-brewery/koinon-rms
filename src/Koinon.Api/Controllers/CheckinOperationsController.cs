@@ -1,3 +1,4 @@
+using Koinon.Api.Authorization;
 using Koinon.Application.Common;
 using Koinon.Application.DTOs.CheckinOperations;
 using Koinon.Application.Interfaces;
@@ -10,10 +11,13 @@ namespace Koinon.Api.Controllers;
 /// Live check-in operations dashboard (#482).
 /// Coordinator-only endpoints that surface a consolidated view of rooms, attendees,
 /// and summary stats during Sunday morning operations, plus a room open/close toggle.
+/// Gated with the "security:manage" claim as a stopgap until a dedicated
+/// coordinator claim (e.g. "checkin:manage") is introduced.
 /// </summary>
 [ApiController]
 [Route("api/v1/checkin-operations")]
 [Authorize]
+[RequiresClaim("security", "manage")]
 public class CheckinOperationsController(
     ICheckinOperationsService service,
     ILogger<CheckinOperationsController> logger) : ControllerBase
@@ -38,8 +42,8 @@ public class CheckinOperationsController(
 
     /// <summary>
     /// Toggles a room's open/closed state for check-ins.
-    /// Coordinator-only; gated by the controller-level [Authorize] attribute and the
-    /// admin-area sidebar only exposes this page to authenticated admins.
+    /// Coordinator-only; gated by the controller-level [RequiresClaim("security", "manage")]
+    /// attribute in addition to [Authorize].
     /// </summary>
     [HttpPost("rooms/{idKey}/toggle")]
     [ProducesResponseType(typeof(ToggleRoomResponseDto), StatusCodes.Status200OK)]
