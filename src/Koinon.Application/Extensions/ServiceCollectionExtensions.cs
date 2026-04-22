@@ -48,6 +48,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IMyGroupsService, MyGroupsService>();
         services.AddScoped<IFamilyService, FamilyService>();
         services.AddScoped<ICampusService, CampusService>();
+        services.AddScoped<IDefinedTypeService, DefinedTypeService>();
         services.AddScoped<ILocationService, LocationService>();
         services.AddScoped<IScheduleService, ScheduleService>();
         services.AddScoped<IDashboardService, DashboardService>();
@@ -132,6 +133,7 @@ public static class ServiceCollectionExtensions
         // Giving/Financial services
         services.AddScoped<IContributionStatementService, ContributionStatementService>();
         services.AddScoped<IBatchDonationEntryService, BatchDonationEntryService>();
+        services.AddScoped<IFundService, FundService>();
         services.AddScoped<StatementPdfGenerator>();
 
         // Audit services

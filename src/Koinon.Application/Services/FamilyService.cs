@@ -33,6 +33,7 @@ public class FamilyService(
         var family = await context.Families
             .AsNoTracking()
             .Include(f => f.Campus)
+            .Include(f => f.Location)
             .Include(f => f.Members)
                 .ThenInclude(m => m.Person)
             .Include(f => f.Members)
@@ -82,10 +83,12 @@ public class FamilyService(
             query = query.Where(f => f.CampusId == campusId);
         }
 
-        // Filter by search term (search in name)
+        // Filter by search term (search in family name or member names)
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
-            query = query.Where(f => f.Name.Contains(searchTerm));
+            query = query.Where(f => f.Name.Contains(searchTerm) ||
+                f.Members.Any(m => m.Person.FirstName.Contains(searchTerm) ||
+                                   m.Person.LastName.Contains(searchTerm)));
         }
 
         // Get total count
@@ -136,12 +139,13 @@ public class FamilyService(
         }
 
         // Create address if provided
-        Location? location = null;
         if (request.Address != null)
         {
-            location = mapper.Map<Location>(request.Address);
+            var location = mapper.Map<Location>(request.Address);
             location.CreatedDateTime = DateTime.UtcNow;
             await context.Locations.AddAsync(location, ct);
+            await context.SaveChangesAsync(ct);
+            family.LocationId = location.Id;
         }
 
         // Add to database
@@ -411,6 +415,67 @@ public class FamilyService(
         return Result.Success();
     }
 
+    public async Task<Result<FamilyDto>> UpdateFamilyAsync(
+        string idKey,
+        UpdateFamilyRequest request,
+        CancellationToken ct = default)
+    {
+        if (!IdKeyHelper.TryDecode(idKey, out int familyId))
+        {
+            return Result<FamilyDto>.Failure(Error.NotFound("Family", idKey));
+        }
+
+        // Authorization check - throws if user doesn't have access
+        try
+        {
+            await AuthorizeFamilyAccessAsync(familyId, nameof(UpdateFamilyAsync), ct);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            logger.LogWarning(ex, "Unauthorized attempt to update family {FamilyId}", familyId);
+            return Result<FamilyDto>.Failure(Error.Forbidden("Not authorized to modify this family"));
+        }
+
+        // AsTracking required: global QueryTrackingBehavior is NoTracking
+        var family = await context.Families
+            .AsTracking()
+            .FirstOrDefaultAsync(f => f.Id == familyId, ct);
+
+        if (family is null)
+        {
+            return Result<FamilyDto>.Failure(Error.NotFound("Family", idKey));
+        }
+
+        if (request.Name is not null)
+        {
+            family.Name = request.Name;
+        }
+
+        if (request.CampusId is not null)
+        {
+            if (IdKeyHelper.TryDecode(request.CampusId, out int campusId))
+            {
+                family.CampusId = campusId;
+            }
+            else
+            {
+                return Result<FamilyDto>.Failure(
+                    Error.Validation("Invalid campus IdKey"));
+            }
+        }
+
+        family.ModifiedDateTime = DateTime.UtcNow;
+
+        await context.SaveChangesAsync(ct);
+
+        logger.LogInformation("Updated family {FamilyId}: Name={Name}", family.Id, family.Name);
+
+        var updatedFamily = await GetByIdAsync(family.Id, ct);
+        return updatedFamily != null
+            ? Result<FamilyDto>.Success(updatedFamily)
+            : Result<FamilyDto>.Failure(Error.UnprocessableEntity("Failed to retrieve updated family"));
+    }
+
     public Task<Result<FamilyDto>> UpdateAddressAsync(
         string familyIdKey,
         UpdateFamilyAddressRequest request,
@@ -439,7 +504,7 @@ public class FamilyService(
             Description = familyDto.Description,
             IsActive = familyDto.IsActive,
             Campus = familyDto.Campus,
-            Address = null,
+            Address = family.Location != null ? mapper.Map<AddressDto>(family.Location) : null,
             Members = memberDtos,
             CreatedDateTime = familyDto.CreatedDateTime,
             ModifiedDateTime = familyDto.ModifiedDateTime

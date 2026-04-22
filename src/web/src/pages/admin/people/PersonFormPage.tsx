@@ -9,6 +9,7 @@ import { usePerson, useCreatePerson, useUpdatePerson } from '@/hooks/usePeople';
 import type { CreatePersonRequest, UpdatePersonRequest, Gender } from '@/services/api/types';
 import { personFormSchema } from '@/schemas/person.schema';
 import { PersonPhotoUpload } from '@/components/admin/people/PersonPhotoUpload';
+import { AccessibleSelect } from '@/components/ui/AccessibleSelect';
 
 interface PhoneNumberForm {
   number: string;
@@ -34,7 +35,6 @@ export function PersonFormPage() {
   const [birthDate, setBirthDate] = useState('');
   const [campusId, setCampusId] = useState('');
   const [phoneNumbers, setPhoneNumbers] = useState<PhoneNumberForm[]>([]);
-  const [isDirty, setIsDirty] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -58,21 +58,15 @@ export function PersonFormPage() {
   }, [person]);
 
   const handleAddPhoneNumber = () => {
-    setPhoneNumbers([...phoneNumbers, { number: '', isMessagingEnabled: true }]);
-    setIsDirty(true);
-  };
+    setPhoneNumbers([...phoneNumbers, { number: '', isMessagingEnabled: true }]);  };
 
   const handleRemovePhoneNumber = (index: number) => {
-    setPhoneNumbers(phoneNumbers.filter((_, i) => i !== index));
-    setIsDirty(true);
-  };
+    setPhoneNumbers(phoneNumbers.filter((_, i) => i !== index));  };
 
   const handlePhoneNumberChange = (index: number, field: keyof PhoneNumberForm, value: string | boolean) => {
     const updated = [...phoneNumbers];
     updated[index] = { ...updated[index], [field]: value };
-    setPhoneNumbers(updated);
-    setIsDirty(true);
-  };
+    setPhoneNumbers(updated);  };
 
   const validateField = (fieldName: string, value: unknown) => {
     const formData = {
@@ -112,6 +106,9 @@ export function PersonFormPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Filter out empty phone numbers before validation
+    const filledPhoneNumbers = phoneNumbers.filter((p) => p.number.trim());
+
     // Validate all fields before submit
     const formData = {
       firstName,
@@ -122,7 +119,7 @@ export function PersonFormPage() {
       gender,
       birthDate,
       campusId,
-      phoneNumbers,
+      phoneNumbers: filledPhoneNumbers,
     };
 
     const result = personFormSchema.safeParse(formData);
@@ -159,6 +156,9 @@ export function PersonFormPage() {
         if (birthDate !== person?.birthDate) request.birthDate = birthDate || null;
         if (campusId !== person?.primaryCampus?.idKey) request.primaryCampusId = campusId || null;
 
+        // Always send phone numbers on update (replace strategy)
+        request.phoneNumbers = phoneNumbersData.length > 0 ? phoneNumbersData : [];
+
         const result = await updateMutation.mutateAsync({ idKey: idKey!, request });
         navigate(`/admin/people/${result.idKey}`);
       } else {
@@ -183,9 +183,29 @@ export function PersonFormPage() {
     }
   };
 
+  const isFormDirty = () => {
+    if (isEdit) {
+      return (
+        firstName !== (person?.firstName ?? '') ||
+        lastName !== (person?.lastName ?? '') ||
+        nickName !== (person?.nickName ?? '') ||
+        middleName !== (person?.middleName ?? '') ||
+        email !== (person?.email ?? '') ||
+        gender !== (person?.gender ?? 'Unknown') ||
+        birthDate !== (person?.birthDate ?? '')
+      );
+    }
+    // For create form, any filled field means dirty
+    return firstName !== '' || lastName !== '' || nickName !== '' ||
+           middleName !== '' || email !== '' || birthDate !== '' ||
+           phoneNumbers.length > 0;
+  };
+
   const handleCancel = () => {
-    if (isDirty) {
-      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to leave?');
+    if (isFormDirty()) {
+      const confirmed = window.confirm(
+        'You have unsaved changes. Are you sure you want to leave?'
+      );
       if (!confirmed) return;
     }
     navigate(isEdit ? `/admin/people/${idKey}` : '/admin/people');
@@ -230,7 +250,7 @@ export function PersonFormPage() {
           {isEdit ? 'Edit Person' : 'Add Person'}
         </h1>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} noValidate className="space-y-6">
           {/* Photo Upload - Edit Mode Only */}
           {isEdit && idKey && (
             <div className="pb-6 border-b border-gray-200">
@@ -254,7 +274,6 @@ export function PersonFormPage() {
                 value={firstName}
                 onChange={(e) => {
                   setFirstName(e.target.value);
-                  setIsDirty(true);
                 }}
                 onBlur={() => validateField('firstName', firstName)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -276,7 +295,6 @@ export function PersonFormPage() {
                 value={lastName}
                 onChange={(e) => {
                   setLastName(e.target.value);
-                  setIsDirty(true);
                 }}
                 onBlur={() => validateField('lastName', lastName)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -297,7 +315,6 @@ export function PersonFormPage() {
                 value={nickName}
                 onChange={(e) => {
                   setNickName(e.target.value);
-                  setIsDirty(true);
                 }}
                 onBlur={() => validateField('nickName', nickName)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -318,7 +335,6 @@ export function PersonFormPage() {
                 value={middleName}
                 onChange={(e) => {
                   setMiddleName(e.target.value);
-                  setIsDirty(true);
                 }}
                 onBlur={() => validateField('middleName', middleName)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -332,26 +348,19 @@ export function PersonFormPage() {
           {/* Demographics */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-1">
-                Gender
-              </label>
-              <select
+              <AccessibleSelect
                 id="gender"
+                label="Gender"
                 value={gender}
-                onChange={(e) => {
-                  setGender(e.target.value as Gender);
-                  setIsDirty(true);
-                }}
+                options={[
+                  { value: 'Unknown', label: 'Unknown' },
+                  { value: 'Male', label: 'Male' },
+                  { value: 'Female', label: 'Female' },
+                ]}
+                onChange={(val) => setGender(val as Gender)}
                 onBlur={() => validateField('gender', gender)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              >
-                <option value="Unknown">Unknown</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-              </select>
-              {validationErrors.gender && (
-                <p className="text-sm text-red-600 mt-1">{validationErrors.gender}</p>
-              )}
+                error={validationErrors.gender}
+              />
             </div>
 
             <div>
@@ -364,7 +373,6 @@ export function PersonFormPage() {
                 value={birthDate}
                 onChange={(e) => {
                   setBirthDate(e.target.value);
-                  setIsDirty(true);
                 }}
                 onBlur={() => validateField('birthDate', birthDate)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -387,7 +395,6 @@ export function PersonFormPage() {
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
-                  setIsDirty(true);
                 }}
                 onBlur={() => validateField('email', email)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -406,7 +413,6 @@ export function PersonFormPage() {
                 value={campusId}
                 onChange={(e) => {
                   setCampusId(e.target.value);
-                  setIsDirty(true);
                 }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >

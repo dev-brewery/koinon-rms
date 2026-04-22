@@ -134,3 +134,27 @@ export function useRemoveGroupSchedule() {
     },
   });
 }
+
+/**
+ * Fetch attendance history for a group
+ */
+export function useGroupAttendanceHistory(groupIdKey?: string) {
+  return useQuery({
+    queryKey: ['groups', groupIdKey, 'attendance'],
+    queryFn: () => groupsApi.getGroupAttendanceHistory(groupIdKey!),
+    enabled: !!groupIdKey,
+    staleTime: 2 * 60 * 1000,
+  });
+}
+
+/**
+ * Fetch attendance detail for a specific occurrence
+ */
+export function useGroupAttendanceDetail(groupIdKey?: string, occurrenceIdKey?: string) {
+  return useQuery({
+    queryKey: ['groups', groupIdKey, 'attendance', occurrenceIdKey],
+    queryFn: () => groupsApi.getGroupAttendanceDetail(groupIdKey!, occurrenceIdKey!),
+    enabled: !!groupIdKey && !!occurrenceIdKey,
+    staleTime: 5 * 60 * 1000,
+  });
+}

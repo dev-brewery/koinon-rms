@@ -5,11 +5,20 @@ import { defineConfig, devices } from '@playwright/test';
  * @see https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
+  globalSetup: './e2e/global-setup.ts',
   testDir: './e2e/tests',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: 1,
+
+  // Screenshot comparison tolerances — covers antialiasing / font-rendering noise
+  // without hiding real regressions. Feature specs under e2e/tests/ use toHaveScreenshot.
+  expect: {
+    toHaveScreenshot: {
+      maxDiffPixelRatio: 0.02,
+    },
+  },
 
   reporter: [
     ['html', { outputFolder: 'playwright-report' }],

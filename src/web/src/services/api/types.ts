@@ -315,6 +315,7 @@ export interface UpdatePersonRequest {
   recordStatusValueId?: IdKey;
 
   primaryCampusId?: IdKey | null;
+  phoneNumbers?: CreatePhoneNumberRequest[];
 }
 
 // ============================================================================
@@ -339,9 +340,11 @@ export interface FamilyDetailDto {
   idKey: IdKey;
   guid: Guid;
   name: string;
+  description?: string;
+  isActive: boolean;
   campus?: CampusSummaryDto;
+  address?: AddressDto;
   members: FamilyMemberDto[];
-  addresses: FamilyAddressDto[];
   createdDateTime: DateTime;
   modifiedDateTime?: DateTime;
 }
@@ -351,7 +354,6 @@ export interface FamilyMemberDto {
   person: PersonSummaryDto;
   role: GroupTypeRoleDto;
   status: string;
-  isPersonPrimaryFamily: boolean;
   dateTimeAdded?: DateTime;
 }
 
@@ -463,7 +465,7 @@ export interface GroupDetailDto {
   groupType: GroupTypeSummaryDto;
   parentGroup?: GroupSummaryDto;
   campus?: CampusSummaryDto;
-  capacity?: number;
+  groupCapacity?: number;
   isActive: boolean;
   isArchived: boolean;
   schedule?: ScheduleDto;
@@ -1508,12 +1510,13 @@ export interface RecentContributionDto {
 export interface PersonNoteDto {
   idKey: IdKey;
   text: string;
-  noteDate: DateTime;
-  noteType: string | null;
-  createdByName: string | null;
+  noteDateTime: DateTime;
+  noteTypeName: string | null;
+  noteTypeValueIdKey: IdKey | null;
+  authorPersonName: string | null;
   isPrivate: boolean;
   isAlert: boolean;
-  createdDateTime: DateTime;
+  createdDateTime?: DateTime;
 }
 
 export interface CreatePersonNoteRequest {

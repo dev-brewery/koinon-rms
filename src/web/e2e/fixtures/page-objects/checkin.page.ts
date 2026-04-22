@@ -27,7 +27,7 @@ export class CheckinPage {
   constructor(page: Page) {
     this.page = page;
     this.phoneInput = page.getByTestId('phone-input');
-    this.searchButton = page.getByRole('button', { name: /search|find/i });
+    this.searchButton = page.getByTestId('search-submit');
     this.familyMemberList = page.getByTestId('family-member-list');
     this.familyMemberCards = page.getByTestId('family-member-card');
     this.confirmButton = page.getByRole('button', { name: /check in|confirm/i });

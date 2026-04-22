@@ -38,12 +38,12 @@ test.describe('Login Flow', () => {
 
     // Reload and verify still logged in
     await page.reload();
-    await expect(page).toHaveURL('/dashboard');
+    await expect(page).toHaveURL('/admin');
   });
 
   test('should redirect unauthenticated users to login', async ({ page }) => {
     // Try to access protected route without login
-    await page.goto('/dashboard');
+    await page.goto('/admin');
     await expect(page).toHaveURL(/\/login/);
   });
 

@@ -31,6 +31,8 @@ export function useCheckinSearch(searchValue?: string, searchType?: 'Phone' | 'N
       }),
     enabled: !!searchValue && searchValue.length >= 2,
     staleTime: 30 * 1000, // 30 seconds
+    // No automatic retry for kiosk search — show error immediately so user can retry manually
+    retry: false,
   });
 }
 

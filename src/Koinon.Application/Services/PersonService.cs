@@ -96,14 +96,42 @@ public class PersonService(
         // Apply full-text search if query provided
         if (!string.IsNullOrWhiteSpace(parameters.Query))
         {
-            // Case-insensitive search using LIKE
-            var searchTerm = $"%{parameters.Query}%";
-            query = query.Where(p =>
-                EF.Functions.Like(p.FirstName, searchTerm) ||
-                EF.Functions.Like(p.LastName, searchTerm) ||
-                (p.NickName != null && EF.Functions.Like(p.NickName, searchTerm)) ||
-                (p.Email != null && EF.Functions.Like(p.Email, searchTerm))
-            );
+            // Search strategy:
+            // - If query contains '@' or '.': treat as email search (contains match)
+            // - Single word: match first name prefix OR last name exact OR nickname prefix
+            //   This prevents "John" from matching "Johnson" on last name while still
+            //   allowing "Smith" to find all Smiths via exact last name match.
+            // - Multi-word: match against concatenated "first last" name for full-name search.
+            // Use ToLower() for case-insensitive matching.
+            var trimmedQuery = parameters.Query.Trim().ToLower();
+            var looksLikeEmail = trimmedQuery.Contains('@') || trimmedQuery.Contains('.');
+
+            if (looksLikeEmail)
+            {
+                // Email search: contains match on email field, plus name matching
+                var emailTerm = $"%{trimmedQuery}%";
+                query = query.Where(p =>
+                    (p.Email != null && EF.Functions.Like(p.Email.ToLower(), emailTerm))
+                );
+            }
+            else if (trimmedQuery.Contains(' '))
+            {
+                // Multi-word: search against full name (first + last)
+                var fullNameTerm = $"%{trimmedQuery}%";
+                query = query.Where(p =>
+                    EF.Functions.Like((p.FirstName + " " + p.LastName).ToLower(), fullNameTerm)
+                );
+            }
+            else
+            {
+                // Single word: first name prefix, last name exact, nickname prefix
+                var prefixTerm = $"{trimmedQuery}%";
+                query = query.Where(p =>
+                    EF.Functions.Like(p.FirstName.ToLower(), prefixTerm) ||
+                    p.LastName.ToLower() == trimmedQuery ||
+                    (p.NickName != null && EF.Functions.Like(p.NickName.ToLower(), prefixTerm))
+                );
+            }
         }
 
         // Filter by campus
@@ -278,6 +306,7 @@ public class PersonService(
         }
 
         var person = await context.People
+            .AsTracking()
             .Include(p => p.PhoneNumbers)
             .FirstOrDefaultAsync(p => p.Id == id, ct);
 
@@ -393,6 +422,29 @@ public class PersonService(
         if (request.AnniversaryDate.HasValue)
         {
             person.AnniversaryDate = request.AnniversaryDate.Value;
+        }
+
+        // Update phone numbers (replace all if provided)
+        if (request.PhoneNumbers != null)
+        {
+            // Remove existing phone numbers
+            person.PhoneNumbers.Clear();
+
+            // Add new phone numbers
+            foreach (var phoneRequest in request.PhoneNumbers)
+            {
+                var phone = mapper.Map<PhoneNumber>(phoneRequest);
+
+                if (!string.IsNullOrWhiteSpace(phoneRequest.PhoneTypeValueId))
+                {
+                    if (IdKeyHelper.TryDecode(phoneRequest.PhoneTypeValueId, out int phoneTypeId))
+                    {
+                        phone.NumberTypeValueId = phoneTypeId;
+                    }
+                }
+
+                person.PhoneNumbers.Add(phone);
+            }
         }
 
         person.ModifiedDateTime = DateTime.UtcNow;
@@ -718,6 +770,7 @@ public class PersonService(
                 n.Text,
                 n.NoteDate,
                 n.NoteTypeDefinedValue != null ? n.NoteTypeDefinedValue.Value : null,
+                n.NoteTypeDefinedValueId != null ? IdKeyHelper.Encode(n.NoteTypeDefinedValueId.Value) : null,
                 n.CreatedByPersonAlias != null && n.CreatedByPersonAlias.Person != null
                     ? n.CreatedByPersonAlias.Person.FullName
                     : n.CreatedByPersonAlias != null
@@ -792,6 +845,7 @@ public class PersonService(
                 n.Text,
                 n.NoteDate,
                 n.NoteTypeDefinedValue != null ? n.NoteTypeDefinedValue.Value : null,
+                n.NoteTypeDefinedValueId != null ? IdKeyHelper.Encode(n.NoteTypeDefinedValueId.Value) : null,
                 n.CreatedByPersonAlias != null && n.CreatedByPersonAlias.Person != null
                     ? n.CreatedByPersonAlias.Person.FullName
                     : n.CreatedByPersonAlias != null
@@ -881,6 +935,7 @@ public class PersonService(
                 n.Text,
                 n.NoteDate,
                 n.NoteTypeDefinedValue != null ? n.NoteTypeDefinedValue.Value : null,
+                n.NoteTypeDefinedValueId != null ? IdKeyHelper.Encode(n.NoteTypeDefinedValueId.Value) : null,
                 n.CreatedByPersonAlias != null && n.CreatedByPersonAlias.Person != null
                     ? n.CreatedByPersonAlias.Person.FullName
                     : n.CreatedByPersonAlias != null

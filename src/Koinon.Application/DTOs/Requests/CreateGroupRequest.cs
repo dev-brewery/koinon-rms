@@ -20,16 +20,16 @@ public record CreateGroupRequest
 /// <summary>
 /// Request to update an existing group.
 /// </summary>
-public record UpdateGroupRequest
+public class UpdateGroupRequest
 {
-    public string? Name { get; init; }
-    public string? Description { get; init; }
-    public string? CampusId { get; init; }
-    public bool? IsActive { get; init; }
-    public bool? IsPublic { get; init; }
-    public bool? AllowGuests { get; init; }
-    public int? GroupCapacity { get; init; }
-    public int? Order { get; init; }
+    public string? Name { get; set; }
+    public string? Description { get; set; }
+    public string? CampusId { get; set; }
+    public bool? IsActive { get; set; }
+    public bool? IsPublic { get; set; }
+    public bool? AllowGuests { get; set; }
+    public int? GroupCapacity { get; set; }
+    public int? Order { get; set; }
 }
 
 /// <summary>

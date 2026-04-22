@@ -4,13 +4,14 @@
  */
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useGroups } from '@/hooks/useGroups';
 import { GroupTree } from '@/components/admin/groups/GroupTree';
 
 type ViewMode = 'tree' | 'list';
 
 export function GroupsTreePage() {
+  const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<ViewMode>('tree');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -177,62 +178,49 @@ export function GroupsTreePage() {
             ))}
           </div>
         ) : (
-          <div className="divide-y divide-gray-200">
-            {groups.map((group) => (
-              <Link
-                key={group.idKey}
-                to={`/admin/groups/${group.idKey}`}
-                className="block p-4 hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                        group.isActive
-                          ? 'bg-blue-100 text-blue-600'
-                          : 'bg-gray-100 text-gray-400'
-                      }`}
-                    >
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-                        />
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Members</th>
+                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {groups.map((group) => (
+                <tr
+                  key={group.idKey}
+                  className="hover:bg-gray-50 cursor-pointer"
+                  onClick={() => navigate(`/admin/groups/${group.idKey}`)}
+                >
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <Link to={`/admin/groups/${group.idKey}`} className="text-sm font-medium text-gray-900 hover:text-primary-600">
+                      {group.name}
+                    </Link>
+                    {group.description && (
+                      <p className="text-xs text-gray-500 mt-1 truncate max-w-xs">{group.description}</p>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      {group.groupTypeName || group.groupType?.name}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {group.memberCount} members
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <Link to={`/admin/groups/${group.idKey}`} className="text-gray-400 hover:text-gray-600">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-900">{group.name}</h3>
-                      <p className="text-xs text-gray-500">
-                        {group.memberCount} members • {group.groupType.name}
-                      </p>
-                    </div>
-                  </div>
-                  <svg
-                    className="w-5 h-5 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                </div>
-              </Link>
-            ))}
-          </div>
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
     </div>

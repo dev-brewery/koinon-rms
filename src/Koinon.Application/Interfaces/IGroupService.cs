@@ -105,4 +105,19 @@ public interface IGroupService
         string groupIdKey,
         string scheduleIdKey,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// Gets the attendance occurrence history for a group, ordered by date descending.
+    /// </summary>
+    Task<IReadOnlyList<GroupAttendanceOccurrenceDto>> GetAttendanceHistoryAsync(
+        string groupIdKey,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Gets the individual attendance records for a specific occurrence of a group meeting.
+    /// </summary>
+    Task<Result<IReadOnlyList<GroupAttendanceDetailDto>>> GetAttendanceDetailAsync(
+        string groupIdKey,
+        string occurrenceIdKey,
+        CancellationToken ct = default);
 }

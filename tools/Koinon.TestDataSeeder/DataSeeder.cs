@@ -35,9 +35,17 @@ public class DataSeeder
     private static readonly Guid _wednesday7pmScheduleGuid = new("ffffffff-ffff-ffff-ffff-ffffffffffff");
     private static readonly Guid _familyGroupTypeGuid = new("10101010-1010-1010-1010-101010101010");
     private static readonly Guid _checkinGroupTypeGuid = new("20202020-2020-2020-2020-202020202020");
+    private static readonly Guid _generalGroupTypeGuid = new("60606060-6060-6060-6060-606060606060");
     private static readonly Guid _adultRoleGuid = new("30303030-3030-3030-3030-303030303030");
     private static readonly Guid _childRoleGuid = new("40404040-4040-4040-4040-404040404040");
     private static readonly Guid _memberRoleGuid = new("50505050-5050-5050-5050-505050505050");
+    private static readonly Guid _adminSecurityRoleGuid = new("70707070-7070-7070-7070-707070707070");
+    // Production-provisioned "Financial Admin" role from the SeedFinancialClaims
+    // migration. The admin user gets assigned to this role in addition to the
+    // generic Admin role so it inherits financial:* claims the same way as in
+    // prod (role separation preserved).
+    private static readonly Guid _financialAdminSecurityRoleGuid = new("F1F1F1F1-AAAA-4444-BBBB-CCCCCCCCCCCC");
+    private static readonly Guid _generalFundGuid = new("90909090-9090-4090-8090-111111111111");
 
     public DataSeeder(KoinonDbContext context, ILogger<DataSeeder> logger, IAuthService authService)
     {
@@ -45,6 +53,20 @@ public class DataSeeder
         _logger = logger;
         _authService = authService;
     }
+
+    /// <summary>
+    /// Tables whose data is owned by EF migrations (reference data) and must
+    /// NOT be truncated by the seeder. Wiping these would drop migration-seeded
+    /// enumerations such as the "Transaction Type" and "Transaction Source"
+    /// DefinedValues that the giving flow (AddContribution) requires. After a
+    /// reset the migrations aren't re-run, so the rows would never come back.
+    /// </summary>
+    private static readonly HashSet<string> ExcludedTables =
+        new(StringComparer.Ordinal)
+        {
+            "defined_type",
+            "defined_value"
+        };
 
     /// <summary>
     /// Reset database by truncating all tables and resetting sequences.
@@ -65,19 +87,29 @@ public class DataSeeder
                   AND tablename != '__EFMigrationsHistory'")
             .ToListAsync(cancellationToken);
 
-        // Truncate each table
-        foreach (var table in tables)
+        var truncatedCount = 0;
+
+        // Truncate each table (except migration-owned reference tables).
+        foreach (var table in tables.Where(t => !ExcludedTables.Contains(t)))
         {
             _logger.LogDebug("Truncating table: {Table}", table);
-            // Table names from pg_tables are safe, but use FormattableString to satisfy EF analyzer
-            FormattableString sql = $"TRUNCATE TABLE \"{table}\" RESTART IDENTITY CASCADE;";
-            await _context.Database.ExecuteSqlAsync(sql, cancellationToken);
+            // Table names cannot be parameterized in SQL - must use raw SQL.
+            // Table names come from pg_tables (system catalog), so this is safe.
+            var truncateSql = string.Format("TRUNCATE TABLE \"{0}\" RESTART IDENTITY CASCADE;", table);
+#pragma warning disable EF1002 // Table names from pg_tables are safe system catalog values
+            await _context.Database.ExecuteSqlRawAsync(truncateSql, cancellationToken);
+#pragma warning restore EF1002
+            truncatedCount++;
         }
 
         // Re-enable triggers
         await _context.Database.ExecuteSqlRawAsync("SET session_replication_role = 'origin';", cancellationToken);
 
-        _logger.LogInformation("Truncated {Count} tables", tables.Count);
+        _logger.LogInformation(
+            "Truncated {Count} tables (skipped {SkippedCount} migration-owned tables: {Skipped})",
+            truncatedCount,
+            ExcludedTables.Count,
+            string.Join(", ", ExcludedTables));
     }
 
     /// <summary>
@@ -97,7 +129,14 @@ public class DataSeeder
 
         // Seed families and people
         _logger.LogInformation("Seeding families and people...");
-        var (smithFamily, johnsonFamily, people) = await SeedFamiliesAsync(familyGroupType.Id, adultRole.Id, childRole.Id, now, cancellationToken);
+        var people = await SeedFamiliesAsync(adultRole.Id, childRole.Id, now, cancellationToken);
+
+        // Seed one primary PersonAlias per seeded person. The giving flow's
+        // AddContribution resolves the contributor by looking up
+        // PersonAlias.PersonId == personId; without an alias the request 404s
+        // even though the person exists.
+        _logger.LogInformation("Seeding person aliases...");
+        await SeedPersonAliasesAsync(people, now, cancellationToken);
 
         // Seed check-in groups
         _logger.LogInformation("Seeding check-in groups...");
@@ -106,100 +145,16 @@ public class DataSeeder
         // Final save for all check-in groups
         await _context.SaveChangesAsync(cancellationToken);
 
-        // Seed the Admin security role with the security:manage claim,
-        // and put john.smith in it so E2E tests can exercise the admin UI.
-        _logger.LogInformation("Seeding security roles and claims...");
-        await SeedSecurityRolesAsync(people, cancellationToken);
+        // Seed security roles and assign Admin to John Smith
+        _logger.LogInformation("Seeding security roles...");
+        await SeedSecurityRolesAsync(people, now, cancellationToken);
+
+        // Seed funds (needed for contribution entry in giving flow)
+        _logger.LogInformation("Seeding funds...");
+        await SeedFundsAsync(now, cancellationToken);
 
         _logger.LogInformation("✅ Successfully seeded all test data");
     }
-
-    /// <summary>
-    /// Seeds the "Admin" security role with a "security:manage" claim and assigns
-    /// john.smith to the role. Idempotent — safe to re-run against existing data.
-    /// </summary>
-    private async Task SeedSecurityRolesAsync(
-        List<Person> people,
-        CancellationToken cancellationToken = default)
-    {
-        var now = DateTime.UtcNow;
-        var adminRoleGuid = new Guid("70707070-7070-7070-7070-707070707070");
-        var securityManageClaimGuid = new Guid("A1B2C3D4-E5F6-4A1B-8C9D-AAAAAAAAAAAA");
-
-        // Ensure the "security:manage" claim exists
-        var securityManageClaim = await _context.SecurityClaims
-            .FirstOrDefaultAsync(c => c.Guid == securityManageClaimGuid, cancellationToken);
-        if (securityManageClaim == null)
-        {
-            securityManageClaim = new SecurityClaim
-            {
-                Guid = securityManageClaimGuid,
-                ClaimType = "security",
-                ClaimValue = "manage",
-                Description = "Manage security roles, claims, and role memberships",
-                CreatedDateTime = now
-            };
-            _context.SecurityClaims.Add(securityManageClaim);
-            await _context.SaveChangesAsync(cancellationToken);
-        }
-
-        // Ensure the "Admin" role exists
-        var adminRole = await _context.SecurityRoles
-            .FirstOrDefaultAsync(r => r.Guid == adminRoleGuid, cancellationToken);
-        if (adminRole == null)
-        {
-            adminRole = new SecurityRole
-            {
-                Guid = adminRoleGuid,
-                Name = "Admin",
-                Description = "System administrators with full access to security settings",
-                IsSystemRole = true,
-                IsActive = true,
-                CreatedDateTime = now
-            };
-            _context.SecurityRoles.Add(adminRole);
-            await _context.SaveChangesAsync(cancellationToken);
-        }
-
-        // Ensure Admin -> security:manage association exists
-        var existingLink = await _context.RoleSecurityClaims
-            .FirstOrDefaultAsync(
-                rsc => rsc.SecurityRoleId == adminRole.Id && rsc.SecurityClaimId == securityManageClaim.Id,
-                cancellationToken);
-        if (existingLink == null)
-        {
-            _context.RoleSecurityClaims.Add(new RoleSecurityClaim
-            {
-                SecurityRoleId = adminRole.Id,
-                SecurityClaimId = securityManageClaim.Id,
-                AllowOrDeny = 'A',
-                CreatedDateTime = now
-            });
-            await _context.SaveChangesAsync(cancellationToken);
-        }
-
-        // Ensure john.smith is in the Admin role
-        var johnSmith = people.FirstOrDefault(p => p.Guid == _johnSmithGuid);
-        if (johnSmith != null)
-        {
-            var existingMembership = await _context.PersonSecurityRoles
-                .FirstOrDefaultAsync(
-                    psr => psr.PersonId == johnSmith.Id && psr.SecurityRoleId == adminRole.Id,
-                    cancellationToken);
-            if (existingMembership == null)
-            {
-                _context.PersonSecurityRoles.Add(new PersonSecurityRole
-                {
-                    PersonId = johnSmith.Id,
-                    SecurityRoleId = adminRole.Id,
-                    ExpiresDateTime = null,
-                    CreatedDateTime = now
-                });
-                await _context.SaveChangesAsync(cancellationToken);
-            }
-        }
-    }
-
     private async Task<(GroupType familyGroupType, GroupType checkinGroupType, GroupTypeRole adultRole, GroupTypeRole childRole, GroupTypeRole memberRole)> SeedGroupTypesAsync(DateTime now, CancellationToken cancellationToken = default)
     {
         // Family group type
@@ -232,8 +187,24 @@ public class DataSeeder
             CreatedDateTime = now
         };
 
+        // General group type (for generic groups created in E2E tests)
+        var generalGroupType = new GroupType
+        {
+            Guid = _generalGroupTypeGuid,
+            Name = "General",
+            Description = "General purpose groups",
+            GroupTerm = "Group",
+            GroupMemberTerm = "Member",
+            IsSystem = false,
+            ShowInGroupList = true,
+            ShowInNavigation = true,
+            TakesAttendance = false,
+            CreatedDateTime = now
+        };
+
         _context.GroupTypes.Add(familyGroupType);
         _context.GroupTypes.Add(checkinGroupType);
+        _context.GroupTypes.Add(generalGroupType);
         // Save group types first so we have their IDs for roles
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -349,23 +320,21 @@ public class DataSeeder
         return (sunday9am, sunday11am, wednesday7pm);
     }
 
-    private async Task<(Group smithFamily, Group johnsonFamily, List<Person> people)> SeedFamiliesAsync(
-        int familyGroupTypeId, int adultRoleId, int childRoleId, DateTime now, CancellationToken cancellationToken = default)
+    private async Task<List<Person>> SeedFamiliesAsync(
+        int adultRoleId, int childRoleId, DateTime now, CancellationToken cancellationToken = default)
     {
         var people = new List<Person>();
 
-        // Smith family
-        var smithFamily = new Group
+        // Smith family (using Family entity, not Group)
+        var smithFamily = new Family
         {
             Guid = _smithFamilyGuid,
-            GroupTypeId = familyGroupTypeId,
             Name = "Smith Family",
-            IsSystem = false,
             IsActive = true,
             CreatedDateTime = now
         };
-        _context.Groups.Add(smithFamily);
-        // Save family group so we have its ID for people
+        _context.Families.Add(smithFamily);
+        // Save family so we have its ID for members
         await _context.SaveChangesAsync(cancellationToken);
 
         // John Smith (Adult) - Admin user for E2E tests
@@ -439,18 +408,16 @@ public class DataSeeder
         // Add all Smith family people
         _context.People.AddRange(johnSmith, janeSmith, johnnySmith, jennySmith);
 
-        // Johnson family
-        var johnsonFamily = new Group
+        // Johnson family (using Family entity, not Group)
+        var johnsonFamily = new Family
         {
             Guid = _johnsonFamilyGuid,
-            GroupTypeId = familyGroupTypeId,
             Name = "Johnson Family",
-            IsSystem = false,
             IsActive = true,
             CreatedDateTime = now
         };
-        _context.Groups.Add(johnsonFamily);
-        // Save Johnson family group so we have its ID for people
+        _context.Families.Add(johnsonFamily);
+        // Save Johnson family so we have its ID for members
         await _context.SaveChangesAsync(cancellationToken);
 
         // Bob Johnson (Adult)
@@ -504,25 +471,291 @@ public class DataSeeder
 
         // Add all Johnson family people
         _context.People.AddRange(bobJohnson, barbaraJohnson, billyJohnson);
-        // Save all people so we have their IDs for group members
+        // Save all people so we have their IDs for family members
         await _context.SaveChangesAsync(cancellationToken);
 
-        // Batch add all group members for both families
-        var groupMembers = new List<GroupMember>
+        // Batch add all family members (using FamilyMember entity, not GroupMember)
+        var familyMembers = new List<FamilyMember>
         {
-            new() { GroupId = smithFamily.Id, PersonId = johnSmith.Id, GroupRoleId = adultRoleId, GroupMemberStatus = GroupMemberStatus.Active, DateTimeAdded = now, CreatedDateTime = now },
-            new() { GroupId = smithFamily.Id, PersonId = janeSmith.Id, GroupRoleId = adultRoleId, GroupMemberStatus = GroupMemberStatus.Active, DateTimeAdded = now, CreatedDateTime = now },
-            new() { GroupId = smithFamily.Id, PersonId = johnnySmith.Id, GroupRoleId = childRoleId, GroupMemberStatus = GroupMemberStatus.Active, DateTimeAdded = now, CreatedDateTime = now },
-            new() { GroupId = smithFamily.Id, PersonId = jennySmith.Id, GroupRoleId = childRoleId, GroupMemberStatus = GroupMemberStatus.Active, DateTimeAdded = now, CreatedDateTime = now },
-            new() { GroupId = johnsonFamily.Id, PersonId = bobJohnson.Id, GroupRoleId = adultRoleId, GroupMemberStatus = GroupMemberStatus.Active, DateTimeAdded = now, CreatedDateTime = now },
-            new() { GroupId = johnsonFamily.Id, PersonId = barbaraJohnson.Id, GroupRoleId = adultRoleId, GroupMemberStatus = GroupMemberStatus.Active, DateTimeAdded = now, CreatedDateTime = now },
-            new() { GroupId = johnsonFamily.Id, PersonId = billyJohnson.Id, GroupRoleId = childRoleId, GroupMemberStatus = GroupMemberStatus.Active, DateTimeAdded = now, CreatedDateTime = now }
+            new() { FamilyId = smithFamily.Id, PersonId = johnSmith.Id, FamilyRoleId = adultRoleId, IsPrimary = true, DateAdded = now, CreatedDateTime = now },
+            new() { FamilyId = smithFamily.Id, PersonId = janeSmith.Id, FamilyRoleId = adultRoleId, IsPrimary = true, DateAdded = now, CreatedDateTime = now },
+            new() { FamilyId = smithFamily.Id, PersonId = johnnySmith.Id, FamilyRoleId = childRoleId, IsPrimary = true, DateAdded = now, CreatedDateTime = now },
+            new() { FamilyId = smithFamily.Id, PersonId = jennySmith.Id, FamilyRoleId = childRoleId, IsPrimary = true, DateAdded = now, CreatedDateTime = now },
+            new() { FamilyId = johnsonFamily.Id, PersonId = bobJohnson.Id, FamilyRoleId = adultRoleId, IsPrimary = true, DateAdded = now, CreatedDateTime = now },
+            new() { FamilyId = johnsonFamily.Id, PersonId = barbaraJohnson.Id, FamilyRoleId = adultRoleId, IsPrimary = true, DateAdded = now, CreatedDateTime = now },
+            new() { FamilyId = johnsonFamily.Id, PersonId = billyJohnson.Id, FamilyRoleId = childRoleId, IsPrimary = true, DateAdded = now, CreatedDateTime = now }
         };
-        _context.GroupMembers.AddRange(groupMembers);
-        // Save all group members
+        _context.FamilyMembers.AddRange(familyMembers);
+        // Save all family members
         await _context.SaveChangesAsync(cancellationToken);
 
-        return (smithFamily, johnsonFamily, people);
+        return people;
+    }
+
+    /// <summary>
+    /// Seeds one primary PersonAlias per seeded person.
+    /// BatchDonationEntryService.AddContribution resolves contributors via
+    /// PersonAliases.FirstOrDefaultAsync(pa => pa.PersonId == personId); without
+    /// an alias the giving flow rejects otherwise-valid contributors. Idempotent
+    /// against existing aliases so repeated seeds don't duplicate rows.
+    /// </summary>
+    private async Task SeedPersonAliasesAsync(
+        List<Person> people,
+        DateTime now,
+        CancellationToken cancellationToken = default)
+    {
+        var personIds = people.Select(p => p.Id).ToList();
+
+        var alreadyAliased = await _context.PersonAliases
+            .Where(pa => pa.PersonId != null && personIds.Contains(pa.PersonId.Value) && pa.AliasPersonId == null)
+            .Select(pa => pa.PersonId!.Value)
+            .ToListAsync(cancellationToken);
+
+        var existingSet = new HashSet<int>(alreadyAliased);
+
+        foreach (var person in people)
+        {
+            if (existingSet.Contains(person.Id))
+            {
+                continue;
+            }
+
+            _context.PersonAliases.Add(new PersonAlias
+            {
+                // Derive a stable GUID from the person's GUID so repeated seeds
+                // produce the same alias identity (aids E2E test stability).
+                Guid = DeriveAliasGuid(person.Guid),
+                PersonId = person.Id,
+                Name = null,
+                AliasPersonId = null,
+                AliasPersonGuid = null,
+                CreatedDateTime = now
+            });
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Derives a stable Guid for a PersonAlias from its Person's Guid.
+    /// Flips the variant nibble so the alias Guid never collides with the
+    /// Person Guid but remains deterministic across reset+seed cycles.
+    /// </summary>
+    private static Guid DeriveAliasGuid(Guid personGuid)
+    {
+        var bytes = personGuid.ToByteArray();
+        // Toggle the first byte so the alias Guid differs deterministically
+        // from the source Person Guid while remaining reproducible.
+        bytes[0] ^= 0xA1;
+        return new Guid(bytes);
+    }
+
+    private async Task SeedSecurityRolesAsync(List<Person> people, DateTime now, CancellationToken cancellationToken = default)
+    {
+        var adminRole = new SecurityRole
+        {
+            Guid = _adminSecurityRoleGuid,
+            Name = "Admin",
+            Description = "Full administrative access",
+            IsSystemRole = true,
+            IsActive = true,
+            CreatedDateTime = now
+        };
+
+        _context.SecurityRoles.Add(adminRole);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        // Seed the "security:manage" claim used by the Security Roles admin UI (#497)
+        // and link it to the Admin role so admins can manage roles and permissions.
+        var securityManageClaimGuid = Guid.Parse("A1B2C3D4-E5F6-4A1B-8C9D-AAAAAAAAAAAA");
+        var securityManageClaim = await _context.SecurityClaims
+            .FirstOrDefaultAsync(c => c.Guid == securityManageClaimGuid, cancellationToken);
+        if (securityManageClaim is null)
+        {
+            securityManageClaim = new SecurityClaim
+            {
+                Guid = securityManageClaimGuid,
+                ClaimType = "security",
+                ClaimValue = "manage",
+                Description = "Manage security roles, claims, and role memberships",
+                CreatedDateTime = now
+            };
+            _context.SecurityClaims.Add(securityManageClaim);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        _context.RoleSecurityClaims.Add(new RoleSecurityClaim
+        {
+            SecurityRoleId = adminRole.Id,
+            SecurityClaimId = securityManageClaim.Id,
+            AllowOrDeny = 'A',
+            CreatedDateTime = now
+        });
+        await _context.SaveChangesAsync(cancellationToken);
+
+        // The "Financial Admin" role and financial:* claims are provisioned by the
+        // SeedFinancialClaims migration, but ResetDatabaseAsync truncates that data
+        // ahead of every seed. Re-provision both here so the role row (with its
+        // canonical GUID from production) and its claim links round-trip across
+        // reset+seed deterministically. This preserves the production role
+        // separation (Admin != Financial Admin) — we just give the seeded admin
+        // user BOTH roles below so giving endpoints are reachable in tests/dev.
+        var financialAdminRole = await EnsureFinancialAdminRoleAsync(now, cancellationToken);
+
+        // Assign Admin AND Financial Admin roles to John Smith (the E2E test admin user).
+        // Matches production semantics: to exercise /api/v1/giving/* an admin must
+        // also hold the Financial Admin role.
+        var johnSmith = people.First(p => p.Email == "john.smith@example.com");
+
+        _context.PersonSecurityRoles.Add(new PersonSecurityRole
+        {
+            PersonId = johnSmith.Id,
+            SecurityRoleId = adminRole.Id,
+            CreatedDateTime = now
+        });
+
+        _context.PersonSecurityRoles.Add(new PersonSecurityRole
+        {
+            PersonId = johnSmith.Id,
+            SecurityRoleId = financialAdminRole.Id,
+            CreatedDateTime = now
+        });
+
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Ensures the "Financial Admin" SecurityRole and its three financial SecurityClaims
+    /// exist (re-seeding what ResetDatabaseAsync truncated from the SeedFinancialClaims
+    /// migration) and that the role is linked (ALLOW) to all three claims. The GUIDs
+    /// below intentionally match the production migration so prod and dev/test share
+    /// a single definition of the Financial Admin role.
+    /// </summary>
+    private async Task<SecurityRole> EnsureFinancialAdminRoleAsync(
+        DateTime now,
+        CancellationToken cancellationToken)
+    {
+        // GUIDs match 20260103165412_SeedFinancialClaims.cs so data round-trips
+        // identically whether provisioned by the migration (prod) or by this
+        // seeder (tests/dev) after a reset.
+        var financialViewClaimGuid = Guid.Parse("A1B2C3D4-E5F6-4A1B-8C9D-111111111111");
+        var financialEditClaimGuid = Guid.Parse("A1B2C3D4-E5F6-4A1B-8C9D-222222222222");
+        var financialBatchCloseClaimGuid = Guid.Parse("A1B2C3D4-E5F6-4A1B-8C9D-333333333333");
+        var financialViewRscGuid = Guid.Parse("11111111-1111-4AAA-BBBB-111111111111");
+        var financialEditRscGuid = Guid.Parse("22222222-2222-4AAA-BBBB-222222222222");
+        var financialBatchCloseRscGuid = Guid.Parse("33333333-3333-4AAA-BBBB-333333333333");
+
+        // 1. Ensure the Financial Admin role exists.
+        var financialAdminRole = await _context.SecurityRoles
+            .FirstOrDefaultAsync(r => r.Guid == _financialAdminSecurityRoleGuid, cancellationToken);
+
+        if (financialAdminRole is null)
+        {
+            financialAdminRole = new SecurityRole
+            {
+                Guid = _financialAdminSecurityRoleGuid,
+                Name = "Financial Admin",
+                Description = "Administrator role for financial operations",
+                IsSystemRole = true,
+                IsActive = true,
+                CreatedDateTime = now
+            };
+            _context.SecurityRoles.Add(financialAdminRole);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        // 2. Ensure the three financial claims exist.
+        var claimSpecs = new (Guid Guid, string Value, string Description)[]
+        {
+            (financialViewClaimGuid, "view", "View financial data including contributions and batches"),
+            (financialEditClaimGuid, "edit", "Create and edit contributions and batches"),
+            (financialBatchCloseClaimGuid, "batch.close", "Close contribution batches")
+        };
+
+        var claimGuids = claimSpecs.Select(s => s.Guid).ToList();
+        var existingClaims = await _context.SecurityClaims
+            .Where(c => claimGuids.Contains(c.Guid))
+            .ToDictionaryAsync(c => c.Guid, cancellationToken);
+
+        foreach (var (guid, value, description) in claimSpecs)
+        {
+            if (!existingClaims.ContainsKey(guid))
+            {
+                var claim = new SecurityClaim
+                {
+                    Guid = guid,
+                    ClaimType = "financial",
+                    ClaimValue = value,
+                    Description = description,
+                    CreatedDateTime = now
+                };
+                _context.SecurityClaims.Add(claim);
+                existingClaims[guid] = claim;
+            }
+        }
+        await _context.SaveChangesAsync(cancellationToken);
+
+        // 3. Ensure the role -> claim links exist (ALLOW).
+        var rscSpecs = new (Guid RscGuid, Guid ClaimGuid)[]
+        {
+            (financialViewRscGuid, financialViewClaimGuid),
+            (financialEditRscGuid, financialEditClaimGuid),
+            (financialBatchCloseRscGuid, financialBatchCloseClaimGuid)
+        };
+
+        foreach (var (rscGuid, claimGuid) in rscSpecs)
+        {
+            var claim = existingClaims[claimGuid];
+            var alreadyLinked = await _context.RoleSecurityClaims
+                .AnyAsync(
+                    r => r.SecurityRoleId == financialAdminRole.Id && r.SecurityClaimId == claim.Id,
+                    cancellationToken);
+            if (alreadyLinked)
+            {
+                continue;
+            }
+
+            _context.RoleSecurityClaims.Add(new RoleSecurityClaim
+            {
+                Guid = rscGuid,
+                SecurityRoleId = financialAdminRole.Id,
+                SecurityClaimId = claim.Id,
+                AllowOrDeny = 'A',
+                CreatedDateTime = now
+            });
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+        return financialAdminRole;
+    }
+
+    /// <summary>
+    /// Seeds a default General Fund so the Contribution entry form has at least one
+    /// selectable fund. Uses a fixed GUID for deterministic test targeting.
+    /// </summary>
+    private async Task SeedFundsAsync(DateTime now, CancellationToken cancellationToken = default)
+    {
+        var exists = await _context.Funds.AnyAsync(f => f.Guid == _generalFundGuid, cancellationToken);
+        if (exists)
+        {
+            return;
+        }
+
+        var generalFund = new Fund
+        {
+            Guid = _generalFundGuid,
+            Name = "General Fund",
+            PublicName = "General Fund",
+            Description = "Default fund for undesignated contributions and tithes.",
+            IsActive = true,
+            IsPublic = true,
+            IsTaxDeductible = true,
+            Order = 0,
+            CreatedDateTime = now
+        };
+
+        _context.Funds.Add(generalFund);
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
     private Task SeedCheckinGroupsAsync(int checkinGroupTypeId, int memberRoleId, int scheduleId, DateTime now, CancellationToken cancellationToken = default)

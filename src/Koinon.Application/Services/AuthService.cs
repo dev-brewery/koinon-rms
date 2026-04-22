@@ -237,7 +237,7 @@ public class AuthService(
         CancellationToken ct,
         string? existingRefreshToken = null)
     {
-        var accessToken = GenerateAccessToken(person);
+        var accessToken = await GenerateAccessTokenAsync(person, ct);
         var refreshToken = existingRefreshToken ?? GenerateRefreshTokenString();
         var expiresAt = DateTime.UtcNow.AddMinutes(_accessTokenExpirationMinutes);
 
@@ -301,18 +301,33 @@ public class AuthService(
     }
 
     /// <summary>
-    /// Generates a JWT access token for a person.
+    /// Generates a JWT access token for a person, including their security roles.
     /// </summary>
-    private string GenerateAccessToken(Person person)
+    private async Task<string> GenerateAccessTokenAsync(Person person, CancellationToken ct = default)
     {
-        var claims = new[]
+        var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, person.Id.ToString()),
-            new Claim(ClaimTypes.Email, person.Email ?? string.Empty),
-            new Claim(ClaimTypes.Name, person.FullName),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim("idKey", IdKeyHelper.Encode(person.Id))
+            new(ClaimTypes.NameIdentifier, person.Id.ToString()),
+            new(ClaimTypes.Email, person.Email ?? string.Empty),
+            new(ClaimTypes.Name, person.FullName),
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new("idKey", IdKeyHelper.Encode(person.Id)),
+            new("person_id", person.Id.ToString())
         };
+
+        // Add security role claims
+        var roleNames = await context.PersonSecurityRoles
+            .Where(psr => psr.PersonId == person.Id
+                && (!psr.ExpiresDateTime.HasValue || psr.ExpiresDateTime > DateTime.UtcNow))
+            .Include(psr => psr.SecurityRole)
+            .Where(psr => psr.SecurityRole.IsActive)
+            .Select(psr => psr.SecurityRole.Name)
+            .ToListAsync(ct);
+
+        foreach (var roleName in roleNames)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, roleName));
+        }
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSecret));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

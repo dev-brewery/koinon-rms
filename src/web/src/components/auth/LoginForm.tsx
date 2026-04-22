@@ -24,8 +24,8 @@ export function LoginForm() {
     try {
       await login({ email, password });
     } catch (err) {
-      // For 401 (invalid credentials), show inline error without toast
-      if (err instanceof ApiClientError && err.statusCode === 401) {
+      // For 400 (validation) or 401 (invalid credentials), show inline error without toast
+      if (err instanceof ApiClientError && (err.statusCode === 400 || err.statusCode === 401)) {
         setError('Invalid email or password');
       } else {
         // For all other errors, show toast notification
@@ -38,7 +38,7 @@ export function LoginForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-sm mx-auto">
+    <form onSubmit={handleSubmit} noValidate className="space-y-4 max-w-sm mx-auto">
       <div>
         <label
           htmlFor="email"

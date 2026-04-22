@@ -34,8 +34,8 @@ export function QuickActions() {
     },
     {
       to: '/admin/groups',
-      label: 'Manage Groups',
-      description: 'View and edit check-in groups',
+      label: 'Group Directory',
+      description: 'View and edit check-in configuration',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
           <path
@@ -49,8 +49,8 @@ export function QuickActions() {
     },
     {
       to: '/admin/schedules',
-      label: 'View Schedules',
-      description: 'Manage check-in schedules',
+      label: 'Upcoming Events',
+      description: 'Manage check-in times and sessions',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
           <path

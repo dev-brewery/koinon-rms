@@ -25,7 +25,7 @@ export async function searchFamilies(
 ): Promise<PagedResult<FamilySummaryDto>> {
   const queryParams = new URLSearchParams();
 
-  if (params.q) queryParams.set('q', params.q);
+  if (params.q) queryParams.set('query', params.q);
   if (params.campusId) queryParams.set('campusId', params.campusId);
   if (params.includeInactive) queryParams.set('includeInactive', String(params.includeInactive));
   if (params.page) queryParams.set('page', String(params.page));

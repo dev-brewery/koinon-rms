@@ -10,14 +10,16 @@ interface FamilyMemberCardProps {
   member: FamilyMemberDto;
   onRemove?: () => void;
   readOnly?: boolean;
+  /** Combined role names to display as a legend (e.g., ["Adult", "Child"]) */
+  familyRoles?: string[];
 }
 
-export function FamilyMemberCard({ member, onRemove, readOnly = false }: FamilyMemberCardProps) {
-  const { person, role, isPersonPrimaryFamily } = member;
+export function FamilyMemberCard({ member, onRemove, readOnly = false, familyRoles }: FamilyMemberCardProps) {
+  const { person, role } = member;
   const isAdult = role.name === 'Adult';
 
   return (
-    <div className="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow">
+    <div data-testid="family-member-card" className="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow">
       {/* Avatar */}
       <Link to={`/admin/people/${person.idKey}`} className="flex-shrink-0">
         {person.photoUrl ? (
@@ -57,28 +59,25 @@ export function FamilyMemberCard({ member, onRemove, readOnly = false }: FamilyM
               {person.fullName}
             </h3>
             {person.age !== undefined && (
-              <span className="text-xs text-gray-500">({person.age})</span>
+              <span className="text-xs text-gray-500">({person.age}y)</span>
             )}
           </div>
         </Link>
 
         <div className="flex flex-wrap items-center gap-2">
-          {/* Role Badge */}
-          <span
-            className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${
-              isAdult
-                ? 'bg-blue-100 text-blue-800'
-                : 'bg-green-100 text-green-800'
-            }`}
-          >
-            {role.name}
-          </span>
-
-          {/* Primary Family Badge */}
-          {isPersonPrimaryFamily && (
-            <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-purple-100 text-purple-800">
-              Primary Family
+          {/* Role indicator */}
+          {familyRoles ? (
+            <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
+              {familyRoles.join(' · ')}
             </span>
+          ) : (
+            <span
+              className={`inline-flex items-center w-2.5 h-2.5 rounded-full ${
+                isAdult ? 'bg-blue-500' : 'bg-green-500'
+              }`}
+              title={role.name}
+              aria-label={role.name}
+            />
           )}
 
           {person.email && (

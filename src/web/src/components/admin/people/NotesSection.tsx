@@ -210,8 +210,8 @@ function NoteItem({ note, onEdit, onDelete }: NoteItemProps) {
     <div className="py-4 border-b border-gray-100 last:border-0">
       <div className="flex items-start justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
-          <span className="font-medium text-gray-900">{formatDate(note.noteDate)}</span>
-          {note.noteType && <NoteTypeBadge noteType={note.noteType} />}
+          <span className="font-medium text-gray-900">{formatDate(note.noteDateTime)}</span>
+          {note.noteTypeName && <NoteTypeBadge noteType={note.noteTypeName} />}
           {note.isAlert && (
             <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-red-100 text-red-700">
               Alert
@@ -260,8 +260,8 @@ function NoteItem({ note, onEdit, onDelete }: NoteItemProps) {
 
       <p className="mt-2 text-sm text-gray-800 whitespace-pre-wrap">{note.text}</p>
 
-      {note.createdByName && (
-        <p className="mt-1 text-xs text-gray-500">Added by {note.createdByName}</p>
+      {note.authorPersonName && (
+        <p className="mt-1 text-xs text-gray-500">Added by {note.authorPersonName}</p>
       )}
     </div>
   );
@@ -315,7 +315,7 @@ export function NotesSection({ personIdKey }: NotesSectionProps) {
   const deleteMutation = useDeletePersonNote();
 
   const sortedNotes = notes
-    ? [...notes].sort((a, b) => new Date(b.noteDate).getTime() - new Date(a.noteDate).getTime())
+    ? [...notes].sort((a, b) => new Date(b.noteDateTime).getTime() - new Date(a.noteDateTime).getTime())
     : [];
 
   const handleAddClick = () => {
@@ -393,8 +393,8 @@ export function NotesSection({ personIdKey }: NotesSectionProps) {
 
   const getEditInitialValues = (note: PersonNoteDto): NoteFormValues => ({
     text: note.text,
-    noteDate: toDateInputValue(note.noteDate),
-    noteType: note.noteType ?? '',
+    noteDate: toDateInputValue(note.noteDateTime),
+    noteType: note.noteTypeName ?? '',
     isPrivate: note.isPrivate,
     isAlert: note.isAlert,
   });
@@ -417,6 +417,7 @@ export function NotesSection({ personIdKey }: NotesSectionProps) {
       {/* Add form */}
       {activeForm?.mode === 'add' && (
         <div className="mb-6">
+          <h3 className="text-md font-semibold text-gray-900 mb-3">Add Note</h3>
           <NoteForm
             isSubmitting={isSubmitting}
             onSubmit={handleAddSubmit}

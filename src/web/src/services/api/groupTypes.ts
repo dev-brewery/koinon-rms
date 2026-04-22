@@ -25,21 +25,24 @@ export async function getGroupTypes(includeArchived = false): Promise<GroupTypeA
   const query = queryParams.toString();
   const endpoint = `${BASE_URL}${query ? `?${query}` : ''}`;
 
-  return get<GroupTypeAdminDto[]>(endpoint);
+  const response = await get<{ data: GroupTypeAdminDto[] }>(endpoint);
+  return response.data;
 }
 
 /**
  * Get group type details by IdKey
  */
 export async function getGroupType(idKey: string): Promise<GroupTypeDetailAdminDto> {
-  return get<GroupTypeDetailAdminDto>(`${BASE_URL}/${idKey}`);
+  const response = await get<{ data: GroupTypeDetailAdminDto }>(`${BASE_URL}/${idKey}`);
+  return response.data;
 }
 
 /**
  * Create a new group type
  */
 export async function createGroupType(request: CreateGroupTypeRequest): Promise<GroupTypeAdminDto> {
-  return post<GroupTypeAdminDto>(BASE_URL, request);
+  const response = await post<{ data: GroupTypeAdminDto }>(BASE_URL, request);
+  return response.data;
 }
 
 /**
@@ -49,7 +52,8 @@ export async function updateGroupType(
   idKey: string,
   request: UpdateGroupTypeRequest
 ): Promise<GroupTypeAdminDto> {
-  return put<GroupTypeAdminDto>(`${BASE_URL}/${idKey}`, request);
+  const response = await put<{ data: GroupTypeAdminDto }>(`${BASE_URL}/${idKey}`, request);
+  return response.data;
 }
 
 /**
@@ -63,5 +67,6 @@ export async function archiveGroupType(idKey: string): Promise<void> {
  * Get groups of a specific type
  */
 export async function getGroupsByType(idKey: string): Promise<GroupTypeGroupDto[]> {
-  return get<GroupTypeGroupDto[]>(`${BASE_URL}/${idKey}/groups`);
+  const response = await get<{ data: GroupTypeGroupDto[] }>(`${BASE_URL}/${idKey}/groups`);
+  return response.data;
 }

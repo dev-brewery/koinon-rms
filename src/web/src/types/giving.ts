@@ -34,6 +34,47 @@ export interface FundDto {
   isPublic: boolean;
 }
 
+/**
+ * Fund with admin fields including inactive funds
+ */
+export interface FundAdminDto {
+  idKey: IdKey;
+  name: string;
+  publicName?: string;
+  description?: string;
+  glCode?: string;
+  isActive: boolean;
+  isPublic: boolean;
+  isTaxDeductible: boolean;
+  order: number;
+  createdDateTime: DateTime;
+  modifiedDateTime?: DateTime;
+}
+
+/**
+ * Request to create a new fund
+ */
+export interface CreateFundRequest {
+  name: string;
+  publicName?: string;
+  description?: string;
+  glCode?: string;
+  isPublic: boolean;
+  isTaxDeductible: boolean;
+}
+
+/**
+ * Request to update an existing fund
+ */
+export interface UpdateFundRequest {
+  name: string;
+  publicName?: string;
+  description?: string;
+  glCode?: string;
+  isPublic: boolean;
+  isTaxDeductible: boolean;
+}
+
 // ============================================================================
 // Contribution Batch Types
 // ============================================================================

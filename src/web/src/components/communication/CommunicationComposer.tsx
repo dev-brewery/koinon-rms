@@ -10,8 +10,10 @@ import { SmsComposer } from './SmsComposer';
 import { TemplateSelector } from './TemplateSelector';
 import { SaveAsTemplateModal } from './SaveAsTemplateModal';
 import { MessagePreview } from './MessagePreview';
+import { RecipientBuilder } from './RecipientBuilder';
+import { SelectedPersonsTable } from './SelectedPersonsTable';
 import { useCreateCommunication, useSendCommunication } from '@/hooks/useCommunications';
-import type { GroupSummaryDto } from '@/services/api/types';
+import type { GroupSummaryDto, PersonSummaryDto } from '@/services/api/types';
 import type { CreateCommunicationRequest } from '@/services/api/communications';
 
 interface CommunicationComposerProps {
@@ -29,6 +31,7 @@ export function CommunicationComposer({ groups, onSend, onClose }: Communication
   const [replyToEmail, setReplyToEmail] = useState('');
   const [note, setNote] = useState('');
   const [selectedGroupIdKeys, setSelectedGroupIdKeys] = useState<string[]>([]);
+  const [selectedPersons, setSelectedPersons] = useState<PersonSummaryDto[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSaveTemplateModalOpen, setIsSaveTemplateModalOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -45,21 +48,21 @@ export function CommunicationComposer({ groups, onSend, onClose }: Communication
     return now.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:mm
   };
 
-  // Calculate recipient count (simplified - just sum of group members)
+  // Calculate recipient count: sum of group members + individually added people
   const recipientCount = useMemo(
     () =>
       selectedGroupIdKeys.reduce((sum, idKey) => {
         const group = groups.find((g) => g.idKey === idKey);
         return sum + (group?.memberCount || 0);
-      }, 0),
-    [selectedGroupIdKeys, groups]
+      }, 0) + selectedPersons.length,
+    [selectedGroupIdKeys, groups, selectedPersons.length]
   );
 
   const validateForm = useCallback((): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (selectedGroupIdKeys.length === 0) {
-      newErrors.groups = 'Please select at least one group';
+    if (selectedGroupIdKeys.length === 0 && selectedPersons.length === 0) {
+      newErrors.groups = 'Please select at least one group or individual recipient';
     }
 
     if (!body.trim()) {
@@ -91,7 +94,7 @@ export function CommunicationComposer({ groups, onSend, onClose }: Communication
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [communicationType, subject, body, selectedGroupIdKeys, sendMode, scheduledDateTime]);
+  }, [communicationType, subject, body, selectedGroupIdKeys, selectedPersons, sendMode, scheduledDateTime]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,6 +113,7 @@ export function CommunicationComposer({ groups, onSend, onClose }: Communication
         replyToEmail: communicationType === 'Email' && replyToEmail ? replyToEmail : undefined,
         note: note || undefined,
         groupIdKeys: selectedGroupIdKeys,
+        personIdKeys: selectedPersons.length > 0 ? selectedPersons.map((p) => p.idKey) : undefined,
         scheduledDateTime: sendMode === 'schedule' ? new Date(scheduledDateTime).toISOString() : undefined,
       };
 
@@ -130,6 +134,16 @@ export function CommunicationComposer({ groups, onSend, onClose }: Communication
     setSelectedGroupIdKeys((prev) =>
       prev.includes(idKey) ? prev.filter((id) => id !== idKey) : [...prev, idKey]
     );
+  };
+
+  const handleAddPerson = (person: PersonSummaryDto) => {
+    setSelectedPersons((prev) =>
+      prev.some((p) => p.idKey === person.idKey) ? prev : [...prev, person]
+    );
+  };
+
+  const handleRemovePerson = (idKey: string) => {
+    setSelectedPersons((prev) => prev.filter((p) => p.idKey !== idKey));
   };
 
   const handleTemplateSelect = (template: { subject?: string; body: string }) => {
@@ -181,42 +195,25 @@ export function CommunicationComposer({ groups, onSend, onClose }: Communication
             disabled={isPending}
           />
 
-          {/* Group Selection */}
+          {/* Recipient Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Send To <span className="text-red-500">*</span>
             </label>
-            <div className="border border-gray-300 rounded-lg max-h-48 overflow-y-auto">
-              {groups.length === 0 ? (
-                <div className="p-4 text-center text-gray-500">No groups available</div>
-              ) : (
-                <div className="divide-y divide-gray-200">
-                  {groups.map((group) => (
-                    <label
-                      key={group.idKey}
-                      className="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedGroupIdKeys.includes(group.idKey)}
-                        onChange={() => handleGroupToggle(group.idKey)}
-                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                      />
-                      <div className="flex-1">
-                        <div className="font-medium text-gray-900">{group.name}</div>
-                        <div className="text-sm text-gray-500">
-                          {group.memberCount} {group.memberCount === 1 ? 'member' : 'members'}
-                        </div>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
+            <RecipientBuilder
+              groups={groups}
+              selectedGroupIdKeys={selectedGroupIdKeys}
+              selectedPersons={selectedPersons}
+              onGroupToggle={handleGroupToggle}
+              onAddPerson={handleAddPerson}
+              onRemovePerson={handleRemovePerson}
+            />
             {errors.groups && <p className="mt-1 text-sm text-red-600">{errors.groups}</p>}
 
+            <SelectedPersonsTable persons={selectedPersons} onRemove={handleRemovePerson} />
+
             {/* Recipient Count Preview */}
-            {selectedGroupIdKeys.length > 0 && (
+            {recipientCount > 0 && (
               <div className="mt-2 flex items-center gap-2 text-sm text-gray-600">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -226,7 +223,7 @@ export function CommunicationComposer({ groups, onSend, onClose }: Communication
                     d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                   />
                 </svg>
-                <span className="font-medium">
+                <span data-testid="recipient-count" className="font-medium">
                   {recipientCount} {recipientCount === 1 ? 'recipient' : 'recipients'}
                 </span>
               </div>

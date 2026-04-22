@@ -96,9 +96,10 @@ public class CheckinAttendanceService(
 
             if (existingAttendance != null)
             {
+                var checkedInAt = existingAttendance.StartDateTime.ToString("h:mm tt");
                 return new CheckinResultDto(
                     Success: false,
-                    ErrorMessage: "Person is already checked in to this location");
+                    ErrorMessage: $"Person is already checked in to this location (checked in at {checkedInAt})");
             }
 
             // Get person's primary alias
@@ -588,18 +589,21 @@ public class CheckinAttendanceService(
             .Select(pa => pa.Id)
             .ToListAsync(ct);
 
-        var existingOccurrence = await Context.AttendanceOccurrences
+        var existingCheckin = await Context.AttendanceOccurrences
             .AsNoTracking()
             .Where(o => o.GroupId == locationId && o.OccurrenceDate == occurrenceDate.Value)
             .SelectMany(o => o.Attendances)
             .Where(a => a.EndDateTime == null && a.PersonAliasId.HasValue)
-            .AnyAsync(a => personAliasIdsForCheck.Contains(a.PersonAliasId!.Value), ct);
+            .Where(a => personAliasIdsForCheck.Contains(a.PersonAliasId!.Value))
+            .Select(a => a.StartDateTime)
+            .FirstOrDefaultAsync(ct);
 
-        if (existingOccurrence)
+        if (existingCheckin != default)
         {
+            var checkedInAt = existingCheckin.ToString("h:mm tt");
             return new CheckinValidationResult(
                 false,
-                "Person is already checked in to this location",
+                $"Person is already checked in to this location (checked in at {checkedInAt})",
                 IsAlreadyCheckedIn: true);
         }
 

@@ -136,7 +136,7 @@ export function PersonDetailPage() {
             )}
 
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{person.fullName}</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{person.firstName} {person.lastName}</h1>
               <div className="flex items-center gap-2 mt-1 text-gray-600">
                 {person.age !== undefined && <span>{person.age} years old</span>}
                 {person.gender !== 'Unknown' && (
@@ -173,7 +173,7 @@ export function PersonDetailPage() {
               disabled={deleteMutation.isPending}
               className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
             >
-              Delete
+              Delete Person
             </button>
           </div>
         </div>
@@ -216,9 +216,7 @@ export function PersonDetailPage() {
             <div>
               <label className="text-sm font-medium text-gray-700">Email</label>
               <p className="text-gray-900">
-                <a href={`mailto:${person.email}`} className="text-primary-600 hover:text-primary-700">
-                  {person.email}
-                </a>
+                <span>{person.email}</span>
                 {!person.isEmailActive && (
                   <span className="ml-2 text-xs text-red-600">(Inactive)</span>
                 )}
@@ -248,6 +246,29 @@ export function PersonDetailPage() {
         </div>
       </div>
 
+      {/* Metadata */}
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Record Information</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-medium text-gray-700">Created</label>
+            <p className="text-gray-900">
+              {person.createdDateTime
+                ? new Date(person.createdDateTime).toLocaleDateString()
+                : 'Unknown'}
+            </p>
+          </div>
+          {person.modifiedDateTime && (
+            <div>
+              <label className="text-sm font-medium text-gray-700">Last Modified</label>
+              <p className="text-gray-900">
+                {new Date(person.modifiedDateTime).toLocaleDateString()}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Communication Preferences */}
       <CommunicationPreferences personIdKey={idKey!} />
 
@@ -266,9 +287,7 @@ export function PersonDetailPage() {
                   {member.person.fullName}
                 </Link>
                 <span className="text-xs text-gray-500">({member.role.name})</span>
-                {member.isPersonPrimaryFamily && (
-                  <span className="text-xs text-blue-600">(Primary)</span>
-                )}
+                {/* Primary family indicator - future enhancement */}
               </li>
             ))}
           </ul>

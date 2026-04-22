@@ -1800,6 +1800,10 @@ namespace Koinon.Infrastructure.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("is_active");
 
+                    b.Property<int?>("LocationId")
+                        .HasColumnType("integer")
+                        .HasColumnName("location_id");
+
                     b.Property<int?>("ModifiedByPersonAliasId")
                         .HasColumnType("integer")
                         .HasColumnName("modified_by_person_alias_id");
@@ -1822,6 +1826,8 @@ namespace Koinon.Infrastructure.Migrations
                     b.HasIndex("Guid")
                         .IsUnique()
                         .HasDatabaseName("uix_family_guid");
+
+                    b.HasIndex("LocationId");
 
                     b.HasIndex("Name")
                         .HasDatabaseName("ix_family_name");
@@ -5725,7 +5731,14 @@ namespace Koinon.Infrastructure.Migrations
                         .HasForeignKey("CampusId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("Koinon.Domain.Entities.Location", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("Campus");
+
+                    b.Navigation("Location");
                 });
 
             modelBuilder.Entity("Koinon.Domain.Entities.FamilyMember", b =>

@@ -72,7 +72,8 @@ public record CreateCommunicationDto
     public string? ReplyToEmail { get; init; }
     public DateTime? ScheduledDateTime { get; init; }
     public string? Note { get; init; }
-    public required IReadOnlyList<string> GroupIdKeys { get; init; }
+    public IReadOnlyList<string> GroupIdKeys { get; init; } = [];
+    public IReadOnlyList<string> PersonIdKeys { get; init; } = [];
 }
 
 /// <summary>

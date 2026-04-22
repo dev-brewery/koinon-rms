@@ -136,8 +136,8 @@ export type ParsedErrorResponse =
  * Parse error response supporting both ProblemDetails and legacy ApiError formats
  */
 export function parseErrorResponse(data: unknown): ParsedErrorResponse {
-  // Check if it's ProblemDetails format (has 'type' field)
-  if (typeof data === 'object' && data !== null && 'type' in data) {
+  // Check if it's ProblemDetails format (has 'type' or 'title'+'detail' fields)
+  if (typeof data === 'object' && data !== null && ('type' in data || ('title' in data && 'detail' in data))) {
     try {
       const problemDetails = ProblemDetailsSchema.parse(data);
       return { format: 'problemDetails', error: problemDetails };
@@ -157,6 +157,34 @@ export function parseErrorResponse(data: unknown): ParsedErrorResponse {
       if (import.meta.env.DEV) {
         console.warn('Invalid ApiError format:', error);
       }
+    }
+  }
+
+  // Handle loose format: { error: "string message", details: { ... } }
+  if (typeof data === 'object' && data !== null) {
+    const obj = data as Record<string, unknown>;
+    if (typeof obj.error === 'string') {
+      const details = typeof obj.details === 'object' && obj.details !== null
+        ? obj.details as Record<string, string[]>
+        : undefined;
+      return {
+        format: 'legacy',
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: obj.error,
+          details,
+        },
+      };
+    }
+    // Try to extract any message-like field
+    if (typeof obj.message === 'string') {
+      return {
+        format: 'legacy',
+        error: {
+          code: 'ERROR',
+          message: obj.message,
+        },
+      };
     }
   }
 

@@ -34,7 +34,16 @@ public class HttpContextUserContext(IHttpContextAccessor httpContextAccessor) : 
         }
     }
 
-    public bool IsAuthenticated => httpContextAccessor.HttpContext?.User.Identity?.IsAuthenticated ?? false;
+    public bool IsAuthenticated =>
+        httpContextAccessor.HttpContext?.User.Identity?.IsAuthenticated == true
+        || IsKioskRequest;
+
+    /// <summary>
+    /// True when the request was authorized via KioskAuthorize (valid token or dev bypass).
+    /// Kiosk requests don't carry JWT but are trusted devices with full check-in access.
+    /// </summary>
+    private bool IsKioskRequest =>
+        httpContextAccessor.HttpContext?.Items.ContainsKey("KioskBypass") == true;
 
     public string? ClientIpAddress =>
         httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
@@ -52,6 +61,12 @@ public class HttpContextUserContext(IHttpContextAccessor httpContextAccessor) : 
         if (!IsAuthenticated)
         {
             return false;
+        }
+
+        // Kiosk-authorized requests can access any person (kiosk is a trusted device)
+        if (IsKioskRequest)
+        {
+            return true;
         }
 
         // User can always access their own data
@@ -90,6 +105,12 @@ public class HttpContextUserContext(IHttpContextAccessor httpContextAccessor) : 
         if (!IsAuthenticated)
         {
             return false;
+        }
+
+        // Kiosk-authorized requests can access any location
+        if (IsKioskRequest)
+        {
+            return true;
         }
 
         // Admin role has access to all locations

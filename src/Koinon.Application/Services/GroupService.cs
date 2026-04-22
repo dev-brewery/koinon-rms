@@ -2,6 +2,7 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using FluentValidation;
 using Koinon.Application.Common;
+using Koinon.Application.Constants;
 using Koinon.Application.DTOs;
 using Koinon.Application.DTOs.Requests;
 using Koinon.Application.Interfaces;
@@ -269,13 +270,14 @@ public class GroupService(
             return Result<GroupDto>.Failure(Error.FromFluentValidation(validation));
         }
 
-        // Get group
+        // Get group (must use AsTracking since DbContext defaults to NoTracking)
         if (!IdKeyHelper.TryDecode(idKey, out int id))
         {
             return Result<GroupDto>.Failure(Error.NotFound("Group", idKey));
         }
 
         var group = await context.Groups
+            .AsTracking()
             .Include(g => g.GroupType)
             .FirstOrDefaultAsync(g => g.Id == id, ct);
 
@@ -357,6 +359,7 @@ public class GroupService(
         }
 
         var group = await context.Groups
+            .AsTracking()
             .Include(g => g.GroupType)
             .FirstOrDefaultAsync(g => g.Id == id, ct);
 
@@ -797,6 +800,101 @@ public class GroupService(
             groupId, scheduleId);
 
         return Result.Success();
+    }
+
+    public async Task<IReadOnlyList<GroupAttendanceOccurrenceDto>> GetAttendanceHistoryAsync(
+        string groupIdKey,
+        CancellationToken ct = default)
+    {
+        if (!IdKeyHelper.TryDecode(groupIdKey, out int groupId))
+        {
+            return Array.Empty<GroupAttendanceOccurrenceDto>();
+        }
+
+        var occurrences = await context.AttendanceOccurrences
+            .AsNoTracking()
+            .Include(o => o.Location)
+            .Include(o => o.Schedule)
+            .Where(o => o.GroupId == groupId)
+            .OrderByDescending(o => o.OccurrenceDate)
+            .ToListAsync(ct);
+
+        if (occurrences.Count == 0)
+        {
+            return Array.Empty<GroupAttendanceOccurrenceDto>();
+        }
+
+        var occurrenceIds = occurrences.Select(o => o.Id).ToArray();
+
+        var attendeeCounts = await context.Attendances
+            .Where(a => occurrenceIds.Contains(a.OccurrenceId) && a.DidAttend == true)
+            .GroupBy(a => a.OccurrenceId)
+            .Select(g => new { OccurrenceId = g.Key, Count = g.Sum(x => 1) })
+            .ToDictionaryAsync(x => x.OccurrenceId, x => x.Count, ct);
+
+        return occurrences.Select(o => new GroupAttendanceOccurrenceDto(
+            IdKey: o.IdKey,
+            OccurrenceDate: o.OccurrenceDate,
+            AttendeeCount: attendeeCounts.GetValueOrDefault(o.Id, 0),
+            AnonymousCount: o.AnonymousAttendanceCount ?? 0,
+            DidNotOccur: o.DidNotOccur ?? false,
+            LocationName: o.Location?.Name,
+            ScheduleName: o.Schedule?.Name
+        )).ToArray();
+    }
+
+    public async Task<Result<IReadOnlyList<GroupAttendanceDetailDto>>> GetAttendanceDetailAsync(
+        string groupIdKey,
+        string occurrenceIdKey,
+        CancellationToken ct = default)
+    {
+        if (!IdKeyHelper.TryDecode(groupIdKey, out int groupId))
+        {
+            return Result<IReadOnlyList<GroupAttendanceDetailDto>>.Failure(
+                new Error("NOT_FOUND", $"Group with IdKey '{groupIdKey}' not found"));
+        }
+
+        if (!IdKeyHelper.TryDecode(occurrenceIdKey, out int occurrenceId))
+        {
+            return Result<IReadOnlyList<GroupAttendanceDetailDto>>.Failure(
+                new Error("NOT_FOUND", $"Occurrence with IdKey '{occurrenceIdKey}' not found"));
+        }
+
+        // Verify the occurrence belongs to this group
+        var occurrenceExists = await context.AttendanceOccurrences
+            .AsNoTracking()
+            .AnyAsync(o => o.Id == occurrenceId && o.GroupId == groupId, ct);
+
+        if (!occurrenceExists)
+        {
+            return Result<IReadOnlyList<GroupAttendanceDetailDto>>.Failure(
+                new Error("NOT_FOUND", $"Occurrence with IdKey '{occurrenceIdKey}' not found for this group"));
+        }
+
+        var attendances = await context.Attendances
+            .AsNoTracking()
+            .Include(a => a.PersonAlias)
+                .ThenInclude(pa => pa!.Person)
+                    .ThenInclude(p => p!.Photo)
+            .Where(a => a.OccurrenceId == occurrenceId)
+            .ToListAsync(ct);
+
+        var details = attendances
+            .Where(a => a.PersonAlias?.Person != null)
+            .Select(a =>
+            {
+                var person = a.PersonAlias!.Person!;
+                return new GroupAttendanceDetailDto(
+                    PersonIdKey: person.IdKey,
+                    FullName: person.FullName,
+                    PhotoUrl: person.Photo != null ? ApiPaths.GetFileUrl(person.Photo.IdKey) : null,
+                    DidAttend: a.DidAttend ?? false,
+                    PresentDateTime: a.PresentDateTime
+                );
+            })
+            .ToArray();
+
+        return Result<IReadOnlyList<GroupAttendanceDetailDto>>.Success(details);
     }
 
     private GroupDto MapToGroupDto(Group group, Dictionary<int, int> childGroupMemberCounts, int parentMemberCount)

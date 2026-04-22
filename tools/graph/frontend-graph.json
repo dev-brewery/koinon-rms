@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-03-28T01:17:36.394Z",
+  "generated_at": "2026-04-21T16:32:15.045Z",
   "types": {
     "AttendanceAnalyticsDto": {
       "name": "AttendanceAnalyticsDto",
@@ -690,6 +690,7 @@
         "replyToEmail": "string",
         "note": "string",
         "groupIdKeys": "string[]",
+        "personIdKeys": "string[]",
         "scheduledDateTime": "string"
       },
       "path": "types/communication.ts"
@@ -1074,6 +1075,50 @@
         "publicName": "string",
         "isActive": "boolean",
         "isPublic": "boolean"
+      },
+      "path": "types/giving.ts"
+    },
+    "FundAdminDto": {
+      "name": "FundAdminDto",
+      "kind": "interface",
+      "properties": {
+        "idKey": "IdKey",
+        "name": "string",
+        "publicName": "string",
+        "description": "string",
+        "glCode": "string",
+        "isActive": "boolean",
+        "isPublic": "boolean",
+        "isTaxDeductible": "boolean",
+        "order": "number",
+        "createdDateTime": "DateTime",
+        "modifiedDateTime": "DateTime"
+      },
+      "path": "types/giving.ts"
+    },
+    "CreateFundRequest": {
+      "name": "CreateFundRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "publicName": "string",
+        "description": "string",
+        "glCode": "string",
+        "isPublic": "boolean",
+        "isTaxDeductible": "boolean"
+      },
+      "path": "types/giving.ts"
+    },
+    "UpdateFundRequest": {
+      "name": "UpdateFundRequest",
+      "kind": "interface",
+      "properties": {
+        "name": "string",
+        "publicName": "string",
+        "description": "string",
+        "glCode": "string",
+        "isPublic": "boolean",
+        "isTaxDeductible": "boolean"
       },
       "path": "types/giving.ts"
     },
@@ -2243,7 +2288,6 @@
         "person": "PersonSummaryDto",
         "role": "GroupTypeRoleDto",
         "status": "string",
-        "isPersonPrimaryFamily": "boolean",
         "dateTimeAdded": "DateTime"
       },
       "path": "services/api/types.ts"
@@ -2665,7 +2709,8 @@
         "anniversaryDate": "DateOnly | null",
         "connectionStatusValueId": "IdKey",
         "recordStatusValueId": "IdKey",
-        "primaryCampusId": "IdKey | null"
+        "primaryCampusId": "IdKey | null",
+        "phoneNumbers": "CreatePhoneNumberRequest[]"
       },
       "path": "services/api/types.ts"
     },
@@ -2691,9 +2736,11 @@
         "idKey": "IdKey",
         "guid": "Guid",
         "name": "string",
+        "description": "string",
+        "isActive": "boolean",
         "campus": "CampusSummaryDto",
+        "address": "AddressDto",
         "members": "FamilyMemberDto[]",
-        "addresses": "FamilyAddressDto[]",
         "createdDateTime": "DateTime",
         "modifiedDateTime": "DateTime"
       },
@@ -2818,7 +2865,7 @@
         "groupType": "GroupTypeSummaryDto",
         "parentGroup": "GroupSummaryDto",
         "campus": "CampusSummaryDto",
-        "capacity": "number",
+        "groupCapacity": "number",
         "isActive": "boolean",
         "isArchived": "boolean",
         "schedule": "ScheduleDto",
@@ -3835,9 +3882,10 @@
       "properties": {
         "idKey": "IdKey",
         "text": "string",
-        "noteDate": "DateTime",
-        "noteType": "string | null",
-        "createdByName": "string | null",
+        "noteDateTime": "DateTime",
+        "noteTypeName": "string | null",
+        "noteTypeValueIdKey": "IdKey | null",
+        "authorPersonName": "string | null",
         "isPrivate": "boolean",
         "isAlert": "boolean",
         "createdDateTime": "DateTime"
@@ -4149,8 +4197,8 @@
     "searchFamiliesForCheckin": {
       "name": "searchFamiliesForCheckin",
       "path": "services/api/checkin.ts",
-      "endpoint": "/checkin/search",
-      "method": "POST",
+      "endpoint": "/unknown",
+      "method": "GET",
       "responseType": "CheckinFamilyDto[]"
     },
     "getCheckinOpportunities": {
@@ -4489,6 +4537,34 @@
       "method": "GET",
       "responseType": "FundDto"
     },
+    "getAllFundsAdmin": {
+      "name": "getAllFundsAdmin",
+      "path": "services/api/giving.ts",
+      "endpoint": "/giving/admin/funds",
+      "method": "GET",
+      "responseType": "FundAdminDto[]"
+    },
+    "createFund": {
+      "name": "createFund",
+      "path": "services/api/giving.ts",
+      "endpoint": "/giving/admin/funds",
+      "method": "POST",
+      "responseType": "FundAdminDto"
+    },
+    "updateFund": {
+      "name": "updateFund",
+      "path": "services/api/giving.ts",
+      "endpoint": "/giving/admin/funds/${idKey}",
+      "method": "PUT",
+      "responseType": "FundAdminDto"
+    },
+    "deactivateFund": {
+      "name": "deactivateFund",
+      "path": "services/api/giving.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "void"
+    },
     "getBatches": {
       "name": "getBatches",
       "path": "services/api/giving.ts",
@@ -4712,6 +4788,13 @@
       "endpoint": "/groups/${groupIdKey}/schedules/${scheduleIdKey}",
       "method": "DELETE",
       "responseType": "void"
+    },
+    "getGroupAttendanceDetail": {
+      "name": "getGroupAttendanceDetail",
+      "path": "services/api/groups.ts",
+      "endpoint": "/groups/${groupIdKey}/attendance/${occurrenceIdKey}",
+      "method": "GET",
+      "responseType": "GroupAttendanceDetailDto[]"
     },
     "uploadCsvPreview": {
       "name": "uploadCsvPreview",
@@ -6109,6 +6192,58 @@
         "generateStatement"
       ]
     },
+    "useAdminFunds": {
+      "name": "useAdminFunds",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "funds"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getAllFundsAdmin"
+      ]
+    },
+    "useCreateFund": {
+      "name": "useCreateFund",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "funds"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "createFund"
+      ]
+    },
+    "useUpdateFund": {
+      "name": "useUpdateFund",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "funds"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "updateFund"
+      ]
+    },
+    "useDeactivateFund": {
+      "name": "useDeactivateFund",
+      "path": "hooks/useGiving.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "funds"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "deactivateFund"
+      ]
+    },
     "useDownloadStatementPdf": {
       "name": "useDownloadStatementPdf",
       "path": "hooks/useGiving.ts",
@@ -6324,6 +6459,30 @@
         "removeGroupSchedule"
       ]
     },
+    "useGroupAttendanceHistory": {
+      "name": "useGroupAttendanceHistory",
+      "path": "hooks/useGroups.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "groups"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useGroupAttendanceDetail": {
+      "name": "useGroupAttendanceDetail",
+      "path": "hooks/useGroups.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "groups"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getGroupAttendanceDetail"
+      ]
+    },
     "useImport": {
       "name": "useImport",
       "path": "hooks/useImport.ts",
@@ -6347,6 +6506,17 @@
       "dependencies": [
         "getImportJobs"
       ]
+    },
+    "useIsMobile": {
+      "name": "useIsMobile",
+      "path": "hooks/useIsMobile.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "ismobile"
+      ],
+      "usesQuery": false,
+      "usesMutation": false,
+      "dependencies": []
     },
     "useLocations": {
       "name": "useLocations",
@@ -7199,9 +7369,7 @@
       ],
       "usesQuery": true,
       "usesMutation": false,
-      "dependencies": [
-        "getMultipleRoomRosters"
-      ]
+      "dependencies": []
     }
   },
   "components": {
@@ -7282,7 +7450,8 @@
       "name": "Header",
       "path": "components/admin/Header.tsx",
       "hooksUsed": [
-        "useAuth"
+        "useAuth",
+        "useIsMobile"
       ],
       "apiCallsDirectly": false
     },
@@ -7422,6 +7591,15 @@
       "path": "components/profile/FamilyMemberCard.tsx",
       "hooksUsed": [
         "useUpdateFamilyMember"
+      ],
+      "apiCallsDirectly": false
+    },
+    "GroupAttendanceHistorySection": {
+      "name": "GroupAttendanceHistorySection",
+      "path": "components/admin/groups/GroupAttendanceHistorySection.tsx",
+      "hooksUsed": [
+        "useGroupAttendanceHistory",
+        "useGroupAttendanceDetail"
       ],
       "apiCallsDirectly": false
     },
@@ -7753,6 +7931,16 @@
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
+    "RecipientBuilder": {
+      "name": "RecipientBuilder",
+      "path": "components/communication/RecipientBuilder.tsx",
+      "hooksUsed": [
+        "useCampuses",
+        "useDefinedTypeValues",
+        "usePeople"
+      ],
+      "apiCallsDirectly": false
+    },
     "RecipientStatusBadge": {
       "name": "RecipientStatusBadge",
       "path": "components/communication/RecipientStatusBadge.tsx",
@@ -7771,6 +7959,12 @@
       "hooksUsed": [
         "useCreateCommunicationTemplate"
       ],
+      "apiCallsDirectly": false
+    },
+    "SelectedPersonsTable": {
+      "name": "SelectedPersonsTable",
+      "path": "components/communication/SelectedPersonsTable.tsx",
+      "hooksUsed": [],
       "apiCallsDirectly": false
     },
     "SmsComposer": {
@@ -8053,6 +8247,12 @@
       ],
       "apiCallsDirectly": false
     },
+    "AccessibleSelect": {
+      "name": "AccessibleSelect",
+      "path": "components/ui/AccessibleSelect.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
     "Button": {
       "name": "Button",
       "path": "components/ui/Button.tsx",
@@ -8177,6 +8377,11 @@
       "type": "uses_hook"
     },
     {
+      "from": "Header",
+      "to": "useIsMobile",
+      "type": "uses_hook"
+    },
+    {
       "from": "LocationEditorModal",
       "to": "useCampuses",
       "type": "uses_hook"
@@ -8214,6 +8419,16 @@
     {
       "from": "FamilyMemberCard",
       "to": "useUpdateFamilyMember",
+      "type": "uses_hook"
+    },
+    {
+      "from": "GroupAttendanceHistorySection",
+      "to": "useGroupAttendanceHistory",
+      "type": "uses_hook"
+    },
+    {
+      "from": "GroupAttendanceHistorySection",
+      "to": "useGroupAttendanceDetail",
       "type": "uses_hook"
     },
     {
@@ -8344,6 +8559,21 @@
     {
       "from": "MergeFieldPicker",
       "to": "useMergeFields",
+      "type": "uses_hook"
+    },
+    {
+      "from": "RecipientBuilder",
+      "to": "useCampuses",
+      "type": "uses_hook"
+    },
+    {
+      "from": "RecipientBuilder",
+      "to": "useDefinedTypeValues",
+      "type": "uses_hook"
+    },
+    {
+      "from": "RecipientBuilder",
+      "to": "usePeople",
       "type": "uses_hook"
     },
     {

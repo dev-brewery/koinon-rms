@@ -1,5 +1,6 @@
 using Koinon.Application.Common;
 using Koinon.Application.DTOs.Giving;
+using Koinon.Application.Helpers;
 using Koinon.Application.Interfaces;
 using Koinon.Domain.Data;
 using Koinon.Domain.Entities;
@@ -109,8 +110,14 @@ public class ContributionStatementService(
                 Error.NotFound("Person", request.PersonIdKey));
         }
 
+        // Normalize request dates to UTC Kind so they can be compared against
+        // PostgreSQL timestamptz columns without Npgsql throwing
+        // "Cannot write DateTime with Kind=Unspecified".
+        var startDate = DateTimeNormalization.NormalizeToUtc(request.StartDate);
+        var endDate = DateTimeNormalization.NormalizeToUtc(request.EndDate);
+
         // Validate date range
-        if (request.StartDate > request.EndDate)
+        if (startDate > endDate)
         {
             return Result<StatementPreviewDto>.Failure(
                 Error.Validation("StartDate must be before or equal to EndDate"));
@@ -140,7 +147,7 @@ public class ContributionStatementService(
         var churchAddress = FormatAddress(churchStreet1, churchStreet2, churchCity, churchState, churchPostalCode);
 
         // Get contributions for the period
-        var contributions = await GetContributionsForPeriodAsync(personId, request.StartDate, request.EndDate, ct);
+        var contributions = await GetContributionsForPeriodAsync(personId, startDate, endDate, ct);
 
         var totalAmount = contributions.Sum(c => c.Amount);
 
@@ -149,8 +156,8 @@ public class ContributionStatementService(
             PersonIdKey = person.IdKey,
             PersonName = person.FullName ?? "Unknown",
             PersonAddress = personAddress,
-            StartDate = request.StartDate,
-            EndDate = request.EndDate,
+            StartDate = startDate,
+            EndDate = endDate,
             TotalAmount = totalAmount,
             Contributions = contributions,
             ChurchName = churchName,
@@ -180,12 +187,18 @@ public class ContributionStatementService(
                 Error.NotFound("Person", request.PersonIdKey));
         }
 
+        // Normalize dates to UTC Kind so they can be persisted to the
+        // timestamptz start_date / end_date columns. See the preview path
+        // for the rationale.
+        var startDate = DateTimeNormalization.NormalizeToUtc(request.StartDate);
+        var endDate = DateTimeNormalization.NormalizeToUtc(request.EndDate);
+
         // Create statement entity
         var statement = new ContributionStatement
         {
             PersonId = personId,
-            StartDate = request.StartDate,
-            EndDate = request.EndDate,
+            StartDate = startDate,
+            EndDate = endDate,
             TotalAmount = preview.TotalAmount,
             ContributionCount = preview.Contributions.Count,
             GeneratedDateTime = DateTime.UtcNow
@@ -199,8 +212,8 @@ public class ContributionStatementService(
             statement.IdKey,
             request.PersonIdKey,
             preview.PersonName,
-            request.StartDate,
-            request.EndDate,
+            startDate,
+            endDate,
             preview.TotalAmount);
 
         var dto = new ContributionStatementDto
@@ -273,7 +286,13 @@ public class ContributionStatementService(
         BatchStatementRequest request,
         CancellationToken ct = default)
     {
-        if (request.StartDate > request.EndDate)
+        // Normalize request dates to UTC Kind; otherwise Npgsql throws when
+        // the parameters are bound against the timestamptz
+        // Contribution.TransactionDateTime column.
+        var startDate = DateTimeNormalization.NormalizeToUtc(request.StartDate);
+        var endDate = DateTimeNormalization.NormalizeToUtc(request.EndDate);
+
+        if (startDate > endDate)
         {
             return Result<List<EligiblePersonDto>>.Failure(
                 Error.Validation("StartDate must be before or equal to EndDate"));
@@ -283,7 +302,7 @@ public class ContributionStatementService(
         var eligiblePeople = await (from c in context.Contributions
                 .AsNoTracking()
                 .Where(c => c.PersonAliasId != null)
-                .Where(c => c.TransactionDateTime >= request.StartDate && c.TransactionDateTime <= request.EndDate)
+                .Where(c => c.TransactionDateTime >= startDate && c.TransactionDateTime <= endDate)
                                     from pa in context.PersonAliases.Where(pa => pa.Id == c.PersonAliasId)
                                     from p in context.People.Where(p => p.Id == pa.PersonId)
                                     from cd in context.ContributionDetails.Where(cd => cd.ContributionId == c.Id)

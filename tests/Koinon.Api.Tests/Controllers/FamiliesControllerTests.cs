@@ -16,6 +16,7 @@ namespace Koinon.Api.Tests.Controllers;
 public class FamiliesControllerTests
 {
     private readonly Mock<IFamilyService> _familyServiceMock;
+    private readonly Mock<ICheckinSearchService> _checkinSearchServiceMock;
     private readonly Mock<ILogger<FamiliesController>> _loggerMock;
     private readonly FamiliesController _controller;
 
@@ -31,8 +32,9 @@ public class FamiliesControllerTests
     public FamiliesControllerTests()
     {
         _familyServiceMock = new Mock<IFamilyService>();
+        _checkinSearchServiceMock = new Mock<ICheckinSearchService>();
         _loggerMock = new Mock<ILogger<FamiliesController>>();
-        _controller = new FamiliesController(_familyServiceMock.Object, _loggerMock.Object);
+        _controller = new FamiliesController(_familyServiceMock.Object, _checkinSearchServiceMock.Object, _loggerMock.Object);
 
         // Setup HttpContext for controller
         _controller.ControllerContext = new ControllerContext

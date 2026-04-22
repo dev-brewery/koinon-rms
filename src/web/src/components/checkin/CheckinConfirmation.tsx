@@ -23,7 +23,7 @@ export function CheckinConfirmation({
   printerAvailable = false,
 }: CheckinConfirmationProps) {
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto" data-testid="success-message">
       <div className="text-center mb-8">
         <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-4">
           <svg
@@ -69,7 +69,14 @@ export function CheckinConfirmation({
                 )}
               </div>
               <div className="text-center">
-                <p className="text-sm text-gray-600 mb-1">Security Code</p>
+                <p className="text-sm text-gray-600 mb-1">
+                  Security Code
+                  {attendances.length === 1 && (
+                    <small className="block text-xs font-normal text-gray-500 mt-2">
+                      Keep your security code — you will need it to pick up your child
+                    </small>
+                  )}
+                </p>
                 <p className="text-4xl font-bold font-mono text-blue-600">
                   {attendance.securityCode}
                 </p>
@@ -147,7 +154,11 @@ export function CheckinConfirmation({
       <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
         <h4 className="font-semibold text-blue-900 mb-2">Important:</h4>
         <ul className="text-blue-800 space-y-1">
-          <li>• Keep your security code to pick up your child</li>
+          {attendances.length === 1 ? (
+            <li>• Keep your code — you will need it to pick up your child</li>
+          ) : (
+            <li>• Keep your codes — you will need them to pick up your children</li>
+          )}
           <li>• Present your code at the check-out desk</li>
           {printerAvailable && printStatus === 'success' && (
             <li>• Collect your printed labels from the printer</li>

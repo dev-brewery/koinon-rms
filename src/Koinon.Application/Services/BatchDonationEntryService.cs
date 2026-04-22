@@ -3,6 +3,7 @@ using FluentValidation;
 using Koinon.Application.Common;
 using Koinon.Application.DTOs.Giving;
 using Koinon.Application.DTOs.Requests;
+using Koinon.Application.Helpers;
 using Koinon.Application.Interfaces;
 using Koinon.Domain.Data;
 using Koinon.Domain.Entities;
@@ -61,10 +62,12 @@ public class BatchDonationEntryService(
         EnsureAuthenticated();
 
         // Create batch
+        // Normalize BatchDate to UTC — JSON-bound DateTimes from the frontend arrive
+        // as Kind=Unspecified, which PostgreSQL refuses to persist into a timestamptz column.
         var batch = new ContributionBatch
         {
             Name = request.Name,
-            BatchDate = request.BatchDate,
+            BatchDate = DateTimeNormalization.NormalizeToUtc(request.BatchDate),
             Status = BatchStatus.Open,
             ControlAmount = request.ControlAmount,
             ControlItemCount = request.ControlItemCount,
@@ -160,7 +163,12 @@ public class BatchDonationEntryService(
             return Result.Failure(Error.NotFound("ContributionBatch", batchIdKey));
         }
 
-        var batch = await context.ContributionBatches.FindAsync(new object[] { batchId }, ct);
+        // The DbContext defaults to QueryTrackingBehavior.NoTracking for performance
+        // (see PostgreSqlProvider). Use AsTracking() explicitly here so status
+        // mutations below are picked up by SaveChangesAsync.
+        var batch = await context.ContributionBatches
+            .AsTracking()
+            .FirstOrDefaultAsync(b => b.Id == batchId, ct);
         if (batch is null)
         {
             return Result.Failure(Error.NotFound("ContributionBatch", batchIdKey));
@@ -202,7 +210,12 @@ public class BatchDonationEntryService(
             return Result.Failure(Error.NotFound("ContributionBatch", batchIdKey));
         }
 
-        var batch = await context.ContributionBatches.FindAsync(new object[] { batchId }, ct);
+        // The DbContext defaults to QueryTrackingBehavior.NoTracking for performance
+        // (see PostgreSqlProvider). Use AsTracking() explicitly here so status
+        // mutations below are picked up by SaveChangesAsync.
+        var batch = await context.ContributionBatches
+            .AsTracking()
+            .FirstOrDefaultAsync(b => b.Id == batchId, ct);
         if (batch is null)
         {
             return Result.Failure(Error.NotFound("ContributionBatch", batchIdKey));
@@ -362,7 +375,7 @@ public class BatchDonationEntryService(
         {
             PersonAliasId = personAliasId,
             BatchId = batchId,
-            TransactionDateTime = request.TransactionDateTime,
+            TransactionDateTime = DateTimeNormalization.NormalizeToUtc(request.TransactionDateTime),
             TransactionCode = request.TransactionCode,
             TransactionTypeValueId = transactionTypeValueId,
             SourceTypeValueId = sourceTypeValue.Id,
@@ -528,7 +541,7 @@ public class BatchDonationEntryService(
 
         // Update contribution
         contribution.PersonAliasId = personAliasId;
-        contribution.TransactionDateTime = request.TransactionDateTime;
+        contribution.TransactionDateTime = DateTimeNormalization.NormalizeToUtc(request.TransactionDateTime);
         contribution.TransactionCode = request.TransactionCode;
         contribution.TransactionTypeValueId = transactionTypeValueId;
         contribution.Summary = request.Summary;
@@ -712,12 +725,14 @@ public class BatchDonationEntryService(
         // Apply date filters
         if (filter.StartDate.HasValue)
         {
-            query = query.Where(b => b.BatchDate >= filter.StartDate.Value);
+            var startDateUtc = DateTimeNormalization.NormalizeToUtc(filter.StartDate.Value);
+            query = query.Where(b => b.BatchDate >= startDateUtc);
         }
 
         if (filter.EndDate.HasValue)
         {
-            query = query.Where(b => b.BatchDate <= filter.EndDate.Value);
+            var endDateUtc = DateTimeNormalization.NormalizeToUtc(filter.EndDate.Value);
+            query = query.Where(b => b.BatchDate <= endDateUtc);
         }
 
         // Get total count

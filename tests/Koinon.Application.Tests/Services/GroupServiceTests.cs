@@ -661,6 +661,126 @@ public class GroupServiceTests : IDisposable
         result.Should().BeEmpty();
     }
 
+    [Fact]
+    public async Task GetAttendanceHistoryAsync_ReturnsOccurrencesForGroup()
+    {
+        // Arrange — create an occurrence for group 1 with two attendees (one attended, one did not)
+        var group = await _context.Groups.FindAsync(1);
+        var occurrence = new AttendanceOccurrence
+        {
+            Id = 100,
+            GroupId = group!.Id,
+            OccurrenceDate = new DateOnly(2024, 1, 14),
+            SundayDate = new DateOnly(2024, 1, 14),
+            AnonymousAttendanceCount = 3,
+            DidNotOccur = false
+        };
+        _context.AttendanceOccurrences.Add(occurrence);
+
+        var personAlias1 = new PersonAlias { Id = 10, PersonId = 1 };
+        var personAlias2 = new PersonAlias { Id = 11, PersonId = 2 };
+        _context.PersonAliases.AddRange(personAlias1, personAlias2);
+
+        _context.Attendances.Add(new Attendance
+        {
+            Id = 200,
+            OccurrenceId = 100,
+            PersonAliasId = 10,
+            StartDateTime = new DateTime(2024, 1, 14, 9, 0, 0, DateTimeKind.Utc),
+            DidAttend = true,
+            CreatedDateTime = DateTime.UtcNow
+        });
+        _context.Attendances.Add(new Attendance
+        {
+            Id = 201,
+            OccurrenceId = 100,
+            PersonAliasId = 11,
+            StartDateTime = new DateTime(2024, 1, 14, 9, 0, 0, DateTimeKind.Utc),
+            DidAttend = false,
+            CreatedDateTime = DateTime.UtcNow
+        });
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _service.GetAttendanceHistoryAsync(group.IdKey);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Should().HaveCount(1);
+        var dto = result[0];
+        dto.OccurrenceDate.Should().Be(new DateOnly(2024, 1, 14));
+        dto.AttendeeCount.Should().Be(1); // Only DidAttend == true
+        dto.AnonymousCount.Should().Be(3);
+        dto.DidNotOccur.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetAttendanceDetailAsync_ReturnsAttendancesForOccurrence()
+    {
+        // Arrange
+        var group = await _context.Groups.FindAsync(1);
+        var occurrence = new AttendanceOccurrence
+        {
+            Id = 101,
+            GroupId = group!.Id,
+            OccurrenceDate = new DateOnly(2024, 2, 11),
+            SundayDate = new DateOnly(2024, 2, 11)
+        };
+        _context.AttendanceOccurrences.Add(occurrence);
+
+        var personAlias = new PersonAlias { Id = 20, PersonId = 1 };
+        _context.PersonAliases.Add(personAlias);
+
+        var presentTime = new DateTime(2024, 2, 11, 9, 5, 0, DateTimeKind.Utc);
+        _context.Attendances.Add(new Attendance
+        {
+            Id = 300,
+            OccurrenceId = 101,
+            PersonAliasId = 20,
+            StartDateTime = new DateTime(2024, 2, 11, 9, 0, 0, DateTimeKind.Utc),
+            DidAttend = true,
+            PresentDateTime = presentTime,
+            CreatedDateTime = DateTime.UtcNow
+        });
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _service.GetAttendanceDetailAsync(group.IdKey, occurrence.IdKey);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().HaveCount(1);
+        var detail = result.Value![0];
+        detail.FullName.Should().Be("John Doe");
+        detail.DidAttend.Should().BeTrue();
+        detail.PresentDateTime.Should().Be(presentTime);
+    }
+
+    [Fact]
+    public async Task GetAttendanceDetailAsync_ReturnsNotFound_WhenOccurrenceNotInGroup()
+    {
+        // Arrange — occurrence belongs to group 2, but we query against group 1
+        var group1 = await _context.Groups.FindAsync(1);
+        var occurrence = new AttendanceOccurrence
+        {
+            Id = 102,
+            GroupId = 2, // Belongs to group 2
+            OccurrenceDate = new DateOnly(2024, 3, 10),
+            SundayDate = new DateOnly(2024, 3, 10)
+        };
+        _context.AttendanceOccurrences.Add(occurrence);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _service.GetAttendanceDetailAsync(group1!.IdKey, occurrence.IdKey);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Code.Should().Be("NOT_FOUND");
+    }
+
     public void Dispose()
     {
         _context.Database.EnsureDeleted();

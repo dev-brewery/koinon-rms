@@ -62,6 +62,14 @@ public interface IFamilyService
         CancellationToken ct = default);
 
     /// <summary>
+    /// Updates basic details (name, campus) for a family.
+    /// </summary>
+    Task<Result<FamilyDto>> UpdateFamilyAsync(
+        string idKey,
+        UpdateFamilyRequest request,
+        CancellationToken ct = default);
+
+    /// <summary>
     /// Updates the address for a family.
     /// </summary>
     Task<Result<FamilyDto>> UpdateAddressAsync(

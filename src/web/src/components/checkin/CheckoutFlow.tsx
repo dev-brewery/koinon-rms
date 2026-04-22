@@ -93,7 +93,7 @@ export function CheckoutFlow({ currentAttendance, onCheckout }: CheckoutFlowProp
         <div>
           <h3 className="text-2xl font-bold text-gray-900 mb-2">Checkout</h3>
           <p className="text-gray-600">
-            Select a person to check out. Security code verification required.
+            Select a person to check out. Code verification required.
           </p>
         </div>
 
@@ -124,6 +124,11 @@ export function CheckoutFlow({ currentAttendance, onCheckout }: CheckoutFlowProp
                   ? 'No matching check-ins found'
                   : 'No one is currently checked in'}
               </p>
+              {!searchQuery && (
+                <p className="text-gray-500 text-sm mt-2">
+                  When families check in, you can verify a security code to check them out.
+                </p>
+              )}
             </div>
           ) : (
             <div className="space-y-3">
@@ -178,7 +183,7 @@ export function CheckoutFlow({ currentAttendance, onCheckout }: CheckoutFlowProp
             <div className="flex-1">
               <p className="text-sm text-blue-900 font-medium">Checkout Process</p>
               <p className="text-sm text-blue-800 mt-1">
-                Select a person to check out, then verify the security code from their label.
+                Select a person to check out, then verify the code from their label.
                 All checkouts are timestamped and logged for audit purposes.
               </p>
             </div>

@@ -131,6 +131,13 @@ public class CommunicationService(
                 Error.UnprocessableEntity("Cannot specify more than 50 groups"));
         }
 
+        // Validate individual person count before decode
+        if (dto.PersonIdKeys.Count > 200)
+        {
+            return Result<CommunicationDto>.Failure(
+                Error.UnprocessableEntity("Cannot add more than 200 individual recipients"));
+        }
+
         // Decode group IdKeys
         var groupIds = new List<int>();
         foreach (var groupIdKey in dto.GroupIdKeys)
@@ -150,12 +157,45 @@ public class CommunicationService(
             return Result<CommunicationDto>.Failure(authResult.Error!);
         }
 
+        // Decode individual person IdKeys
+        var individualPersonIds = new List<int>();
+        foreach (var personIdKey in dto.PersonIdKeys)
+        {
+            if (!IdKeyHelper.TryDecode(personIdKey, out int personId))
+            {
+                return Result<CommunicationDto>.Failure(
+                    Error.NotFound("Person", personIdKey));
+            }
+            individualPersonIds.Add(personId);
+        }
+
         // Get recipients from groups
-        var recipients = await ResolveRecipientsAsync(groupIds, communicationType, ct);
+        var groupRecipients = await ResolveRecipientsAsync(groupIds, communicationType, ct);
+
+        // Get recipients from individual persons, excluding those already covered by group recipients.
+        // Group entry wins on duplicate PersonId to preserve GroupId association.
+        var groupRecipientPersonIds = new HashSet<int>();
+        foreach (var r in groupRecipients)
+        {
+            groupRecipientPersonIds.Add(r.PersonId);
+        }
+
+        var individualRecipients = individualPersonIds.Count > 0
+            ? await ResolveIndividualRecipientsAsync(
+                individualPersonIds,
+                groupRecipientPersonIds,
+                communicationType,
+                ct)
+            : new List<CommunicationRecipient>();
+
+        var recipients = new List<CommunicationRecipient>(groupRecipients.Count + individualRecipients.Count);
+        recipients.AddRange(groupRecipients);
+        recipients.AddRange(individualRecipients);
+
         if (recipients.Count == 0)
         {
             return Result<CommunicationDto>.Failure(
-                new Error("NO_RECIPIENTS", "No active members found in the specified groups"));
+                new Error("NO_RECIPIENTS", "No active members found in the specified groups or individuals"));
         }
 
         // Get PersonAliasId for audit trail
@@ -786,6 +826,106 @@ public class CommunicationService(
                 "Filtered {FilteredCount} opted-out recipients from {TotalCount} potential recipients",
                 filteredCount,
                 personLookup.Count);
+        }
+
+        return recipients;
+    }
+
+    /// <summary>
+    /// Resolves individual person recipients by PersonId, skipping any already covered by group recipients.
+    /// Applies the same opt-out filtering and contact-address resolution as ResolveRecipientsAsync.
+    /// </summary>
+    private async Task<List<CommunicationRecipient>> ResolveIndividualRecipientsAsync(
+        List<int> personIds,
+        HashSet<int> excludePersonIds,
+        CommunicationType communicationType,
+        CancellationToken ct)
+    {
+        // Filter out IDs already covered by group recipients before hitting the DB
+        var filteredIds = new List<int>(personIds.Count);
+        foreach (var id in personIds)
+        {
+            if (!excludePersonIds.Contains(id))
+            {
+                filteredIds.Add(id);
+            }
+        }
+
+        if (filteredIds.Count == 0)
+        {
+            return [];
+        }
+
+        var persons = await context.People
+            .AsNoTracking()
+            .Include(p => p.PhoneNumbers)
+            .Where(p => filteredIds.Contains(p.Id))
+            .ToListAsync(ct);
+
+        // Batch opt-out check
+        var personIdList = new List<int>(persons.Count);
+        foreach (var p in persons)
+        {
+            personIdList.Add(p.Id);
+        }
+
+        var optedOutDictionary = await communicationPreferenceService.IsOptedOutBatchAsync(
+            personIdList,
+            communicationType,
+            ct);
+
+        var recipients = new List<CommunicationRecipient>(persons.Count);
+
+        foreach (var person in persons)
+        {
+            if (optedOutDictionary.TryGetValue(person.Id, out var isOptedOut) && isOptedOut)
+            {
+                logger.LogDebug(
+                    "Skipping opted-out individual person {PersonId} for {CommunicationType}",
+                    person.Id,
+                    communicationType);
+                continue;
+            }
+
+            string? address;
+            if (communicationType == CommunicationType.Email)
+            {
+                address = person.Email;
+            }
+            else
+            {
+                address = null;
+                foreach (var phone in person.PhoneNumbers)
+                {
+                    address = phone.Number;
+                    break;
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(address))
+            {
+                continue;
+            }
+
+            if (communicationType == CommunicationType.Email && !IsValidEmail(address))
+            {
+                logger.LogWarning(
+                    "Skipping invalid email address for individual person {PersonId}: {Email}",
+                    person.Id,
+                    address);
+                continue;
+            }
+
+            recipients.Add(new CommunicationRecipient
+            {
+                CommunicationId = 0, // Will be set by EF Core when added to communication
+                PersonId = person.Id,
+                Address = address,
+                RecipientName = $"{person.FirstName} {person.LastName}",
+                Status = CommunicationRecipientStatus.Pending,
+                GroupId = null, // Individual recipients have no group association
+                CreatedDateTime = DateTime.UtcNow
+            });
         }
 
         return recipients;

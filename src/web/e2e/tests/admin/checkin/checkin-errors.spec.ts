@@ -2,19 +2,121 @@
  * E2E Tests: Check-in Error Scenarios
  * Tests error handling for no family, duplicates, etc.
  *
- * ASSUMPTIONS:
- * - API returns 404 for non-existent families
- * - Duplicate check-in protection exists
- * - Error messages are user-friendly
- * - Errors don't crash the app
- * - Users can recover from errors
+ * All tests use API mocks so they run reliably without live backend data.
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import { CheckinPage } from '../../../fixtures/page-objects/checkin.page';
+import { testData } from '../../../fixtures/test-data';
+
+// ---------------------------------------------------------------------------
+// Shared mock data
+// ---------------------------------------------------------------------------
+
+const SMITH_FAMILY_ID = 'fam_smith_abc123';
+const PERSON_JOHNNY_ID = 'per_johnny_111';
+
+const smithSearchResponse = {
+  data: [
+    {
+      idKey: SMITH_FAMILY_ID,
+      name: testData.families.smith.name,
+      members: [
+        {
+          idKey: PERSON_JOHNNY_ID,
+          firstName: testData.people.johnnySmith.firstName,
+          lastName: testData.people.johnnySmith.lastName,
+          fullName: testData.people.johnnySmith.fullName,
+          age: testData.people.johnnySmith.age,
+          hasCriticalAllergies: false,
+        },
+      ],
+    },
+  ],
+};
+
+const opportunitiesResponse = {
+  data: {
+    family: smithSearchResponse.data[0],
+    opportunities: [
+      {
+        person: {
+          idKey: PERSON_JOHNNY_ID,
+          firstName: testData.people.johnnySmith.firstName,
+          lastName: testData.people.johnnySmith.lastName,
+          fullName: testData.people.johnnySmith.fullName,
+          age: testData.people.johnnySmith.age,
+          hasCriticalAllergies: false,
+        },
+        currentAttendance: [],
+        availableOptions: [
+          {
+            groupIdKey: 'grp_elementary_bbb',
+            groupName: testData.groups.elementary.name,
+            locations: [
+              {
+                locationIdKey: 'loc_room201_yyy',
+                locationName: 'Room 201',
+                currentCount: 5,
+                schedules: [
+                  {
+                    scheduleIdKey: 'sch_sun9am_zzz',
+                    scheduleName: testData.schedules.sunday9am.name,
+                    startTime: '2026-03-29T09:00:00Z',
+                    isSelected: true,
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+};
+
+const checkinSuccessResult = {
+  results: [
+    {
+      success: true,
+      attendanceIdKey: 'att_johnny_001',
+      person: {
+        idKey: PERSON_JOHNNY_ID,
+        fullName: testData.people.johnnySmith.fullName,
+        firstName: testData.people.johnnySmith.firstName,
+        lastName: testData.people.johnnySmith.lastName,
+      },
+      location: { idKey: 'loc_room201_yyy', name: 'Room 201', fullPath: 'Main > Room 201' },
+      securityCode: 'ABC123',
+      checkInTime: '2026-03-29T08:55:00Z',
+    },
+  ],
+  successCount: 1,
+  failureCount: 0,
+  allSucceeded: true,
+};
+
+/** Base mocks: configuration endpoint to prevent page from hanging */
+async function setupBaseMocks(page: Page) {
+  await page.route('**/api/v1/checkin/configuration**', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        data: {
+          campus: { idKey: 'campus1', name: 'Main Campus' },
+          areas: [],
+          activeSchedules: [],
+          serverTime: new Date().toISOString(),
+        },
+      }),
+    })
+  );
+}
 
 test.describe('Check-in Error Scenarios', () => {
   test.beforeEach(async ({ page }) => {
+    await setupBaseMocks(page);
     const checkin = new CheckinPage(page);
     await checkin.goto();
   });
@@ -22,7 +124,15 @@ test.describe('Check-in Error Scenarios', () => {
   test('should show error for non-existent phone number', async ({ page }) => {
     const checkin = new CheckinPage(page);
 
-    // Search for non-existent family
+    // Mock empty search result for non-existent phone
+    await page.route('**/api/v1/families/search*', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ data: [] }),
+      })
+    );
+
     await checkin.enterPhone('0000000000');
     await checkin.submitPhone();
 
@@ -39,7 +149,7 @@ test.describe('Check-in Error Scenarios', () => {
   test('should validate phone number format', async ({ page }) => {
     const checkin = new CheckinPage(page);
 
-    // Test invalid formats
+    // Test invalid formats — PhoneSearch validates 10+ digits client-side
     const invalidNumbers = ['123', '12345', 'abcdefghij', '555-123-456'];
 
     for (const invalid of invalidNumbers) {
@@ -58,6 +168,54 @@ test.describe('Check-in Error Scenarios', () => {
 
   test('should handle duplicate check-in attempt', async ({ page }) => {
     const checkin = new CheckinPage(page);
+    let checkinAttempt = 0;
+
+    // Full mocks with duplicate detection on second check-in
+    await page.route('**/api/v1/families/search*', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(smithSearchResponse),
+      })
+    );
+
+    await page.route('**/api/v1/checkin/opportunities/**', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(opportunitiesResponse),
+      })
+    );
+
+    await page.route('**/api/v1/checkin/attendance', (route) => {
+      checkinAttempt++;
+      if (checkinAttempt === 1) {
+        route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(checkinSuccessResult),
+        });
+      } else {
+        route.fulfill({
+          status: 409,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            error: {
+              code: 'ALREADY_CHECKED_IN',
+              message: 'Johnny Smith was already checked in at 8:55 AM',
+            },
+          }),
+        });
+      }
+    });
+
+    await page.route('**/api/v1/checkin/labels/**', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ data: [] }),
+      })
+    );
 
     // First check-in
     await checkin.searchByPhone('5551234567');
@@ -160,11 +318,13 @@ test.describe('Check-in Error Scenarios', () => {
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          family: {
-            idKey: 'ABC123',
-            name: 'Empty Family',
-          },
-          members: [], // No members
+          data: [
+            {
+              idKey: 'fam_empty_001',
+              name: 'Empty Family',
+              members: [],
+            },
+          ],
         }),
       })
     );
@@ -182,11 +342,27 @@ test.describe('Check-in Error Scenarios', () => {
     const checkin = new CheckinPage(page);
 
     // Allow search to succeed
+    await page.route('**/api/v1/families/search*', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(smithSearchResponse),
+      })
+    );
+
+    await page.route('**/api/v1/checkin/opportunities/**', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(opportunitiesResponse),
+      })
+    );
+
     await checkin.searchByPhone('5551234567');
     await checkin.selectMember(0);
 
     // Mock check-in failure
-    await page.route('**/api/v1/checkin', (route) =>
+    await page.route('**/api/v1/checkin/attendance', (route) =>
       route.fulfill({
         status: 500,
         contentType: 'application/json',
@@ -230,10 +406,26 @@ test.describe('Check-in Error Scenarios', () => {
   test('should handle member ineligible for check-in', async ({ page }) => {
     const checkin = new CheckinPage(page);
 
+    await page.route('**/api/v1/families/search*', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(smithSearchResponse),
+      })
+    );
+
+    await page.route('**/api/v1/checkin/opportunities/**', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(opportunitiesResponse),
+      })
+    );
+
     await checkin.searchByPhone('5551234567');
 
     // Mock member with ineligible status
-    await page.route('**/api/v1/checkin', (route) =>
+    await page.route('**/api/v1/checkin/attendance', (route) =>
       route.fulfill({
         status: 409,
         contentType: 'application/json',
@@ -255,6 +447,32 @@ test.describe('Check-in Error Scenarios', () => {
 
   test('should clear error on new search', async ({ page }) => {
     const checkin = new CheckinPage(page);
+
+    // Mock: empty for 0000000000, success for 5551234567
+    await page.route('**/api/v1/families/search*', (route) => {
+      const url = route.request().url();
+      if (url.includes('0000000000')) {
+        route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ data: [] }),
+        });
+      } else {
+        route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(smithSearchResponse),
+        });
+      }
+    });
+
+    await page.route('**/api/v1/checkin/opportunities/**', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(opportunitiesResponse),
+      })
+    );
 
     // Trigger error
     await checkin.enterPhone('0000000000');
@@ -284,9 +502,21 @@ test.describe('Check-in Error Scenarios', () => {
       if (attemptCount === 1) {
         route.abort('failed');
       } else {
-        route.continue();
+        route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(smithSearchResponse),
+        });
       }
     });
+
+    await page.route('**/api/v1/checkin/opportunities/**', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(opportunitiesResponse),
+      })
+    );
 
     await checkin.enterPhone('5551234567');
     await checkin.submitPhone();
@@ -305,7 +535,49 @@ test.describe('Check-in Error Scenarios', () => {
   test('@smoke should recover from all error types', async ({ page }) => {
     const checkin = new CheckinPage(page);
 
-    // Error 1: Invalid phone
+    // Set up conditional mocks
+    await page.route('**/api/v1/families/search*', (route) => {
+      const url = route.request().url();
+      if (url.includes('0000000000')) {
+        route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ data: [] }),
+        });
+      } else {
+        route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(smithSearchResponse),
+        });
+      }
+    });
+
+    await page.route('**/api/v1/checkin/opportunities/**', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(opportunitiesResponse),
+      })
+    );
+
+    await page.route('**/api/v1/checkin/attendance', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(checkinSuccessResult),
+      })
+    );
+
+    await page.route('**/api/v1/checkin/labels/**', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ data: [] }),
+      })
+    );
+
+    // Error 1: Invalid phone (client-side validation)
     await checkin.enterPhone('123');
     await checkin.submitPhone();
     await expect(page.getByText(/invalid/i)).toBeVisible();
@@ -331,9 +603,22 @@ test.describe('Check-in Error Scenarios', () => {
 });
 
 test.describe('Check-in Error Accessibility', () => {
+  test.beforeEach(async ({ page }) => {
+    await setupBaseMocks(page);
+  });
+
   test('should announce errors to screen readers', async ({ page }) => {
     const checkin = new CheckinPage(page);
 
+    await page.route('**/api/v1/families/search*', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ data: [] }),
+      })
+    );
+
+    await checkin.goto();
     await checkin.enterPhone('0000000000');
     await checkin.submitPhone();
 
@@ -341,14 +626,15 @@ test.describe('Check-in Error Accessibility', () => {
     const errorMessage = page.getByText(/not found/i);
     await expect(errorMessage).toBeVisible();
 
-    // Check for aria-live or role=alert
-    const liveRegion = page.locator('[role="alert"]').or(page.locator('[aria-live]'));
-    await expect(liveRegion).toContainText(/not found/i);
+    // Check for aria-live or role=alert containing the error text
+    const liveRegion = page.locator('[role="alert"]:has-text("not found"), [aria-live]:has-text("not found")').first();
+    await expect(liveRegion).toBeVisible();
   });
 
   test('should focus error message or input on error', async ({ page }) => {
     const checkin = new CheckinPage(page);
 
+    await checkin.goto();
     await checkin.enterPhone('123');
     await checkin.submitPhone();
 
@@ -359,6 +645,15 @@ test.describe('Check-in Error Accessibility', () => {
   test('should have proper ARIA labels on error elements', async ({ page }) => {
     const checkin = new CheckinPage(page);
 
+    await page.route('**/api/v1/families/search*', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ data: [] }),
+      })
+    );
+
+    await checkin.goto();
     await checkin.enterPhone('0000000000');
     await checkin.submitPhone();
 
@@ -376,6 +671,10 @@ test.describe('Check-in Error Accessibility', () => {
 });
 
 test.describe('Check-in Error Metrics', () => {
+  test.beforeEach(async ({ page }) => {
+    await setupBaseMocks(page);
+  });
+
   test('should log error for monitoring', async ({ page }) => {
     const checkin = new CheckinPage(page);
     const errors: string[] = [];
@@ -392,6 +691,7 @@ test.describe('Check-in Error Metrics', () => {
       route.abort('failed')
     );
 
+    await checkin.goto();
     await checkin.enterPhone('5551234567');
     await checkin.submitPhone();
 
@@ -402,6 +702,8 @@ test.describe('Check-in Error Metrics', () => {
 
   test('should track error metrics', async ({ page }) => {
     const checkin = new CheckinPage(page);
+
+    await checkin.goto();
 
     // Check if analytics/monitoring is tracking errors
     const metricsTracked = await page.evaluate(() => {

@@ -25,7 +25,6 @@ export function FamilyFormPage() {
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
   const [postalCode, setPostalCode] = useState('');
-  const [isDirty, setIsDirty] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -33,13 +32,12 @@ export function FamilyFormPage() {
       setName(family.name);
       setCampusId(family.campus?.idKey || '');
 
-      const primaryAddress = family.addresses.find((addr) => addr.isMailingAddress);
-      if (primaryAddress) {
-        setStreet1(primaryAddress.address.street1);
-        setStreet2(primaryAddress.address.street2 || '');
-        setCity(primaryAddress.address.city);
-        setState(primaryAddress.address.state);
-        setPostalCode(primaryAddress.address.postalCode);
+      if (family.address) {
+        setStreet1(family.address.street1 || '');
+        setStreet2(family.address.street2 || '');
+        setCity(family.address.city || '');
+        setState(family.address.state || '');
+        setPostalCode(family.address.postalCode || '');
       }
     }
   }, [family]);
@@ -141,14 +139,22 @@ export function FamilyFormPage() {
     }
   };
 
+  const isFormDirty = () => {
+    if (isEdit) {
+      return name !== (family?.name ?? '') ||
+        campusId !== (family?.campus?.idKey ?? '');
+    }
+    return name !== '' || campusId !== '' || street1 !== '' ||
+      street2 !== '' || city !== '' || state !== '' || postalCode !== '';
+  };
+
   const handleCancel = () => {
-    if (isDirty) {
+    if (isFormDirty()) {
       const confirmed = window.confirm(
         'You have unsaved changes. Are you sure you want to leave?'
       );
       if (!confirmed) return;
     }
-
     if (isEdit && idKey) {
       navigate(`/admin/families/${idKey}`);
     } else {
@@ -160,7 +166,6 @@ export function FamilyFormPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     setter(e.target.value);
-    setIsDirty(true);
   };
 
   if (isEdit && isLoadingFamily) {
@@ -183,7 +188,7 @@ export function FamilyFormPage() {
         <button
           onClick={handleCancel}
           className="text-gray-400 hover:text-gray-600"
-          aria-label="Cancel"
+          aria-label="Go back"
         >
           <svg
             className="w-6 h-6"
@@ -206,7 +211,7 @@ export function FamilyFormPage() {
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} noValidate className="space-y-6">
         {/* Basic Info */}
         <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">Basic Information</h2>
@@ -356,7 +361,7 @@ export function FamilyFormPage() {
           </button>
           <button
             type="submit"
-            disabled={isSubmitting || !name.trim()}
+            disabled={isSubmitting}
             className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isSubmitting ? 'Saving...' : isEdit ? 'Save Changes' : 'Create Family'}

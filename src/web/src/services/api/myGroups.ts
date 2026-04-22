@@ -15,7 +15,8 @@ import type {
  * Get all groups where current user is a leader
  */
 export async function getMyGroups(): Promise<MyGroupDto[]> {
-  return await get<MyGroupDto[]>('/my-groups');
+  const response = await get<{ data: MyGroupDto[] }>('/my-groups');
+  return response.data;
 }
 
 /**
@@ -24,9 +25,10 @@ export async function getMyGroups(): Promise<MyGroupDto[]> {
 export async function getMyGroupMembers(
   groupIdKey: string
 ): Promise<MyGroupMemberDetailDto[]> {
-  return await get<MyGroupMemberDetailDto[]>(
+  const response = await get<{ data: MyGroupMemberDetailDto[] }>(
     `/my-groups/${groupIdKey}/members`
   );
+  return response.data;
 }
 
 /**
@@ -37,10 +39,11 @@ export async function updateGroupMember(
   memberIdKey: string,
   request: UpdateGroupMemberRequest
 ): Promise<MyGroupMemberDetailDto> {
-  return await put<MyGroupMemberDetailDto>(
+  const response = await put<{ data: MyGroupMemberDetailDto }>(
     `/my-groups/${groupIdKey}/members/${memberIdKey}`,
     request
   );
+  return response.data;
 }
 
 /**

@@ -72,7 +72,7 @@ export function SupervisorMode({
           <p className="text-gray-600">Logged in as {supervisor.fullName}</p>
         </div>
         <Button onClick={onExit} variant="secondary" size="lg">
-          Exit Supervisor Mode
+          Exit Supervisor
         </Button>
       </div>
 
@@ -210,7 +210,7 @@ export function SupervisorMode({
           )}
 
           <Card className="p-6">
-            <h3 className="text-xl font-semibold mb-4 text-gray-900">Page Parent</h3>
+            <h3 className="text-xl font-semibold mb-4 text-gray-900">Paging</h3>
             <p className="text-gray-600 mb-6">
               Search for a pager by number or child name to send an SMS notification to
               the parent.

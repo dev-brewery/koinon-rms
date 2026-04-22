@@ -28,7 +28,7 @@ export async function searchPeople(
 ): Promise<PagedResult<PersonSummaryDto>> {
   const queryParams = new URLSearchParams();
 
-  if (params.q) queryParams.set('q', params.q);
+  if (params.q) queryParams.set('query', params.q);
   if (params.firstName) queryParams.set('firstName', params.firstName);
   if (params.lastName) queryParams.set('lastName', params.lastName);
   if (params.email) queryParams.set('email', params.email);
@@ -139,8 +139,17 @@ export async function getPersonGivingSummary(
  * Get notes for a person
  */
 export async function getPersonNotes(personIdKey: string): Promise<PersonNoteDto[]> {
-  const response = await get<{ data: PersonNoteDto[] }>(`/people/${personIdKey}/notes`);
-  return response.data;
+  const response = await get<{ data: PersonNoteDto[] | { data: PersonNoteDto[] } }>(`/people/${personIdKey}/notes`);
+  // Handle both flat array and paginated (PagedResult) response formats
+  const data = response.data;
+  if (Array.isArray(data)) {
+    return data;
+  }
+  // PagedResult format: { data: [...], meta: { ... } }
+  if (data && typeof data === 'object' && 'data' in data && Array.isArray((data as { data: PersonNoteDto[] }).data)) {
+    return (data as { data: PersonNoteDto[] }).data;
+  }
+  return [];
 }
 
 /**

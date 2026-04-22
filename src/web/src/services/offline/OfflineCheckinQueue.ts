@@ -8,8 +8,8 @@ import type { CheckinRequestItem, BatchCheckinResultDto } from '@/services/api/t
 import { recordAttendance } from '@/services/api/checkin';
 import { ApiClientError } from '@/services/api/client';
 
-const DB_NAME = 'koinon-checkin-offline';
-const STORE_NAME = 'queue';
+const DB_NAME = 'checkin-queue';
+const STORE_NAME = 'pending';
 const DB_VERSION = 1;
 
 export type QueueStatus = 'pending' | 'syncing' | 'failed' | 'success';
@@ -38,6 +38,7 @@ export interface SyncResult {
  */
 class OfflineCheckinQueue {
   private db: IDBPDatabase | null = null;
+  private destroyed = false;
   private maxAttempts = 3;
   private maxQueueSize = 100; // Prevent unbounded growth
   private backoffDelays = [1000, 2000, 4000]; // Exponential backoff: 1s, 2s, 4s
@@ -47,6 +48,9 @@ class OfflineCheckinQueue {
    * Initialize IndexedDB connection
    */
   private async getDB(): Promise<IDBPDatabase> {
+    if (this.destroyed) {
+      throw new Error('OfflineCheckinQueue has been closed');
+    }
     if (this.db) {
       return this.db;
     }
@@ -261,6 +265,17 @@ class OfflineCheckinQueue {
   async clearQueue(): Promise<void> {
     const db = await this.getDB();
     await db.clear(STORE_NAME);
+  }
+
+  /**
+   * Close the database connection and prevent re-creation (required before deleteDatabase)
+   */
+  close(): void {
+    this.destroyed = true;
+    if (this.db) {
+      this.db.close();
+      this.db = null;
+    }
   }
 
   /**

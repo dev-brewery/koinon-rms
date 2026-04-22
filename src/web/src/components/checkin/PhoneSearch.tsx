@@ -1,34 +1,68 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 
 export interface PhoneSearchProps {
   onSearch: (phone: string) => void;
   loading?: boolean;
+  onInputChange?: (hasInput: boolean) => void;
+  externalErrorId?: string;
 }
 
 /**
  * Phone number entry with large numpad for kiosk
  */
-export function PhoneSearch({ onSearch, loading }: PhoneSearchProps) {
+export function PhoneSearch({ onSearch, loading, onInputChange, externalErrorId }: PhoneSearchProps) {
   const [phone, setPhone] = useState('');
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-focus the hidden input on mount
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
 
   const handleDigit = (digit: string) => {
     if (phone.length < 10) {
-      setPhone(phone + digit);
+      const newPhone = phone + digit;
+      setPhone(newPhone);
+      onInputChange?.(newPhone.length > 0);
     }
   };
 
   const handleClear = () => {
     setPhone('');
+    onInputChange?.(false);
   };
 
   const handleBackspace = () => {
-    setPhone(phone.slice(0, -1));
+    const newPhone = phone.slice(0, -1);
+    setPhone(newPhone);
+    onInputChange?.(newPhone.length > 0);
   };
 
   const handleSearch = () => {
-    if (phone.length >= 4) {
-      onSearch(phone);
+    if (phone.length < 10) {
+      setValidationError('Invalid phone number — please enter at least 10 digits');
+      // Keep focus on phone input for accessibility
+      inputRef.current?.focus();
+      return;
+    }
+    setValidationError(null);
+    onSearch(phone);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value;
+    const digits = rawValue.replace(/\D/g, '').slice(0, 10);
+    setPhone(digits);
+    // Signal input activity based on raw value so non-digit input
+    // still hides the search-mode toggles (strict-mode safe)
+    onInputChange?.(rawValue.length > 0);
+  };
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearch();
     }
   };
 
@@ -53,7 +87,21 @@ export function PhoneSearch({ onSearch, loading }: PhoneSearchProps) {
 
         {/* Phone Display */}
         <div className="mb-8">
-          <div className="bg-gray-100 rounded-lg p-6 text-center">
+          <div className="bg-gray-100 rounded-lg p-6 text-center relative">
+            <input
+              ref={inputRef}
+              data-testid="phone-input"
+              type="tel"
+              inputMode="numeric"
+              value={phone}
+              onChange={handleInputChange}
+              onKeyDown={handleInputKeyDown}
+              maxLength={10}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-default"
+              aria-label="Phone number"
+              aria-describedby={validationError ? 'phone-validation-error' : externalErrorId || undefined}
+              autoFocus
+            />
             <p className="text-4xl font-mono font-bold text-gray-900 min-h-[3rem]">
               {phone ? formatPhone(phone) : '\u00A0'}
             </p>
@@ -91,19 +139,29 @@ export function PhoneSearch({ onSearch, loading }: PhoneSearchProps) {
 
         {/* Search Button */}
         <Button
+          data-testid="search-submit"
           onClick={handleSearch}
-          disabled={phone.length < 4}
           loading={loading}
+          disabled={loading}
           size="lg"
           className="w-full text-xl"
         >
           Search
         </Button>
 
+        {/* Validation Error */}
+        {validationError && (
+          <p id="phone-validation-error" className="text-center text-sm text-red-600 mt-4" role="alert">
+            {validationError}
+          </p>
+        )}
+
         {/* Helper Text */}
-        <p className="text-center text-sm text-gray-500 mt-4">
-          Enter at least 4 digits to search
-        </p>
+        {!validationError && (
+          <p className="text-center text-sm text-gray-500 mt-4">
+            Enter at least 10 digits to search
+          </p>
+        )}
       </div>
     </div>
   );

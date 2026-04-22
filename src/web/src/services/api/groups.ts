@@ -15,6 +15,8 @@ import type {
   UpdateGroupRequest,
   GroupScheduleDto,
   AddGroupScheduleRequest,
+  GroupAttendanceOccurrenceDto,
+  GroupAttendanceDetailDto,
 } from './types';
 
 /**
@@ -25,7 +27,7 @@ export async function searchGroups(
 ): Promise<PagedResult<GroupSummaryDto>> {
   const queryParams = new URLSearchParams();
 
-  if (params.q) queryParams.set('q', params.q);
+  if (params.q) queryParams.set('query', params.q);
   if (params.groupTypeId) queryParams.set('groupTypeId', params.groupTypeId);
   if (params.parentGroupId) queryParams.set('parentGroupId', params.parentGroupId);
   if (params.campusId) queryParams.set('campusId', params.campusId);
@@ -130,7 +132,8 @@ export async function getChildGroups(idKey: string): Promise<PagedResult<GroupSu
  * Get schedules for a group
  */
 export async function getGroupSchedules(groupIdKey: string): Promise<GroupScheduleDto[]> {
-  return get<GroupScheduleDto[]>(`/groups/${groupIdKey}/schedules`);
+  const response = await get<{ data: GroupScheduleDto[] }>(`/groups/${groupIdKey}/schedules`);
+  return response.data;
 }
 
 /**
@@ -140,7 +143,8 @@ export async function addGroupSchedule(
   groupIdKey: string,
   request: AddGroupScheduleRequest
 ): Promise<GroupScheduleDto> {
-  return post<GroupScheduleDto>(`/groups/${groupIdKey}/schedules`, request);
+  const response = await post<{ data: GroupScheduleDto }>(`/groups/${groupIdKey}/schedules`, request);
+  return response.data;
 }
 
 /**
@@ -151,4 +155,26 @@ export async function removeGroupSchedule(
   scheduleIdKey: string
 ): Promise<void> {
   await del<void>(`/groups/${groupIdKey}/schedules/${scheduleIdKey}`);
+}
+
+/**
+ * Get attendance history for a group (paginated list of occurrences)
+ */
+export async function getGroupAttendanceHistory(
+  groupIdKey: string
+): Promise<PagedResult<GroupAttendanceOccurrenceDto>> {
+  return get<PagedResult<GroupAttendanceOccurrenceDto>>(`/groups/${groupIdKey}/attendance`);
+}
+
+/**
+ * Get attendance detail for a specific occurrence
+ */
+export async function getGroupAttendanceDetail(
+  groupIdKey: string,
+  occurrenceIdKey: string
+): Promise<GroupAttendanceDetailDto[]> {
+  const response = await get<{ data: GroupAttendanceDetailDto[] }>(
+    `/groups/${groupIdKey}/attendance/${occurrenceIdKey}`
+  );
+  return response.data;
 }

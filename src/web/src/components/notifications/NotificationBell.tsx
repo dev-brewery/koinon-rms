@@ -54,13 +54,16 @@ export function NotificationBell() {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <button
+      <div
+        role="button"
+        tabIndex={0}
         onClick={() => setIsOpen(!isOpen)}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsOpen(!isOpen); } }}
         aria-label={hasUnread ? `${unreadCount} unread notifications` : 'Notifications'}
         aria-haspopup="true"
         aria-expanded={isOpen}
         className={cn(
-          'relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors',
+          'relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer',
           isOpen && 'bg-gray-100 text-gray-700'
         )}
       >
@@ -79,7 +82,7 @@ export function NotificationBell() {
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
-      </button>
+      </div>
 
       {/* Dropdown */}
       {isOpen && (

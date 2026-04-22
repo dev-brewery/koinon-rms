@@ -38,6 +38,9 @@ public class FamilyConfiguration : IEntityTypeConfiguration<Family>
         builder.Property(f => f.CampusId)
             .HasColumnName("campus_id");
 
+        builder.Property(f => f.LocationId)
+            .HasColumnName("location_id");
+
         builder.Property(f => f.IsActive)
             .HasColumnName("is_active")
             .IsRequired()
@@ -62,6 +65,11 @@ public class FamilyConfiguration : IEntityTypeConfiguration<Family>
             .WithMany()
             .HasForeignKey(f => f.CampusId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(f => f.Location)
+            .WithMany()
+            .HasForeignKey(f => f.LocationId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasMany(f => f.Members)
             .WithOne(fm => fm.Family)

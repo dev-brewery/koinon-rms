@@ -137,7 +137,7 @@ export function ConfirmDialog({
       role="dialog"
     >
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/50 transition-opacity" aria-hidden="true" />
+      <div className="absolute inset-0 bg-black/50 transition-opacity" aria-hidden="true" />
 
       {/* Dialog */}
       <div

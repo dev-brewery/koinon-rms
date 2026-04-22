@@ -3,18 +3,51 @@
  * Displays family information with members and address
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useFamily, useRemoveFamilyMember, useAddFamilyMember } from '@/hooks/useFamilies';
+import { useFamily, useFamilies, useRemoveFamilyMember, useAddFamilyMember } from '@/hooks/useFamilies';
+import { useGroupTypes, useGroupType } from '@/hooks/useGroupTypes';
 import { FamilyMemberCard } from '@/components/admin/families/FamilyMemberCard';
 import { AddMemberModal } from '@/components/admin/families/AddMemberModal';
 
+/**
+ * Check if a URL param looks like a family name rather than a valid IdKey.
+ * IdKeys are URL-safe Base64 strings (alphanumeric, -, _, =).
+ * Names typically contain spaces or are multi-word.
+ */
+function looksLikeName(param: string): boolean {
+  return /\s/.test(decodeURIComponent(param));
+}
+
 export function FamilyDetailPage() {
-  const { idKey } = useParams<{ idKey: string }>();
+  const { idKey: urlParam } = useParams<{ idKey: string }>();
   const navigate = useNavigate();
-  const { data: family, isLoading, error } = useFamily(idKey);
+
+  // If the URL param looks like a name, search for it and redirect to the real idKey
+  const isNameLookup = urlParam ? looksLikeName(urlParam) : false;
+  const decodedName = urlParam ? decodeURIComponent(urlParam) : '';
+  const nameSearch = useFamilies(isNameLookup ? { q: decodedName } : {});
+
+  // Redirect to the real idKey when name search resolves
+  useEffect(() => {
+    if (isNameLookup && nameSearch.data?.data) {
+      const match = nameSearch.data.data.find(
+        (f) => f.name.toLowerCase() === decodedName.toLowerCase()
+      );
+      if (match) {
+        navigate(`/admin/families/${match.idKey}`, { replace: true });
+      }
+    }
+  }, [isNameLookup, nameSearch.data, decodedName, navigate]);
+
+  const idKey = isNameLookup ? undefined : urlParam;
+  const { data: family, isLoading: isFamilyLoading, error } = useFamily(idKey);
   const removeMember = useRemoveFamilyMember();
   const addMember = useAddFamilyMember();
+  const { data: groupTypes } = useGroupTypes();
+  const familyGroupTypeIdKey = groupTypes?.find(gt => gt.name.toLowerCase() === 'family')?.idKey;
+  // Fetch family group type to get available roles for member assignment
+  useGroupType(familyGroupTypeIdKey);
 
   const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
   const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
@@ -55,6 +88,8 @@ export function FamilyDetailPage() {
       // Error handling via toast/notification could go here
     }
   };
+
+  const isLoading = isFamilyLoading || isNameLookup;
 
   if (isLoading) {
     return (
@@ -100,7 +135,7 @@ export function FamilyDetailPage() {
     );
   }
 
-  const primaryAddress = family.addresses.find((addr) => addr.isMailingAddress);
+  const primaryAddress = family.address;
 
   // Get role IDs from existing family members (if available) or use first member's role
   const adultRoleId = family.members.find(m => m.role.name.toLowerCase() === 'adult')?.role.idKey || '';
@@ -180,7 +215,7 @@ export function FamilyDetailPage() {
               />
             </svg>
             <address className="not-italic whitespace-pre-line">
-              {primaryAddress.address.formattedAddress}
+              {primaryAddress.formattedAddress}
             </address>
           </div>
         </div>
@@ -189,9 +224,16 @@ export function FamilyDetailPage() {
       {/* Members Section */}
       <div className="bg-white rounded-lg border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Family Members ({family.members.length})
-          </h2>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">
+              Family Members ({family.members.length})
+            </h2>
+            {family.members.length > 0 && (
+              <p className="text-sm text-gray-500 mt-0.5">
+                {family.members.length} {family.members.length === 1 ? 'member' : 'members'}
+              </p>
+            )}
+          </div>
           <button
             onClick={() => setIsAddMemberModalOpen(true)}
             className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
@@ -226,14 +268,18 @@ export function FamilyDetailPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {family.members.map((member) => (
-              <FamilyMemberCard
-                key={member.person.idKey}
-                member={member}
-                onRemove={() => handleRemoveMember(member.person.idKey)}
-                readOnly={removingMemberId === member.person.idKey}
-              />
-            ))}
+            {(() => {
+              const uniqueRoles = [...new Set(family.members.map(m => m.role.name))];
+              return family.members.map((member, index) => (
+                <FamilyMemberCard
+                  key={member.person.idKey}
+                  member={member}
+                  onRemove={() => handleRemoveMember(member.person.idKey)}
+                  readOnly={removingMemberId === member.person.idKey}
+                  familyRoles={index === 0 ? uniqueRoles : undefined}
+                />
+              ));
+            })()}
           </div>
         )}
       </div>

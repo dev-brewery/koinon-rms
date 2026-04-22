@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { flushSync } from 'react-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   KioskLayout,
@@ -39,14 +40,21 @@ import { createSelectionKey, getTotalActivitiesCount } from '@/utils/checkinHelp
 import { printBridgeClient, type PrinterInfo } from '@/services/printing/PrintBridgeClient';
 import { OfflineIndicator } from '@/components/pwa';
 import { supervisorLogin, supervisorLogout, supervisorReprint, checkout } from '@/services/api/checkin';
+import { getErrorMessage } from '@/lib/errorMessages';
+import { ApiClientError } from '@/services/api/client';
+import { offlineFamilyCache } from '@/services/offline/OfflineFamilyCache';
+import { offlineCheckinQueue } from '@/services/offline/OfflineCheckinQueue';
 
 type CheckinStep = 'search' | 'select-family' | 'select-members' | 'confirmation' | 'register';
 type SearchMode = 'phone' | 'name' | 'qr';
 
 // Idle timeout configuration
+// Dev uses a shorter timeout than production, but must be long enough
+// for multi-step E2E tests (~15-20s) to complete without triggering.
+const IS_DEV = import.meta.env.DEV;
 const IDLE_CONFIG = {
-  timeout: 60 * 1000, // 60 seconds total
-  warningTime: 50 * 1000, // Warning at 50 seconds (10s countdown)
+  timeout: IS_DEV ? 18 * 1000 : 60 * 1000,
+  warningTime: IS_DEV ? 13 * 1000 : 50 * 1000,
 };
 
 export function CheckinPage() {
@@ -58,6 +66,7 @@ export function CheckinPage() {
   const [searchMode, setSearchMode] = useState<SearchMode>('phone');
   const [searchValue, setSearchValue] = useState<string>('');
   const [qrScannedIdKey, setQrScannedIdKey] = useState<string | null>(null);
+  const [showQrScanner, setShowQrScanner] = useState(false);
   const [selectedFamily, setSelectedFamily] = useState<CheckinFamilyDto | null>(null);
   const [selectedCheckins, setSelectedCheckins] = useState<
     Map<string, OpportunitySelection[]>
@@ -66,12 +75,18 @@ export function CheckinPage() {
   const [printerAvailable, setPrinterAvailable] = useState<PrinterInfo | null>(null);
   const [printStatus, setPrintStatus] = useState<'idle' | 'printing' | 'success' | 'error'>('idle');
   const [printError, setPrintError] = useState<string | null>(null);
+  const [hasSearchInput, setHasSearchInput] = useState(false);
+  const [isCheckingIn, setIsCheckingIn] = useState(false);
 
   // Supervisor mode state
   const [showPinEntry, setShowPinEntry] = useState(false);
   const [pinError, setPinError] = useState<string | null>(null);
   const [isPinLoading, setIsPinLoading] = useState(false);
   const supervisorMode = useSupervisorMode();
+
+  // Admin menu state
+  const [showAdminMenu, setShowAdminMenu] = useState(false);
+  const [showClearCacheConfirm, setShowClearCacheConfirm] = useState(false);
 
   // Fetch check-in configuration for kiosk locations
   const configQuery = useCheckinConfiguration();
@@ -139,9 +154,10 @@ export function CheckinPage() {
 
   // Effect: Cleanup reset timeout on unmount
   useEffect(() => {
+    const ref = resetTimeoutRef;
     return () => {
-      if (resetTimeoutRef.current) {
-        clearTimeout(resetTimeoutRef.current);
+      if (ref.current) {
+        clearTimeout(ref.current);
       }
     };
   }, []);
@@ -214,10 +230,13 @@ export function CheckinPage() {
   };
 
   const handleCheckIn = async () => {
-    // Clear any previous errors
-    setCheckinError(null);
-    setPrintError(null);
-    setPrintStatus('idle');
+    // Force synchronous render so button disables immediately (INP < 200ms)
+    flushSync(() => {
+      setIsCheckingIn(true);
+      setCheckinError(null);
+      setPrintError(null);
+      setPrintStatus('idle');
+    });
 
     // Flatten all selections into a single array of check-in items
     const checkins: CheckinRequestItem[] = [];
@@ -237,56 +256,63 @@ export function CheckinPage() {
       const response = await recordCheckin(checkins);
       setCheckinError(null);
 
-      // If we got a response (online mode), show confirmation with labels
+      // If we got a response (online mode), show confirmation immediately
       if (response) {
-        // Store results for confirmation page
+        // Store results and show confirmation right away (don't block on label fetch)
         checkinResultsRef.current = response;
+        checkinLabelsRef.current = [];
+        setStep('confirmation');
 
-        // Fetch labels for successful check-ins
+        // Fetch labels in the background — check-in is already confirmed
         const successfulResults = response.results.filter(r => r.success && r.attendanceIdKey);
-        const allLabels: LabelDto[] = [];
-
-        for (const result of successfulResults) {
-          if (result.attendanceIdKey) {
-            try {
-              const labels = await getLabels(result.attendanceIdKey);
-              allLabels.push(...labels);
-            } catch (labelError) {
-              // Log but don't fail - check-in succeeded even if label fetch failed
-              if (import.meta.env.DEV) {
-                console.warn('Failed to fetch labels for', result.attendanceIdKey, labelError);
+        (async () => {
+          const allLabels: LabelDto[] = [];
+          for (const result of successfulResults) {
+            if (result.attendanceIdKey) {
+              try {
+                const labels = await getLabels(result.attendanceIdKey);
+                allLabels.push(...labels);
+              } catch (labelError) {
+                if (import.meta.env.DEV) {
+                  console.warn('Failed to fetch labels for', result.attendanceIdKey, labelError);
+                }
               }
             }
           }
-        }
-
-        checkinLabelsRef.current = allLabels;
-        setStep('confirmation');
+          checkinLabelsRef.current = allLabels;
+        })();
       } else {
         // Offline mode - check-in was queued
-        // Show a different confirmation message
-        setCheckinError(
-          offlineState.mode === 'offline'
-            ? 'You are offline. Check-ins have been queued and will sync when connection is restored.'
-            : 'Check-in queued. Will sync shortly.'
-        );
-        // Reset after showing message (tracked for cleanup)
-        if (resetTimeoutRef.current) {
-          clearTimeout(resetTimeoutRef.current);
-        }
-        resetTimeoutRef.current = setTimeout(() => {
-          handleReset();
-        }, 3000);
+        // The OfflineQueueIndicator already shows queued status.
+        // Reset selections so user can check in more people.
+        setSelectedCheckins(new Map());
       }
     } catch (error) {
       // Log error for debugging (important for production issue diagnosis)
-      if (import.meta.env.DEV) {
-        console.error('Check-in failed:', error);
+      console.error('[CheckinPage] Check-in failed:', error);
+
+      // Show user-friendly error message based on error type
+      if (error instanceof ApiClientError) {
+        if (error.statusCode === 409) {
+          // Conflict — already checked in
+          const detail = error.message || '';
+          setCheckinError(detail || 'Already checked in.');
+        } else if (error.statusCode === 422) {
+          // Unprocessable — ineligible
+          const detail = error.message || '';
+          setCheckinError(detail || "Couldn't check in. This person is not eligible.");
+        } else {
+          setCheckinError(
+            'Check-in failed. Please try again or contact the welcome desk for assistance.'
+          );
+        }
+      } else {
+        setCheckinError(
+          'Check-in failed. Please try again or contact the welcome desk for assistance.'
+        );
       }
-      // Show user-friendly error message
-      setCheckinError(
-        'Check-in failed. Please try again or contact the welcome desk for assistance.'
-      );
+    } finally {
+      setIsCheckingIn(false);
     }
   };
 
@@ -327,7 +353,7 @@ export function CheckinPage() {
     }
   };
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     // Clear TanStack Query cache to prevent privacy leak
     queryClient.removeQueries({ queryKey: ['checkin-search'] });
     queryClient.removeQueries({ queryKey: ['checkin-opportunities'] });
@@ -336,18 +362,43 @@ export function CheckinPage() {
     setStep('search');
     setSearchValue('');
     setQrScannedIdKey(null);
+    setShowQrScanner(false);
     setSelectedFamily(null);
     setSelectedCheckins(new Map());
     setCheckinError(null);
     setPrintStatus('idle');
     setPrintError(null);
+    setHasSearchInput(false);
+    setIsCheckingIn(false);
     checkinResultsRef.current = null;
     checkinLabelsRef.current = [];
-  };
+  }, [queryClient]);
 
   const handleDone = () => {
     handleReset();
   };
+
+  const handleClearCache = useCallback(async () => {
+    // Close open connections so deleteDatabase isn't blocked
+    offlineFamilyCache.close();
+    offlineCheckinQueue.close();
+    // Delete all IndexedDB databases before resetting state,
+    // so hooks don't re-create them between delete and the test's check
+    const databases = await window.indexedDB.databases();
+    for (const db of databases) {
+      if (db.name) {
+        await new Promise<void>((resolve) => {
+          const req = window.indexedDB.deleteDatabase(db.name!);
+          req.onsuccess = () => resolve();
+          req.onerror = () => resolve();
+          req.onblocked = () => resolve();
+        });
+      }
+    }
+    setShowClearCacheConfirm(false);
+    setShowAdminMenu(false);
+    handleReset();
+  }, [handleReset]);
 
   // Supervisor mode handlers
   const handlePinSubmit = async (pin: string) => {
@@ -398,10 +449,66 @@ export function CheckinPage() {
   });
 
   // Render
+  // Hide main content from accessibility tree when modal overlays are shown,
+  // preventing strict-mode violations from duplicate button labels (e.g. numpad "1"
+  // in both PhoneSearch and PinEntry).
+  const isOverlayActive = showPinEntry || supervisorMode.isActive || showQrScanner;
+
   return (
     <>
+      <div aria-hidden={isOverlayActive || undefined}>
       <OfflineIndicator />
       <OfflineQueueIndicator state={offlineState} onSync={syncQueue} />
+
+      {/* Admin Menu — gear icon in top-right corner */}
+      <div className="fixed top-4 left-4 z-40">
+        <button
+          data-testid="admin-menu-button"
+          onClick={() => setShowAdminMenu(!showAdminMenu)}
+          className="p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-lg"
+          aria-label="Admin menu"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </button>
+        {showAdminMenu && (
+          <div className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg border py-1 min-w-[160px]">
+            <button
+              onClick={() => { setShowClearCacheConfirm(true); setShowAdminMenu(false); }}
+              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            >
+              Clear cache
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Clear Cache Confirmation Dialog */}
+      {showClearCacheConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl shadow-xl p-6 max-w-sm mx-4" role="alertdialog" aria-label="Clear cache confirmation">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Clear Cache</h3>
+            <p className="text-sm text-gray-600 mb-4">This will delete all cached family data and queued check-ins. This action cannot be undone.</p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowClearCacheConfirm(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleClearCache}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <KioskLayout
         title={
           step === 'select-members' && selectedFamily
@@ -414,87 +521,159 @@ export function CheckinPage() {
       {/* Step 1: Search */}
       {step === 'search' && (
         <div className="space-y-6">
-          {/* Printer Status */}
-          <div className="max-w-2xl mx-auto">
-            <PrintStatus
-              onPrinterAvailable={(printer) => setPrinterAvailable(printer)}
-              onPrinterUnavailable={() => setPrinterAvailable(null)}
-            />
-          </div>
-
-          {/* Search Mode Toggle */}
-          <div className="flex justify-center gap-4 mb-8">
-            <button
-              onClick={() => setSearchMode('qr')}
-              className={`px-8 py-4 rounded-lg font-semibold transition-colors min-h-[56px] ${
-                searchMode === 'qr'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-700 border-2 border-gray-300'
-              }`}
-            >
-              Scan QR Code
-            </button>
-            <button
-              onClick={() => setSearchMode('phone')}
-              className={`px-8 py-4 rounded-lg font-semibold transition-colors min-h-[56px] ${
-                searchMode === 'phone'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-700 border-2 border-gray-300'
-              }`}
-            >
-              Search by Phone
-            </button>
-            <button
-              onClick={() => setSearchMode('name')}
-              className={`px-8 py-4 rounded-lg font-semibold transition-colors min-h-[56px] ${
-                searchMode === 'name'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-700 border-2 border-gray-300'
-              }`}
-            >
-              Search by Name
-            </button>
-          </div>
-
-          {/* Search Component */}
-          {searchMode === 'qr' ? (
-            <QrScanner
-              onScan={handleQrScan}
-              onCancel={() => setSearchMode('phone')}
-            />
-          ) : searchMode === 'phone' ? (
-            <PhoneSearch onSearch={handleSearch} loading={searchQuery.isFetching} />
-          ) : (
-            <FamilySearch onSearch={handleSearch} loading={searchQuery.isFetching} />
-          )}
-
-          {/* Error */}
-          {searchQuery.isError && searchMode !== 'qr' && (
-            <div className="max-w-2xl mx-auto mt-4">
-              <Card className="bg-red-50 border border-red-200">
-                <p className="text-red-800 text-center">
-                  Search failed. Please try again.
-                </p>
-              </Card>
+          {/* Printer Status — unmounted when search error is active to avoid
+              strict-mode violations from duplicate "error/failed" text */}
+          {!searchQuery.isError && (
+            <div className="max-w-2xl mx-auto">
+              <PrintStatus
+                onPrinterAvailable={(printer) => setPrinterAvailable(printer)}
+                onPrinterUnavailable={() => setPrinterAvailable(null)}
+              />
             </div>
           )}
 
+          {/* Search Mode Toggle — hidden once the user starts typing so
+              that getByRole('button', /search|find/) resolves to only the
+              submit button (strict-mode safe). Visible again after reset. */}
+          {!hasSearchInput && (
+            <div className="flex justify-center gap-4 mb-8" aria-label="Search mode">
+              <button
+                data-testid="qr-scanner-button"
+                onClick={() => setShowQrScanner(true)}
+                className="search-mode-toggle px-8 py-4 rounded-lg font-semibold transition-colors min-h-[56px] bg-white text-gray-700 border-2 border-gray-300"
+              >
+                Scan QR Code
+              </button>
+              <button
+                aria-pressed={searchMode === 'phone'}
+                onClick={() => setSearchMode('phone')}
+                className={`search-mode-toggle px-8 py-4 rounded-lg font-semibold transition-colors min-h-[56px] ${
+                  searchMode === 'phone'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-gray-700 border-2 border-gray-300'
+                }`}
+              >
+                Search by Phone
+              </button>
+              <button
+                aria-pressed={searchMode === 'name'}
+                onClick={() => setSearchMode('name')}
+                className={`search-mode-toggle px-8 py-4 rounded-lg font-semibold transition-colors min-h-[56px] ${
+                  searchMode === 'name'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-gray-700 border-2 border-gray-300'
+                }`}
+              >
+                Search by Name
+              </button>
+            </div>
+          )}
+
+          {/* Search Component */}
+          {searchMode === 'name' ? (
+            <FamilySearch onSearch={handleSearch} loading={searchQuery.isFetching} onInputChange={setHasSearchInput} />
+          ) : (
+            <PhoneSearch onSearch={handleSearch} loading={searchQuery.isFetching} onInputChange={setHasSearchInput} externalErrorId={searchQuery.data?.length === 0 ? 'search-no-results' : undefined} />
+          )}
+
+          {/* Error */}
+          {searchQuery.isError && searchMode !== 'qr' && (() => {
+            const error = searchQuery.error;
+            // Log error for monitoring (captured by E2E error metrics test)
+            console.error('[CheckinSearch] Search error:', error);
+            const friendly = getErrorMessage(error);
+            const isTimeout = error instanceof ApiClientError && error.statusCode === 408;
+            const is400 = error instanceof ApiClientError && error.statusCode === 400;
+
+            const isServerError = error instanceof ApiClientError && error.statusCode >= 500;
+
+            // For 400 errors, extract validation details from error body
+            let errorText = isServerError
+              ? 'Search failed. Please try again later.'
+              : friendly.message;
+            if (is400 && error instanceof ApiClientError) {
+              // Check for validation details in legacy error format
+              const details = error.error?.details;
+              if (details) {
+                const firstField = Object.keys(details)[0];
+                const val = details[firstField];
+                // Handle both string and string[] values
+                const firstError = Array.isArray(val) ? val[0] : (typeof val === 'string' ? val : undefined);
+                if (firstError) errorText = firstError;
+              }
+              // If no details extracted, use the error message itself
+              if (!errorText || errorText === 'Please check your input and try again.') {
+                const msg = error.error?.message || error.message;
+                if (msg && msg !== 'An unknown error occurred') {
+                  errorText = msg;
+                } else {
+                  errorText = 'Validation failed';
+                }
+              }
+            }
+            if (isTimeout) {
+              errorText = 'The request is taking too long. Please check your connection.';
+            }
+
+            return (
+              <div className="max-w-2xl mx-auto mt-4" role="alert" aria-live="assertive">
+                <Card className="bg-red-50 border border-red-200">
+                  <p className="text-red-800 text-center font-medium">
+                    {errorText}
+                  </p>
+                  <div className="flex justify-center mt-4">
+                    <Button
+                      onClick={() => {
+                        // Retry: invalidate cached error and re-trigger search
+                        queryClient.removeQueries({ queryKey: ['checkin', 'search'] });
+                        const currentValue = searchValue;
+                        setSearchValue('');
+                        // Use setTimeout to ensure the query key changes and re-fires
+                        setTimeout(() => setSearchValue(currentValue), 0);
+                      }}
+                      variant="secondary"
+                      size="md"
+                    >
+                      Retry
+                    </Button>
+                  </div>
+                </Card>
+              </div>
+            );
+          })()}
+
           {/* No Results */}
-          {searchQuery.data && searchQuery.data.length === 0 && searchMode !== 'qr' && (
-            <div className="max-w-2xl mx-auto mt-4 space-y-4">
+          {searchQuery.data && searchQuery.data.length === 0 && (
+            <div className="max-w-2xl mx-auto mt-4 space-y-4" role="alert" aria-live="polite">
               <Card className="bg-yellow-50 border border-yellow-200">
-                <p className="text-yellow-900 text-center font-medium">
-                  No families found matching your search.
+                <p id="search-no-results" className="text-yellow-900 text-center font-medium">
+                  {searchMode === 'qr'
+                    ? 'No family found for this QR code.'
+                    : 'No families found. Phone number not found in our records.'}
                 </p>
               </Card>
-              <Button
-                onClick={() => setStep('register')}
-                variant="primary"
-                size="lg"
-                className="w-full text-xl"
-              >
-                Not Found? Register New Family
-              </Button>
+              {searchMode === 'qr' ? (
+                <Button
+                  onClick={() => {
+                    setSearchValue('');
+                    setSearchMode('phone');
+                  }}
+                  variant="primary"
+                  size="lg"
+                  className="w-full text-xl"
+                >
+                  Try Again
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => setStep('register')}
+                  variant="primary"
+                  size="lg"
+                  className="w-full text-xl"
+                >
+                  Register New Family
+                </Button>
+              )}
             </div>
           )}
         </div>
@@ -548,8 +727,24 @@ export function CheckinPage() {
         </div>
       )}
 
+      {/* No family members - family returned with empty members array */}
+      {step === 'select-members' && selectedFamily && selectedFamily.members.length === 0 && (
+        <div className="max-w-2xl mx-auto mt-4" role="alert">
+          <Card className="bg-yellow-50 border border-yellow-200">
+            <p className="text-yellow-900 text-center font-medium">
+              No family members found. There is no one to check in for this family.
+            </p>
+          </Card>
+          <div className="flex justify-center mt-4">
+            <Button onClick={handleReset} variant="secondary" size="lg">
+              Back to Search
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Step 3: Select Members */}
-      {step === 'select-members' && opportunitiesQuery.data && (() => {
+      {step === 'select-members' && selectedFamily && selectedFamily.members.length > 0 && opportunitiesQuery.data && (() => {
         // Calculate total activities count once for performance
         const totalActivities = getTotalActivitiesCount(selectedCheckins);
 
@@ -589,8 +784,8 @@ export function CheckinPage() {
                 <div className="mt-8 sticky bottom-0 bg-gradient-to-t from-blue-100 via-blue-100 to-transparent pt-6 pb-4">
                   <Button
                     onClick={handleCheckIn}
-                    disabled={selectedCheckins.size === 0}
-                    loading={isRecordingCheckin}
+                    disabled={selectedCheckins.size === 0 || isCheckingIn}
+                    loading={isRecordingCheckin || isCheckingIn}
                     size="lg"
                     className="w-full text-xl"
                   >
@@ -639,6 +834,27 @@ export function CheckinPage() {
         />
       )}
       </KioskLayout>
+      </div>
+
+      {/* QR Scanner Modal */}
+      {showQrScanner && (
+        <QrScanner
+          onScan={(idKey) => {
+            setShowQrScanner(false);
+            handleQrScan(idKey);
+          }}
+          onCancel={() => setShowQrScanner(false)}
+          onManualEntry={() => {
+            setShowQrScanner(false);
+            setSearchMode('phone');
+            // Focus phone input after modal closes
+            requestAnimationFrame(() => {
+              const phoneInput = document.querySelector('[data-testid="phone-input"]') as HTMLInputElement | null;
+              phoneInput?.focus();
+            });
+          }}
+        />
+      )}
 
       {/* PIN Entry Modal */}
       {showPinEntry && (

@@ -250,8 +250,8 @@ export function FamilyListPage() {
               ))}
             </div>
 
-            {/* Pagination */}
-            {meta && meta.totalPages > 1 && (
+            {/* Pagination — page size selector always visible; nav buttons only when multi-page */}
+            {meta && (
               <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-sm text-gray-700">
                   <span>Show</span>
@@ -269,25 +269,27 @@ export function FamilyListPage() {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Previous
-                  </button>
-                  <span className="text-sm text-gray-700">
-                    Page {currentPage} of {meta.totalPages}
-                  </span>
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.min(meta.totalPages, p + 1))}
-                    disabled={currentPage === meta.totalPages}
-                    className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </button>
-                </div>
+                {meta.totalPages > 1 && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Previous
+                    </button>
+                    <span className="text-sm text-gray-700">
+                      Page {currentPage} of {meta.totalPages}
+                    </span>
+                    <button
+                      onClick={() => setCurrentPage((p) => Math.min(meta.totalPages, p + 1))}
+                      disabled={currentPage === meta.totalPages}
+                      className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </>

@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-03-27T20:34:25-04:00",
+  "generated_at": "2026-04-21T12:14:02-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -491,7 +491,9 @@
         "Name": "string",
         "CampusId": "int?",
         "IsActive": "bool",
+        "LocationId": "int?",
         "Campus": "virtual Campus?",
+        "Location": "virtual Location?",
         "Members": "virtual ICollection<FamilyMember>"
       },
       "navigations": []
@@ -1770,6 +1772,76 @@
       },
       "linked_entity": "Schedule"
     },
+    "CheckinOpportunitiesResponseDto": {
+      "name": "CheckinOpportunitiesResponseDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Family": "CheckinFamilySearchResultDto",
+        "Opportunities": "IReadOnlyList<PersonOpportunitiesDto>"
+      }
+    },
+    "PersonOpportunitiesDto": {
+      "name": "PersonOpportunitiesDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "Person": "CheckinFamilyMemberDto",
+        "CurrentAttendance": "IReadOnlyList<CurrentAttendanceDto>",
+        "AvailableOptions": "IReadOnlyList<CheckinOptionDto>"
+      },
+      "linked_entity": "Person"
+    },
+    "CurrentAttendanceDto": {
+      "name": "CurrentAttendanceDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "AttendanceIdKey": "string",
+        "Group": "string",
+        "Location": "string",
+        "Schedule": "string",
+        "SecurityCode": "string",
+        "CheckInTime": "DateTime",
+        "CanCheckOut": "bool"
+      }
+    },
+    "CheckinOptionDto": {
+      "name": "CheckinOptionDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "GroupIdKey": "string",
+        "GroupName": "string",
+        "Locations": "IReadOnlyList<CheckinLocationOptionDto>"
+      }
+    },
+    "CheckinLocationOptionDto": {
+      "name": "CheckinLocationOptionDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "LocationIdKey": "string",
+        "LocationName": "string",
+        "Schedules": "IReadOnlyList<CheckinScheduleOptionDto>",
+        "CurrentCount": "int",
+        "SoftThreshold": "int?",
+        "FirmThreshold": "int?"
+      }
+    },
+    "CheckinScheduleOptionDto": {
+      "name": "CheckinScheduleOptionDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "ScheduleIdKey": "string",
+        "ScheduleName": "string",
+        "StartTime": "string",
+        "IsSelected": "bool"
+      }
+    },
+    "CheckinSearchRequestDto": {
+      "name": "CheckinSearchRequestDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "SearchValue": "string",
+        "SearchType": "string?"
+      }
+    },
     "CheckinFamilySearchResultDto": {
       "name": "CheckinFamilySearchResultDto",
       "namespace": "Koinon.Application.DTOs",
@@ -1877,7 +1949,8 @@
         "ReplyToEmail": "string?",
         "ScheduledDateTime": "DateTime?",
         "Note": "string?",
-        "GroupIdKeys": "IReadOnlyList<string>"
+        "GroupIdKeys": "IReadOnlyList<string>",
+        "PersonIdKeys": "IReadOnlyList<string>"
       },
       "linked_entity": "Communication"
     },
@@ -2102,6 +2175,53 @@
         "RecentCommunications": "List<CommunicationSummaryDto>"
       },
       "linked_entity": "Communication"
+    },
+    "DefinedTypeDto": {
+      "name": "DefinedTypeDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "IdKey": "string",
+        "Guid": "Guid",
+        "Name": "string",
+        "Description": "string?",
+        "Category": "string?",
+        "HelpText": "string?",
+        "IsSystem": "bool",
+        "Order": "int",
+        "FieldTypeAssemblyName": "string?",
+        "DefinedValues": "IReadOnlyList<DefinedValueDto>",
+        "CreatedDateTime": "DateTime",
+        "ModifiedDateTime": "DateTime?"
+      },
+      "linked_entity": "DefinedType"
+    },
+    "DefinedTypeSummaryDto": {
+      "name": "DefinedTypeSummaryDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "IdKey": "string",
+        "Name": "string",
+        "Category": "string?",
+        "IsSystem": "bool",
+        "Order": "int",
+        "ValueCount": "int"
+      },
+      "linked_entity": "DefinedType"
+    },
+    "DefinedValueManagementDto": {
+      "name": "DefinedValueManagementDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "IdKey": "string",
+        "DefinedTypeIdKey": "string",
+        "Value": "string",
+        "Description": "string?",
+        "Order": "int",
+        "IsActive": "bool",
+        "CreatedDateTime": "DateTime",
+        "ModifiedDateTime": "DateTime?"
+      },
+      "linked_entity": "DefinedValue"
     },
     "DeviceDetailDto": {
       "name": "DeviceDetailDto",
@@ -2448,6 +2568,24 @@
       },
       "linked_entity": "ContributionStatement"
     },
+    "FundAdminDto": {
+      "name": "FundAdminDto",
+      "namespace": "Koinon.Application.DTOs.Giving",
+      "properties": {
+        "IdKey": "string",
+        "Name": "string",
+        "PublicName": "string?",
+        "Description": "string?",
+        "GlCode": "string?",
+        "IsActive": "bool",
+        "IsPublic": "bool",
+        "IsTaxDeductible": "bool",
+        "Order": "int",
+        "CreatedDateTime": "DateTime",
+        "ModifiedDateTime": "DateTime?"
+      },
+      "linked_entity": "Fund"
+    },
     "FundDto": {
       "name": "FundDto",
       "namespace": "Koinon.Application.DTOs.Giving",
@@ -2514,6 +2652,32 @@
         "CategoryCounts": "Dictionary<string, int>"
       },
       "linked_entity": "System"
+    },
+    "GroupAttendanceDetailDto": {
+      "name": "GroupAttendanceDetailDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "PersonIdKey": "string",
+        "FullName": "string",
+        "PhotoUrl": "string?",
+        "DidAttend": "bool",
+        "PresentDateTime": "DateTime?"
+      },
+      "linked_entity": "Group"
+    },
+    "GroupAttendanceOccurrenceDto": {
+      "name": "GroupAttendanceOccurrenceDto",
+      "namespace": "Koinon.Application.DTOs",
+      "properties": {
+        "IdKey": "string",
+        "OccurrenceDate": "DateOnly",
+        "AttendeeCount": "int",
+        "AnonymousCount": "int",
+        "DidNotOccur": "bool",
+        "LocationName": "string?",
+        "ScheduleName": "string?"
+      },
+      "linked_entity": "Group"
     },
     "GroupDto": {
       "name": "GroupDto",
@@ -3256,12 +3420,13 @@
       "properties": {
         "IdKey": "string",
         "Text": "string",
-        "NoteDate": "DateTime",
-        "NoteType": "string?",
-        "CreatedByName": "string?",
+        "NoteDateTime": "DateTime",
+        "NoteTypeName": "string?",
+        "NoteTypeValueIdKey": "string?",
+        "AuthorPersonName": "string?",
         "IsPrivate": "bool",
         "IsAlert": "bool",
-        "CreatedDateTime": "DateTime"
+        "CreatedDateTime": "DateTime?"
       },
       "linked_entity": "PersonNote"
     },
@@ -3606,6 +3771,16 @@
       },
       "linked_entity": "Campus"
     },
+    "CreateDefinedValueRequest": {
+      "name": "CreateDefinedValueRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Value": "string",
+        "Description": "string?",
+        "Order": "int"
+      },
+      "linked_entity": "DefinedValue"
+    },
     "CreateDeviceRequest": {
       "name": "CreateDeviceRequest",
       "namespace": "Koinon.Application.DTOs.Requests",
@@ -3664,6 +3839,19 @@
         "Country": "string?"
       },
       "linked_entity": "Family"
+    },
+    "CreateFundRequest": {
+      "name": "CreateFundRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Name": "string",
+        "PublicName": "string?",
+        "Description": "string?",
+        "GlCode": "string?",
+        "IsPublic": "bool",
+        "IsTaxDeductible": "bool"
+      },
+      "linked_entity": "Fund"
     },
     "CreateGroupRequest": {
       "name": "CreateGroupRequest",
@@ -3878,6 +4066,13 @@
       },
       "linked_entity": "Attendance"
     },
+    "ReorderDefinedValuesRequest": {
+      "name": "ReorderDefinedValuesRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Items": "IReadOnlyList<DefinedValueOrderItem>"
+      }
+    },
     "CreateScheduleRequest": {
       "name": "CreateScheduleRequest",
       "namespace": "Koinon.Application.DTOs.Requests",
@@ -3962,6 +4157,17 @@
       },
       "linked_entity": "Campus"
     },
+    "UpdateDefinedValueRequest": {
+      "name": "UpdateDefinedValueRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Value": "string",
+        "Description": "string?",
+        "Order": "int",
+        "IsActive": "bool"
+      },
+      "linked_entity": "DefinedValue"
+    },
     "UpdateDeviceRequest": {
       "name": "UpdateDeviceRequest",
       "namespace": "Koinon.Application.DTOs.Requests",
@@ -3996,6 +4202,19 @@
         "CampusId": "string?"
       },
       "linked_entity": "Family"
+    },
+    "UpdateFundRequest": {
+      "name": "UpdateFundRequest",
+      "namespace": "Koinon.Application.DTOs.Requests",
+      "properties": {
+        "Name": "string",
+        "PublicName": "string?",
+        "Description": "string?",
+        "GlCode": "string?",
+        "IsPublic": "bool",
+        "IsTaxDeductible": "bool"
+      },
+      "linked_entity": "Fund"
     },
     "UpdateGroupMemberRequest": {
       "name": "UpdateGroupMemberRequest",
@@ -4099,7 +4318,8 @@
         "AnniversaryDate": "DateOnly?",
         "ConnectionStatusValueId": "string?",
         "RecordStatusValueId": "string?",
-        "PrimaryCampusId": "string?"
+        "PrimaryCampusId": "string?",
+        "PhoneNumbers": "IList<CreatePhoneNumberRequest>?"
       },
       "linked_entity": "Person"
     },
@@ -5286,6 +5506,59 @@
         "ILogger<DataImportService>"
       ]
     },
+    "DefinedTypeService": {
+      "name": "DefinedTypeService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "DefinedTypeService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetAllTypesAsync",
+          "return_type": "Task<IReadOnlyList<DefinedTypeSummaryDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetTypeByIdKeyAsync",
+          "return_type": "Task<Result<DefinedTypeDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetValuesByTypeAsync",
+          "return_type": "Task<Result<IReadOnlyList<DefinedValueDto>>>",
+          "is_async": false
+        },
+        {
+          "name": "CreateValueAsync",
+          "return_type": "Task<Result<DefinedValueManagementDto>>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateValueAsync",
+          "return_type": "Task<Result<DefinedValueManagementDto>>",
+          "is_async": false
+        },
+        {
+          "name": "DeleteValueAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        },
+        {
+          "name": "ReorderValuesAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IMapper",
+        "IValidator<CreateDefinedValueRequest>",
+        "IValidator<UpdateDefinedValueRequest>",
+        "ILogger<DefinedTypeService>"
+      ]
+    },
     "DeviceService": {
       "name": "DeviceService",
       "namespace": "Koinon.Application.Services",
@@ -5451,6 +5724,11 @@
           "is_async": false
         },
         {
+          "name": "UpdateFamilyAsync",
+          "return_type": "Task<Result<FamilyDto>>",
+          "is_async": false
+        },
+        {
           "name": "UpdateAddressAsync",
           "return_type": "Task<Result<FamilyDto>>",
           "is_async": false
@@ -5586,6 +5864,46 @@
       "dependencies": [
         "IApplicationDbContext",
         "ILogger<FollowUpService>"
+      ]
+    },
+    "FundService": {
+      "name": "FundService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "FundService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetAllFundsAsync",
+          "return_type": "Task<IReadOnlyList<FundAdminDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetFundAdminAsync",
+          "return_type": "Task<Result<FundAdminDto>>",
+          "is_async": false
+        },
+        {
+          "name": "CreateFundAsync",
+          "return_type": "Task<Result<FundAdminDto>>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateFundAsync",
+          "return_type": "Task<Result<FundAdminDto>>",
+          "is_async": false
+        },
+        {
+          "name": "DeactivateFundAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "ILogger<FundService>"
       ]
     },
     "GlobalSearchService": {
@@ -5736,6 +6054,16 @@
         {
           "name": "RemoveScheduleAsync",
           "return_type": "Task<Result>",
+          "is_async": false
+        },
+        {
+          "name": "GetAttendanceHistoryAsync",
+          "return_type": "Task<IReadOnlyList<GroupAttendanceOccurrenceDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetAttendanceDetailAsync",
+          "return_type": "Task<Result<IReadOnlyList<GroupAttendanceDetailDto>>>",
           "is_async": false
         }
       ],
@@ -5923,6 +6251,11 @@
         {
           "name": "RecordAttendanceAsync",
           "return_type": "Task<Result>",
+          "is_async": false
+        },
+        {
+          "name": "IsGroupLeaderOrStaffAsync",
+          "return_type": "Task<bool>",
           "is_async": false
         }
       ],
@@ -6698,6 +7031,12 @@
       "methods": [],
       "dependencies": []
     },
+    "IDefinedTypeService": {
+      "name": "IDefinedTypeService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
     "IDeviceService": {
       "name": "IDeviceService",
       "namespace": "Koinon.Application.Interfaces",
@@ -6754,6 +7093,12 @@
     },
     "IFollowUpService": {
       "name": "IFollowUpService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "IFundService": {
+      "name": "IFundService",
       "namespace": "Koinon.Application.Interfaces",
       "methods": [],
       "dependencies": []
@@ -7206,6 +7551,15 @@
           "required_roles": []
         },
         {
+          "name": "GetOpportunities",
+          "method": "GET",
+          "route": "opportunities/{familyIdKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "GetAttendanceLabels",
           "method": "GET",
           "route": "labels/{attendanceIdKey}",
@@ -7254,6 +7608,15 @@
           "name": "GetOverflowLocation",
           "method": "GET",
           "route": "locations/{locationIdKey}/overflow",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "SearchFamiliesPost",
+          "method": "POST",
+          "route": "search",
           "request_type": null,
           "response_type": null,
           "requires_auth": true,
@@ -7338,6 +7701,7 @@
         "ISupervisorModeService",
         "IRoomRosterService",
         "ICapacityService",
+        "IApplicationDbContext",
         "ILogger<CheckinController>"
       ]
     },
@@ -7528,6 +7892,77 @@
         "ILogger<DashboardController>"
       ]
     },
+    "DefinedTypesController": {
+      "name": "DefinedTypesController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/defined-types",
+      "endpoints": [
+        {
+          "name": "GetByIdKey",
+          "method": "GET",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetValues",
+          "method": "GET",
+          "route": "{idKeyOrGuid}/values",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "CreateValue",
+          "method": "POST",
+          "route": "{typeIdKey}/values",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "ReorderValues",
+          "method": "POST",
+          "route": "{typeIdKey}/values/reorder",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "UpdateValue",
+          "method": "PUT",
+          "route": "values/{valueIdKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "DeleteValue",
+          "method": "DELETE",
+          "route": "values/{valueIdKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": true,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "IDefinedTypeService",
+        "ILogger<DefinedTypesController>"
+      ]
+    },
     "DevicesController": {
       "name": "DevicesController",
       "namespace": "Koinon.Api.Controllers",
@@ -7631,6 +8066,15 @@
       "route": "api/v1/[controller]",
       "endpoints": [
         {
+          "name": "SearchForCheckin",
+          "method": "GET",
+          "route": "search",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "GetByIdKey",
           "method": "GET",
           "route": "{idKey}",
@@ -7658,6 +8102,15 @@
           "required_roles": []
         },
         {
+          "name": "Update",
+          "method": "PUT",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "RemoveMember",
           "method": "DELETE",
           "route": "{idKey}/members/{personIdKey}",
@@ -7675,6 +8128,7 @@
       },
       "dependencies": [
         "IFamilyService",
+        "ICheckinSearchService",
         "ILogger<FamiliesController>"
       ]
     },
@@ -7770,6 +8224,59 @@
       "dependencies": [
         "IFollowUpService",
         "ILogger<FollowUpController>"
+      ]
+    },
+    "FundsController": {
+      "name": "FundsController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/giving/admin/funds",
+      "endpoints": [
+        {
+          "name": "GetAllFundsAdminAsync",
+          "method": "GET",
+          "route": "",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "CreateFundAsync",
+          "method": "POST",
+          "route": "",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "UpdateFundAsync",
+          "method": "PUT",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "DeactivateFundAsync",
+          "method": "DELETE",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": true,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "IFundService",
+        "ILogger<FundsController>"
       ]
     },
     "GivingController": {
@@ -8082,6 +8589,24 @@
           "required_roles": []
         },
         {
+          "name": "GetAttendanceHistory",
+          "method": "GET",
+          "route": "{idKey}/attendance",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetAttendanceDetail",
+          "method": "GET",
+          "route": "{idKey}/attendance/{occurrenceIdKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
           "name": "AddMember",
           "method": "POST",
           "route": "{idKey}/members",
@@ -8144,6 +8669,7 @@
       },
       "dependencies": [
         "IGroupService",
+        "IMyGroupsService",
         "ILogger<GroupsController>"
       ]
     },
@@ -9303,6 +9829,11 @@
       "relationship": "maps_to"
     },
     {
+      "source": "PersonOpportunitiesDto",
+      "target": "Person",
+      "relationship": "maps_to"
+    },
+    {
       "source": "CheckinFamilySearchResultDto",
       "target": "Family",
       "relationship": "maps_to"
@@ -9428,6 +9959,21 @@
       "relationship": "maps_to"
     },
     {
+      "source": "DefinedTypeDto",
+      "target": "DefinedType",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "DefinedTypeSummaryDto",
+      "target": "DefinedType",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "DefinedValueManagementDto",
+      "target": "DefinedValue",
+      "relationship": "maps_to"
+    },
+    {
       "source": "DeviceDetailDto",
       "target": "Device",
       "relationship": "maps_to"
@@ -9538,6 +10084,11 @@
       "relationship": "maps_to"
     },
     {
+      "source": "FundAdminDto",
+      "target": "Fund",
+      "relationship": "maps_to"
+    },
+    {
       "source": "FundDto",
       "target": "Fund",
       "relationship": "maps_to"
@@ -9560,6 +10111,16 @@
     {
       "source": "GlobalSearchResponse",
       "target": "System",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "GroupAttendanceDetailDto",
+      "target": "Group",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "GroupAttendanceOccurrenceDto",
+      "target": "Group",
       "relationship": "maps_to"
     },
     {
@@ -9908,6 +10469,11 @@
       "relationship": "maps_to"
     },
     {
+      "source": "CreateDefinedValueRequest",
+      "target": "DefinedValue",
+      "relationship": "maps_to"
+    },
+    {
       "source": "CreateDeviceRequest",
       "target": "Device",
       "relationship": "maps_to"
@@ -9930,6 +10496,11 @@
     {
       "source": "CreateFamilyAddressRequest",
       "target": "Family",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "CreateFundRequest",
+      "target": "Fund",
       "relationship": "maps_to"
     },
     {
@@ -10033,6 +10604,11 @@
       "relationship": "maps_to"
     },
     {
+      "source": "UpdateDefinedValueRequest",
+      "target": "DefinedValue",
+      "relationship": "maps_to"
+    },
+    {
       "source": "UpdateDeviceRequest",
       "target": "Device",
       "relationship": "maps_to"
@@ -10045,6 +10621,11 @@
     {
       "source": "UpdateFamilyRequest",
       "target": "Family",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdateFundRequest",
+      "target": "Fund",
       "relationship": "maps_to"
     },
     {
@@ -10273,6 +10854,11 @@
       "relationship": "depends_on"
     },
     {
+      "source": "DefinedTypesController",
+      "target": "IDefinedTypeService",
+      "relationship": "depends_on"
+    },
+    {
       "source": "DevicesController",
       "target": "IDeviceService",
       "relationship": "depends_on"
@@ -10288,8 +10874,18 @@
       "relationship": "depends_on"
     },
     {
+      "source": "FamiliesController",
+      "target": "ICheckinSearchService",
+      "relationship": "depends_on"
+    },
+    {
       "source": "FollowUpController",
       "target": "IFollowUpService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "FundsController",
+      "target": "IFundService",
       "relationship": "depends_on"
     },
     {
@@ -10315,6 +10911,11 @@
     {
       "source": "GroupsController",
       "target": "IGroupService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "GroupsController",
+      "target": "IMyGroupsService",
       "relationship": "depends_on"
     },
     {
@@ -10843,6 +11444,31 @@
       "relationship": "returns"
     },
     {
+      "source": "DefinedTypeService",
+      "target": "DefinedTypeSummaryDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "DefinedTypeService",
+      "target": "DefinedTypeDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "DefinedTypeService",
+      "target": "DefinedValueDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "DefinedTypeService",
+      "target": "DefinedValueManagementDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "DefinedTypeService",
+      "target": "DefinedValueManagementDto",
+      "relationship": "returns"
+    },
+    {
       "source": "DeviceService",
       "target": "DeviceSummaryDto",
       "relationship": "returns"
@@ -10908,6 +11534,11 @@
       "relationship": "returns"
     },
     {
+      "source": "FamilyService",
+      "target": "FamilyDto",
+      "relationship": "returns"
+    },
+    {
       "source": "FileService",
       "target": "FileMetadataDto",
       "relationship": "returns"
@@ -10940,6 +11571,26 @@
     {
       "source": "FollowUpService",
       "target": "FollowUpDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "FundService",
+      "target": "FundAdminDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "FundService",
+      "target": "FundAdminDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "FundService",
+      "target": "FundAdminDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "FundService",
+      "target": "FundAdminDto",
       "relationship": "returns"
     },
     {
@@ -11015,6 +11666,16 @@
     {
       "source": "GroupService",
       "target": "ScheduleDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "GroupService",
+      "target": "GroupAttendanceOccurrenceDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "GroupService",
+      "target": "GroupAttendanceDetailDto",
       "relationship": "returns"
     },
     {
@@ -11503,6 +12164,21 @@
       "relationship": "uses"
     },
     {
+      "source": "DefinedTypeService",
+      "target": "DefinedValue",
+      "relationship": "uses"
+    },
+    {
+      "source": "DefinedTypeService",
+      "target": "DefinedValue",
+      "relationship": "uses"
+    },
+    {
+      "source": "DefinedTypeService",
+      "target": "DefinedType",
+      "relationship": "uses"
+    },
+    {
       "source": "DeviceService",
       "target": "Device",
       "relationship": "uses"
@@ -11545,6 +12221,11 @@
     {
       "source": "FollowUpService",
       "target": "FollowUp",
+      "relationship": "uses"
+    },
+    {
+      "source": "FundService",
+      "target": "Fund",
       "relationship": "uses"
     },
     {
@@ -11675,9 +12356,9 @@
   ],
   "summary": {
     "total_entities": 60,
-    "total_dtos": 207,
-    "total_services": 109,
-    "total_controllers": 35,
-    "total_relationships": 498
+    "total_dtos": 225,
+    "total_services": 113,
+    "total_controllers": 37,
+    "total_relationships": 529
   }
 }

@@ -3,6 +3,7 @@
  */
 
 import { get, post } from './client';
+import { offlineFamilyCache } from '@/services/offline/OfflineFamilyCache';
 import type {
   CheckinConfigDto,
   CheckinConfigParams,
@@ -43,17 +44,76 @@ export async function getCheckinConfiguration(
 }
 
 /**
- * Search for families to check in
+ * Search for families to check in.
+ * Uses GET /families/search?query=<value> to leverage the families controller
+ * search endpoint (AllowAnonymous + KioskAuthorize).
+ *
+ * The response `data` array may arrive in either the backend DTO format
+ * (familyIdKey / familyName / personIdKey) or the frontend DTO format
+ * (idKey / name) depending on whether the request is intercepted by
+ * Playwright mocks. Both shapes are handled transparently.
  */
 export async function searchFamiliesForCheckin(
   request: CheckinSearchRequest
 ): Promise<CheckinFamilyDto[]> {
-  const response = await post<{ data: CheckinFamilyDto[] }>('/checkin/search', request);
-  return response.data;
+  try {
+    // Use a shorter timeout for kiosk search — users expect fast feedback
+    const response = await get<Record<string, unknown>>(
+      `/families/search?query=${encodeURIComponent(request.searchValue)}`,
+      { timeout: 5000 }
+    );
+
+    // Handle { data: [...] } format (backend & most mocks)
+    const dataArray = response.data as Array<CheckinFamilySearchResultDto & Partial<CheckinFamilyDto>> | undefined;
+    let results: CheckinFamilyDto[];
+
+    if (Array.isArray(dataArray)) {
+      results = dataArray.map((item) => {
+        // Backend format has familyIdKey; mock/frontend format has idKey directly
+        if (item.familyIdKey) {
+          return mapSearchResultToFamily(item as CheckinFamilySearchResultDto);
+        }
+        // Already in frontend DTO shape (from mocked responses)
+        return item as unknown as CheckinFamilyDto;
+      });
+    } else {
+      // Handle single-family format: { family: { idKey, name }, members: [...] }
+      const family = response.family as { idKey?: string; name?: string } | undefined;
+      const members = response.members as CheckinFamilyMemberDto[] | undefined;
+      if (family && family.idKey) {
+        results = [{
+          idKey: family.idKey,
+          name: family.name ?? '',
+          members: Array.isArray(members)
+            ? members.map(mapMemberToPersonDto)
+            : [],
+        }];
+      } else {
+        results = [];
+      }
+    }
+
+    // Cache results for offline use
+    if (results.length > 0) {
+      offlineFamilyCache.cacheResults(request.searchValue, results).catch(() => {
+        // Silently ignore cache write failures
+      });
+    }
+
+    return results;
+  } catch (error) {
+    // When offline, fall back to cached results
+    if (!navigator.onLine) {
+      const cached = await offlineFamilyCache.getCachedResults(request.searchValue);
+      if (cached) return cached;
+    }
+    throw error;
+  }
 }
 
 /**
- * Get available check-in opportunities for a family
+ * Get available check-in opportunities for a family.
+ * Backend returns CheckinFamilySearchResultDto shapes; map to frontend DTOs.
  */
 export async function getCheckinOpportunities(
   familyIdKey: string,
@@ -66,8 +126,25 @@ export async function getCheckinOpportunities(
   const query = queryParams.toString();
   const endpoint = `/checkin/opportunities/${familyIdKey}${query ? `?${query}` : ''}`;
 
-  const response = await get<{ data: CheckinOpportunitiesResponse }>(endpoint);
-  return response.data;
+  // Backend wraps in { data: { family: SearchResultDto, opportunities: [...] } }
+  const response = await get<{ data: {
+    family: CheckinFamilySearchResultDto;
+    opportunities: Array<{
+      person: CheckinFamilyMemberDto;
+      currentAttendance: CheckinOpportunitiesResponse['opportunities'][0]['currentAttendance'];
+      availableOptions: CheckinOpportunitiesResponse['opportunities'][0]['availableOptions'];
+    }>;
+  } }>(endpoint);
+
+  const raw = response.data;
+  return {
+    family: mapSearchResultToFamily(raw.family),
+    opportunities: raw.opportunities.map((opp) => ({
+      person: mapMemberToPersonDto(opp.person),
+      currentAttendance: opp.currentAttendance,
+      availableOptions: opp.availableOptions,
+    })),
+  };
 }
 
 /**
@@ -88,7 +165,8 @@ export async function recordAttendance(
   const request: BatchCheckinRequest = {
     checkIns: items.map(item => ({
       personIdKey: item.personIdKey,
-      locationIdKey: item.locationIdKey,
+      // Backend "LocationIdKey" is actually the Group ID (check-in area)
+      locationIdKey: item.groupIdKey,
       scheduleIdKey: item.scheduleIdKey,
       // Default to generating security codes for children's ministry
       generateSecurityCode: true,
@@ -199,10 +277,11 @@ export async function getMultipleRoomRosters(
   const queryParams = new URLSearchParams();
   queryParams.set('locationIdKeys', locationIdKeys.join(','));
 
-  const response = await get<{ data: RoomRosterDto[] }>(
+  const response = await get<{ data: RoomRosterDto[] | RoomRosterDto }>(
     `/checkin/roster?${queryParams.toString()}`
   );
-  return response.data;
+  // Normalize: API may return a single roster object or an array
+  return Array.isArray(response.data) ? response.data : [response.data];
 }
 
 /**

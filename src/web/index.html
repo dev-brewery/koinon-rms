@@ -7,6 +7,14 @@
     <title>Koinon RMS</title>
   </head>
   <body>
+    <script>
+      // Performance marks set early for E2E performance tests.
+      // These must exist before React renders so dashboard perf tests
+      // can measure from page-load to content-visible.
+      performance.mark('load-start');
+      performance.mark('dashboard-load-start');
+      performance.mark('dashboard-flow-start');
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

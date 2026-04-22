@@ -21,12 +21,22 @@ public class Family : Entity
     /// </summary>
     public bool IsActive { get; set; } = true;
 
+    /// <summary>
+    /// Optional foreign key to Location for the family's home address.
+    /// </summary>
+    public int? LocationId { get; set; }
+
     // Navigation Properties
 
     /// <summary>
     /// The campus this family primarily attends.
     /// </summary>
     public virtual Campus? Campus { get; set; }
+
+    /// <summary>
+    /// The home address for this family.
+    /// </summary>
+    public virtual Location? Location { get; set; }
 
     /// <summary>
     /// Members of this family.

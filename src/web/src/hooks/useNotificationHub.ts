@@ -16,8 +16,12 @@ type HubConnection = unknown;
 let HubConnectionBuilder: any = null;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let HubConnectionState: any = null;
+let signalRLoadFailed = false;
 
 async function loadSignalR() {
+  if (signalRLoadFailed) {
+    throw new Error('@microsoft/signalr package is not installed');
+  }
   if (!HubConnectionBuilder) {
     try {
       // Dynamic import with proper error handling for missing package
@@ -30,10 +34,10 @@ async function loadSignalR() {
       HubConnectionBuilder = signalR.HubConnectionBuilder;
       HubConnectionState = signalR.HubConnectionState;
     } catch (error: unknown) {
+      signalRLoadFailed = true;
       if (import.meta.env.DEV) {
-        console.error(
-          'Failed to load @microsoft/signalr. Install it with: npm install @microsoft/signalr',
-          error
+        console.warn(
+          'SignalR not available. Install @microsoft/signalr for real-time notifications.'
         );
       }
       throw error;
@@ -225,12 +229,14 @@ export function useNotificationHub(enabled = true): NotificationHubState {
             console.error('SignalR connection error:', error);
           }
 
-          // Attempt to reconnect after delay
-          reconnectTimeoutRef.current = setTimeout(() => {
-            if (isMounted) {
-              connect();
-            }
-          }, RECONNECT_DELAY_MS);
+          // Don't retry if the SignalR module itself is missing
+          if (!signalRLoadFailed) {
+            reconnectTimeoutRef.current = setTimeout(() => {
+              if (isMounted) {
+                connect();
+              }
+            }, RECONNECT_DELAY_MS);
+          }
         }
       }
     }

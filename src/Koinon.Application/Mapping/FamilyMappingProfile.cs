@@ -16,7 +16,7 @@ public class FamilyMappingProfile : Profile
         CreateMap<Family, FamilyDto>()
             .ForMember(d => d.IdKey, o => o.MapFrom(s => s.IdKey))
             .ForMember(d => d.Description, o => o.MapFrom(s => (string?)null)) // Family entity doesn't have Description
-            .ForMember(d => d.Address, o => o.Ignore()) // Will be set separately
+            .ForMember(d => d.Address, o => o.MapFrom(s => s.Location))
             .ForMember(d => d.Members, o => o.Ignore()); // Will be set separately
 
         CreateMap<FamilyMember, FamilyMemberDto>()
