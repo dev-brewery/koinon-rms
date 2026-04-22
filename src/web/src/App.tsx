@@ -179,7 +179,7 @@ function App() {
   return (
     <ErrorBoundary>
       <ToastProvider>
-        <PWAUpdatePrompt onUpdate={handleUpdate} offlineReady={needRefresh} />
+        <PWAUpdatePrompt onUpdate={handleUpdate} needRefresh={needRefresh} />
         <InstallPrompt />
         <ToastContainer />
         <Suspense fallback={null}>

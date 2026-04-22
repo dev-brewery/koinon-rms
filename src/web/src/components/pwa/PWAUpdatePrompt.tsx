@@ -3,25 +3,30 @@ import { Button } from '@/components/ui';
 
 interface PWAUpdatePromptProps {
   onUpdate: () => void;
-  offlineReady: boolean;
+  /**
+   * True when the service worker has detected that a new version is installed
+   * and waiting to activate. Wired to `needRefresh` from `useRegisterSW`.
+   */
+  needRefresh: boolean;
 }
 
-export function PWAUpdatePrompt({ onUpdate, offlineReady }: PWAUpdatePromptProps) {
+export function PWAUpdatePrompt({ onUpdate, needRefresh }: PWAUpdatePromptProps) {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    if (!offlineReady) {
+    if (!needRefresh) {
       return;
     }
     setShow(true);
-    const timer = setTimeout(() => setShow(false), 5000);
-    return () => clearTimeout(timer);
-  }, [offlineReady]);
+  }, [needRefresh]);
 
   if (!show) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 left-4 md:left-auto md:w-96 bg-white rounded-lg shadow-xl border-2 border-blue-600 p-4 z-50 animate-slide-up">
+    <div
+      data-testid="pwa-update-prompt"
+      className="fixed bottom-4 right-4 left-4 md:left-auto md:w-96 bg-white rounded-lg shadow-xl border-2 border-blue-600 p-4 z-50 animate-slide-up"
+    >
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0">
           <svg
