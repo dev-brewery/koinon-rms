@@ -31,17 +31,23 @@ export default defineConfig({
         'src/vite-env.d.ts',
       ],
       thresholds: {
-        // Honest-denominator floor. Wave 2 (#498) added tests for contexts,
-        // UI primitives, data-display components, and check-in flows against
-        // the full honest denominator. No new exclusions were added — every
-        // point of movement comes from real tests. Achieved floor:
-        //   lines 18.21, statements 18.23, functions 14.27, branches 15.33
-        // Thresholds set just below the achieved number (small buffer so
-        // minor churn does not break CI). Raise further in wave 3.
-        lines: 17,
-        statements: 17,
-        functions: 13,
-        branches: 14,
+        // Honest-denominator floor. Wave 3 (#498) added a shared
+        // renderHookWithQuery harness and tests for ~24 TanStack Query hook
+        // modules (campuses/families/people/groups/schedules/locations/
+        // giving/settings/profile/notifications/security-roles/auditLogs/
+        // devices/comms/comm-templates/checkin/personMerge/publicGroups/
+        // supervisorMode/supervisorAttendance/globalSearch/import/import-jobs/
+        // myGroups/checkinOperations/mutationWithToast + the 4 features/*
+        // api+hooks pairs (admin/defined-types, followups, pager,
+        // authorized-pickup) + deeper services/api coverage.
+        //   lines 32.15, statements 32.07, functions 36.82, branches 19.35
+        // Thresholds set ~1-2 pts below the achieved number (small buffer so
+        // minor churn does not break CI). No coverage.exclude changes — every
+        // point of movement comes from real tests.
+        lines: 30,
+        statements: 30,
+        functions: 34,
+        branches: 18,
         // Critical path: offline services must stay well tested.
         // These are higher than the global floor because offline queue bugs
         // cause silent check-in data loss.
