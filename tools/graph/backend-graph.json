@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-04-21T12:14:02-04:00",
+  "generated_at": "2026-04-22T10:34:06-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -864,6 +864,7 @@
         "CampusId": "int?",
         "Campus": "virtual Campus?",
         "IsActive": "bool",
+        "IsOpen": "bool",
         "Description": "string?",
         "PrinterDeviceId": "int?",
         "ImageId": "int?",
@@ -1771,6 +1772,60 @@
         "ModifiedDateTime": "DateTime?"
       },
       "linked_entity": "Schedule"
+    },
+    "CheckinOperationsAttendeeDto": {
+      "name": "CheckinOperationsAttendeeDto",
+      "namespace": "Koinon.Application.DTOs.CheckinOperations",
+      "properties": {
+        "AttendanceIdKey": "string",
+        "PersonIdKey": "string",
+        "FullName": "string",
+        "LocationIdKey": "string",
+        "LocationName": "string",
+        "CheckInTime": "DateTime",
+        "CheckOutTime": "DateTime?",
+        "IsPresent": "bool"
+      }
+    },
+    "CheckinOperationsRoomDto": {
+      "name": "CheckinOperationsRoomDto",
+      "namespace": "Koinon.Application.DTOs.CheckinOperations",
+      "properties": {
+        "LocationIdKey": "string",
+        "LocationName": "string",
+        "CheckedInCount": "int",
+        "Capacity": "int?",
+        "PercentFull": "int",
+        "CapacityPillColor": "string",
+        "IsOpen": "bool"
+      }
+    },
+    "CheckinOperationsSummaryDto": {
+      "name": "CheckinOperationsSummaryDto",
+      "namespace": "Koinon.Application.DTOs.CheckinOperations",
+      "properties": {
+        "TotalCheckedIn": "int",
+        "CurrentlyPresent": "int",
+        "CheckedOut": "int"
+      }
+    },
+    "CheckinOperationsDashboardDto": {
+      "name": "CheckinOperationsDashboardDto",
+      "namespace": "Koinon.Application.DTOs.CheckinOperations",
+      "properties": {
+        "Rooms": "IReadOnlyList<CheckinOperationsRoomDto>",
+        "Attendees": "IReadOnlyList<CheckinOperationsAttendeeDto>",
+        "Summary": "CheckinOperationsSummaryDto",
+        "GeneratedAt": "DateTime"
+      }
+    },
+    "ToggleRoomResponseDto": {
+      "name": "ToggleRoomResponseDto",
+      "namespace": "Koinon.Application.DTOs.CheckinOperations",
+      "properties": {
+        "LocationIdKey": "string",
+        "IsOpen": "bool"
+      }
     },
     "CheckinOpportunitiesResponseDto": {
       "name": "CheckinOpportunitiesResponseDto",
@@ -4465,8 +4520,34 @@
       },
       "linked_entity": "Schedule"
     },
-    "SecurityRoleDto": {
-      "name": "SecurityRoleDto",
+    "AssignClaimRequest": {
+      "name": "AssignClaimRequest",
+      "namespace": "Koinon.Application.DTOs.Security",
+      "properties": {
+        "ClaimIdKey": "string",
+        "AllowOrDeny": "char"
+      }
+    },
+    "AssignPersonRequest": {
+      "name": "AssignPersonRequest",
+      "namespace": "Koinon.Application.DTOs.Security",
+      "properties": {
+        "PersonIdKey": "string",
+        "ExpiresDateTime": "DateTime?"
+      }
+    },
+    "CreateSecurityRoleRequest": {
+      "name": "CreateSecurityRoleRequest",
+      "namespace": "Koinon.Application.DTOs.Security",
+      "properties": {
+        "Name": "string",
+        "Description": "string?",
+        "IsActive": "bool"
+      },
+      "linked_entity": "SecurityRole"
+    },
+    "PersonRoleAssignmentDto": {
+      "name": "PersonRoleAssignmentDto",
       "namespace": "Koinon.Application.DTOs.Security",
       "properties": {
         "IdKey": "string",
@@ -4474,6 +4555,78 @@
         "Description": "string?",
         "IsActive": "bool",
         "ExpiresDateTime": "DateTime?"
+      },
+      "linked_entity": "Person"
+    },
+    "PersonSecurityRoleMemberDto": {
+      "name": "PersonSecurityRoleMemberDto",
+      "namespace": "Koinon.Application.DTOs.Security",
+      "properties": {
+        "PersonIdKey": "string",
+        "PersonName": "string",
+        "Email": "string?",
+        "ExpiresDateTime": "DateTime?"
+      },
+      "linked_entity": "Person"
+    },
+    "RoleSecurityClaimDto": {
+      "name": "RoleSecurityClaimDto",
+      "namespace": "Koinon.Application.DTOs.Security",
+      "properties": {
+        "ClaimIdKey": "string",
+        "ClaimType": "string",
+        "ClaimValue": "string",
+        "Description": "string?",
+        "AllowOrDeny": "char"
+      },
+      "linked_entity": "RoleSecurityClaim"
+    },
+    "SecurityClaimDto": {
+      "name": "SecurityClaimDto",
+      "namespace": "Koinon.Application.DTOs.Security",
+      "properties": {
+        "IdKey": "string",
+        "ClaimType": "string",
+        "ClaimValue": "string",
+        "Description": "string?"
+      },
+      "linked_entity": "SecurityClaim"
+    },
+    "SecurityRoleDetailDto": {
+      "name": "SecurityRoleDetailDto",
+      "namespace": "Koinon.Application.DTOs.Security",
+      "properties": {
+        "IdKey": "string",
+        "Name": "string",
+        "Description": "string?",
+        "IsSystemRole": "bool",
+        "IsActive": "bool",
+        "Claims": "IReadOnlyList<RoleSecurityClaimDto>",
+        "Members": "IReadOnlyList<PersonSecurityRoleMemberDto>"
+      },
+      "linked_entity": "SecurityRole"
+    },
+    "SecurityRoleDto": {
+      "name": "SecurityRoleDto",
+      "namespace": "Koinon.Application.DTOs.Security",
+      "properties": {
+        "IdKey": "string",
+        "Name": "string",
+        "Description": "string?",
+        "IsSystemRole": "bool",
+        "IsActive": "bool",
+        "ClaimCount": "int",
+        "MemberCount": "int"
+      },
+      "linked_entity": "SecurityRole"
+    },
+    "UpdateSecurityRoleRequest": {
+      "name": "UpdateSecurityRoleRequest",
+      "namespace": "Koinon.Application.DTOs.Security",
+      "properties": {
+        "Name": "string",
+        "Description": "string?",
+        "IsActive": "bool"
       },
       "linked_entity": "SecurityRole"
     },
@@ -5083,6 +5236,31 @@
         "IUserContext",
         "IGradeCalculationService",
         "ILogger<CheckinConfigurationService>"
+      ]
+    },
+    "CheckinOperationsService": {
+      "name": "CheckinOperationsService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "CheckinOperationsService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetDashboardAsync",
+          "return_type": "Task<Result<CheckinOperationsDashboardDto>>",
+          "is_async": false
+        },
+        {
+          "name": "ToggleRoomAsync",
+          "return_type": "Task<Result<ToggleRoomResponseDto>>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "ILogger<CheckinOperationsService>"
       ]
     },
     "CheckinRegistrationService": {
@@ -6800,11 +6978,80 @@
         },
         {
           "name": "GetPersonRolesAsync",
-          "return_type": "Task<IEnumerable<SecurityRoleDto>>",
+          "return_type": "Task<IEnumerable<PersonRoleAssignmentDto>>",
           "is_async": false
         }
       ],
       "dependencies": []
+    },
+    "SecurityRoleService": {
+      "name": "SecurityRoleService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "SecurityRoleService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "GetAllAsync",
+          "return_type": "Task<Result<List<SecurityRoleDto>>>",
+          "is_async": false
+        },
+        {
+          "name": "GetByIdKeyAsync",
+          "return_type": "Task<Result<SecurityRoleDetailDto>>",
+          "is_async": false
+        },
+        {
+          "name": "GetAllClaimsAsync",
+          "return_type": "Task<Result<List<SecurityClaimDto>>>",
+          "is_async": false
+        },
+        {
+          "name": "CreateAsync",
+          "return_type": "Task<Result<SecurityRoleDto>>",
+          "is_async": false
+        },
+        {
+          "name": "UpdateAsync",
+          "return_type": "Task<Result<SecurityRoleDto>>",
+          "is_async": false
+        },
+        {
+          "name": "DeleteAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        },
+        {
+          "name": "AssignClaimAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        },
+        {
+          "name": "RemoveClaimAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        },
+        {
+          "name": "AddMemberAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        },
+        {
+          "name": "RemoveMemberAsync",
+          "return_type": "Task<Result>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IValidator<CreateSecurityRoleRequest>",
+        "IValidator<UpdateSecurityRoleRequest>",
+        "IValidator<AssignClaimRequest>",
+        "IValidator<AssignPersonRequest>",
+        "ILogger<SecurityRoleService>"
+      ]
     },
     "SupervisorModeService": {
       "name": "SupervisorModeService",
@@ -6967,6 +7214,12 @@
     },
     "ICheckinConfigurationService": {
       "name": "ICheckinConfigurationService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "ICheckinOperationsService": {
+      "name": "ICheckinOperationsService",
       "namespace": "Koinon.Application.Interfaces",
       "methods": [],
       "dependencies": []
@@ -7219,6 +7472,12 @@
     },
     "ISecurityClaimService": {
       "name": "ISecurityClaimService",
+      "namespace": "Koinon.Application.Interfaces",
+      "methods": [],
+      "dependencies": []
+    },
+    "ISecurityRoleService": {
+      "name": "ISecurityRoleService",
       "namespace": "Koinon.Application.Interfaces",
       "methods": [],
       "dependencies": []
@@ -7703,6 +7962,41 @@
         "ICapacityService",
         "IApplicationDbContext",
         "ILogger<CheckinController>"
+      ]
+    },
+    "CheckinOperationsController": {
+      "name": "CheckinOperationsController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/checkin-operations",
+      "endpoints": [
+        {
+          "name": "GetDashboardAsync",
+          "method": "GET",
+          "route": "dashboard",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "ToggleRoomAsync",
+          "method": "POST",
+          "route": "rooms/{idKey}/toggle",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": true,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "ICheckinOperationsService",
+        "ILogger<CheckinOperationsController>"
       ]
     },
     "CommunicationPreferencesController": {
@@ -9580,6 +9874,101 @@
         "ILogger<SearchController>"
       ]
     },
+    "SecurityClaimsController": {
+      "name": "SecurityClaimsController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/admin/security-claims",
+      "endpoints": [],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": false,
+        "problem_details": true,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "ISecurityRoleService"
+      ]
+    },
+    "SecurityRolesController": {
+      "name": "SecurityRolesController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/admin/security-roles",
+      "endpoints": [
+        {
+          "name": "GetByIdKeyAsync",
+          "method": "GET",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "AssignClaimAsync",
+          "method": "POST",
+          "route": "{idKey}/claims",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "AddMemberAsync",
+          "method": "POST",
+          "route": "{idKey}/members",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "UpdateAsync",
+          "method": "PUT",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "DeleteAsync",
+          "method": "DELETE",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "RemoveClaimAsync",
+          "method": "DELETE",
+          "route": "{idKey}/claims/{claimIdKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "RemoveMemberAsync",
+          "method": "DELETE",
+          "route": "{idKey}/members/{personIdKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": true,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "ISecurityRoleService",
+        "ILogger<SecurityRolesController>"
+      ]
+    },
     "TwilioWebhookController": {
       "name": "TwilioWebhookController",
       "namespace": "Koinon.Api.Controllers",
@@ -10709,7 +11098,42 @@
       "relationship": "maps_to"
     },
     {
+      "source": "CreateSecurityRoleRequest",
+      "target": "SecurityRole",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "PersonRoleAssignmentDto",
+      "target": "Person",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "PersonSecurityRoleMemberDto",
+      "target": "Person",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "RoleSecurityClaimDto",
+      "target": "RoleSecurityClaim",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "SecurityClaimDto",
+      "target": "SecurityClaim",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "SecurityRoleDetailDto",
+      "target": "SecurityRole",
+      "relationship": "maps_to"
+    },
+    {
       "source": "SecurityRoleDto",
+      "target": "SecurityRole",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "UpdateSecurityRoleRequest",
       "target": "SecurityRole",
       "relationship": "maps_to"
     },
@@ -10826,6 +11250,11 @@
     {
       "source": "CheckinController",
       "target": "ICapacityService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "CheckinOperationsController",
+      "target": "ICheckinOperationsService",
       "relationship": "depends_on"
     },
     {
@@ -11001,6 +11430,16 @@
     {
       "source": "SearchController",
       "target": "IGlobalSearchService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "SecurityClaimsController",
+      "target": "ISecurityRoleService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "SecurityRolesController",
+      "target": "ISecurityRoleService",
       "relationship": "depends_on"
     },
     {
@@ -11246,6 +11685,16 @@
     {
       "source": "CheckinConfigurationService",
       "target": "CheckinAreaDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CheckinOperationsService",
+      "target": "CheckinOperationsDashboardDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "CheckinOperationsService",
+      "target": "ToggleRoomResponseDto",
       "relationship": "returns"
     },
     {
@@ -12030,6 +12479,31 @@
     },
     {
       "source": "SecurityClaimService",
+      "target": "PersonRoleAssignmentDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "SecurityRoleService",
+      "target": "SecurityRoleDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "SecurityRoleService",
+      "target": "SecurityRoleDetailDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "SecurityRoleService",
+      "target": "SecurityClaimDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "SecurityRoleService",
+      "target": "SecurityRoleDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "SecurityRoleService",
       "target": "SecurityRoleDto",
       "relationship": "returns"
     },
@@ -12349,6 +12823,26 @@
       "relationship": "uses"
     },
     {
+      "source": "SecurityRoleService",
+      "target": "SecurityRole",
+      "relationship": "uses"
+    },
+    {
+      "source": "SecurityRoleService",
+      "target": "SecurityRole",
+      "relationship": "uses"
+    },
+    {
+      "source": "SecurityRoleService",
+      "target": "Person",
+      "relationship": "uses"
+    },
+    {
+      "source": "SecurityRoleService",
+      "target": "SecurityRole",
+      "relationship": "uses"
+    },
+    {
       "source": "UserSettingsService",
       "target": "UserPreference",
       "relationship": "uses"
@@ -12356,9 +12850,9 @@
   ],
   "summary": {
     "total_entities": 60,
-    "total_dtos": 225,
-    "total_services": 113,
-    "total_controllers": 37,
-    "total_relationships": 529
+    "total_dtos": 239,
+    "total_services": 117,
+    "total_controllers": 40,
+    "total_relationships": 550
   }
 }
