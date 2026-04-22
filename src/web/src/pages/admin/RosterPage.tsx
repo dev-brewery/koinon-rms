@@ -7,8 +7,9 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRoomRoster } from '@/hooks/useRoomRoster';
 import { RosterList } from '@/components/admin/roster/RosterList';
-import { Button, Card } from '@/components/ui';
+import { Button, Card, EmptyState, ErrorState } from '@/components/ui';
 import { LocationPicker } from '@/components/LocationPicker';
+import { getErrorMessage } from '@/lib/errorMessages';
 import * as referenceApi from '@/services/api/reference';
 import { STORAGE_KEYS } from '@/lib/storageKeys';
 
@@ -120,12 +121,15 @@ export function RosterPage() {
 
       {/* Error state */}
       {error && (
-        <Card className="p-6 bg-red-50 border border-red-200" data-testid="roster-error">
-          <p className="text-red-700 font-medium">Failed to load roster</p>
-          <p className="text-red-600 text-sm mt-1">
-            {error instanceof Error ? error.message : 'An unknown error occurred'}
-          </p>
-        </Card>
+        <div data-testid="roster-error">
+          <Card>
+            <ErrorState
+              title="Failed to load roster"
+              message={getErrorMessage(error).message}
+              onRetry={() => refetch()}
+            />
+          </Card>
+        </div>
       )}
 
       {/* Roster display */}
@@ -135,22 +139,11 @@ export function RosterPage() {
 
       {/* Empty state */}
       {!selectedLocationIdKey && (
-        <Card className="p-12 text-center">
-          <svg
-            className="w-16 h-16 text-gray-400 mx-auto mb-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-            />
-          </svg>
-          <p className="text-gray-600">Select a room to view the roster</p>
+        <Card>
+          <EmptyState
+            title="Select a room to view the roster"
+            description="Pick a location above to see who is currently checked in. Toggle auto-refresh to keep the roster live during check-in."
+          />
         </Card>
       )}
     </div>

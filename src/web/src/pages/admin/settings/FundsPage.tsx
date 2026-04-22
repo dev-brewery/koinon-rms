@@ -5,6 +5,8 @@
 
 import { useState } from 'react';
 import { useAdminFunds, useCreateFund, useUpdateFund, useDeactivateFund } from '@/hooks/useGiving';
+import { Loading, EmptyState, ErrorState } from '@/components/ui';
+import { getErrorMessage } from '@/lib/errorMessages';
 import type { FundAdminDto, CreateFundRequest, UpdateFundRequest } from '@/types/giving';
 
 // ============================================================================
@@ -311,7 +313,7 @@ export function FundsPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [editingFund, setEditingFund] = useState<FundAdminDto | null>(null);
 
-  const { data: funds = [], isLoading, error } = useAdminFunds();
+  const { data: funds = [], isLoading, error, refetch } = useAdminFunds();
   const deactivateMutation = useDeactivateFund();
 
   const handleEdit = (fund: FundAdminDto) => {
@@ -356,31 +358,19 @@ export function FundsPage() {
 
       {/* Loading */}
       {isLoading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="inline-block w-8 h-8 border-4 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+        <div className="bg-white rounded-lg border border-gray-200">
+          <Loading text="Loading funds..." />
         </div>
       )}
 
       {/* Error */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex items-center gap-2">
-            <svg
-              className="w-5 h-5 text-red-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <p className="text-sm font-medium text-red-800">Failed to load funds</p>
-          </div>
+        <div className="bg-white rounded-lg border border-gray-200">
+          <ErrorState
+            title="Failed to load funds"
+            message={getErrorMessage(error).message}
+            onRetry={() => refetch()}
+          />
         </div>
       )}
 
@@ -388,29 +378,15 @@ export function FundsPage() {
       {!isLoading && !error && (
         <div data-testid="fund-list" className="space-y-3">
           {funds.length === 0 ? (
-            <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-              <svg
-                className="w-12 h-12 text-gray-400 mx-auto mb-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <p className="text-gray-500 mb-4">No funds found</p>
-              <button
-                type="button"
-                onClick={() => setIsCreating(true)}
-                className="inline-block px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-              >
-                Create First Fund
-              </button>
+            <div className="bg-white rounded-lg border border-gray-200">
+              <EmptyState
+                title="No funds yet"
+                description="Funds categorize contributions (e.g., General, Missions, Building). Create your first fund to start tracking giving."
+                action={{
+                  label: 'Create First Fund',
+                  onClick: () => setIsCreating(true),
+                }}
+              />
             </div>
           ) : (
             funds.map((fund) => (

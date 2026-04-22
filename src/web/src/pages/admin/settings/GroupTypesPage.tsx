@@ -8,6 +8,8 @@ import { useGroupTypes, useArchiveGroupType } from '@/hooks/useGroupTypes';
 import { GroupTypeCard } from '@/components/admin/GroupTypeCard';
 import { GroupTypeEditorModal } from '@/components/admin/GroupTypeEditorModal';
 import { GroupTypeGroupsModal } from '@/components/admin/GroupTypeGroupsModal';
+import { Loading, EmptyState, ErrorState } from '@/components/ui';
+import { getErrorMessage } from '@/lib/errorMessages';
 import type { GroupTypeAdminDto } from '@/services/api/types';
 
 export function GroupTypesPage() {
@@ -17,7 +19,7 @@ export function GroupTypesPage() {
   const [viewingGroupsFor, setViewingGroupsFor] = useState<GroupTypeAdminDto | null>(null);
   const [archivingId, setArchivingId] = useState<string | null>(null);
 
-  const { data: groupTypes = [], isLoading, error } = useGroupTypes(includeArchived);
+  const { data: groupTypes = [], isLoading, error, refetch } = useGroupTypes(includeArchived);
   const archiveMutation = useArchiveGroupType();
 
   const handleEdit = (groupType: GroupTypeAdminDto) => {
@@ -90,31 +92,19 @@ export function GroupTypesPage() {
 
       {/* Loading State */}
       {isLoading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="inline-block w-8 h-8 border-4 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+        <div className="bg-white rounded-lg border border-gray-200">
+          <Loading text="Loading group types..." />
         </div>
       )}
 
       {/* Error State */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex items-center gap-2">
-            <svg
-              className="w-5 h-5 text-red-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <p className="text-sm font-medium text-red-800">Failed to load group types</p>
-          </div>
+        <div className="bg-white rounded-lg border border-gray-200">
+          <ErrorState
+            title="Failed to load group types"
+            message={getErrorMessage(error).message}
+            onRetry={() => refetch()}
+          />
         </div>
       )}
 
@@ -122,28 +112,15 @@ export function GroupTypesPage() {
       {!isLoading && !error && (
         <div className="space-y-4">
           {groupTypes.length === 0 ? (
-            <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-              <svg
-                className="w-12 h-12 text-gray-400 mx-auto mb-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                />
-              </svg>
-              <p className="text-gray-500 mb-4">No group types found</p>
-              <button
-                onClick={handleCreate}
-                className="inline-block px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-              >
-                Create First Group Type
-              </button>
+            <div className="bg-white rounded-lg border border-gray-200">
+              <EmptyState
+                title="No group types yet"
+                description="Group types define the default settings and behavior for groups (e.g., Small Group, Serving Team, Class). Create one to organize your groups."
+                action={{
+                  label: 'Create First Group Type',
+                  onClick: handleCreate,
+                }}
+              />
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

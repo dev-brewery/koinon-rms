@@ -8,6 +8,8 @@ import { useLocationTree, useDeleteLocation } from '@/hooks/useLocations';
 import { useCampuses } from '@/hooks/useCampuses';
 import { LocationTreeNode } from '@/components/admin/LocationTreeNode';
 import { LocationEditorModal } from '@/components/admin/LocationEditorModal';
+import { Loading, EmptyState, ErrorState } from '@/components/ui';
+import { getErrorMessage as getFriendlyErrorMessage } from '@/lib/errorMessages';
 import type { LocationDto } from '@/types/location';
 
 export function LocationsPage() {
@@ -29,6 +31,7 @@ export function LocationsPage() {
     data: locationTree = [],
     isLoading,
     error,
+    refetch,
   } = useLocationTree({
     campusIdKey: selectedCampusIdKey || undefined,
     includeInactive,
@@ -82,17 +85,6 @@ export function LocationsPage() {
   const handleCloseDeleteConfirm = () => {
     setIsDeleteConfirmOpen(false);
     setLocationToDelete(undefined);
-  };
-
-  // Helper to extract user-friendly error messages
-  const getErrorMessage = (err: unknown): string => {
-    if (err instanceof Error) {
-      return err.message;
-    }
-    if (typeof err === 'object' && err !== null && 'message' in err) {
-      return String((err as { message: unknown }).message);
-    }
-    return 'An unexpected error occurred. Please try again.';
   };
 
   // Find location name for delete confirmation
@@ -168,31 +160,19 @@ export function LocationsPage() {
 
       {/* Loading State */}
       {isLoading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="inline-block w-8 h-8 border-4 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+        <div className="bg-white rounded-lg border border-gray-200">
+          <Loading text="Loading locations..." />
         </div>
       )}
 
       {/* Error State */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4" role="alert">
-          <div className="flex items-center gap-2">
-            <svg
-              className="w-5 h-5 text-red-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <p className="text-sm font-medium text-red-800">{getErrorMessage(error)}</p>
-          </div>
+        <div className="bg-white rounded-lg border border-gray-200">
+          <ErrorState
+            title="Failed to load locations"
+            message={getFriendlyErrorMessage(error).message}
+            onRetry={() => refetch()}
+          />
         </div>
       )}
 
@@ -200,39 +180,22 @@ export function LocationsPage() {
       {!isLoading && !error && (
         <div className="bg-white rounded-lg border border-gray-200">
           {locationTree.length === 0 ? (
-            <div className="p-12 text-center">
-              <svg
-                className="w-12 h-12 text-gray-400 mx-auto mb-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-              <p className="text-gray-500 mb-4">
-                {selectedCampusIdKey || !includeInactive
-                  ? 'No locations found with current filters'
-                  : 'No locations found'}
-              </p>
-              <button
-                onClick={handleAddLocation}
-                className="inline-block px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-              >
-                Add First Location
-              </button>
-            </div>
+            <EmptyState
+              title={
+                selectedCampusIdKey || !includeInactive
+                  ? 'No locations match these filters'
+                  : 'No locations yet'
+              }
+              description={
+                selectedCampusIdKey || !includeInactive
+                  ? 'Try clearing the campus filter or including inactive locations.'
+                  : 'Locations organize rooms and spaces used for check-in and events. Create a top-level location to get started.'
+              }
+              action={{
+                label: 'Add First Location',
+                onClick: handleAddLocation,
+              }}
+            />
           ) : (
             <div className="p-2">
               {locationTree.map((location) => (
@@ -286,7 +249,7 @@ export function LocationsPage() {
                 </p>
                 {deleteMutation.error && (
                   <p className="mt-2 text-sm text-red-600" role="alert">
-                    {getErrorMessage(deleteMutation.error)}
+                    {getFriendlyErrorMessage(deleteMutation.error).message}
                   </p>
                 )}
               </div>
