@@ -10,9 +10,14 @@ export default defineConfig(({ mode }) => ({
     VitePWA({
       registerType: 'autoUpdate',
       devOptions: {
-        enabled: false,
+        // Enabled in dev only when PWA_DEV=1 (used by Playwright E2E for
+        // feat-500 to verify service worker registration against a real
+        // dev server). Left off by default so regular `vite dev` sessions
+        // don't pick up confusing service-worker caching during iteration.
+        enabled: process.env.PWA_DEV === '1',
+        type: 'module',
       },
-      includeAssets: ['icons/icon-192x192.png', 'icons/icon-512x512.png'],
+      includeAssets: ['icon.svg', 'icons/icon-192x192.png', 'icons/icon-512x512.png'],
       manifest: {
         name: 'Koinon Check-in',
         short_name: 'Check-in',
@@ -20,19 +25,27 @@ export default defineConfig(({ mode }) => ({
         theme_color: '#1e3a8a',
         background_color: '#ffffff',
         display: 'standalone',
+        orientation: 'any',
+        scope: '/',
         start_url: '/checkin',
         icons: [
           {
             src: 'icons/icon-192x192.png',
             sizes: '192x192',
             type: 'image/png',
-            purpose: 'any maskable',
+            purpose: 'any',
           },
           {
             src: 'icons/icon-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable',
+            purpose: 'any',
+          },
+          {
+            src: 'icons/icon-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
           },
         ],
       },

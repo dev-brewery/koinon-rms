@@ -52,11 +52,22 @@ export default defineConfig({
     },
   ],
 
-  // Start dev server before tests if not already running
+  // Start dev server before tests if not already running.
+  // PWA_DEV=1 is forwarded so feat-500's service-worker assertions
+  // can register a real SW against the dev server. Other specs are
+  // unaffected (the hook only runs when the env var is set).
   webServer: {
     command: 'npm run dev',
     url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
+    env: {
+      // Enable the dev-mode service worker so feat-500 can assert SW
+      // registration without needing a production build. This applies to
+      // EVERY Playwright run — unrelated specs also get a real SW from the
+      // dev server. Each test runs in a fresh BrowserContext so SW storage
+      // does not leak across tests. Override by setting PWA_DEV=0 in env.
+      PWA_DEV: process.env.PWA_DEV ?? '1',
+    },
   },
 });
