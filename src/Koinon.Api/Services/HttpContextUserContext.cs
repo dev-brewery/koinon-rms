@@ -16,7 +16,15 @@ public class HttpContextUserContext(IHttpContextAccessor httpContextAccessor) : 
     {
         get
         {
-            var claim = httpContextAccessor.HttpContext?.User.FindFirst(PersonIdClaimType);
+            // Prefer the standard ClaimTypes.NameIdentifier claim, which the JWT
+            // handler always surfaces (mapped from the JWT "sub"/"nameid" token
+            // claim regardless of MapInboundClaims). Fall back to the custom
+            // "person_id" claim that AuthService also emits. This makes the
+            // lookup resilient to JWT handler inbound-claim-map configuration
+            // changes. See issue #668.
+            var user = httpContextAccessor.HttpContext?.User;
+            var claim = user?.FindFirst(ClaimTypes.NameIdentifier)
+                ?? user?.FindFirst(PersonIdClaimType);
             return claim != null && int.TryParse(claim.Value, out var personId)
                 ? personId
                 : null;
