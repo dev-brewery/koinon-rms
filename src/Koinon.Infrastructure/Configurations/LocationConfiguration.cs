@@ -49,6 +49,11 @@ public class LocationConfiguration : IEntityTypeConfiguration<Location>
             .IsRequired()
             .HasDefaultValue(true);
 
+        builder.Property(l => l.IsOpen)
+            .HasColumnName("is_open")
+            .IsRequired()
+            .HasDefaultValue(true);
+
         builder.Property(l => l.Description)
             .HasColumnName("description")
             .HasMaxLength(500);

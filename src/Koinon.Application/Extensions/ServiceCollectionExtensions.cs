@@ -102,6 +102,9 @@ public static class ServiceCollectionExtensions
         // Room roster service
         services.AddScoped<IRoomRosterService, RoomRosterService>();
 
+        // Check-in operations dashboard (#482) — live room counts + open/close toggle
+        services.AddScoped<ICheckinOperationsService, CheckinOperationsService>();
+
         // Communication services
         services.AddScoped<ICommunicationService, CommunicationService>();
         services.AddScoped<ICommunicationTemplateService, CommunicationTemplateService>();

@@ -58,6 +58,7 @@ const FamiliesImportPage = lazy(() => import('./pages/admin/import/FamiliesImpor
 const ImportHistoryPage = lazy(() => import('./pages/admin/import/ImportHistoryPage').then(m => ({ default: m.ImportHistoryPage })));
 const SearchResultsPage = lazy(() => import('./pages/SearchResultsPage').then(m => ({ default: m.SearchResultsPage })));
 const CheckinConfigPage = lazy(() => import('./pages/admin/checkin/CheckinConfigPage').then(m => ({ default: m.CheckinConfigPage })));
+const CheckinOperationsPage = lazy(() => import('./pages/admin/CheckinOperationsPage').then(m => ({ default: m.CheckinOperationsPage })));
 
 function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -288,6 +289,7 @@ function App() {
           <Route path="import/people" element={<PeopleImportPage />} />
           <Route path="import/families" element={<FamiliesImportPage />} />
           <Route path="checkin" element={<CheckinConfigPage />} />
+          <Route path="checkin/operations" element={<CheckinOperationsPage />} />
         </Route>
 
         {/* Check-in kiosk — uses its own kiosk auth, not ProtectedRoute */}

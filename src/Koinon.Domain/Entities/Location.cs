@@ -54,6 +54,14 @@ public class Location : Entity
     public bool IsActive { get; set; } = true;
 
     /// <summary>
+    /// Indicates whether this room is currently open for check-ins.
+    /// Used by the live check-in operations dashboard (#482) to allow coordinators
+    /// to temporarily close a room without deactivating it entirely.
+    /// Defaults to true so existing locations continue to accept check-ins.
+    /// </summary>
+    public bool IsOpen { get; set; } = true;
+
+    /// <summary>
     /// Optional description of the location.
     /// </summary>
     public string? Description { get; set; }
