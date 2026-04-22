@@ -1,4 +1,5 @@
 using Koinon.Api.Authorization;
+using Koinon.Application.Common;
 using Koinon.Application.DTOs.Security;
 using Koinon.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -27,12 +28,37 @@ public class SecurityClaimsController(
         var result = await service.GetAllClaimsAsync(ct);
         if (result.IsFailure)
         {
-            return Problem(
-                detail: result.Error?.Message ?? "Failed to load security claims",
-                statusCode: StatusCodes.Status500InternalServerError,
-                title: "Internal Error");
+            return MapError(result.Error!);
         }
 
         return Ok(new { data = result.Value });
     }
+
+    private IActionResult MapError(Error error) => error.Code switch
+    {
+        "NOT_FOUND" => NotFound(new ProblemDetails
+        {
+            Title = "Not Found",
+            Detail = error.Message,
+            Status = StatusCodes.Status404NotFound,
+            Instance = HttpContext.Request.Path
+        }),
+        "VALIDATION_ERROR" => BadRequest(new ProblemDetails
+        {
+            Title = error.Message,
+            Detail = error.Details != null
+                ? string.Join("; ", error.Details.SelectMany(kvp => kvp.Value))
+                : null,
+            Status = StatusCodes.Status400BadRequest,
+            Instance = HttpContext.Request.Path,
+            Extensions = { ["errors"] = error.Details }
+        }),
+        _ => UnprocessableEntity(new ProblemDetails
+        {
+            Title = error.Code,
+            Detail = error.Message,
+            Status = StatusCodes.Status422UnprocessableEntity,
+            Instance = HttpContext.Request.Path
+        })
+    };
 }
