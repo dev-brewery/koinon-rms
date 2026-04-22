@@ -62,6 +62,11 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
     env: {
+      // Enable the dev-mode service worker so feat-500 can assert SW
+      // registration without needing a production build. This applies to
+      // EVERY Playwright run — unrelated specs also get a real SW from the
+      // dev server. Each test runs in a fresh BrowserContext so SW storage
+      // does not leak across tests. Override by setting PWA_DEV=0 in env.
       PWA_DEV: process.env.PWA_DEV ?? '1',
     },
   },

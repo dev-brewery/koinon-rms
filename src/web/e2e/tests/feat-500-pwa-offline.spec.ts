@@ -193,13 +193,8 @@ test.describe('feat(pwa) #500: Service worker + offline', () => {
     await page.waitForLoadState('domcontentloaded');
 
     // Not visible on clean load — there's no update waiting.
+    // A full test of the "update available" branch requires a test-only
+    // window.__pwa hook to simulate needRefresh; tracked as a follow-up.
     await expect(page.getByTestId('pwa-update-prompt')).toHaveCount(0);
-
-    // Sanity: the symbol still compiles into the bundle. Navigate to
-    // the checkin page where the prompt is mounted (it's mounted in App
-    // root, so either route shows it). If the data-testid ever disappears
-    // this test still guards the behaviour via the count-0 assertion above
-    // + the explicit grep in the test-coverage report.
-    expect(true).toBe(true);
   });
 });
