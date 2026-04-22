@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-04-21T16:32:15.045Z",
+  "generated_at": "2026-04-22T14:42:36.380Z",
   "types": {
     "AttendanceAnalyticsDto": {
       "name": "AttendanceAnalyticsDto",
@@ -4278,6 +4278,20 @@
       "method": "GET",
       "responseType": "void"
     },
+    "getCheckinOperationsDashboard": {
+      "name": "getCheckinOperationsDashboard",
+      "path": "services/api/checkinOperations.ts",
+      "endpoint": "/checkin-operations/dashboard",
+      "method": "GET",
+      "responseType": "CheckinOperationsDashboardDto"
+    },
+    "toggleCheckinOperationsRoom": {
+      "name": "toggleCheckinOperationsRoom",
+      "path": "services/api/checkinOperations.ts",
+      "endpoint": "/checkin-operations/rooms/${encodeURIComponent(locationIdKey)}/toggle",
+      "method": "POST",
+      "responseType": "ToggleRoomResponseDto"
+    },
     "getCommunicationTemplate": {
       "name": "getCommunicationTemplate",
       "path": "services/api/communicationTemplates.ts",
@@ -5265,6 +5279,76 @@
       "method": "GET",
       "responseType": "GlobalSearchResponse"
     },
+    "getSecurityRoles": {
+      "name": "getSecurityRoles",
+      "path": "services/api/securityRoles.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "SecurityRoleDto[]"
+    },
+    "getSecurityRole": {
+      "name": "getSecurityRole",
+      "path": "services/api/securityRoles.ts",
+      "endpoint": "${BASE_URL}/${idKey}",
+      "method": "GET",
+      "responseType": "SecurityRoleDetailDto"
+    },
+    "getSecurityClaims": {
+      "name": "getSecurityClaims",
+      "path": "services/api/securityRoles.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "SecurityClaimDto[]"
+    },
+    "createSecurityRole": {
+      "name": "createSecurityRole",
+      "path": "services/api/securityRoles.ts",
+      "endpoint": "/unknown",
+      "method": "POST",
+      "responseType": "SecurityRoleDto"
+    },
+    "updateSecurityRole": {
+      "name": "updateSecurityRole",
+      "path": "services/api/securityRoles.ts",
+      "endpoint": "${BASE_URL}/${idKey}",
+      "method": "PUT",
+      "responseType": "SecurityRoleDto"
+    },
+    "deleteSecurityRole": {
+      "name": "deleteSecurityRole",
+      "path": "services/api/securityRoles.ts",
+      "endpoint": "${BASE_URL}/${idKey}",
+      "method": "DELETE",
+      "responseType": "void"
+    },
+    "assignRoleClaim": {
+      "name": "assignRoleClaim",
+      "path": "services/api/securityRoles.ts",
+      "endpoint": "${BASE_URL}/${idKey}/claims",
+      "method": "POST",
+      "responseType": "void"
+    },
+    "removeRoleClaim": {
+      "name": "removeRoleClaim",
+      "path": "services/api/securityRoles.ts",
+      "endpoint": "${BASE_URL}/${idKey}/claims/${claimIdKey}",
+      "method": "DELETE",
+      "responseType": "void"
+    },
+    "addRoleMember": {
+      "name": "addRoleMember",
+      "path": "services/api/securityRoles.ts",
+      "endpoint": "${BASE_URL}/${idKey}/members",
+      "method": "POST",
+      "responseType": "void"
+    },
+    "removeRoleMember": {
+      "name": "removeRoleMember",
+      "path": "services/api/securityRoles.ts",
+      "endpoint": "${BASE_URL}/${idKey}/members/${personIdKey}",
+      "method": "DELETE",
+      "responseType": "void"
+    },
     "updatePreferences": {
       "name": "updatePreferences",
       "path": "services/api/settings.ts",
@@ -5594,6 +5678,30 @@
       "usesQuery": false,
       "usesMutation": false,
       "dependencies": []
+    },
+    "useCheckinOperationsDashboard": {
+      "name": "useCheckinOperationsDashboard",
+      "path": "hooks/useCheckinOperations.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "checkinoperationsdashboard"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useToggleCheckinOperationsRoom": {
+      "name": "useToggleCheckinOperationsRoom",
+      "path": "hooks/useCheckinOperations.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "togglecheckinoperationsroom"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "toggleCheckinOperationsRoom"
+      ]
     },
     "useCommunicationPreferences": {
       "name": "useCommunicationPreferences",
@@ -7243,6 +7351,136 @@
         "deleteSchedule"
       ]
     },
+    "useSecurityRoles": {
+      "name": "useSecurityRoles",
+      "path": "hooks/useSecurityRoles.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "securityroles"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getSecurityRoles"
+      ]
+    },
+    "useSecurityRole": {
+      "name": "useSecurityRole",
+      "path": "hooks/useSecurityRoles.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "securityrole"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getSecurityRole"
+      ]
+    },
+    "useSecurityClaims": {
+      "name": "useSecurityClaims",
+      "path": "hooks/useSecurityRoles.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "securityclaims"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getSecurityClaims"
+      ]
+    },
+    "useCreateSecurityRole": {
+      "name": "useCreateSecurityRole",
+      "path": "hooks/useSecurityRoles.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "createsecurityrole"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "createSecurityRole"
+      ]
+    },
+    "useUpdateSecurityRole": {
+      "name": "useUpdateSecurityRole",
+      "path": "hooks/useSecurityRoles.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "updatesecurityrole"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "updateSecurityRole"
+      ]
+    },
+    "useDeleteSecurityRole": {
+      "name": "useDeleteSecurityRole",
+      "path": "hooks/useSecurityRoles.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "deletesecurityrole"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "deleteSecurityRole"
+      ]
+    },
+    "useAssignRoleClaim": {
+      "name": "useAssignRoleClaim",
+      "path": "hooks/useSecurityRoles.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "assignroleclaim"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "assignRoleClaim"
+      ]
+    },
+    "useRemoveRoleClaim": {
+      "name": "useRemoveRoleClaim",
+      "path": "hooks/useSecurityRoles.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "removeroleclaim"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "removeRoleClaim"
+      ]
+    },
+    "useAddRoleMember": {
+      "name": "useAddRoleMember",
+      "path": "hooks/useSecurityRoles.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "addrolemember"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "addRoleMember"
+      ]
+    },
+    "useRemoveRoleMember": {
+      "name": "useRemoveRoleMember",
+      "path": "hooks/useSecurityRoles.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "removerolemember"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "removeRoleMember"
+      ]
+    },
     "usePreferences": {
       "name": "usePreferences",
       "path": "hooks/useSettings.ts",
@@ -7533,6 +7771,36 @@
     "AuditLogTable": {
       "name": "AuditLogTable",
       "path": "components/admin/audit/AuditLogTable.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "AttendeeSearch": {
+      "name": "AttendeeSearch",
+      "path": "components/admin/checkin-ops/AttendeeSearch.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "CapacityPill": {
+      "name": "CapacityPill",
+      "path": "components/admin/checkin-ops/CapacityPill.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "RoomCard": {
+      "name": "RoomCard",
+      "path": "components/admin/checkin-ops/RoomCard.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "RoomList": {
+      "name": "RoomList",
+      "path": "components/admin/checkin-ops/RoomList.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "SummaryStats": {
+      "name": "SummaryStats",
+      "path": "components/admin/checkin-ops/SummaryStats.tsx",
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
