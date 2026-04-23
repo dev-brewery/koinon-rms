@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { flushSync } from 'react-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   KioskLayout,
@@ -185,7 +184,7 @@ export function CheckinPage() {
     setStep('select-members');
   };
 
-  const handleToggleCheckin = (
+  const handleToggleCheckin = useCallback((
     personId: string,
     groupId: string,
     locationId: string,
@@ -195,48 +194,46 @@ export function CheckinPage() {
     scheduleName: string,
     startTime: string
   ) => {
-    const newSelected = new Map(selectedCheckins);
-    const existingSelections = newSelected.get(personId) || [];
+    setSelectedCheckins((prev) => {
+      const newSelected = new Map(prev);
+      const existingSelections = newSelected.get(personId) || [];
+      const selectionKey = createSelectionKey(groupId, locationId, scheduleId);
+      const selectionIndex = existingSelections.findIndex(
+        (sel) => createSelectionKey(sel.groupId, sel.locationId, sel.scheduleId) === selectionKey
+      );
 
-    // Check if this opportunity is already selected using consistent key
-    const selectionKey = createSelectionKey(groupId, locationId, scheduleId);
-    const selectionIndex = existingSelections.findIndex(
-      (sel) => createSelectionKey(sel.groupId, sel.locationId, sel.scheduleId) === selectionKey
-    );
-
-    if (selectionIndex >= 0) {
-      // Deselect - remove this opportunity
-      const updatedSelections = existingSelections.filter((_, idx) => idx !== selectionIndex);
-      if (updatedSelections.length === 0) {
-        newSelected.delete(personId);
+      if (selectionIndex >= 0) {
+        const updatedSelections = existingSelections.filter((_, idx) => idx !== selectionIndex);
+        if (updatedSelections.length === 0) {
+          newSelected.delete(personId);
+        } else {
+          newSelected.set(personId, updatedSelections);
+        }
       } else {
-        newSelected.set(personId, updatedSelections);
+        const newSelection: OpportunitySelection = {
+          groupId,
+          locationId,
+          scheduleId,
+          groupName,
+          locationName,
+          scheduleName,
+          startTime,
+        };
+        newSelected.set(personId, [...existingSelections, newSelection]);
       }
-    } else {
-      // Select - add this opportunity
-      const newSelection: OpportunitySelection = {
-        groupId,
-        locationId,
-        scheduleId,
-        groupName,
-        locationName,
-        scheduleName,
-        startTime,
-      };
-      newSelected.set(personId, [...existingSelections, newSelection]);
-    }
 
-    setSelectedCheckins(newSelected);
-  };
+      return newSelected;
+    });
+  }, []);
 
   const handleCheckIn = async () => {
-    // Force synchronous render so button disables immediately (INP < 200ms)
-    flushSync(() => {
-      setIsCheckingIn(true);
-      setCheckinError(null);
-      setPrintError(null);
-      setPrintStatus('idle');
-    });
+    // React 18 batches these within a discrete click event and flushes the
+    // commit before the browser's next paint, so the button disables under
+    // the INP budget without the flushSync-forced full-tree re-render.
+    setIsCheckingIn(true);
+    setCheckinError(null);
+    setPrintError(null);
+    setPrintStatus('idle');
 
     // Flatten all selections into a single array of check-in items
     const checkins: CheckinRequestItem[] = [];

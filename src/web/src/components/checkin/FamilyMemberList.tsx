@@ -1,3 +1,4 @@
+import { memo, useCallback } from 'react';
 import { Card } from '@/components/ui/Card';
 import type {
   CheckinPersonDto,
@@ -35,7 +36,7 @@ export interface FamilyMemberListProps {
 /**
  * Display family members with checkboxes to check in
  */
-export function FamilyMemberList({
+function FamilyMemberListImpl({
   opportunities,
   selectedCheckins,
   onToggleCheckin,
@@ -45,42 +46,59 @@ export function FamilyMemberList({
       {opportunities.map((opp) => (
         <PersonCard
           key={opp.person.idKey}
+          personIdKey={opp.person.idKey}
           person={opp.person}
           availableOptions={opp.availableOptions}
           currentAttendance={opp.currentAttendance}
           selectedOptions={selectedCheckins.get(opp.person.idKey) || []}
-          onSelect={(groupId, locationId, scheduleId, groupName, locationName, scheduleName, startTime) =>
-            onToggleCheckin(opp.person.idKey, groupId, locationId, scheduleId, groupName, locationName, scheduleName, startTime)
-          }
+          onToggleCheckin={onToggleCheckin}
         />
       ))}
     </div>
   );
 }
 
+export const FamilyMemberList = memo(FamilyMemberListImpl);
+
 interface PersonCardProps {
+  personIdKey: string;
   person: CheckinPersonDto;
   availableOptions: CheckinOptionDto[];
   currentAttendance: CurrentAttendanceDto[];
   selectedOptions: OpportunitySelection[];
-  onSelect: (
-    groupId: string,
-    locationId: string,
-    scheduleId: string,
-    groupName: string,
-    locationName: string,
-    scheduleName: string,
-    startTime: string
-  ) => void;
+  onToggleCheckin: FamilyMemberListProps['onToggleCheckin'];
 }
 
-function PersonCard({
+const PersonCard = memo(function PersonCard({
+  personIdKey,
   person,
   availableOptions,
   currentAttendance,
   selectedOptions,
-  onSelect,
+  onToggleCheckin,
 }: PersonCardProps) {
+  const onSelect = useCallback(
+    (
+      groupId: string,
+      locationId: string,
+      scheduleId: string,
+      groupName: string,
+      locationName: string,
+      scheduleName: string,
+      startTime: string
+    ) =>
+      onToggleCheckin(
+        personIdKey,
+        groupId,
+        locationId,
+        scheduleId,
+        groupName,
+        locationName,
+        scheduleName,
+        startTime
+      ),
+    [onToggleCheckin, personIdKey]
+  );
   // If already checked in, show current attendance
   if (currentAttendance.length > 0) {
     return (
@@ -266,4 +284,4 @@ function PersonCard({
       </div>
     </Card>
   );
-}
+});
