@@ -280,6 +280,8 @@ async function setupCheckinMocks(
   opts: {
     searchResponse?: unknown;
     checkinResult?: unknown;
+    /** Artificial delay (ms) before attendance API responds — use for INP testing */
+    attendanceDelayMs?: number;
   } = {}
 ) {
   const searchResp = opts.searchResponse ?? smithSearchResponse;
@@ -313,13 +315,16 @@ async function setupCheckinMocks(
   );
 
   // Attendance / check-in (POST /checkin/attendance)
-  await page.route('**/api/v1/checkin/attendance', (route) =>
-    route.fulfill({
+  await page.route('**/api/v1/checkin/attendance', async (route) => {
+    if (opts.attendanceDelayMs) {
+      await new Promise((resolve) => setTimeout(resolve, opts.attendanceDelayMs));
+    }
+    await route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify(checkinResp),
-    })
-  );
+    });
+  });
 
   // Labels (GET /checkin/labels/:attendanceIdKey)
   await page.route('**/api/v1/checkin/labels/**', (route) =>
@@ -896,7 +901,10 @@ test.describe('Performance', () => {
   });
 
   test('@perf confirm button responds to click in < 200ms (INP)', async ({ page }) => {
-    await setupCheckinMocks(page);
+    // Use 500ms API delay so we can observe the button's intermediate disabled
+    // state before the flow completes. Without this delay, instant mocks cause
+    // the entire check-in to complete before we can assert the button state.
+    await setupCheckinMocks(page, { attendanceDelayMs: 500 });
     const checkin = new CheckinPage(page);
     await checkin.goto();
     await page.waitForLoadState('networkidle');

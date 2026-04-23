@@ -15,10 +15,8 @@ export const batchFormSchema = z.object({
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Please enter a valid date (YYYY-MM-DD)')
     .refine(
       (dateStr) => {
-        const batchDate = new Date(dateStr);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0); // Normalize to start of day
-        return batchDate <= today;
+        const todayStr = new Date().toISOString().slice(0, 10);
+        return dateStr <= todayStr;
       },
       { message: 'Batch date cannot be in the future' }
     ),
