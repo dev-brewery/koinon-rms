@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import { cn } from '@/lib/utils';
 
 export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
@@ -8,16 +8,26 @@ export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElemen
 }
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-  ({ label, error, options, className, ...props }, ref) => {
+  ({ label, error, options, className, id: providedId, ...props }, ref) => {
+    const generatedId = useId();
+    const selectId = providedId ?? generatedId;
+    const errorId = `${selectId}-error`;
+
     return (
       <div className="w-full">
         {label && (
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor={selectId}
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             {label}
           </label>
         )}
         <select
           ref={ref}
+          id={selectId}
+          aria-invalid={error ? 'true' : undefined}
+          aria-describedby={error ? errorId : undefined}
           className={cn(
             'w-full px-4 py-3 text-base border rounded-lg',
             'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
@@ -37,7 +47,9 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           ))}
         </select>
         {error && (
-          <p className="mt-1 text-sm text-red-600">{error}</p>
+          <p id={errorId} className="mt-1 text-sm text-red-600" role="alert">
+            {error}
+          </p>
         )}
       </div>
     );

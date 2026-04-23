@@ -17724,6 +17724,18 @@
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
+    "ErrorBoundary.test": {
+      "name": "ErrorBoundary.test",
+      "path": "components/__tests__/ErrorBoundary.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "LocationPicker.test": {
+      "name": "LocationPicker.test",
+      "path": "components/__tests__/LocationPicker.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
     "Breadcrumb": {
       "name": "Breadcrumb",
       "path": "components/admin/Breadcrumb.tsx",
@@ -17808,6 +17820,24 @@
     "Sidebar": {
       "name": "Sidebar",
       "path": "components/admin/Sidebar.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "Breadcrumb.test": {
+      "name": "Breadcrumb.test",
+      "path": "components/admin/__tests__/Breadcrumb.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "CampusCard.test": {
+      "name": "CampusCard.test",
+      "path": "components/admin/__tests__/CampusCard.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "GroupTypeCard.test": {
+      "name": "GroupTypeCard.test",
+      "path": "components/admin/__tests__/GroupTypeCard.test.tsx",
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
@@ -17941,6 +17971,42 @@
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
+    "QuickActions.test": {
+      "name": "QuickActions.test",
+      "path": "components/admin/dashboard/__tests__/QuickActions.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "RecentBatches.test": {
+      "name": "RecentBatches.test",
+      "path": "components/admin/dashboard/__tests__/RecentBatches.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "RecentCommunications.test": {
+      "name": "RecentCommunications.test",
+      "path": "components/admin/dashboard/__tests__/RecentCommunications.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "StatCard.test": {
+      "name": "StatCard.test",
+      "path": "components/admin/dashboard/__tests__/StatCard.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "SummaryCards.test": {
+      "name": "SummaryCards.test",
+      "path": "components/admin/dashboard/__tests__/SummaryCards.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "UpcomingSchedules.test": {
+      "name": "UpcomingSchedules.test",
+      "path": "components/admin/dashboard/__tests__/UpcomingSchedules.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
     "AddMemberModal": {
       "name": "AddMemberModal",
       "path": "components/admin/families/AddMemberModal.tsx",
@@ -17955,6 +18021,12 @@
       "hooksUsed": [
         "useUpdateFamilyMember"
       ],
+      "apiCallsDirectly": false
+    },
+    "FamilyMemberCard.test": {
+      "name": "FamilyMemberCard.test",
+      "path": "components/admin/families/__tests__/FamilyMemberCard.test.tsx",
+      "hooksUsed": [],
       "apiCallsDirectly": false
     },
     "GroupAttendanceHistorySection": {
@@ -18071,6 +18143,12 @@
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
+    "PersonCard.test": {
+      "name": "PersonCard.test",
+      "path": "components/admin/people/__tests__/PersonCard.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
     "ChildCard": {
       "name": "ChildCard",
       "path": "components/admin/roster/ChildCard.tsx",
@@ -18113,6 +18191,18 @@
         "useAuth",
         "useLocation"
       ],
+      "apiCallsDirectly": false
+    },
+    "LoginForm.test": {
+      "name": "LoginForm.test",
+      "path": "components/auth/__tests__/LoginForm.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "ProtectedRoute.test": {
+      "name": "ProtectedRoute.test",
+      "path": "components/auth/__tests__/ProtectedRoute.test.tsx",
+      "hooksUsed": [],
       "apiCallsDirectly": false
     },
     "CheckinConfirmation": {
@@ -18217,9 +18307,27 @@
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
+    "CheckoutFlow.test": {
+      "name": "CheckoutFlow.test",
+      "path": "components/checkin/__tests__/CheckoutFlow.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
     "FamilyMemberList.test": {
       "name": "FamilyMemberList.test",
       "path": "components/checkin/__tests__/FamilyMemberList.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "FamilyQrCard.test": {
+      "name": "FamilyQrCard.test",
+      "path": "components/checkin/__tests__/FamilyQrCard.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "FamilySearch.test": {
+      "name": "FamilySearch.test",
+      "path": "components/checkin/__tests__/FamilySearch.test.tsx",
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
@@ -18229,9 +18337,39 @@
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
+    "KioskLayout.test": {
+      "name": "KioskLayout.test",
+      "path": "components/checkin/__tests__/KioskLayout.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "OfflineQueueIndicator.test": {
+      "name": "OfflineQueueIndicator.test",
+      "path": "components/checkin/__tests__/OfflineQueueIndicator.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
     "PhoneSearch.test": {
       "name": "PhoneSearch.test",
       "path": "components/checkin/__tests__/PhoneSearch.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "PinEntry.test": {
+      "name": "PinEntry.test",
+      "path": "components/checkin/__tests__/PinEntry.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "RoomCapacityIndicator.test": {
+      "name": "RoomCapacityIndicator.test",
+      "path": "components/checkin/__tests__/RoomCapacityIndicator.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "SecurityCodeVerify.test": {
+      "name": "SecurityCodeVerify.test",
+      "path": "components/checkin/__tests__/SecurityCodeVerify.test.tsx",
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
@@ -18348,6 +18486,18 @@
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
+    "MessageTypeToggle.test": {
+      "name": "MessageTypeToggle.test",
+      "path": "components/communication/__tests__/MessageTypeToggle.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "RecipientStatusBadge.test": {
+      "name": "RecipientStatusBadge.test",
+      "path": "components/communication/__tests__/RecipientStatusBadge.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
     "BatchStatusBadge": {
       "name": "BatchStatusBadge",
       "path": "components/giving/BatchStatusBadge.tsx",
@@ -18386,6 +18536,18 @@
       ],
       "apiCallsDirectly": false
     },
+    "BatchStatusBadge.test": {
+      "name": "BatchStatusBadge.test",
+      "path": "components/giving/__tests__/BatchStatusBadge.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "BatchSummaryCard.test": {
+      "name": "BatchSummaryCard.test",
+      "path": "components/giving/__tests__/BatchSummaryCard.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
     "GroupFilters": {
       "name": "GroupFilters",
       "path": "components/groups/GroupFilters.tsx",
@@ -18419,6 +18581,18 @@
       "hooksUsed": [
         "useSubmitMembershipRequest"
       ],
+      "apiCallsDirectly": false
+    },
+    "GroupFilters.test": {
+      "name": "GroupFilters.test",
+      "path": "components/groups/__tests__/GroupFilters.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "PendingRequestsBadge.test": {
+      "name": "PendingRequestsBadge.test",
+      "path": "components/groups/__tests__/PendingRequestsBadge.test.tsx",
+      "hooksUsed": [],
       "apiCallsDirectly": false
     },
     "CsvUploader": {
@@ -18517,6 +18691,12 @@
       ],
       "apiCallsDirectly": false
     },
+    "NotificationItem.test": {
+      "name": "NotificationItem.test",
+      "path": "components/notifications/__tests__/NotificationItem.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
     "FamilySection": {
       "name": "FamilySection",
       "path": "components/profile/FamilySection.tsx",
@@ -18543,6 +18723,18 @@
       ],
       "apiCallsDirectly": false
     },
+    "FamilySection.test": {
+      "name": "FamilySection.test",
+      "path": "components/profile/__tests__/FamilySection.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "InvolvementSummary.test": {
+      "name": "InvolvementSummary.test",
+      "path": "components/profile/__tests__/InvolvementSummary.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
     "InstallPrompt": {
       "name": "InstallPrompt",
       "path": "components/pwa/InstallPrompt.tsx",
@@ -18558,6 +18750,24 @@
     "PWAUpdatePrompt": {
       "name": "PWAUpdatePrompt",
       "path": "components/pwa/PWAUpdatePrompt.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "InstallPrompt.test": {
+      "name": "InstallPrompt.test",
+      "path": "components/pwa/__tests__/InstallPrompt.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "OfflineIndicator.test": {
+      "name": "OfflineIndicator.test",
+      "path": "components/pwa/__tests__/OfflineIndicator.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "PWAUpdatePrompt.test": {
+      "name": "PWAUpdatePrompt.test",
+      "path": "components/pwa/__tests__/PWAUpdatePrompt.test.tsx",
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
@@ -18679,6 +18889,66 @@
     "ToastContainer": {
       "name": "ToastContainer",
       "path": "components/ui/Toast.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "AccessibleSelect.test": {
+      "name": "AccessibleSelect.test",
+      "path": "components/ui/__tests__/AccessibleSelect.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "ConfirmDialog.test": {
+      "name": "ConfirmDialog.test",
+      "path": "components/ui/__tests__/ConfirmDialog.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "EmptyState.test": {
+      "name": "EmptyState.test",
+      "path": "components/ui/__tests__/EmptyState.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "ErrorState.test": {
+      "name": "ErrorState.test",
+      "path": "components/ui/__tests__/ErrorState.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "Input.test": {
+      "name": "Input.test",
+      "path": "components/ui/__tests__/Input.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "Loading.test": {
+      "name": "Loading.test",
+      "path": "components/ui/__tests__/Loading.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "PhoneInput.test": {
+      "name": "PhoneInput.test",
+      "path": "components/ui/__tests__/PhoneInput.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "Select.test": {
+      "name": "Select.test",
+      "path": "components/ui/__tests__/Select.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "Skeleton.test": {
+      "name": "Skeleton.test",
+      "path": "components/ui/__tests__/Skeleton.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "Toast.test": {
+      "name": "Toast.test",
+      "path": "components/ui/__tests__/Toast.test.tsx",
       "hooksUsed": [],
       "apiCallsDirectly": false
     }
@@ -22033,7 +22303,7 @@
     "types": 313,
     "api_functions": 194,
     "hooks": 174,
-    "components": 143,
+    "components": 188,
     "total_edges": 629
   }
 }

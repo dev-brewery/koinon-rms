@@ -32,6 +32,20 @@ describe('Select', () => {
     expect(screen.getByText('Choose')).toBeInTheDocument();
   });
 
+  it('associates label with select via htmlFor/id', () => {
+    render(<Select label="Choose" options={options} defaultValue="a" onChange={() => {}} />);
+    const label = screen.getByText('Choose');
+    const select = screen.getByRole('combobox');
+    expect(label).toHaveAttribute('for', select.id);
+  });
+
+  it('uses provided id for label association', () => {
+    render(<Select id="my-select" label="Choose" options={options} defaultValue="a" onChange={() => {}} />);
+    const label = screen.getByText('Choose');
+    expect(label).toHaveAttribute('for', 'my-select');
+    expect(screen.getByRole('combobox')).toHaveAttribute('id', 'my-select');
+  });
+
   it('fires onChange with the selected value', async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
@@ -56,6 +70,24 @@ describe('Select', () => {
     );
     expect(screen.getByText('Required')).toBeInTheDocument();
     expect(screen.getByRole('combobox').className).toMatch(/border-red-500/);
+  });
+
+  it('links error message to select via aria-describedby', () => {
+    render(
+      <Select label="Pick" options={options} defaultValue="a" onChange={() => {}} error="Required" />,
+    );
+    const select = screen.getByRole('combobox');
+    const error = screen.getByText('Required');
+    expect(select).toHaveAttribute('aria-invalid', 'true');
+    expect(select).toHaveAttribute('aria-describedby', error.id);
+    expect(error).toHaveAttribute('role', 'alert');
+  });
+
+  it('does not set aria-invalid when no error', () => {
+    render(<Select label="Pick" options={options} defaultValue="a" onChange={() => {}} />);
+    const select = screen.getByRole('combobox');
+    expect(select).not.toHaveAttribute('aria-invalid');
+    expect(select).not.toHaveAttribute('aria-describedby');
   });
 
   it('forwards the ref to the underlying select element', () => {

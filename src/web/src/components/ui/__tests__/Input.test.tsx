@@ -25,11 +25,41 @@ describe('Input', () => {
     expect(container.querySelector('label')).toBeNull();
   });
 
+  it('associates label with input via htmlFor/id', () => {
+    render(<Input label="Email" />);
+    const label = screen.getByText('Email');
+    const input = screen.getByRole('textbox');
+    expect(label).toHaveAttribute('for', input.id);
+  });
+
+  it('uses provided id for label association', () => {
+    render(<Input id="my-email" label="Email" />);
+    const label = screen.getByText('Email');
+    expect(label).toHaveAttribute('for', 'my-email');
+    expect(screen.getByRole('textbox')).toHaveAttribute('id', 'my-email');
+  });
+
   it('renders the error message and marks the field with error styling', () => {
     render(<Input label="Email" error="Required" placeholder="x" />);
     expect(screen.getByText('Required')).toBeInTheDocument();
     const input = screen.getByRole('textbox');
     expect(input.className).toMatch(/border-red-500/);
+  });
+
+  it('links error message to input via aria-describedby', () => {
+    render(<Input label="Email" error="Required" />);
+    const input = screen.getByRole('textbox');
+    const error = screen.getByText('Required');
+    expect(input).toHaveAttribute('aria-invalid', 'true');
+    expect(input).toHaveAttribute('aria-describedby', error.id);
+    expect(error).toHaveAttribute('role', 'alert');
+  });
+
+  it('does not set aria-invalid when no error', () => {
+    render(<Input label="Email" />);
+    const input = screen.getByRole('textbox');
+    expect(input).not.toHaveAttribute('aria-invalid');
+    expect(input).not.toHaveAttribute('aria-describedby');
   });
 
   it('applies neutral border styling when no error is present', () => {

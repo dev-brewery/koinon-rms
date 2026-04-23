@@ -1,37 +1,37 @@
 import React, { useId } from 'react';
 import { cn } from '@/lib/utils';
 
-export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
   error?: string;
 }
 
-export const Input = React.forwardRef<HTMLInputElement, InputProps>(
+export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ label, error, className, id: providedId, ...props }, ref) => {
     const generatedId = useId();
-    const inputId = providedId ?? generatedId;
-    const errorId = `${inputId}-error`;
+    const textareaId = providedId ?? generatedId;
+    const errorId = `${textareaId}-error`;
 
     return (
       <div className="w-full">
         {label && (
           <label
-            htmlFor={inputId}
+            htmlFor={textareaId}
             className="block text-sm font-medium text-gray-700 mb-1"
           >
             {label}
           </label>
         )}
-        <input
+        <textarea
           ref={ref}
-          id={inputId}
+          id={textareaId}
           aria-invalid={error ? 'true' : undefined}
           aria-describedby={error ? errorId : undefined}
           className={cn(
             'w-full px-4 py-3 text-base border rounded-lg',
             'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
             'disabled:bg-gray-100 disabled:cursor-not-allowed',
-            'min-h-[48px]',
+            'resize-y min-h-[100px]',
             error
               ? 'border-red-500 focus:ring-red-500'
               : 'border-gray-300',
@@ -49,4 +49,4 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   }
 );
 
-Input.displayName = 'Input';
+Textarea.displayName = 'Textarea';
