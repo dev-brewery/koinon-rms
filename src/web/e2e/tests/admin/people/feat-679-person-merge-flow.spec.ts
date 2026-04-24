@@ -390,19 +390,7 @@ test.describe('PersonMergeWizard', () => {
     ).toBeVisible();
   });
 
-  // SKIPPED: pre-existing backend bug — PersonMergeService executes a
-  // user-initiated transaction under NpgsqlRetryingExecutionStrategy, which
-  // EF Core rejects with InvalidOperationException ("The configured execution
-  // strategy 'NpgsqlRetryingExecutionStrategy' does not support user-initiated
-  // transactions. Use the execution strategy returned by
-  // 'DbContext.Database.CreateExecutionStrategy()' to execute all the
-  // operations in the transaction as a retriable unit."). This surfaces as
-  // HTTP 400 "An error occurred while merging persons" on every call to
-  // POST /api/v1/people/merge. Verified with a direct curl call against the
-  // seeded demo DB. Unskip once the backend bug is fixed; the wizard UI and
-  // navigation assertions themselves are already covered by the other wizard
-  // tests in this file.
-  test.skip('@smoke golden-path: completes full merge and redirects to survivor detail', async ({ page }) => {
+  test('@smoke golden-path: completes full merge and redirects to survivor detail', async ({ page }) => {
     const suffix = uniqueSuffix('golden');
     const survivorFirst = `Survivor${suffix}`;
     const mergedFirst = `Merged${suffix}`;

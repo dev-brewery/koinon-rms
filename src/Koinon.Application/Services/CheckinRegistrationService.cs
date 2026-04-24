@@ -51,134 +51,146 @@ public class CheckinRegistrationService(
 
         var now = DateTime.UtcNow;
 
-        // All writes happen inside a single transaction
-        await using var transaction = await context.Database.BeginTransactionAsync(ct);
+        // All writes happen inside a single transaction.
+        // The transaction must be wrapped in an ExecutionStrategy so it is compatible with
+        // the NpgsqlRetryingExecutionStrategy (EnableRetryOnFailure). See issue #681.
+        var strategy = context.Database.CreateExecutionStrategy();
+
+        CheckinFamilySearchResultDto? resultDto = null;
 
         try
         {
-            // 1. Create the Family
-            var family = new Family
+            await strategy.ExecuteAsync(async () =>
             {
-                Name = $"{request.ParentLastName} Family",
-                IsActive = true,
-                CreatedDateTime = now
-            };
+                await using var transaction = await context.Database.BeginTransactionAsync(ct);
 
-            await context.Families.AddAsync(family, ct);
-
-            // 2. Create the parent Person
-            var parent = new Person
-            {
-                FirstName = request.ParentFirstName,
-                LastName = request.ParentLastName,
-                CreatedDateTime = now
-            };
-
-            // Attach the mobile phone number
-            parent.PhoneNumbers.Add(new PhoneNumber
-            {
-                Number = normalizedPhone,
-                NumberNormalized = normalizedPhone,
-                IsMessagingEnabled = true,
-                CreatedDateTime = now
-            });
-
-            await context.People.AddAsync(parent, ct);
-
-            // 3. Link parent to family as Adult (IsPrimary = true)
-            //    Navigation properties are used so EF Core resolves FK order automatically.
-            var parentMember = new FamilyMember
-            {
-                Family = family,
-                Person = parent,
-                FamilyRoleId = adultRole.Id,
-                IsPrimary = true,
-                DateAdded = now,
-                CreatedDateTime = now
-            };
-
-            await context.FamilyMembers.AddAsync(parentMember, ct);
-
-            // 4. Create child Persons and their FamilyMember rows
-            var childPeople = new List<Person>();
-
-            foreach (var childRequest in request.Children)
-            {
-                var childLastName = string.IsNullOrWhiteSpace(childRequest.LastName)
-                    ? request.ParentLastName
-                    : childRequest.LastName;
-
-                var child = new Person
+                // 1. Create the Family
+                var family = new Family
                 {
-                    FirstName = childRequest.FirstName,
-                    LastName = childLastName,
+                    Name = $"{request.ParentLastName} Family",
+                    IsActive = true,
                     CreatedDateTime = now
                 };
 
-                // Map DateOnly BirthDate to the three separate birth component columns
-                if (childRequest.BirthDate.HasValue)
+                await context.Families.AddAsync(family, ct);
+
+                // 2. Create the parent Person
+                var parent = new Person
                 {
-                    child.BirthYear = childRequest.BirthDate.Value.Year;
-                    child.BirthMonth = childRequest.BirthDate.Value.Month;
-                    child.BirthDay = childRequest.BirthDate.Value.Day;
-                }
+                    FirstName = request.ParentFirstName,
+                    LastName = request.ParentLastName,
+                    CreatedDateTime = now
+                };
 
-                await context.People.AddAsync(child, ct);
+                // Attach the mobile phone number
+                parent.PhoneNumbers.Add(new PhoneNumber
+                {
+                    Number = normalizedPhone,
+                    NumberNormalized = normalizedPhone,
+                    IsMessagingEnabled = true,
+                    CreatedDateTime = now
+                });
 
-                var childMember = new FamilyMember
+                await context.People.AddAsync(parent, ct);
+
+                // 3. Link parent to family as Adult (IsPrimary = true)
+                //    Navigation properties are used so EF Core resolves FK order automatically.
+                var parentMember = new FamilyMember
                 {
                     Family = family,
-                    Person = child,
-                    FamilyRoleId = childRole.Id,
+                    Person = parent,
+                    FamilyRoleId = adultRole.Id,
                     IsPrimary = true,
                     DateAdded = now,
                     CreatedDateTime = now
                 };
 
-                await context.FamilyMembers.AddAsync(childMember, ct);
+                await context.FamilyMembers.AddAsync(parentMember, ct);
 
-                childPeople.Add(child);
-            }
+                // 4. Create child Persons and their FamilyMember rows
+                var childPeople = new List<Person>();
 
-            // Single SaveChangesAsync — EF Core inserts in dependency order:
-            // Family → People → PhoneNumbers → FamilyMembers
-            await context.SaveChangesAsync(ct);
-            await transaction.CommitAsync(ct);
+                foreach (var childRequest in request.Children)
+                {
+                    var childLastName = string.IsNullOrWhiteSpace(childRequest.LastName)
+                        ? request.ParentLastName
+                        : childRequest.LastName;
 
-            logger.LogInformation(
-                "Kiosk family registration complete: FamilyId={FamilyId}, FamilyName={FamilyName}, " +
-                "ChildCount={ChildCount}",
-                family.Id, family.Name, request.Children.Count);
+                    var child = new Person
+                    {
+                        FirstName = childRequest.FirstName,
+                        LastName = childLastName,
+                        CreatedDateTime = now
+                    };
 
-            // 5. Build the response DTO from in-memory objects.
-            //    All entities now have their generated IDs — no additional DB round-trip needed.
-            var members = new List<CheckinFamilyMemberDto>(1 + childPeople.Count)
-            {
-                BuildMemberDto(parent, adultRole.Name, isChild: false)
-            };
+                    // Map DateOnly BirthDate to the three separate birth component columns
+                    if (childRequest.BirthDate.HasValue)
+                    {
+                        child.BirthYear = childRequest.BirthDate.Value.Year;
+                        child.BirthMonth = childRequest.BirthDate.Value.Month;
+                        child.BirthDay = childRequest.BirthDate.Value.Day;
+                    }
 
-            foreach (var child in childPeople)
-            {
-                members.Add(BuildMemberDto(child, childRole.Name, isChild: true));
-            }
+                    await context.People.AddAsync(child, ct);
 
-            return new CheckinFamilySearchResultDto
-            {
-                FamilyIdKey = family.IdKey,
-                FamilyName = family.Name,
-                AddressSummary = null,
-                CampusName = null,
-                Members = members,
-                RecentCheckInCount = 0
-            };
+                    var childMember = new FamilyMember
+                    {
+                        Family = family,
+                        Person = child,
+                        FamilyRoleId = childRole.Id,
+                        IsPrimary = true,
+                        DateAdded = now,
+                        CreatedDateTime = now
+                    };
+
+                    await context.FamilyMembers.AddAsync(childMember, ct);
+
+                    childPeople.Add(child);
+                }
+
+                // Single SaveChangesAsync — EF Core inserts in dependency order:
+                // Family → People → PhoneNumbers → FamilyMembers
+                await context.SaveChangesAsync(ct);
+                await transaction.CommitAsync(ct);
+
+                logger.LogInformation(
+                    "Kiosk family registration complete: FamilyId={FamilyId}, FamilyName={FamilyName}, " +
+                    "ChildCount={ChildCount}",
+                    family.Id, family.Name, request.Children.Count);
+
+                // 5. Build the response DTO from in-memory objects.
+                //    All entities now have their generated IDs — no additional DB round-trip needed.
+                var members = new List<CheckinFamilyMemberDto>(1 + childPeople.Count)
+                {
+                    BuildMemberDto(parent, adultRole.Name, isChild: false)
+                };
+
+                foreach (var child in childPeople)
+                {
+                    members.Add(BuildMemberDto(child, childRole.Name, isChild: true));
+                }
+
+                resultDto = new CheckinFamilySearchResultDto
+                {
+                    FamilyIdKey = family.IdKey,
+                    FamilyName = family.Name,
+                    AddressSummary = null,
+                    CampusName = null,
+                    Members = members,
+                    RecentCheckInCount = 0
+                };
+            });
+
+            return resultDto!;
         }
         catch (Exception ex) when (ex is not ValidationException && ex is not OperationCanceledException)
         {
+            // ExecutionStrategy disposes the transaction automatically on exception,
+            // so explicit rollback is no longer needed here.
             logger.LogError(ex,
                 "Family registration failed for parent {FirstName} {LastName}. Rolling back.",
                 request.ParentFirstName, request.ParentLastName);
 
-            await transaction.RollbackAsync(ct);
             throw;
         }
     }
