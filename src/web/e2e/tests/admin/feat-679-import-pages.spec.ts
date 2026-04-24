@@ -35,17 +35,19 @@
  *  - A tiny CSV (3 data rows) is uploaded via page.setInputFiles using a
  *    Buffer — no fixture file is written to disk.
  *
- * NEW BUG #1 (skip-and-flag): GET /api/v1/import/jobs returns HTTP 500.
- *   Live curl response:
- *     { "status": 500, "detail": "Unable to resolve service for type
- *       'Koinon.Application.Interfaces.IDataImportService' while
- *       attempting to activate 'Koinon.Api.Controllers.ImportController'" }
- *   The implementation registration for IDataImportService appears to be
- *   missing from DI. As a result, ImportHistoryPage's `useImportJobs` hook
- *   always errors and the page renders the ErrorState ("Failed to load
- *   import history") — filter changes, table, and empty-state paths never
- *   render. Suggested issue title:
- *     "fix(api): register IDataImportService in Koinon.Api DI container"
+ * Fixed in #696: IDataImportService is now registered in DI, so
+ *   GET /api/v1/import/jobs returns 200 (no longer the DI 500).
+ *
+ * SECOND BUG (not fixed in #696, flagged separately): the backend returns
+ *   `{ data: PagedResult<ImportJobDto> }` (i.e. `{ data: { items, totalCount, … } }`)
+ *   from GET /api/v1/import/jobs, but the frontend client
+ *   `getImportJobs()` in `src/web/src/services/api/import.ts` unwraps it as
+ *   `{ data: ImportJobDto[] }`. The mismatched shape causes the hook's
+ *   `data.filter()` call to throw and the page renders the global
+ *   ErrorState. We mock `**\/api/v1/import/jobs**` with an array-shaped
+ *   response so the page chrome tests can still run; filing this as a
+ *   follow-up issue (title suggestion: "fix(web): align getImportJobs
+ *   unwrapping with PagedResult<ImportJobDto> shape").
  *
  * Guardrails:
  *  - No data-testid attributes added to production code.
@@ -93,20 +95,20 @@ async function uploadCsv(page: Page, fileName: string, content: Buffer): Promise
 // ---------------------------------------------------------------------------
 // ImportHistoryPage
 //
-// NOTE: Because NEW BUG #1 makes GET /import/jobs return HTTP 500, every
-// ImportHistoryPage test that depends on rendered page chrome (filter,
-// table, empty state) would collapse into a global ErrorState render.
-// To exercise the UI chrome independently of the broken endpoint, we
-// mock `/import/jobs*` with an empty-array success response in these
-// specs. Mocking policy note: this matches the import-page exemption
-// ("If the import execution would trigger slow background jobs, mock
-// the import endpoint").
+// DI resolution for /import/jobs is fixed in #696 (endpoint no longer
+// returns 500). A separate shape mismatch between the controller's
+// PagedResult payload and the frontend's array-expectation remains open
+// (see SECOND BUG in the header). Until that is resolved, we mock the
+// jobs list with the shape the frontend currently expects so the page
+// chrome tests can exercise heading, filter, CTAs, and refresh.
 // ---------------------------------------------------------------------------
 
 test.describe('Import History page', () => {
   test.beforeEach(async ({ loginAsAdmin, page }) => {
     await loginAsAdmin();
-    // Mock jobs list so the page can render (see NEW BUG #1).
+    // Shape matches what getImportJobs() unwraps today: { data: ImportJobDto[] }.
+    // This mock is temporary; remove once the backend/frontend contract is
+    // aligned (see SECOND BUG in the spec header).
     await page.route('**/api/v1/import/jobs**', async (route) => {
       await route.fulfill({
         status: 200,
