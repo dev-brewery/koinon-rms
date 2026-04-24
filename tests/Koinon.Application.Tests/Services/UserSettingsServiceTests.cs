@@ -6,6 +6,7 @@ using Koinon.Application.Common;
 using Koinon.Application.DTOs.Requests;
 using Koinon.Application.Interfaces;
 using Koinon.Application.Services;
+using Koinon.Domain.Data;
 using Koinon.Domain.Entities;
 using Koinon.Domain.Enums;
 using Konscious.Security.Cryptography;
@@ -52,6 +53,24 @@ public class UserSettingsServiceTests
     {
         var options = new DbContextOptionsBuilder<TestDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        return new TestDbContext(options);
+    }
+
+    /// <summary>
+    /// Creates an in-memory DbContext configured with NoTracking as the global default,
+    /// mirroring the production PostgreSqlProvider configuration. This is required for
+    /// bug-regression tests (#708): tests against a tracking DbContext will silently pass
+    /// against buggy code because the in-memory entity reference is the same as what a
+    /// subsequent FirstOrDefaultAsync returns (it's the tracked instance, not a fresh
+    /// DB read).
+    /// </summary>
+    private static TestDbContext CreateNoTrackingInMemoryContext()
+    {
+        var options = new DbContextOptionsBuilder<TestDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking)
             .Options;
 
         return new TestDbContext(options);
@@ -590,6 +609,380 @@ public class UserSettingsServiceTests
         Assert.NotNull(updatedConfig);
         Assert.False(updatedConfig.IsEnabled);
         Assert.Null(updatedConfig.EnabledAt);
+    }
+
+    #endregion
+
+    // ---------------------------------------------------------------------
+    // Bug #708 regression tests — SECURITY-CRITICAL.
+    //
+    // Production configures PostgreSqlProvider with QueryTrackingBehavior.NoTracking,
+    // which means FirstOrDefaultAsync/FindAsync return DETACHED entities. Without an
+    // explicit .AsTracking() on the load query, mutations to the returned entity are
+    // silently dropped on SaveChanges — leaving the database row unchanged while the
+    // API happily returns success.
+    //
+    // For 2FA flows this is particularly dangerous: a silently-dropped Enable2FA would
+    // let a user believe they're protected when they aren't.
+    //
+    // Each of these tests:
+    //   1. Uses a DbContext with NoTracking as the global default (mirroring prod).
+    //   2. Mutates via the service, SaveChanges.
+    //   3. Detaches all tracked entities (ChangeTracker.Clear) so the reload is a fresh
+    //      DB read — NOT a tracker cache hit.
+    //   4. Reloads with AsNoTracking and asserts the mutation actually persisted.
+    //
+    // These tests FAIL against the pre-fix service and PASS after the fix.
+    // ---------------------------------------------------------------------
+
+    #region Bug #708 — 2FA SECURITY persistence under NoTracking
+
+    [Fact]
+    public async Task VerifyTwoFactorAsync_UnderNoTracking_PersistsEnableToDatabase()
+    {
+        // Arrange
+        using var context = CreateNoTrackingInMemoryContext();
+        var person = new Person
+        {
+            FirstName = "Test",
+            LastName = "User",
+            Email = "test@example.com",
+            Gender = Gender.Unknown
+        };
+        context.People.Add(person);
+        await context.SaveChangesAsync();
+
+        var secretBytes = RandomNumberGenerator.GetBytes(20);
+        var secretKey = Base32Encoding.ToString(secretBytes);
+        var config = new TwoFactorConfig
+        {
+            PersonId = person.Id,
+            SecretKey = secretKey,
+            IsEnabled = false
+        };
+        context.TwoFactorConfigs.Add(config);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var totp = new Totp(secretBytes);
+        var validCode = totp.ComputeTotp();
+
+        var service = new UserSettingsService(
+            context,
+            _authServiceMock.Object,
+            _updatePreferenceValidatorMock.Object,
+            _changePasswordValidatorMock.Object,
+            _twoFactorVerifyValidatorMock.Object,
+            _loggerMock.Object);
+        var request = new TwoFactorVerifyRequest { Code = validCode };
+
+        // Act
+        var result = await service.VerifyTwoFactorAsync(person.Id, request);
+
+        // Assert — the API returned success.
+        Assert.True(result.IsSuccess);
+
+        // Assert — and the DB actually has IsEnabled=true. This is the critical check:
+        // pre-fix, the mutation was silently dropped and this assertion would fail.
+        context.ChangeTracker.Clear();
+        var reloaded = await context.TwoFactorConfigs
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.PersonId == person.Id);
+        Assert.NotNull(reloaded);
+        Assert.True(reloaded.IsEnabled,
+            "2FA IsEnabled must be persisted to the database; if false, the user believes they are protected when they are not.");
+        Assert.NotNull(reloaded.EnabledAt);
+    }
+
+    [Fact]
+    public async Task DisableTwoFactorAsync_UnderNoTracking_PersistsDisableToDatabase()
+    {
+        // Arrange
+        using var context = CreateNoTrackingInMemoryContext();
+        var person = new Person
+        {
+            FirstName = "Test",
+            LastName = "User",
+            Email = "test@example.com",
+            Gender = Gender.Unknown
+        };
+        context.People.Add(person);
+        await context.SaveChangesAsync();
+
+        var secretBytes = RandomNumberGenerator.GetBytes(20);
+        var secretKey = Base32Encoding.ToString(secretBytes);
+        var config = new TwoFactorConfig
+        {
+            PersonId = person.Id,
+            SecretKey = secretKey,
+            IsEnabled = true,
+            EnabledAt = DateTime.UtcNow.AddDays(-1)
+        };
+        context.TwoFactorConfigs.Add(config);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var totp = new Totp(secretBytes);
+        var validCode = totp.ComputeTotp();
+
+        var service = new UserSettingsService(
+            context,
+            _authServiceMock.Object,
+            _updatePreferenceValidatorMock.Object,
+            _changePasswordValidatorMock.Object,
+            _twoFactorVerifyValidatorMock.Object,
+            _loggerMock.Object);
+        var request = new TwoFactorVerifyRequest { Code = validCode };
+
+        // Act
+        var result = await service.DisableTwoFactorAsync(person.Id, request);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+
+        context.ChangeTracker.Clear();
+        var reloaded = await context.TwoFactorConfigs
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.PersonId == person.Id);
+        Assert.NotNull(reloaded);
+        Assert.False(reloaded.IsEnabled,
+            "2FA IsEnabled must be persisted as false after disable; if still true, 2FA remains active despite user request to disable.");
+        Assert.Null(reloaded.EnabledAt);
+    }
+
+    [Fact]
+    public async Task SetupTwoFactorAsync_UnderNoTracking_PersistsSecretForExistingConfig()
+    {
+        // Arrange — user already has a 2FA config (previously enabled) and is re-setting up.
+        using var context = CreateNoTrackingInMemoryContext();
+        var person = new Person
+        {
+            FirstName = "Test",
+            LastName = "User",
+            Email = "test@example.com",
+            Gender = Gender.Unknown
+        };
+        context.People.Add(person);
+        await context.SaveChangesAsync();
+
+        var existing = new TwoFactorConfig
+        {
+            PersonId = person.Id,
+            SecretKey = "OLD_SECRET_KEY_THAT_SHOULD_BE_REPLACED",
+            IsEnabled = true,
+            EnabledAt = DateTime.UtcNow.AddDays(-1)
+        };
+        context.TwoFactorConfigs.Add(existing);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        _authServiceMock
+            .Setup(a => a.HashPasswordAsync(It.IsAny<string>()))
+            .ReturnsAsync((string s) => $"hashed-{s}");
+
+        var service = new UserSettingsService(
+            context,
+            _authServiceMock.Object,
+            _updatePreferenceValidatorMock.Object,
+            _changePasswordValidatorMock.Object,
+            _twoFactorVerifyValidatorMock.Object,
+            _loggerMock.Object);
+
+        // Act
+        var result = await service.SetupTwoFactorAsync(person.Id);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+
+        context.ChangeTracker.Clear();
+        var reloaded = await context.TwoFactorConfigs
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.PersonId == person.Id);
+        Assert.NotNull(reloaded);
+        Assert.NotEqual("OLD_SECRET_KEY_THAT_SHOULD_BE_REPLACED", reloaded.SecretKey);
+        Assert.Equal(result.Value!.SecretKey, reloaded.SecretKey);
+        Assert.False(reloaded.IsEnabled); // not enabled until verified
+        Assert.Null(reloaded.EnabledAt);
+    }
+
+    [Fact]
+    public async Task ChangePasswordAsync_UnderNoTracking_PersistsNewHashToDatabase()
+    {
+        // Arrange
+        using var context = CreateNoTrackingInMemoryContext();
+        var oldHash = await CreatePasswordHashAsync("OldPass123!");
+        var person = new Person
+        {
+            FirstName = "Test",
+            LastName = "User",
+            Email = "test@example.com",
+            Gender = Gender.Unknown,
+            PasswordHash = oldHash
+        };
+        context.People.Add(person);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        _authServiceMock
+            .Setup(a => a.VerifyPasswordAsync("OldPass123!", It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        _authServiceMock
+            .Setup(a => a.HashPasswordAsync("NewPass456!"))
+            .ReturnsAsync("brand-new-hash");
+
+        var service = new UserSettingsService(
+            context,
+            _authServiceMock.Object,
+            _updatePreferenceValidatorMock.Object,
+            _changePasswordValidatorMock.Object,
+            _twoFactorVerifyValidatorMock.Object,
+            _loggerMock.Object);
+        var request = new ChangePasswordRequest
+        {
+            CurrentPassword = "OldPass123!",
+            NewPassword = "NewPass456!",
+            ConfirmPassword = "NewPass456!"
+        };
+
+        // Act
+        var result = await service.ChangePasswordAsync(person.Id, request);
+
+        // Assert — API returned success.
+        Assert.True(result.IsSuccess);
+
+        // Assert — the DB actually has the new hash. Pre-fix, the PasswordHash mutation
+        // was silently dropped and the user's password would be unchanged even though the
+        // API returned success.
+        context.ChangeTracker.Clear();
+        var reloaded = await context.People
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == person.Id);
+        Assert.NotNull(reloaded);
+        Assert.Equal("brand-new-hash", reloaded.PasswordHash);
+        Assert.NotEqual(oldHash, reloaded.PasswordHash);
+    }
+
+    [Fact]
+    public async Task UpdatePreferencesAsync_UnderNoTracking_PersistsExistingConfigUpdate()
+    {
+        // Arrange
+        using var context = CreateNoTrackingInMemoryContext();
+        var person = new Person
+        {
+            FirstName = "Test",
+            LastName = "User",
+            Email = "test@example.com",
+            Gender = Gender.Unknown
+        };
+        context.People.Add(person);
+        await context.SaveChangesAsync();
+
+        var existing = new UserPreference
+        {
+            PersonId = person.Id,
+            Theme = Theme.Light,
+            DateFormat = "MM/dd/yyyy",
+            TimeZone = "America/New_York"
+        };
+        context.UserPreferences.Add(existing);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var service = new UserSettingsService(
+            context,
+            _authServiceMock.Object,
+            _updatePreferenceValidatorMock.Object,
+            _changePasswordValidatorMock.Object,
+            _twoFactorVerifyValidatorMock.Object,
+            _loggerMock.Object);
+        var request = new UpdateUserPreferenceRequest
+        {
+            Theme = Theme.Dark,
+            DateFormat = "yyyy-MM-dd",
+            TimeZone = "UTC"
+        };
+
+        // Act
+        var result = await service.UpdatePreferencesAsync(person.Id, request);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+
+        context.ChangeTracker.Clear();
+        var reloaded = await context.UserPreferences
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.PersonId == person.Id);
+        Assert.NotNull(reloaded);
+        Assert.Equal(Theme.Dark, reloaded.Theme);
+        Assert.Equal("yyyy-MM-dd", reloaded.DateFormat);
+        Assert.Equal("UTC", reloaded.TimeZone);
+    }
+
+    [Fact]
+    public async Task RevokeSessionAsync_UnderNoTracking_PersistsSessionInactiveAndRefreshTokenRevoked()
+    {
+        // Arrange — SECURITY-CRITICAL: a failed revoke means the session stays active.
+        using var context = CreateNoTrackingInMemoryContext();
+        var person = new Person
+        {
+            FirstName = "Test",
+            LastName = "User",
+            Email = "test@example.com",
+            Gender = Gender.Unknown
+        };
+        context.People.Add(person);
+        await context.SaveChangesAsync();
+
+        var refreshToken = new RefreshToken
+        {
+            PersonId = person.Id,
+            Token = "a-refresh-token",
+            ExpiresAt = DateTime.UtcNow.AddDays(7)
+        };
+        context.RefreshTokens.Add(refreshToken);
+        await context.SaveChangesAsync();
+
+        var session = new UserSession
+        {
+            PersonId = person.Id,
+            RefreshTokenId = refreshToken.Id,
+            IsActive = true,
+            LastActivityAt = DateTime.UtcNow,
+            DeviceInfo = "Test Device",
+            IpAddress = "127.0.0.1"
+        };
+        context.UserSessions.Add(session);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var sessionIdKey = IdKeyHelper.Encode(session.Id);
+        var service = new UserSettingsService(
+            context,
+            _authServiceMock.Object,
+            _updatePreferenceValidatorMock.Object,
+            _changePasswordValidatorMock.Object,
+            _twoFactorVerifyValidatorMock.Object,
+            _loggerMock.Object);
+
+        // Act
+        var result = await service.RevokeSessionAsync(person.Id, sessionIdKey);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+
+        context.ChangeTracker.Clear();
+        var reloadedSession = await context.UserSessions
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Id == session.Id);
+        Assert.NotNull(reloadedSession);
+        Assert.False(reloadedSession.IsActive,
+            "Session must be persisted as inactive after revoke; if still active, a user-initiated revoke was a silent no-op.");
+
+        var reloadedToken = await context.RefreshTokens
+            .AsNoTracking()
+            .FirstOrDefaultAsync(rt => rt.Id == refreshToken.Id);
+        Assert.NotNull(reloadedToken);
+        Assert.NotNull(reloadedToken.RevokedAt);
     }
 
     #endregion

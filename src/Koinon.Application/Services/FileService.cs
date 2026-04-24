@@ -156,7 +156,10 @@ public class FileService : IFileService
             return false;
         }
 
+        // AsTracking: global default is NoTracking (PostgreSqlProvider); without it the
+        // BinaryFiles.Remove call below would be a no-op (entity detached) (#708).
         var binaryFile = await _context.BinaryFiles
+            .AsTracking()
             .FirstOrDefaultAsync(f => f.Id == id, cancellationToken);
 
         if (binaryFile == null)

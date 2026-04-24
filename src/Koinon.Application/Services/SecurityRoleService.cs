@@ -284,7 +284,10 @@ public class SecurityRoleService(
             return Result.Failure(Error.NotFound("SecurityRole", idKey));
         }
 
+        // AsTracking: global default is NoTracking (PostgreSqlProvider); without it the
+        // RemoveRange/Remove calls below would be no-ops (entities detached) (#708).
         var entity = await context.SecurityRoles
+            .AsTracking()
             .Include(r => r.RoleClaims)
             .Include(r => r.PersonRoles)
             .FirstOrDefaultAsync(r => r.Id == roleId, ct);
@@ -346,7 +349,10 @@ public class SecurityRoleService(
             return Result.Failure(Error.NotFound("SecurityClaim", request.ClaimIdKey));
         }
 
+        // AsTracking: global default is NoTracking (PostgreSqlProvider); without it the
+        // AllowOrDeny/ModifiedDateTime mutations below would be silently dropped on SaveChanges (#708).
         var existing = await context.RoleSecurityClaims
+            .AsTracking()
             .FirstOrDefaultAsync(rsc => rsc.SecurityRoleId == roleId && rsc.SecurityClaimId == claimId, ct);
 
         if (existing != null)
@@ -387,7 +393,10 @@ public class SecurityRoleService(
             return Result.Failure(Error.NotFound("SecurityClaim", claimIdKey));
         }
 
+        // AsTracking: global default is NoTracking (PostgreSqlProvider); without it the
+        // RoleSecurityClaims.Remove call below would be a no-op (entity detached) (#708).
         var link = await context.RoleSecurityClaims
+            .AsTracking()
             .FirstOrDefaultAsync(rsc => rsc.SecurityRoleId == roleId && rsc.SecurityClaimId == claimId, ct);
 
         if (link == null)
@@ -437,7 +446,11 @@ public class SecurityRoleService(
             return Result.Failure(Error.NotFound("Person", request.PersonIdKey));
         }
 
+        // AsTracking: global default is NoTracking (PostgreSqlProvider); without it the
+        // ExpiresDateTime/ModifiedDateTime mutations below would be silently dropped on
+        // SaveChanges (#708).
         var existing = await context.PersonSecurityRoles
+            .AsTracking()
             .FirstOrDefaultAsync(psr => psr.SecurityRoleId == roleId && psr.PersonId == personId, ct);
 
         if (existing != null)
@@ -478,7 +491,10 @@ public class SecurityRoleService(
             return Result.Failure(Error.NotFound("Person", personIdKey));
         }
 
+        // AsTracking: global default is NoTracking (PostgreSqlProvider); without it the
+        // PersonSecurityRoles.Remove call below would be a no-op (entity detached) (#708).
         var link = await context.PersonSecurityRoles
+            .AsTracking()
             .FirstOrDefaultAsync(psr => psr.SecurityRoleId == roleId && psr.PersonId == personId, ct);
 
         if (link == null)

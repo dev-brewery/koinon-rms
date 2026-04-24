@@ -99,7 +99,11 @@ public class ReportService(
                 Error.NotFound("ReportDefinition", idKey));
         }
 
+        // AsTracking: global default is NoTracking (PostgreSqlProvider); without it the Name/
+        // Description/ParameterSchema/etc. mutations below would be silently dropped on
+        // SaveChanges (#708).
         var definition = await context.ReportDefinitions
+            .AsTracking()
             .FirstOrDefaultAsync(rd => rd.Id == id, ct);
 
         if (definition == null)
@@ -167,7 +171,10 @@ public class ReportService(
             return Result.Failure(Error.NotFound("ReportDefinition", idKey));
         }
 
+        // AsTracking: global default is NoTracking (PostgreSqlProvider); without it the
+        // IsActive=false soft-delete mutation below would be silently dropped on SaveChanges (#708).
         var definition = await context.ReportDefinitions
+            .AsTracking()
             .FirstOrDefaultAsync(rd => rd.Id == id, ct);
 
         if (definition == null)
@@ -355,7 +362,11 @@ public class ReportService(
         ReportOutputFormat outputFormat,
         CancellationToken ct = default)
     {
+        // AsTracking: global default is NoTracking (PostgreSqlProvider); without it the Status/
+        // StartedAt/CompletedAt mutations in this job would be silently dropped on SaveChanges,
+        // leaving the run stuck in Pending forever (#708).
         var run = await context.ReportRuns
+            .AsTracking()
             .Include(rr => rr.ReportDefinition)
             .FirstOrDefaultAsync(rr => rr.Id == reportRunId, ct);
 

@@ -94,8 +94,11 @@ public class DuplicateIgnoreService(
         int smallerId = Math.Min(person1Id, person2Id);
         int largerId = Math.Max(person1Id, person2Id);
 
-        // Find existing ignore record
+        // Find existing ignore record.
+        // AsTracking: global default is NoTracking (PostgreSqlProvider); without it the
+        // PersonDuplicateIgnores.Remove call below would be a no-op (entity detached) (#708).
         var ignore = await context.PersonDuplicateIgnores
+            .AsTracking()
             .FirstOrDefaultAsync(i => i.PersonId1 == smallerId && i.PersonId2 == largerId, ct);
 
         if (ignore == null)

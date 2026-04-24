@@ -68,8 +68,11 @@ public class AttendanceTakerService(
                     ErrorMessage: "Person alias not found");
             }
 
-            // Check if attendance already exists
+            // Check if attendance already exists.
+            // AsTracking: global default is NoTracking (PostgreSqlProvider); without it the
+            // DidAttend/PresentDateTime mutations below would be silently dropped on SaveChanges (#708).
             var existingAttendance = await context.Attendances
+                .AsTracking()
                 .FirstOrDefaultAsync(a =>
                     a.OccurrenceId == occurrenceId &&
                     a.PersonAliasId == personAlias.Id, ct);
@@ -248,8 +251,12 @@ public class AttendanceTakerService(
                 .Select(pa => pa.Id)
                 .ToListAsync(ct);
 
-            // Find attendance record
+            // Find attendance record.
+            // AsTracking: global default is NoTracking (PostgreSqlProvider); without it the
+            // DidAttend=false/PresentDateTime=null mutations below would be silently dropped on
+            // SaveChanges — the unmark would appear to succeed but the row would stay attended (#708).
             var attendance = await context.Attendances
+                .AsTracking()
                 .FirstOrDefaultAsync(a =>
                     a.OccurrenceId == occurrenceId &&
                     a.PersonAliasId.HasValue &&

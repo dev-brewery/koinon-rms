@@ -77,7 +77,10 @@ public class UserSettingsService(
 
         logger.LogInformation("Updating preferences for PersonId={PersonId}", personId);
 
+        // AsTracking: global default is NoTracking (PostgreSqlProvider); without it the Theme/
+        // DateFormat/TimeZone mutations below would be silently dropped on SaveChanges (#708).
         var preference = await context.UserPreferences
+            .AsTracking()
             .FirstOrDefaultAsync(p => p.PersonId == personId, ct);
 
         if (preference == null)
@@ -157,7 +160,11 @@ public class UserSettingsService(
             return Result.Failure(Error.Validation("Invalid session IdKey"));
         }
 
+        // SECURITY-CRITICAL (#708): global default is NoTracking (PostgreSqlProvider). Without
+        // AsTracking, the IsActive=false mutation below would be silently dropped and the
+        // "revoked" session would remain active — a user-initiated revoke would be a no-op.
         var session = await context.UserSessions
+            .AsTracking()
             .FirstOrDefaultAsync(s => s.Id == sessionId && s.PersonId == personId, ct);
 
         if (session == null)
@@ -172,7 +179,10 @@ public class UserSettingsService(
         // Also revoke the associated refresh token if it exists
         if (session.RefreshTokenId.HasValue)
         {
+            // SECURITY-CRITICAL (#708): same issue — without AsTracking the RevokedAt/RevokedByIp
+            // mutations below would be silently dropped and the refresh token would stay valid.
             var refreshToken = await context.RefreshTokens
+                .AsTracking()
                 .FirstOrDefaultAsync(rt => rt.Id == session.RefreshTokenId.Value, ct);
 
             if (refreshToken != null)
@@ -203,7 +213,11 @@ public class UserSettingsService(
 
         logger.LogInformation("Changing password for PersonId={PersonId}", personId);
 
+        // SECURITY-CRITICAL (#708): global default is NoTracking (PostgreSqlProvider). Without
+        // AsTracking, the PasswordHash mutation below would be silently dropped on SaveChanges
+        // and the user's password would NOT actually be changed — while the API returned success.
         var person = await context.People
+            .AsTracking()
             .FirstOrDefaultAsync(p => p.Id == personId, ct);
 
         if (person == null)
@@ -251,7 +265,10 @@ public class UserSettingsService(
     {
         logger.LogInformation("Setting up 2FA for PersonId={PersonId}", personId);
 
+        // This person load is read-only (only Email/FullName used for the QR URI). AsNoTracking
+        // is intentional here — no mutations to `person` occur.
         var person = await context.People
+            .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Id == personId, ct);
 
         if (person == null)
@@ -279,8 +296,12 @@ public class UserSettingsService(
         }
         var recoveryCodesJson = System.Text.Json.JsonSerializer.Serialize(hashedRecoveryCodes);
 
-        // Create or update TwoFactorConfig
+        // Create or update TwoFactorConfig.
+        // SECURITY-CRITICAL (#708): global default is NoTracking (PostgreSqlProvider). Without
+        // AsTracking, the 2FA secret/recovery-code update below would be silently dropped and
+        // the user would still have the OLD secret active — breaking 2FA re-setup flows.
         var existingConfig = await context.TwoFactorConfigs
+            .AsTracking()
             .FirstOrDefaultAsync(c => c.PersonId == personId, ct);
 
         if (existingConfig != null)
@@ -334,7 +355,12 @@ public class UserSettingsService(
 
         logger.LogInformation("Verifying 2FA code for PersonId={PersonId}", personId);
 
+        // SECURITY-CRITICAL (#708): global default is NoTracking (PostgreSqlProvider). Without
+        // AsTracking, the IsEnabled=true / EnabledAt mutations below would be silently dropped
+        // and 2FA would never actually activate — users would believe they're protected when
+        // they aren't.
         var twoFactorConfig = await context.TwoFactorConfigs
+            .AsTracking()
             .FirstOrDefaultAsync(c => c.PersonId == personId, ct);
 
         if (twoFactorConfig == null)
@@ -379,7 +405,11 @@ public class UserSettingsService(
 
         logger.LogInformation("Disabling 2FA for PersonId={PersonId}", personId);
 
+        // SECURITY-CRITICAL (#708): global default is NoTracking (PostgreSqlProvider). Without
+        // AsTracking, the IsEnabled=false mutation below would be silently dropped and 2FA
+        // would remain enabled after the user requested it be disabled.
         var twoFactorConfig = await context.TwoFactorConfigs
+            .AsTracking()
             .FirstOrDefaultAsync(c => c.PersonId == personId, ct);
 
         if (twoFactorConfig == null || !twoFactorConfig.IsEnabled)

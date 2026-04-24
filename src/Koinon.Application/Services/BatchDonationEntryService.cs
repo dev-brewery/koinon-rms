@@ -437,7 +437,11 @@ public class BatchDonationEntryService(
             return Result<ContributionDto>.Failure(Error.NotFound("Contribution", contributionIdKey));
         }
 
+        // AsTracking: global default is NoTracking (PostgreSqlProvider); without it the property
+        // mutations and RemoveRange(contribution.ContributionDetails) below would be silently
+        // dropped on SaveChanges because the contribution and its details are detached (#708).
         var contribution = await context.Contributions
+            .AsTracking()
             .Include(c => c.Batch)
             .Include(c => c.ContributionDetails)
             .FirstOrDefaultAsync(c => c.Id == contributionId, ct);
@@ -582,7 +586,10 @@ public class BatchDonationEntryService(
             return Result.Failure(Error.NotFound("Contribution", contributionIdKey));
         }
 
+        // AsTracking: global default is NoTracking (PostgreSqlProvider); without it the
+        // RemoveRange/Remove calls below would be no-ops (entities detached) (#708).
         var contribution = await context.Contributions
+            .AsTracking()
             .Include(c => c.Batch)
             .Include(c => c.ContributionDetails)
             .FirstOrDefaultAsync(c => c.Id == contributionId, ct);

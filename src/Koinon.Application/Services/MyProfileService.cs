@@ -73,7 +73,10 @@ public class MyProfileService(
                 Error.Forbidden("User is not authenticated"));
         }
 
+        // AsTracking: global default is NoTracking (PostgreSqlProvider); without it the Email/
+        // NickName/PhoneNumber mutations below would be silently dropped on SaveChanges (#708).
         var person = await context.People
+            .AsTracking()
             .Include(p => p.PhoneNumbers)
                 .ThenInclude(pn => pn.NumberTypeValue)
             .Include(p => p.PrimaryCampus)
@@ -284,8 +287,11 @@ public class MyProfileService(
 
         var familyId = currentUserFamilyMember.FamilyId;
 
-        // Get target person
+        // Get target person.
+        // AsTracking: global default is NoTracking (PostgreSqlProvider); without it the NickName/
+        // Allergies/phone mutations below would be silently dropped on SaveChanges (#708).
         var targetPerson = await context.People
+            .AsTracking()
             .Include(p => p.PhoneNumbers)
                 .ThenInclude(pn => pn.NumberTypeValue)
             .Include(p => p.Photo)
