@@ -276,7 +276,10 @@ public class CommunicationService(
             return Result<CommunicationDto>.Failure(Error.NotFound("Communication", idKey));
         }
 
+        // AsTracking required: global QueryTrackingBehavior is NoTracking (see PostgreSqlProvider),
+        // so without it SaveChanges would not persist the mutations below. (fixes #685)
         var communication = await context.Communications
+            .AsTracking()
             .Include(c => c.Recipients)
             .FirstOrDefaultAsync(c => c.Id == id, ct);
 
@@ -406,7 +409,9 @@ public class CommunicationService(
             return Result<CommunicationDto>.Failure(Error.NotFound("Communication", idKey));
         }
 
+        // AsTracking required for status mutation (global QueryTrackingBehavior is NoTracking). (fixes #685)
         var communication = await context.Communications
+            .AsTracking()
             .Include(c => c.Recipients)
             .FirstOrDefaultAsync(c => c.Id == id, ct);
 
@@ -477,7 +482,9 @@ public class CommunicationService(
             return Result<CommunicationDto>.Failure(Error.NotFound("Communication", idKey));
         }
 
+        // AsTracking required for schedule mutation (global QueryTrackingBehavior is NoTracking). (fixes #685)
         var communication = await context.Communications
+            .AsTracking()
             .Include(c => c.Recipients)
             .FirstOrDefaultAsync(c => c.Id == id, ct);
 
@@ -565,7 +572,9 @@ public class CommunicationService(
             return Result<CommunicationDto>.Failure(Error.NotFound("Communication", idKey));
         }
 
+        // AsTracking required for cancel mutation (global QueryTrackingBehavior is NoTracking). (fixes #685)
         var communication = await context.Communications
+            .AsTracking()
             .Include(c => c.Recipients)
             .FirstOrDefaultAsync(c => c.Id == id, ct);
 

@@ -170,8 +170,11 @@ public class NotificationService(
             return false;
         }
 
-        // Ownership validation: notification must belong to the specified person
+        // Ownership validation: notification must belong to the specified person.
+        // AsTracking required: global QueryTrackingBehavior is NoTracking (see PostgreSqlProvider),
+        // so without it SaveChanges would not persist the IsRead mutation below. (fixes #685)
         var notification = await context.Notifications
+            .AsTracking()
             .FirstOrDefaultAsync(n => n.Id == id && n.PersonId == personId, cancellationToken);
 
         if (notification == null)
@@ -353,8 +356,10 @@ public class NotificationService(
             throw new ArgumentException($"Person not found: {personIdKey}", nameof(personIdKey));
         }
 
-        // Check if preference already exists
+        // Check if preference already exists. AsTracking required: global QueryTrackingBehavior is
+        // NoTracking, so without it SaveChanges would not persist the update-branch mutations below. (fixes #685)
         var existing = await context.NotificationPreferences
+            .AsTracking()
             .FirstOrDefaultAsync(
                 np => np.PersonId == personId && np.NotificationType == dto.NotificationType,
                 cancellationToken);

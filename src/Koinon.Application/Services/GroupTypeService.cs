@@ -130,8 +130,9 @@ public class GroupTypeService(
             return Result<GroupTypeDto>.Failure(Error.NotFound("GroupType", idKey));
         }
 
-        // Find group type
-        var groupType = await context.GroupTypes.FindAsync([id], ct);
+        // Find group type. AsTracking required: global QueryTrackingBehavior is NoTracking
+        // (see PostgreSqlProvider), so without it SaveChanges would not persist mutations below. (fixes #685)
+        var groupType = await context.GroupTypes.AsTracking().FirstOrDefaultAsync(g => g.Id == id, ct);
         if (groupType == null)
         {
             return Result<GroupTypeDto>.Failure(Error.NotFound("GroupType", idKey));
@@ -239,8 +240,8 @@ public class GroupTypeService(
             return Result<bool>.Failure(Error.NotFound("GroupType", idKey));
         }
 
-        // Find group type
-        var groupType = await context.GroupTypes.FindAsync([id], ct);
+        // Find group type. AsTracking required for archive mutation (global QueryTrackingBehavior is NoTracking). (fixes #685)
+        var groupType = await context.GroupTypes.AsTracking().FirstOrDefaultAsync(g => g.Id == id, ct);
         if (groupType == null)
         {
             return Result<bool>.Failure(Error.NotFound("GroupType", idKey));

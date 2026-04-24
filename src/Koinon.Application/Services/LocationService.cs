@@ -262,7 +262,9 @@ public class LocationService : ILocationService
             return Result<LocationDto>.Failure(Error.NotFound("Location", idKey));
         }
 
-        var location = await _context.Locations.FirstOrDefaultAsync(l => l.Id == id, ct);
+        // AsTracking required: global QueryTrackingBehavior is NoTracking (see PostgreSqlProvider),
+        // so without it SaveChanges would not persist the mutations below. (fixes #685)
+        var location = await _context.Locations.AsTracking().FirstOrDefaultAsync(l => l.Id == id, ct);
         if (location == null)
         {
             return Result<LocationDto>.Failure(Error.NotFound("Location", idKey));
@@ -471,7 +473,8 @@ public class LocationService : ILocationService
             return Result.Failure(Error.NotFound("Location", idKey));
         }
 
-        var location = await _context.Locations.FirstOrDefaultAsync(l => l.Id == id, ct);
+        // AsTracking required for soft-delete mutation (global QueryTrackingBehavior is NoTracking). (fixes #685)
+        var location = await _context.Locations.AsTracking().FirstOrDefaultAsync(l => l.Id == id, ct);
         if (location == null)
         {
             return Result.Failure(Error.NotFound("Location", idKey));

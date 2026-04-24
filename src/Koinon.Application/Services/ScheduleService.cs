@@ -133,8 +133,9 @@ public class ScheduleService(
             return Result<ScheduleDto>.Failure(Error.NotFound("Schedule", idKey));
         }
 
-        // Find schedule
-        var schedule = await context.Schedules.FindAsync([id], ct);
+        // Find schedule. AsTracking required: global QueryTrackingBehavior is NoTracking
+        // (see PostgreSqlProvider), so without it SaveChanges would not persist mutations below. (fixes #685)
+        var schedule = await context.Schedules.AsTracking().FirstOrDefaultAsync(s => s.Id == id, ct);
         if (schedule == null)
         {
             return Result<ScheduleDto>.Failure(Error.NotFound("Schedule", idKey));
@@ -227,8 +228,8 @@ public class ScheduleService(
             return Result.Failure(Error.NotFound("Schedule", idKey));
         }
 
-        // Find schedule
-        var schedule = await context.Schedules.FindAsync([id], ct);
+        // Find schedule. AsTracking required for soft-delete mutation (global QueryTrackingBehavior is NoTracking). (fixes #685)
+        var schedule = await context.Schedules.AsTracking().FirstOrDefaultAsync(s => s.Id == id, ct);
         if (schedule == null)
         {
             return Result.Failure(Error.NotFound("Schedule", idKey));

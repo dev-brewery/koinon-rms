@@ -148,7 +148,10 @@ public class FollowUpService(
             return Result<FollowUpDto>.Failure(Error.NotFound("FollowUp", idKey));
         }
 
+        // AsTracking required: global QueryTrackingBehavior is NoTracking (see PostgreSqlProvider),
+        // so without it SaveChanges would not persist the status and notes mutations below. (fixes #685)
         var followUp = await context.FollowUps
+            .AsTracking()
             .Include(f => f.Person)
             .Include(f => f.AssignedToPerson)
             .Include(f => f.Attendance)
@@ -228,7 +231,9 @@ public class FollowUpService(
             return Result.Failure(Error.NotFound("Person", assignedToIdKey));
         }
 
+        // AsTracking required for assignment mutation (global QueryTrackingBehavior is NoTracking). (fixes #685)
         var followUp = await context.FollowUps
+            .AsTracking()
             .FirstOrDefaultAsync(f => f.Id == id, ct);
 
         if (followUp == null)

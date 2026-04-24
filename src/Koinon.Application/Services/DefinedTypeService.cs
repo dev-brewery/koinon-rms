@@ -166,7 +166,10 @@ public class DefinedTypeService(
             return Result<DefinedValueManagementDto>.Failure(Error.NotFound("DefinedValue", valueIdKey));
         }
 
+        // AsTracking required: global QueryTrackingBehavior is NoTracking (see PostgreSqlProvider),
+        // so without it SaveChanges would not persist the mutations below. (fixes #685)
         var entity = await context.DefinedValues
+            .AsTracking()
             .Include(v => v.DefinedType)
             .FirstOrDefaultAsync(v => v.Id == id, ct);
 
@@ -203,7 +206,9 @@ public class DefinedTypeService(
             return Result.Failure(Error.NotFound("DefinedValue", valueIdKey));
         }
 
+        // AsTracking required for soft-delete mutation (global QueryTrackingBehavior is NoTracking). (fixes #685)
         var entity = await context.DefinedValues
+            .AsTracking()
             .FirstOrDefaultAsync(v => v.Id == id, ct);
 
         if (entity == null)
@@ -258,7 +263,9 @@ public class DefinedTypeService(
 
         var itemIds = decodedItems.Select(i => i.Id).ToArray();
 
+        // AsTracking required for reorder mutations (global QueryTrackingBehavior is NoTracking). (fixes #685)
         var values = await context.DefinedValues
+            .AsTracking()
             .Where(v => v.DefinedTypeId == typeId && itemIds.Contains(v.Id))
             .ToListAsync(ct);
 
