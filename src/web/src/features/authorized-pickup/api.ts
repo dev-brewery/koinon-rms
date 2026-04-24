@@ -100,16 +100,20 @@ export interface RecordPickupRequest {
 // API Functions
 // ============================================================================
 
+// The backend wraps responses in { data: ... } envelopes — unwrap here so
+// the feature hooks see plain payloads.
+type Envelope<T> = { data: T };
+
 /**
  * Get all authorized pickups for a child
  */
 export async function getAuthorizedPickups(
   childIdKey: IdKey
 ): Promise<AuthorizedPickup[]> {
-  const response = await get<AuthorizedPickup[]>(
+  const response = await get<Envelope<AuthorizedPickup[]>>(
     `/people/${childIdKey}/authorized-pickups`
   );
-  return response;
+  return response.data;
 }
 
 /**
@@ -119,11 +123,11 @@ export async function addAuthorizedPickup(
   childIdKey: IdKey,
   request: CreateAuthorizedPickupRequest
 ): Promise<AuthorizedPickup> {
-  const response = await post<AuthorizedPickup>(
+  const response = await post<Envelope<AuthorizedPickup>>(
     `/people/${childIdKey}/authorized-pickups`,
     request
   );
-  return response;
+  return response.data;
 }
 
 /**
@@ -133,11 +137,11 @@ export async function updateAuthorizedPickup(
   pickupIdKey: IdKey,
   request: UpdateAuthorizedPickupRequest
 ): Promise<AuthorizedPickup> {
-  const response = await put<AuthorizedPickup>(
+  const response = await put<Envelope<AuthorizedPickup>>(
     `/authorized-pickups/${pickupIdKey}`,
     request
   );
-  return response;
+  return response.data;
 }
 
 /**
@@ -153,12 +157,10 @@ export async function deleteAuthorizedPickup(pickupIdKey: IdKey): Promise<void> 
 export async function autoPopulateFamilyMembers(
   childIdKey: IdKey
 ): Promise<{ message: string; count: number; pickups: AuthorizedPickup[] }> {
-  const response = await post<{
-    message: string;
-    count: number;
-    pickups: AuthorizedPickup[];
-  }>(`/people/${childIdKey}/authorized-pickups/auto-populate`);
-  return response;
+  const response = await post<
+    Envelope<{ message: string; count: number; pickups: AuthorizedPickup[] }>
+  >(`/people/${childIdKey}/authorized-pickups/auto-populate`);
+  return response.data;
 }
 
 /**
@@ -167,11 +169,11 @@ export async function autoPopulateFamilyMembers(
 export async function verifyPickup(
   request: VerifyPickupRequest
 ): Promise<PickupVerificationResult> {
-  const response = await post<PickupVerificationResult>(
+  const response = await post<Envelope<PickupVerificationResult>>(
     '/checkin/verify-pickup',
     request
   );
-  return response;
+  return response.data;
 }
 
 /**
@@ -180,8 +182,11 @@ export async function verifyPickup(
 export async function recordPickup(
   request: RecordPickupRequest
 ): Promise<PickupLog> {
-  const response = await post<PickupLog>('/checkin/record-pickup', request);
-  return response;
+  const response = await post<Envelope<PickupLog>>(
+    '/checkin/record-pickup',
+    request
+  );
+  return response.data;
 }
 
 /**
@@ -205,6 +210,6 @@ export async function getPickupHistory(
   const query = queryParams.toString();
   const endpoint = `/people/${childIdKey}/pickup-history${query ? `?${query}` : ''}`;
 
-  const response = await get<PickupLog[]>(endpoint);
-  return response;
+  const response = await get<Envelope<PickupLog[]>>(endpoint);
+  return response.data;
 }

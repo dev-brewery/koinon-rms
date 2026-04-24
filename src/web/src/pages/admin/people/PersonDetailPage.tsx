@@ -11,6 +11,10 @@ import { AttendanceHistorySection } from '@/components/admin/people/AttendanceHi
 import { GroupMembershipsSection } from '@/components/admin/people/GroupMembershipsSection';
 import { GivingHistorySection } from '@/components/admin/people/GivingHistorySection';
 import { NotesSection } from '@/components/admin/people/NotesSection';
+import {
+  AuthorizedPickupList,
+  PickupHistoryPanel,
+} from '@/features/authorized-pickup';
 import { useToast } from '@/contexts/ToastContext';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
@@ -299,6 +303,28 @@ export function PersonDetailPage() {
       <GivingHistorySection personIdKey={idKey!} />
 
       <AttendanceHistorySection personIdKey={idKey!} />
+
+      {/* Authorized Pickups (child safety) */}
+      <section
+        data-testid="authorized-pickups-section"
+        className="bg-white rounded-lg border border-gray-200 p-6"
+      >
+        <AuthorizedPickupList
+          childIdKey={idKey!}
+          childName={person.fullName}
+        />
+      </section>
+
+      {/* Pickup History */}
+      <section
+        data-testid="pickup-history-section"
+        className="bg-white rounded-lg border border-gray-200 p-6"
+      >
+        <PickupHistoryPanel
+          childIdKey={idKey!}
+          childName={person.fullName}
+        />
+      </section>
 
       <NotesSection personIdKey={idKey!} />
 
