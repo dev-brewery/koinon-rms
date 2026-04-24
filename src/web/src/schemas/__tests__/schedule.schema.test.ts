@@ -98,8 +98,23 @@ describe('scheduleFormSchema', () => {
     });
   });
 
+  it('should validate time format (HH:MM:SS) as emitted by generateTimeOptions', () => {
+    // The picker emits HH:MM:SS (see utils/dateFormatters.generateTimeOptions)
+    // and the backend DTO is TimeSpan? which is serialized as HH:MM:SS.
+    // The schema must accept both HH:MM and HH:MM:SS to allow the picker
+    // output to round-trip through create/edit.
+    const validTimes = ['00:00:00', '09:00:00', '12:30:45', '23:59:59'];
+    validTimes.forEach((timeOfDay) => {
+      const result = scheduleFormSchema.safeParse({
+        ...validSchedule,
+        timeOfDay,
+      });
+      expect(result.success).toBe(true);
+    });
+  });
+
   it('should reject invalid time formats', () => {
-    const invalidTimes = ['9:00', '25:00', '12:60', '12:00 AM', 'invalid'];
+    const invalidTimes = ['9:00', '25:00', '12:60', '12:00 AM', 'invalid', '12:00:60', '12:00:'];
     invalidTimes.forEach((timeOfDay) => {
       const result = scheduleFormSchema.safeParse({
         ...validSchedule,
@@ -301,5 +316,67 @@ describe('scheduleFormSchema', () => {
       name: 'Test Schedule',
     });
     expect(result.success).toBe(true);
+  });
+
+  // -------------------------------------------------------------------------
+  // Weekly schedule pairing (day-of-week + time-of-day) — #689 regression
+  // -------------------------------------------------------------------------
+  describe('weekly schedule pairing (dayOfWeek + timeOfDay)', () => {
+    const baseSchedule = {
+      name: 'Pairing Test Schedule',
+    };
+
+    it('accepts a schedule with BOTH dayOfWeek and timeOfDay set', () => {
+      const result = scheduleFormSchema.safeParse({
+        ...baseSchedule,
+        dayOfWeek: 0,
+        timeOfDay: '09:00:00',
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it('accepts a schedule with NEITHER dayOfWeek nor timeOfDay set (non-weekly)', () => {
+      const result = scheduleFormSchema.safeParse(baseSchedule);
+      expect(result.success).toBe(true);
+    });
+
+    it('rejects a schedule when dayOfWeek is set but timeOfDay is missing', () => {
+      const result = scheduleFormSchema.safeParse({
+        ...baseSchedule,
+        dayOfWeek: 0,
+      });
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        const issue = result.error.issues.find((i) => i.path[0] === 'timeOfDay');
+        expect(issue).toBeDefined();
+        expect(issue?.message).toContain('day of week and a time of day');
+      }
+    });
+
+    it('rejects a schedule when dayOfWeek is set but timeOfDay is an empty string', () => {
+      const result = scheduleFormSchema.safeParse({
+        ...baseSchedule,
+        dayOfWeek: 3,
+        timeOfDay: '',
+      });
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        const issue = result.error.issues.find((i) => i.path[0] === 'timeOfDay');
+        expect(issue).toBeDefined();
+      }
+    });
+
+    it('rejects a schedule when timeOfDay is set but dayOfWeek is missing', () => {
+      const result = scheduleFormSchema.safeParse({
+        ...baseSchedule,
+        timeOfDay: '09:00:00',
+      });
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        const issue = result.error.issues.find((i) => i.path[0] === 'dayOfWeek');
+        expect(issue).toBeDefined();
+        expect(issue?.message).toContain('day of week and a time of day');
+      }
+    });
   });
 });

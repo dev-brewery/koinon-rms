@@ -20,7 +20,10 @@ export const scheduleFormSchema = z.object({
     .optional(),
 
   timeOfDay: z.union([
-    z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Time must be in HH:MM format (e.g., 09:00)'),
+    z.string().regex(
+      /^([01]\d|2[0-3]):([0-5]\d)(:([0-5]\d))?$/,
+      'Time must be in HH:MM or HH:MM:SS format (e.g., 09:00 or 09:00:00)',
+    ),
     z.literal(''),
   ]).optional(),
 
@@ -68,13 +71,15 @@ export const scheduleFormSchema = z.object({
     }
   }
 
-  // Validate that at least one of dayOfWeek or timeOfDay is set for weekly schedules
-  if ((data.dayOfWeek !== undefined || data.timeOfDay) &&
-      (data.dayOfWeek === undefined && !data.timeOfDay)) {
+  // Weekly schedules require BOTH day-of-week and time-of-day to be paired.
+  // Valid: both set OR both unset. Invalid: exactly one set (XOR).
+  const hasDay = data.dayOfWeek !== undefined;
+  const hasTime = !!data.timeOfDay;
+  if (hasDay !== hasTime) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: 'Both day of week and time must be set for weekly schedules',
-      path: ['timeOfDay'],
+      message: 'Weekly schedules require both a day of week and a time of day.',
+      path: hasTime ? ['dayOfWeek'] : ['timeOfDay'],
     });
   }
 });
