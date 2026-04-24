@@ -559,82 +559,88 @@ public class DataImportService(
         int startRowNumber,
         CancellationToken ct)
     {
-        using var transaction = await context.Database.BeginTransactionAsync(ct);
+        // Wrap the transactional region in an ExecutionStrategy so it is compatible with
+        // NpgsqlRetryingExecutionStrategy (EnableRetryOnFailure). See issue #681.
+        var strategy = context.Database.CreateExecutionStrategy();
 
         try
         {
-            var currentRow = startRowNumber;
-            var batchSuccessCount = 0;
-            var batchErrorCount = 0;
-            var batchErrors = new List<ImportRowError>();
-
-            foreach (var row in batch)
+            await strategy.ExecuteAsync(async () =>
             {
-                currentRow++;
+                await using var transaction = await context.Database.BeginTransactionAsync(ct);
 
-                try
+                var currentRow = startRowNumber;
+                var batchSuccessCount = 0;
+                var batchErrorCount = 0;
+                var batchErrors = new List<ImportRowError>();
+
+                foreach (var row in batch)
                 {
-                    var personRequest = MapRowToPersonRequest(row, fieldMappings, currentRow, batchErrors);
+                    currentRow++;
 
-                    if (personRequest != null)
+                    try
                     {
-                        var result = await personService.CreateAsync(personRequest, ct);
+                        var personRequest = MapRowToPersonRequest(row, fieldMappings, currentRow, batchErrors);
 
-                        if (result.IsSuccess)
+                        if (personRequest != null)
                         {
-                            batchSuccessCount++;
+                            var result = await personService.CreateAsync(personRequest, ct);
+
+                            if (result.IsSuccess)
+                            {
+                                batchSuccessCount++;
+                            }
+                            else
+                            {
+                                batchErrorCount++;
+                                batchErrors.Add(new ImportRowError
+                                {
+                                    Row = currentRow,
+                                    Column = "Person",
+                                    Value = $"{personRequest.FirstName} {personRequest.LastName}",
+                                    Message = result.Error?.Message ?? "Unknown error"
+                                });
+                            }
                         }
                         else
                         {
                             batchErrorCount++;
-                            batchErrors.Add(new ImportRowError
-                            {
-                                Row = currentRow,
-                                Column = "Person",
-                                Value = $"{personRequest.FirstName} {personRequest.LastName}",
-                                Message = result.Error?.Message ?? "Unknown error"
-                            });
+                            // Error already added in MapRowToPersonRequest
                         }
                     }
-                    else
+                    catch (Exception ex)
                     {
                         batchErrorCount++;
-                        // Error already added in MapRowToPersonRequest
+                        batchErrors.Add(new ImportRowError
+                        {
+                            Row = currentRow,
+                            Column = "System",
+                            Value = string.Empty,
+                            Message = $"Error processing row: {ex.Message}"
+                        });
                     }
                 }
-                catch (Exception ex)
-                {
-                    batchErrorCount++;
-                    batchErrors.Add(new ImportRowError
-                    {
-                        Row = currentRow,
-                        Column = "System",
-                        Value = string.Empty,
-                        Message = $"Error processing row: {ex.Message}"
-                    });
-                }
-            }
 
-            await context.SaveChangesAsync(ct);
-            await transaction.CommitAsync(ct);
+                await context.SaveChangesAsync(ct);
+                await transaction.CommitAsync(ct);
 
-            // Only apply counts after successful commit
-            job.SuccessCount += batchSuccessCount;
-            job.ErrorCount += batchErrorCount;
-            errors.AddRange(batchErrors);
-            job.ProcessedRows += batch.Count;
-            await context.SaveChangesAsync(ct);
+                // Only apply counts after successful commit
+                job.SuccessCount += batchSuccessCount;
+                job.ErrorCount += batchErrorCount;
+                errors.AddRange(batchErrors);
+                job.ProcessedRows += batch.Count;
+                await context.SaveChangesAsync(ct);
 
-            logger.LogInformation(
-                "Processed batch for import job {JobId}: {ProcessedRows}/{TotalRows}",
-                job.Id,
-                job.ProcessedRows,
-                job.TotalRows);
+                logger.LogInformation(
+                    "Processed batch for import job {JobId}: {ProcessedRows}/{TotalRows}",
+                    job.Id,
+                    job.ProcessedRows,
+                    job.TotalRows);
+            });
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync(ct);
-
+            // ExecutionStrategy disposes the transaction automatically on exception.
             logger.LogError(ex, "Batch processing failed for import job {JobId}, rolling back", job.Id);
 
             // Entire batch failed - don't use aborted in-loop counters
@@ -688,98 +694,104 @@ public class DataImportService(
         int startRowNumber,
         CancellationToken ct)
     {
-        using var transaction = await context.Database.BeginTransactionAsync(ct);
+        // Wrap the transactional region in an ExecutionStrategy so it is compatible with
+        // NpgsqlRetryingExecutionStrategy (EnableRetryOnFailure). See issue #681.
+        var strategy = context.Database.CreateExecutionStrategy();
 
         try
         {
-            var currentRow = startRowNumber;
-            var batchSuccessCount = 0;
-            var batchErrorCount = 0;
-            var batchErrors = new List<ImportRowError>();
-
-            foreach (var row in batch)
+            await strategy.ExecuteAsync(async () =>
             {
-                currentRow++;
+                await using var transaction = await context.Database.BeginTransactionAsync(ct);
 
-                try
+                var currentRow = startRowNumber;
+                var batchSuccessCount = 0;
+                var batchErrorCount = 0;
+                var batchErrors = new List<ImportRowError>();
+
+                foreach (var row in batch)
                 {
-                    var familyRequest = MapRowToFamilyRequest(row, fieldMappings, currentRow, batchErrors);
+                    currentRow++;
 
-                    if (familyRequest != null)
+                    try
                     {
-                        // Check for duplicates before creating
-                        var isDuplicate = await CheckFamilyDuplicateAsync(familyRequest, ct);
+                        var familyRequest = MapRowToFamilyRequest(row, fieldMappings, currentRow, batchErrors);
 
-                        if (isDuplicate)
+                        if (familyRequest != null)
                         {
-                            batchErrorCount++;
-                            batchErrors.Add(new ImportRowError
+                            // Check for duplicates before creating
+                            var isDuplicate = await CheckFamilyDuplicateAsync(familyRequest, ct);
+
+                            if (isDuplicate)
                             {
-                                Row = currentRow,
-                                Column = "Name",
-                                Value = familyRequest.Name,
-                                Message = "Potential duplicate family detected"
-                            });
-                            continue;
-                        }
+                                batchErrorCount++;
+                                batchErrors.Add(new ImportRowError
+                                {
+                                    Row = currentRow,
+                                    Column = "Name",
+                                    Value = familyRequest.Name,
+                                    Message = "Potential duplicate family detected"
+                                });
+                                continue;
+                            }
 
-                        var result = await familyService.CreateFamilyAsync(familyRequest, ct);
+                            var result = await familyService.CreateFamilyAsync(familyRequest, ct);
 
-                        if (result.IsSuccess)
-                        {
-                            batchSuccessCount++;
+                            if (result.IsSuccess)
+                            {
+                                batchSuccessCount++;
+                            }
+                            else
+                            {
+                                batchErrorCount++;
+                                batchErrors.Add(new ImportRowError
+                                {
+                                    Row = currentRow,
+                                    Column = "Family",
+                                    Value = familyRequest.Name,
+                                    Message = result.Error?.Message ?? "Unknown error"
+                                });
+                            }
                         }
                         else
                         {
                             batchErrorCount++;
-                            batchErrors.Add(new ImportRowError
-                            {
-                                Row = currentRow,
-                                Column = "Family",
-                                Value = familyRequest.Name,
-                                Message = result.Error?.Message ?? "Unknown error"
-                            });
+                            // Error already added in MapRowToFamilyRequest
                         }
                     }
-                    else
+                    catch (Exception ex)
                     {
                         batchErrorCount++;
-                        // Error already added in MapRowToFamilyRequest
+                        batchErrors.Add(new ImportRowError
+                        {
+                            Row = currentRow,
+                            Column = "System",
+                            Value = string.Empty,
+                            Message = $"Error processing row: {ex.Message}"
+                        });
                     }
                 }
-                catch (Exception ex)
-                {
-                    batchErrorCount++;
-                    batchErrors.Add(new ImportRowError
-                    {
-                        Row = currentRow,
-                        Column = "System",
-                        Value = string.Empty,
-                        Message = $"Error processing row: {ex.Message}"
-                    });
-                }
-            }
 
-            await context.SaveChangesAsync(ct);
-            await transaction.CommitAsync(ct);
+                await context.SaveChangesAsync(ct);
+                await transaction.CommitAsync(ct);
 
-            // Only apply counts after successful commit
-            job.SuccessCount += batchSuccessCount;
-            job.ErrorCount += batchErrorCount;
-            errors.AddRange(batchErrors);
-            job.ProcessedRows += batch.Count;
-            await context.SaveChangesAsync(ct);
+                // Only apply counts after successful commit
+                job.SuccessCount += batchSuccessCount;
+                job.ErrorCount += batchErrorCount;
+                errors.AddRange(batchErrors);
+                job.ProcessedRows += batch.Count;
+                await context.SaveChangesAsync(ct);
 
-            logger.LogInformation(
-                "Processed batch for import job {JobId}: {ProcessedRows}/{TotalRows}",
-                job.Id,
-                job.ProcessedRows,
-                job.TotalRows);
+                logger.LogInformation(
+                    "Processed batch for import job {JobId}: {ProcessedRows}/{TotalRows}",
+                    job.Id,
+                    job.ProcessedRows,
+                    job.TotalRows);
+            });
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync(ct);
-
+            // ExecutionStrategy disposes the transaction automatically on exception.
             logger.LogError(ex, "Batch processing failed for import job {JobId}, rolling back", job.Id);
 
             // Entire batch failed - don't use aborted in-loop counters

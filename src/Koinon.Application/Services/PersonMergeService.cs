@@ -104,194 +104,211 @@ public class PersonMergeService(
                 Error.Validation("Cannot merge a person with themselves"));
         }
 
-        using var transaction = await context.Database.BeginTransactionAsync(ct);
+        // EF Core requires user-initiated transactions to be executed inside an
+        // ExecutionStrategy when the provider is configured with EnableRetryOnFailure
+        // (NpgsqlRetryingExecutionStrategy). Without this wrapper, BeginTransactionAsync
+        // throws InvalidOperationException. See issue #681.
+        var strategy = context.Database.CreateExecutionStrategy();
+
+        Result<PersonMergeResultDto> mergeResult = Result<PersonMergeResultDto>.Failure(
+            Error.Internal("Merge did not complete"));
 
         try
         {
-            // Get both persons
-            var survivor = await context.People
-                .Include(p => p.PhoneNumbers)
-                .FirstOrDefaultAsync(p => p.Id == survivorId, ct);
-
-            var merged = await context.People
-                .Include(p => p.PhoneNumbers)
-                .FirstOrDefaultAsync(p => p.Id == mergedId, ct);
-
-            if (survivor == null)
+            await strategy.ExecuteAsync(async () =>
             {
-                return Result<PersonMergeResultDto>.Failure(
-                    Error.NotFound("Person", request.SurvivorIdKey));
-            }
+                await using var transaction = await context.Database.BeginTransactionAsync(ct);
 
-            if (merged == null)
-            {
-                return Result<PersonMergeResultDto>.Failure(
-                    Error.NotFound("Person", request.MergedIdKey));
-            }
+                // Get both persons
+                var survivor = await context.People
+                    .Include(p => p.PhoneNumbers)
+                    .FirstOrDefaultAsync(p => p.Id == survivorId, ct);
 
-            var result = new PersonMergeResultDto
-            {
-                SurvivorIdKey = request.SurvivorIdKey,
-                MergedIdKey = request.MergedIdKey,
-                MergedDateTime = DateTime.UtcNow
-            };
+                var merged = await context.People
+                    .Include(p => p.PhoneNumbers)
+                    .FirstOrDefaultAsync(p => p.Id == mergedId, ct);
 
-            // Apply field selections
-            if (request.FieldSelections != null)
-            {
-                ApplyFieldSelections(survivor, merged, request.FieldSelections);
-            }
-
-            // Update PersonAlias records
-            var aliasesUpdated = await context.PersonAliases
-                .Where(pa => pa.PersonId == mergedId)
-                .ExecuteUpdateAsync(setters => setters
-                    .SetProperty(pa => pa.PersonId, survivorId), ct);
-            result.AliasesUpdated = aliasesUpdated;
-
-            // Update GroupMember records (handle duplicates)
-            var mergedGroupMembers = await context.GroupMembers
-                .Where(gm => gm.PersonId == mergedId)
-                .ToListAsync(ct);
-
-            var survivorGroupIds = await context.GroupMembers
-                .Where(gm => gm.PersonId == survivorId)
-                .Select(gm => gm.GroupId)
-                .ToListAsync(ct);
-            var survivorGroupIdsSet = survivorGroupIds.ToHashSet();
-
-            int groupMembershipsUpdated = 0;
-            foreach (var gm in mergedGroupMembers)
-            {
-                if (survivorGroupIdsSet.Contains(gm.GroupId))
+                if (survivor == null)
                 {
-                    // Skip duplicate - survivor already member of this group
-                    logger.LogDebug("Skipping duplicate group membership for group {GroupId}", gm.GroupId);
+                    mergeResult = Result<PersonMergeResultDto>.Failure(
+                        Error.NotFound("Person", request.SurvivorIdKey));
+                    return;
                 }
-                else
+
+                if (merged == null)
                 {
-                    gm.PersonId = survivorId;
-                    groupMembershipsUpdated++;
+                    mergeResult = Result<PersonMergeResultDto>.Failure(
+                        Error.NotFound("Person", request.MergedIdKey));
+                    return;
                 }
-            }
-            result.GroupMembershipsUpdated = groupMembershipsUpdated;
 
-            // Update FamilyMember records
-            var familyMembersUpdated = await context.FamilyMembers
-                .Where(fm => fm.PersonId == mergedId)
-                .ExecuteUpdateAsync(setters => setters
-                    .SetProperty(fm => fm.PersonId, survivorId), ct);
-            result.FamilyMembershipsUpdated = familyMembersUpdated;
+                var result = new PersonMergeResultDto
+                {
+                    SurvivorIdKey = request.SurvivorIdKey,
+                    MergedIdKey = request.MergedIdKey,
+                    MergedDateTime = DateTime.UtcNow
+                };
 
-            // Update PhoneNumber records
-            var phoneNumbersUpdated = await context.PhoneNumbers
-                .Where(pn => pn.PersonId == mergedId)
-                .ExecuteUpdateAsync(setters => setters
-                    .SetProperty(pn => pn.PersonId, survivorId), ct);
-            result.PhoneNumbersUpdated = phoneNumbersUpdated;
+                // Apply field selections
+                if (request.FieldSelections != null)
+                {
+                    ApplyFieldSelections(survivor, merged, request.FieldSelections);
+                }
 
-            // Update AuthorizedPickup records (child person)
-            var childPickupsUpdated = await context.AuthorizedPickups
-                .Where(ap => ap.ChildPersonId == mergedId)
-                .ExecuteUpdateAsync(setters => setters
-                    .SetProperty(ap => ap.ChildPersonId, survivorId), ct);
+                // Update PersonAlias records
+                var aliasesUpdated = await context.PersonAliases
+                    .Where(pa => pa.PersonId == mergedId)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(pa => pa.PersonId, survivorId), ct);
+                result.AliasesUpdated = aliasesUpdated;
 
-            // Update AuthorizedPickup records (authorized person)
-            var authorizedPickupsUpdated = await context.AuthorizedPickups
-                .Where(ap => ap.AuthorizedPersonId == mergedId)
-                .ExecuteUpdateAsync(setters => setters
-                    .SetProperty(ap => ap.AuthorizedPersonId, survivorId), ct);
+                // Update GroupMember records (handle duplicates)
+                var mergedGroupMembers = await context.GroupMembers
+                    .Where(gm => gm.PersonId == mergedId)
+                    .ToListAsync(ct);
 
-            result.AuthorizedPickupsUpdated = childPickupsUpdated + authorizedPickupsUpdated;
+                var survivorGroupIds = await context.GroupMembers
+                    .Where(gm => gm.PersonId == survivorId)
+                    .Select(gm => gm.GroupId)
+                    .ToListAsync(ct);
+                var survivorGroupIdsSet = survivorGroupIds.ToHashSet();
 
-            // Update CommunicationPreference records
-            var communicationPreferencesUpdated = await context.CommunicationPreferences
-                .Where(cp => cp.PersonId == mergedId)
-                .ExecuteUpdateAsync(setters => setters
-                    .SetProperty(cp => cp.PersonId, survivorId), ct);
-            result.CommunicationPreferencesUpdated = communicationPreferencesUpdated;
+                int groupMembershipsUpdated = 0;
+                foreach (var gm in mergedGroupMembers)
+                {
+                    if (survivorGroupIdsSet.Contains(gm.GroupId))
+                    {
+                        // Skip duplicate - survivor already member of this group
+                        logger.LogDebug("Skipping duplicate group membership for group {GroupId}", gm.GroupId);
+                    }
+                    else
+                    {
+                        gm.PersonId = survivorId;
+                        groupMembershipsUpdated++;
+                    }
+                }
+                result.GroupMembershipsUpdated = groupMembershipsUpdated;
 
-            // Update RefreshToken records
-            var refreshTokensUpdated = await context.RefreshTokens
-                .Where(rt => rt.PersonId == mergedId)
-                .ExecuteUpdateAsync(setters => setters
-                    .SetProperty(rt => rt.PersonId, survivorId), ct);
-            result.RefreshTokensUpdated = refreshTokensUpdated;
+                // Update FamilyMember records
+                var familyMembersUpdated = await context.FamilyMembers
+                    .Where(fm => fm.PersonId == mergedId)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(fm => fm.PersonId, survivorId), ct);
+                result.FamilyMembershipsUpdated = familyMembersUpdated;
 
-            // Update PersonSecurityRole records
-            var securityRolesUpdated = await context.PersonSecurityRoles
-                .Where(psr => psr.PersonId == mergedId)
-                .ExecuteUpdateAsync(setters => setters
-                    .SetProperty(psr => psr.PersonId, survivorId), ct);
-            result.SecurityRolesUpdated = securityRolesUpdated;
+                // Update PhoneNumber records
+                var phoneNumbersUpdated = await context.PhoneNumbers
+                    .Where(pn => pn.PersonId == mergedId)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(pn => pn.PersonId, survivorId), ct);
+                result.PhoneNumbersUpdated = phoneNumbersUpdated;
 
-            // Update SupervisorSession records
-            var supervisorSessionsUpdated = await context.SupervisorSessions
-                .Where(ss => ss.PersonId == mergedId)
-                .ExecuteUpdateAsync(setters => setters
-                    .SetProperty(ss => ss.PersonId, survivorId), ct);
-            result.SupervisorSessionsUpdated = supervisorSessionsUpdated;
+                // Update AuthorizedPickup records (child person)
+                var childPickupsUpdated = await context.AuthorizedPickups
+                    .Where(ap => ap.ChildPersonId == mergedId)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(ap => ap.ChildPersonId, survivorId), ct);
 
-            // Update FollowUp records (person)
-            var followUpPersonUpdated = await context.FollowUps
-                .Where(f => f.PersonId == mergedId)
-                .ExecuteUpdateAsync(setters => setters
-                    .SetProperty(f => f.PersonId, survivorId), ct);
+                // Update AuthorizedPickup records (authorized person)
+                var authorizedPickupsUpdated = await context.AuthorizedPickups
+                    .Where(ap => ap.AuthorizedPersonId == mergedId)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(ap => ap.AuthorizedPersonId, survivorId), ct);
 
-            // Update FollowUp records (assigned to)
-            var followUpAssignedUpdated = await context.FollowUps
-                .Where(f => f.AssignedToPersonId == mergedId)
-                .ExecuteUpdateAsync(setters => setters
-                    .SetProperty(f => f.AssignedToPersonId, survivorId), ct);
+                result.AuthorizedPickupsUpdated = childPickupsUpdated + authorizedPickupsUpdated;
 
-            result.FollowUpsUpdated = followUpPersonUpdated + followUpAssignedUpdated;
+                // Update CommunicationPreference records
+                var communicationPreferencesUpdated = await context.CommunicationPreferences
+                    .Where(cp => cp.PersonId == mergedId)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(cp => cp.PersonId, survivorId), ct);
+                result.CommunicationPreferencesUpdated = communicationPreferencesUpdated;
 
-            // Calculate total
-            result.TotalRecordsUpdated = result.AliasesUpdated +
-                                        result.GroupMembershipsUpdated +
-                                        result.FamilyMembershipsUpdated +
-                                        result.PhoneNumbersUpdated +
-                                        result.AuthorizedPickupsUpdated +
-                                        result.CommunicationPreferencesUpdated +
-                                        result.RefreshTokensUpdated +
-                                        result.SecurityRolesUpdated +
-                                        result.SupervisorSessionsUpdated +
-                                        result.FollowUpsUpdated;
+                // Update RefreshToken records
+                var refreshTokensUpdated = await context.RefreshTokens
+                    .Where(rt => rt.PersonId == mergedId)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(rt => rt.PersonId, survivorId), ct);
+                result.RefreshTokensUpdated = refreshTokensUpdated;
 
-            // Create PersonMergeHistory record
-            var history = new PersonMergeHistory
-            {
-                SurvivorPersonId = survivorId,
-                MergedPersonId = mergedId,
-                MergedByPersonId = currentUserId,
-                MergedDateTime = result.MergedDateTime,
-                Notes = request.Notes
-            };
-            context.PersonMergeHistories.Add(history);
+                // Update PersonSecurityRole records
+                var securityRolesUpdated = await context.PersonSecurityRoles
+                    .Where(psr => psr.PersonId == mergedId)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(psr => psr.PersonId, survivorId), ct);
+                result.SecurityRolesUpdated = securityRolesUpdated;
 
-            // Mark merged person as inactive
-            var inactiveStatusValue = await context.DefinedValues
-                .FirstOrDefaultAsync(dv => dv.DefinedType!.Name == "RecordStatus" &&
-                                          dv.Value == "Inactive", ct);
+                // Update SupervisorSession records
+                var supervisorSessionsUpdated = await context.SupervisorSessions
+                    .Where(ss => ss.PersonId == mergedId)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(ss => ss.PersonId, survivorId), ct);
+                result.SupervisorSessionsUpdated = supervisorSessionsUpdated;
 
-            if (inactiveStatusValue != null)
-            {
-                merged.RecordStatusValueId = inactiveStatusValue.Id;
-            }
+                // Update FollowUp records (person)
+                var followUpPersonUpdated = await context.FollowUps
+                    .Where(f => f.PersonId == mergedId)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(f => f.PersonId, survivorId), ct);
 
-            // Save all changes
-            await context.SaveChangesAsync(ct);
-            await transaction.CommitAsync(ct);
+                // Update FollowUp records (assigned to)
+                var followUpAssignedUpdated = await context.FollowUps
+                    .Where(f => f.AssignedToPersonId == mergedId)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(f => f.AssignedToPersonId, survivorId), ct);
 
-            logger.LogInformation("Successfully merged person {MergedIdKey} into {SurvivorIdKey}. " +
-                                "Updated {TotalRecords} records",
-                request.MergedIdKey, request.SurvivorIdKey, result.TotalRecordsUpdated);
+                result.FollowUpsUpdated = followUpPersonUpdated + followUpAssignedUpdated;
 
-            return Result<PersonMergeResultDto>.Success(result);
+                // Calculate total
+                result.TotalRecordsUpdated = result.AliasesUpdated +
+                                            result.GroupMembershipsUpdated +
+                                            result.FamilyMembershipsUpdated +
+                                            result.PhoneNumbersUpdated +
+                                            result.AuthorizedPickupsUpdated +
+                                            result.CommunicationPreferencesUpdated +
+                                            result.RefreshTokensUpdated +
+                                            result.SecurityRolesUpdated +
+                                            result.SupervisorSessionsUpdated +
+                                            result.FollowUpsUpdated;
+
+                // Create PersonMergeHistory record
+                var history = new PersonMergeHistory
+                {
+                    SurvivorPersonId = survivorId,
+                    MergedPersonId = mergedId,
+                    MergedByPersonId = currentUserId,
+                    MergedDateTime = result.MergedDateTime,
+                    Notes = request.Notes
+                };
+                context.PersonMergeHistories.Add(history);
+
+                // Mark merged person as inactive
+                var inactiveStatusValue = await context.DefinedValues
+                    .FirstOrDefaultAsync(dv => dv.DefinedType!.Name == "RecordStatus" &&
+                                              dv.Value == "Inactive", ct);
+
+                if (inactiveStatusValue != null)
+                {
+                    merged.RecordStatusValueId = inactiveStatusValue.Id;
+                }
+
+                // Save all changes
+                await context.SaveChangesAsync(ct);
+                await transaction.CommitAsync(ct);
+
+                logger.LogInformation("Successfully merged person {MergedIdKey} into {SurvivorIdKey}. " +
+                                    "Updated {TotalRecords} records",
+                    request.MergedIdKey, request.SurvivorIdKey, result.TotalRecordsUpdated);
+
+                mergeResult = Result<PersonMergeResultDto>.Success(result);
+            });
+
+            return mergeResult;
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync(ct);
+            // The ExecutionStrategy disposes the transaction automatically on exception.
+            // Transient errors trigger automatic retry; non-transient errors propagate here.
             logger.LogError(ex, "Error merging persons {MergedIdKey} into {SurvivorIdKey}",
                 request.MergedIdKey, request.SurvivorIdKey);
             return Result<PersonMergeResultDto>.Failure(
