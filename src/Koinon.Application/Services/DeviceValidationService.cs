@@ -141,7 +141,11 @@ public class DeviceValidationService : IDeviceValidationService
             return false;
         }
 
+        // SECURITY-CRITICAL (#708): global default is NoTracking (PostgreSqlProvider). Without
+        // AsTracking, clearing the KioskToken below would be silently dropped on SaveChanges —
+        // a "revoked" device token would remain valid on the server.
         var device = await _context.Devices
+            .AsTracking()
             .Where(d => d.Id == deviceId)
             .FirstOrDefaultAsync(ct);
 
@@ -193,7 +197,11 @@ public class DeviceValidationService : IDeviceValidationService
             throw new ArgumentException("Invalid IdKey format", nameof(deviceIdKey));
         }
 
+        // SECURITY-CRITICAL (#708): global default is NoTracking (PostgreSqlProvider). Without
+        // AsTracking, the KioskToken/KioskTokenExpiresAt mutations below would be silently
+        // dropped and the new token would never be persisted.
         var device = await _context.Devices
+            .AsTracking()
             .Where(d => d.Id == deviceId)
             .FirstOrDefaultAsync(ct);
 

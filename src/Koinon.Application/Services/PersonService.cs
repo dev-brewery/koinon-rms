@@ -530,7 +530,10 @@ public class PersonService(
             return Result<PersonDto>.Failure(Error.NotFound("Person", idKey));
         }
 
+        // AsTracking: the global default is NoTracking (PostgreSqlProvider), so without this the
+        // PhotoId/ModifiedDateTime mutations below would be silently dropped on SaveChanges (#708).
         var person = await context.People
+            .AsTracking()
             .Include(p => p.Photo)
             .FirstOrDefaultAsync(p => p.Id == id, ct);
 
@@ -876,7 +879,10 @@ public class PersonService(
             throw new ArgumentException($"Invalid note IdKey: {noteIdKey}", nameof(noteIdKey));
         }
 
+        // AsTracking: the global default is NoTracking (PostgreSqlProvider), so without this the
+        // Text/NoteDate/etc. mutations below would be silently dropped on SaveChanges (#708).
         var note = await context.PersonNotes
+            .AsTracking()
             .FirstOrDefaultAsync(n => n.Id == noteId && n.PersonId == personId, ct);
 
         if (note is null)
@@ -965,7 +971,10 @@ public class PersonService(
             throw new ArgumentException($"Invalid note IdKey: {noteIdKey}", nameof(noteIdKey));
         }
 
+        // AsTracking: the global default is NoTracking (PostgreSqlProvider), so without this the
+        // context.PersonNotes.Remove(note) below would be a no-op because the entity is detached (#708).
         var note = await context.PersonNotes
+            .AsTracking()
             .FirstOrDefaultAsync(n => n.Id == noteId && n.PersonId == personId, ct);
 
         if (note is null)

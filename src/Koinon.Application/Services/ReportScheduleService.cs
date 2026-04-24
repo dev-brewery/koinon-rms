@@ -170,7 +170,10 @@ public class ReportScheduleService(
                 Error.NotFound("ReportSchedule", idKey));
         }
 
+        // AsTracking: global default is NoTracking (PostgreSqlProvider); without it the
+        // CronExpression/TimeZone/etc. mutations below would be silently dropped on SaveChanges (#708).
         var schedule = await context.ReportSchedules
+            .AsTracking()
             .Include(rs => rs.ReportDefinition)
             .FirstOrDefaultAsync(rs => rs.Id == id, ct);
 
@@ -281,7 +284,10 @@ public class ReportScheduleService(
             return Result.Failure(Error.NotFound("ReportSchedule", idKey));
         }
 
+        // AsTracking: global default is NoTracking (PostgreSqlProvider); without it the
+        // ReportSchedules.Remove call below would be a no-op (entity detached) (#708).
         var schedule = await context.ReportSchedules
+            .AsTracking()
             .FirstOrDefaultAsync(rs => rs.Id == id, ct);
 
         if (schedule == null)
@@ -314,7 +320,10 @@ public class ReportScheduleService(
                 Error.NotFound("ReportSchedule", idKey));
         }
 
+        // AsTracking: global default is NoTracking (PostgreSqlProvider); without it the
+        // LastRunAt mutation below would be silently dropped on SaveChanges (#708).
         var schedule = await context.ReportSchedules
+            .AsTracking()
             .Include(rs => rs.ReportDefinition)
             .FirstOrDefaultAsync(rs => rs.Id == id, ct);
 

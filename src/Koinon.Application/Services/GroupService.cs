@@ -441,8 +441,11 @@ public class GroupService(
                 Error.UnprocessableEntity("Role is not valid for this group type"));
         }
 
-        // Check if person is already an active member
+        // Check if person is already an active member.
+        // AsTracking: global default is NoTracking (PostgreSqlProvider); without it the
+        // reactivation mutations further down would be silently dropped on SaveChanges (#708).
         var existingMember = await context.GroupMembers
+            .AsTracking()
             .FirstOrDefaultAsync(gm => gm.GroupId == groupId && gm.PersonId == personId, ct);
 
         if (existingMember != null && existingMember.GroupMemberStatus == GroupMemberStatus.Active)
@@ -531,8 +534,11 @@ public class GroupService(
             return Result.Failure(Error.NotFound("Person", personIdKey));
         }
 
-        // Find group member
+        // Find group member.
+        // AsTracking: global default is NoTracking (PostgreSqlProvider); without it the
+        // soft-delete mutations below would be silently dropped on SaveChanges (#708).
         var groupMember = await context.GroupMembers
+            .AsTracking()
             .FirstOrDefaultAsync(gm => gm.GroupId == groupId && gm.PersonId == personId, ct);
 
         if (groupMember is null)
@@ -783,7 +789,10 @@ public class GroupService(
                 new Error("NOT_FOUND", $"Schedule with IdKey '{scheduleIdKey}' not found"));
         }
 
+        // AsTracking: global default is NoTracking (PostgreSqlProvider); without it the
+        // GroupSchedules.Remove(groupSchedule) below would be a no-op (entity detached) (#708).
         var groupSchedule = await context.GroupSchedules
+            .AsTracking()
             .FirstOrDefaultAsync(gs => gs.GroupId == groupId && gs.ScheduleId == scheduleId, ct);
 
         if (groupSchedule == null)

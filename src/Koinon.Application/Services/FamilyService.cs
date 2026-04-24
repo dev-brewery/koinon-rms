@@ -384,8 +384,11 @@ public class FamilyService(
         }
 
         // Set primary family by updating the IsPrimary flag on FamilyMember
-        // First, clear any existing primary family
+        // First, clear any existing primary family.
+        // AsTracking: global default is NoTracking (PostgreSqlProvider); without it the IsPrimary
+        // mutations below would be silently dropped on SaveChanges (#708).
         var existingPrimaryMembership = await context.FamilyMembers
+            .AsTracking()
             .FirstOrDefaultAsync(fm => fm.PersonId == personId && fm.IsPrimary, ct);
 
         if (existingPrimaryMembership != null)
@@ -396,6 +399,7 @@ public class FamilyService(
 
         // Set the new primary family
         var newPrimaryMembership = await context.FamilyMembers
+            .AsTracking()
             .FirstOrDefaultAsync(fm => fm.FamilyId == familyId && fm.PersonId == personId, ct);
 
         if (newPrimaryMembership != null)

@@ -192,8 +192,12 @@ public class GroupMemberRequestService(
                 Error.Forbidden("Only group leaders can process membership requests"));
         }
 
-        // Load the request
+        // Load the request.
+        // AsTracking: global default is NoTracking (PostgreSqlProvider); without it the Status/
+        // ResponseNote/ProcessedByPersonId mutations below would be silently dropped on
+        // SaveChanges (#708).
         var memberRequest = await context.GroupMemberRequests
+            .AsTracking()
             .Include(gmr => gmr.Group)
                 .ThenInclude(g => g!.GroupType)
             .FirstOrDefaultAsync(gmr => gmr.Id == requestId && gmr.GroupId == groupId, ct);

@@ -161,7 +161,11 @@ public class AuthorizedPickupService(
             throw new ArgumentException($"Invalid pickup IdKey: {pickupIdKey}", nameof(pickupIdKey));
         }
 
+        // AsTracking: global default is NoTracking (PostgreSqlProvider); without it the
+        // Relationship/AuthorizationLevel/etc. mutations below would be silently dropped on
+        // SaveChanges (#708).
         var pickup = await context.AuthorizedPickups
+            .AsTracking()
             .Include(p => p.ChildPerson)
             .Include(p => p.AuthorizedPerson)
             .FirstOrDefaultAsync(p => p.Id == pickupId, ct);
@@ -229,7 +233,10 @@ public class AuthorizedPickupService(
             throw new ArgumentException($"Invalid pickup IdKey: {pickupIdKey}", nameof(pickupIdKey));
         }
 
+        // AsTracking: global default is NoTracking (PostgreSqlProvider); without it the
+        // IsActive=false soft-delete mutation below would be silently dropped on SaveChanges (#708).
         var pickup = await context.AuthorizedPickups
+            .AsTracking()
             .FirstOrDefaultAsync(p => p.Id == pickupId, ct);
 
         if (pickup == null)
