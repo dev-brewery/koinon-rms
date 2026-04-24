@@ -1,11 +1,17 @@
 /**
  * Check-in Areas Tab
- * Manage check-in areas (groups with check-in type) — create, edit, delete
+ * Manage check-in areas (groups with check-in type) — create, edit, delete.
+ *
+ * The `/checkin/configuration` endpoint requires a campusId (or kioskId). From the
+ * admin console we only have campuses available, so we render a campus picker at
+ * the top of the tab and only fire the configuration query once one is selected.
+ * If exactly one campus exists we auto-select it so admins don't see a prompt.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useDeleteGroup } from '@/hooks/useGroups';
+import { useCampuses } from '@/hooks/useCampuses';
 import { useToast } from '@/contexts/ToastContext';
 import { Loading, EmptyState, ErrorState, ConfirmDialog } from '@/components/ui';
 import { getCheckinConfiguration } from '@/services/api/checkin';
@@ -17,10 +23,26 @@ export function CheckinAreasTab() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingArea, setEditingArea] = useState<CheckinAreaDto | null>(null);
   const [deletingAreaIdKey, setDeletingAreaIdKey] = useState<string | null>(null);
+  const [selectedCampusIdKey, setSelectedCampusIdKey] = useState<string>('');
+
+  const {
+    data: campuses,
+    isLoading: campusesLoading,
+    error: campusesError,
+  } = useCampuses();
+
+  // Auto-select the first (or only) campus so the admin doesn't see a prompt
+  // when their org has a single campus configured.
+  useEffect(() => {
+    if (!selectedCampusIdKey && campuses && campuses.length > 0) {
+      setSelectedCampusIdKey(campuses[0].idKey);
+    }
+  }, [campuses, selectedCampusIdKey]);
 
   const { data: config, isLoading, error, refetch } = useQuery({
-    queryKey: ['checkin', 'configuration'],
-    queryFn: () => getCheckinConfiguration(),
+    queryKey: ['checkin', 'configuration', selectedCampusIdKey],
+    queryFn: () => getCheckinConfiguration({ campusId: selectedCampusIdKey }),
+    enabled: !!selectedCampusIdKey,
     staleTime: 2 * 60 * 1000,
   });
 
@@ -50,23 +72,96 @@ export function CheckinAreasTab() {
     }
   };
 
+  const campusPicker = (
+    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+      <label htmlFor="checkin-areas-campus" className="text-sm font-medium text-gray-700">
+        Campus
+      </label>
+      <select
+        id="checkin-areas-campus"
+        value={selectedCampusIdKey}
+        onChange={(e) => setSelectedCampusIdKey(e.target.value)}
+        disabled={campusesLoading || !!campusesError}
+        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-50 disabled:text-gray-500"
+      >
+        <option value="">
+          {campusesLoading ? 'Loading campuses…' : 'Select a campus'}
+        </option>
+        {campuses?.map((c) => (
+          <option key={c.idKey} value={c.idKey}>
+            {c.name}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+
+  if (campusesError) {
+    return (
+      <div className="space-y-4">
+        {campusPicker}
+        <ErrorState
+          title="Failed to load campuses"
+          message={campusesError instanceof Error ? campusesError.message : 'Unknown error'}
+        />
+      </div>
+    );
+  }
+
+  if (!selectedCampusIdKey) {
+    return (
+      <div className="space-y-4">
+        {campusPicker}
+        <EmptyState
+          icon={
+            <svg
+              className="w-12 h-12 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 21v-4a4 4 0 014-4h10a4 4 0 014 4v4M7 7a4 4 0 118 0 4 4 0 01-8 0z"
+              />
+            </svg>
+          }
+          title="Select a campus"
+          description="Pick a campus to view its configured check-in areas."
+        />
+      </div>
+    );
+  }
+
   if (isLoading) {
-    return <Loading text="Loading check-in areas..." />;
+    return (
+      <div className="space-y-4">
+        {campusPicker}
+        <Loading text="Loading check-in areas..." />
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <ErrorState
-        title="Failed to load check-in areas"
-        message={error instanceof Error ? error.message : 'Unknown error'}
-        onRetry={() => refetch()}
-      />
+      <div className="space-y-4">
+        {campusPicker}
+        <ErrorState
+          title="Failed to load check-in areas"
+          message={error instanceof Error ? error.message : 'Unknown error'}
+          onRetry={() => refetch()}
+        />
+      </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        {campusPicker}
         <p className="text-sm text-gray-600">
           {areas.length} {areas.length === 1 ? 'area' : 'areas'} configured
         </p>
