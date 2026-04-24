@@ -30,22 +30,22 @@
  *   tests that were previously .skip()-ed with a reference to this bug are
  *   now active as regression guards in the detail/edit describe blocks.
  *
- * NEW BUG #2 (skip-and-flag): schedule form create/submit is broken.
+ * BUG #2 (FIXED, #689): schedule form weekly create/submit.
  *   (a) `src/web/src/components/admin/schedules/WeeklySchedulePicker.tsx`
- *       produces `HH:MM:SS` values via `generateTimeOptions()`, but
- *       `src/web/src/schemas/schedule.schema.ts` validates `timeOfDay` with
- *       a regex that only accepts `HH:MM`. Any selected time fails client
- *       validation, so the form refuses to POST.
- *   (b) The server (`POST /api/v1/schedules`) requires both
- *       `weeklyDayOfWeek` and `weeklyTimeOfDay` for weekly schedules but
- *       the client schema's `superRefine` for this is a tautological
- *       no-op — it lets empty submissions through, which then 400 from
- *       the server without user-visible feedback.
- *   Because of (a) and (b), an end-to-end create flow is not achievable
- *   from the UI as written. The form's static chrome, disabled-when-empty
- *   submit guard, day/time picker interactions, and cancel flow ARE all
- *   assertable and covered below. Suggested issue title:
- *     "fix(web): schedule form cannot submit valid weekly schedules"
+ *       produces `HH:MM:SS` values via `generateTimeOptions()` — the
+ *       backend `TimeSpan?` DTO strictly deserializes that format, so
+ *       that output is correct. The schema's `timeOfDay` regex was too
+ *       narrow (HH:MM only) and has been broadened to accept HH:MM(:SS)?.
+ *   (b) The `superRefine` predicate enforcing the day+time pair used to be
+ *       tautological `(A||B) && (!A && !B)` — always false. It is now a
+ *       correct XOR: both set OR both unset is valid, exactly one set is
+ *       an error flagged inline on the missing field. Previously empty
+ *       submissions slipped past the FE and 400'd from the server without
+ *       user-visible feedback.
+ *   With both fixed, an end-to-end weekly-schedule create flow is
+ *   achievable — a regression guard lives in the create-mode describe
+ *   below. The pre-existing picker-interactivity test remains as a guard
+ *   against styling/value-binding regressions in the picker itself.
  *
  * Guardrails:
  *  - No data-testid attributes added to production code.
@@ -349,18 +349,9 @@ test.describe('ScheduleFormPage — create mode', () => {
   });
 
   test('day buttons and time selector are interactive', async ({ page }) => {
-    // We cannot exercise a full submit flow end-to-end here because the form
-    // is blocked by TWO additional pre-existing bugs (see "NEW BUG #2" in the
-    // module doc at the top of this file):
-    //   (a) WeeklySchedulePicker emits HH:MM:SS values but the zod schema
-    //       only accepts HH:MM, so the form's client-side validation
-    //       rejects any selected time.
-    //   (b) The server requires both weeklyDayOfWeek and weeklyTimeOfDay
-    //       for weekly schedules, but the frontend schema does not enforce
-    //       that pair-wise requirement, so submitting with neither results
-    //       in a 400 that the form doesn't surface to the user.
-    // This test at least confirms the day/time controls respond to clicks
-    // — a regression in the picker itself would still be caught.
+    // Regression guard on the picker controls themselves: a regression in
+    // the day-button styling contract or the time-select value binding
+    // would be caught here regardless of submit-path regressions.
     await page.locator('#name').fill(`E2E Wave5 PickerCheck ${uniqueSuffix('sch')}`);
 
     const monBtn = page.getByRole('button', { name: 'Mon' });
@@ -371,6 +362,50 @@ test.describe('ScheduleFormPage — create mode', () => {
     const timeSelect = page.locator('#timeOfDay');
     await timeSelect.selectOption('10:00:00');
     await expect(timeSelect).toHaveValue('10:00:00');
+  });
+
+  test('submits a valid weekly schedule end-to-end and lands on the detail page (#689)', async ({
+    page,
+  }) => {
+    // Regression guard for #689: before the fix the form could not submit.
+    //   - WeeklySchedulePicker emits HH:MM:SS, the zod regex now accepts it.
+    //   - superRefine is now a real XOR check on (dayOfWeek, timeOfDay).
+    // This test fills a minimal valid weekly schedule, submits, and asserts
+    // the app navigates to the detail page for the created schedule.
+    const name = `E2E #689 Weekly ${uniqueSuffix('sch')}`;
+    await page.locator('#name').fill(name);
+
+    // Pick a weekday (Tuesday) and 10:00 AM.
+    await page.getByRole('button', { name: 'Tue' }).click();
+    await page.locator('#timeOfDay').selectOption('10:00:00');
+
+    await page.getByRole('button', { name: /^create schedule$/i }).click();
+
+    // Expect navigation to the detail route and the name heading to render.
+    await expect(page).toHaveURL(/\/admin\/schedules\/[^/]+$/, { timeout: 10_000 });
+    await expect(
+      page.getByRole('heading', { name, level: 1 }),
+    ).toBeVisible({ timeout: 10_000 });
+  });
+
+  test('blocks submit when weekly time is picked without a day (#689)', async ({
+    page,
+  }) => {
+    // Regression guard for #689 Bug C: previously the tautological
+    // superRefine let mismatched day/time submissions through to the server
+    // without inline feedback. The corrected XOR predicate now causes
+    // safeParse to fail on the client and the form stays on /new instead
+    // of navigating to the created-schedule detail page.
+    await page.locator('#name').fill(`E2E #689 PairCheck ${uniqueSuffix('sch')}`);
+    await page.locator('#timeOfDay').selectOption('11:30:00');
+
+    // Submit — schema must reject and keep us on the form (no navigation).
+    await page.getByRole('button', { name: /^create schedule$/i }).click();
+
+    // Give any would-be navigation a chance to settle, then assert we
+    // are still on the new-schedule URL.
+    await page.waitForTimeout(250);
+    await expect(page).toHaveURL(/\/admin\/schedules\/new$/);
   });
 });
 

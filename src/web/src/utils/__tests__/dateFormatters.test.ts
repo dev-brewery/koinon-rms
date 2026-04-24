@@ -73,4 +73,16 @@ describe('generateTimeOptions', () => {
       expect(t).toMatch(/^\d{2}:\d{2}:00$/);
     }
   });
+
+  it('produces values that the schedule schema regex accepts (#689)', () => {
+    // Regression guard for #689 bug A/B: the picker emits HH:MM:SS values
+    // and the schedule schema's timeOfDay regex must accept that exact
+    // format. If these ever drift, the form cannot submit. The regex
+    // source-of-truth lives in src/schemas/schedule.schema.ts.
+    const scheduleTimeRegex = /^([01]\d|2[0-3]):([0-5]\d)(:([0-5]\d))?$/;
+    const times = generateTimeOptions();
+    for (const t of times) {
+      expect(t).toMatch(scheduleTimeRegex);
+    }
+  });
 });
