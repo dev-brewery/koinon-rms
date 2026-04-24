@@ -288,10 +288,9 @@ test.describe('Check-in Config — Devices tab', () => {
     await expect(createdRow).toContainText('10.0.0.99');
   });
 
-  test.skip('delete removes the device row from the list', async ({ page }) => {
-    // SKIP: NEW BUG #4 — DELETE /api/v1/devices/{idKey} returns 204 but
-    // the device persists in the GET response, so the row never
-    // disappears even after clicking Confirm in the delete dialog.
+  test('delete removes the device row from the list', async ({ page }) => {
+    // Fixed in #695: DELETE now actually persists the soft-delete, so
+    // the row disappears from the (default IsActive=true) list query.
     const name = uniqueSuffix('E2E Wave 6 Delete Kiosk');
     await page.getByRole('button', { name: /^add device$/i }).first().click();
     const createDialog = page.getByRole('dialog', { name: /add device/i });
@@ -307,12 +306,9 @@ test.describe('Check-in Config — Devices tab', () => {
     });
   });
 
-  test.skip('device name edit persists to the devices list', async ({ page }) => {
-    // SKIP: NEW BUG #3 — edit modal opens and Save Changes appears to
-    // submit successfully, but the row in the devices list still shows
-    // the pre-edit name after the modal closes and the list re-renders.
-    // Behavior likely lives in either the backend UpdateDevice handler
-    // or the client cache invalidation; needs further triage.
+  test('device name edit persists to the devices list', async ({ page }) => {
+    // Fixed in #694: backend UpdateDeviceAsync now loads the entity with
+    // AsTracking() so SaveChanges actually persists the Name mutation.
     const originalName = uniqueSuffix('E2E Wave 6 Kiosk');
     const renamedName = `${originalName}-edited`;
 

@@ -142,7 +142,11 @@ public class DeviceService(
             return Result<DeviceDetailDto>.Failure(Error.NotFound("Device", idKey));
         }
 
-        var device = await context.Devices.FirstOrDefaultAsync(d => d.Id == id, ct);
+        // AsTracking required: global QueryTrackingBehavior is NoTracking (see PostgreSqlProvider),
+        // so without it SaveChanges would not persist the mutations below.
+        var device = await context.Devices
+            .AsTracking()
+            .FirstOrDefaultAsync(d => d.Id == id, ct);
         if (device == null)
         {
             return Result<DeviceDetailDto>.Failure(Error.NotFound("Device", idKey));
@@ -239,7 +243,11 @@ public class DeviceService(
             return Result.Failure(Error.NotFound("Device", idKey));
         }
 
-        var device = await context.Devices.FirstOrDefaultAsync(d => d.Id == id, ct);
+        // AsTracking required: global QueryTrackingBehavior is NoTracking (see PostgreSqlProvider),
+        // so without it SaveChanges would not persist the soft-delete mutation below.
+        var device = await context.Devices
+            .AsTracking()
+            .FirstOrDefaultAsync(d => d.Id == id, ct);
         if (device == null)
         {
             return Result.Failure(Error.NotFound("Device", idKey));
@@ -260,7 +268,11 @@ public class DeviceService(
             return Result<GenerateKioskTokenResponseDto>.Failure(Error.NotFound("Device", idKey));
         }
 
-        var device = await context.Devices.FirstOrDefaultAsync(d => d.Id == id, ct);
+        // AsTracking required: global QueryTrackingBehavior is NoTracking (see PostgreSqlProvider),
+        // so without it SaveChanges would not persist the token mutation below.
+        var device = await context.Devices
+            .AsTracking()
+            .FirstOrDefaultAsync(d => d.Id == id, ct);
         if (device == null)
         {
             return Result<GenerateKioskTokenResponseDto>.Failure(Error.NotFound("Device", idKey));
