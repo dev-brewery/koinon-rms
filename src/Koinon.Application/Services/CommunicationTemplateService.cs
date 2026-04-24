@@ -175,7 +175,10 @@ public class CommunicationTemplateService(
             return Result<CommunicationTemplateDto>.Failure(Error.NotFound("CommunicationTemplate", idKey));
         }
 
+        // AsTracking required: global QueryTrackingBehavior is NoTracking (see PostgreSqlProvider),
+        // so without it SaveChanges would not persist the mutations below. (fixes #685)
         var template = await context.CommunicationTemplates
+            .AsTracking()
             .FirstOrDefaultAsync(t => t.Id == id, ct);
 
         if (template is null)

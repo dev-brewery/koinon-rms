@@ -225,7 +225,10 @@ public class SecurityRoleService(
             return Result<SecurityRoleDto>.Failure(Error.FromFluentValidation(validation));
         }
 
+        // AsTracking required: global QueryTrackingBehavior is NoTracking (see PostgreSqlProvider),
+        // so without it SaveChanges would not persist the mutations below. (fixes #685)
         var entity = await context.SecurityRoles
+            .AsTracking()
             .FirstOrDefaultAsync(r => r.Id == roleId, ct);
 
         if (entity == null)

@@ -108,8 +108,10 @@ public class CommunicationPreferenceService(
                 communicationType);
         }
 
-        // Find or create preference
+        // Find or create preference. AsTracking required: global QueryTrackingBehavior is NoTracking
+        // (see PostgreSqlProvider), so without it SaveChanges would not persist the update-branch mutations below. (fixes #685)
         var preference = await context.CommunicationPreferences
+            .AsTracking()
             .FirstOrDefaultAsync(cp => cp.PersonId == personId && cp.CommunicationType == commType, ct);
 
         if (preference == null)
@@ -197,8 +199,10 @@ public class CommunicationPreferenceService(
             updates.Add((commType, item.IsOptedOut, item.OptOutReason));
         }
 
-        // Load all existing preferences for this person
+        // Load all existing preferences for this person. AsTracking required: global QueryTrackingBehavior
+        // is NoTracking, so without it SaveChanges would not persist the update-branch mutations below. (fixes #685)
         var existingPreferences = await context.CommunicationPreferences
+            .AsTracking()
             .Where(cp => cp.PersonId == personId)
             .ToListAsync(ct);
 

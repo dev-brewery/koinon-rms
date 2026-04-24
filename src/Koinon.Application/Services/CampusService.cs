@@ -83,7 +83,10 @@ public class CampusService(
             return Result<CampusDto>.Failure(Error.NotFound("Campus", idKey));
         }
 
+        // AsTracking required: global QueryTrackingBehavior is NoTracking (see PostgreSqlProvider),
+        // so without it SaveChanges would not persist the mutations below. (fixes #685)
         var entity = await context.Campuses
+            .AsTracking()
             .FirstOrDefaultAsync(c => c.Id == id, ct);
 
         if (entity == null)
@@ -114,7 +117,9 @@ public class CampusService(
             return Result.Failure(Error.NotFound("Campus", idKey));
         }
 
+        // AsTracking required for soft-delete mutation (global QueryTrackingBehavior is NoTracking). (fixes #685)
         var entity = await context.Campuses
+            .AsTracking()
             .FirstOrDefaultAsync(c => c.Id == id, ct);
 
         if (entity == null)
