@@ -27,14 +27,10 @@
  * Mocking policy (matches prior admin spec pattern): real API for everything.
  * All created test data uses uniqueSuffix() for isolation.
  *
- * NEW BUG #1 (skip-and-flag): CheckinAreasTab always renders ErrorState.
- *   The tab calls `getCheckinConfiguration()` with no args, but the API
- *   endpoint `GET /api/v1/checkin/configuration` returns HTTP 400 with
- *   `"Either campusId or kioskId must be provided"`. Verified directly
- *   against the live API. The tab therefore NEVER reaches the list /
- *   empty-state / guidance-note paths for an authenticated admin — it
- *   always shows "Failed to load check-in areas". Suggested issue title:
- *     "fix(web): CheckinAreasTab must pass campusId to /checkin/configuration"
+ * NEW BUG #1 (FIXED in #692): CheckinAreasTab now renders a campus picker at
+ *   the top of the tab and passes `campusId` to `/checkin/configuration`.
+ *   Single-campus orgs auto-select; multi-campus orgs see a "Select a campus"
+ *   prompt until the admin picks one.
  *
  * BUG #2 (FIXED, #693): CheckinLocationsTab used to crash the page because
  *   `services/api/locations.ts::getLocations()` didn't unwrap the
@@ -156,33 +152,39 @@ test.describe('Check-in Config — Areas tab', () => {
     // Areas is default, no tab click needed.
   });
 
-  test('renders the tab error state — tab body loads without crashing the page', async ({ page }) => {
-    // Due to NEW BUG #1, the Areas tab always renders the ErrorState
-    // ("Failed to load check-in areas" + "Try Again"). We assert that
-    // the error is rendered INSIDE the tab and does NOT crash the
-    // outer page (no global error boundary). This ensures the tab
-    // shell degrades gracefully.
+  test('renders a campus picker at the top of the tab (#692)', async ({ page }) => {
+    // After #692, the tab renders a campus <select> populated with the
+    // seeded campuses. The page must NOT crash and must not show the old
+    // "Failed to load check-in areas" error state.
     await expect(page.getByRole('heading', { name: /check-in setup/i })).toBeVisible();
+    const campusSelect = page.getByLabel(/^campus$/i);
+    await expect(campusSelect).toBeVisible({ timeout: 10_000 });
+    // Auto-select of the first campus should happen by itself; confirm at
+    // least one real (non-empty) option beyond the placeholder.
+    await expect
+      .poll(async () => await campusSelect.locator('option').count(), {
+        timeout: 10_000,
+      })
+      .toBeGreaterThan(1);
     await expect(
       page.getByRole('heading', { name: /failed to load check-in areas/i }),
-    ).toBeVisible();
-    await expect(page.getByRole('button', { name: /try again/i })).toBeVisible();
+    ).toHaveCount(0);
   });
 
-  test.skip('shows the "managed via Groups" guidance note', async ({ page }) => {
-    // SKIP: NEW BUG #1 — Areas tab never reaches the success path from
-    // the admin config page because /checkin/configuration requires
-    // campusId/kioskId query parameters that the UI does not send.
+  test('shows the "managed via Groups" guidance note', async ({ page }) => {
+    // Unskipped after #692 — the success path now renders once a campus is
+    // selected (auto-selected for single-campus orgs).
     await expect(
       page.getByText(/check-in areas are configured through group management/i),
-    ).toBeVisible();
+    ).toBeVisible({ timeout: 10_000 });
   });
 
-  test.skip('shows a configured-count summary', async ({ page }) => {
-    // SKIP: NEW BUG #1 — see above; success path never renders.
+  test('shows a configured-count summary', async ({ page }) => {
+    // Unskipped after #692 — the success body renders once a campus is
+    // selected, which exposes the areas-count summary.
     await expect(
       page.getByText(/\d+\s+(area|areas)\s+configured/i).first(),
-    ).toBeVisible();
+    ).toBeVisible({ timeout: 10_000 });
   });
 });
 

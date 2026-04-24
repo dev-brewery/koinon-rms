@@ -24,8 +24,8 @@
  *      * Pre-selecting a parent via ?parentId=... disables the parent select
  *        and shows the "Parent group is pre-selected" helper text.
  *      * Edit-mode hides the Group Type selector (immutable after creation).
- *      * Campus and Parent Group selects render (even though options are
- *        currently empty — see NEW-BUG flag in PR description).
+ *      * Campus and Parent Group selects render populated options (fixed in
+ *        #690 — previously these rendered only their placeholder).
  *
  * Mocking policy: all tests hit the real API against seeded data; the one
  * synthetic scenario (Add Child Group shortcut pre-selects parentId) simply
@@ -262,9 +262,8 @@ test.describe('GroupFormPage — parentId pre-selection', () => {
   test('visiting /admin/groups/new?parentId=... disables the Parent Group select', async ({
     page,
   }) => {
-    // Use a real, seeded group's idKey. We only need any valid value — the
-    // form still renders even when the idKey isn't in the Parent Group
-    // options list (options are empty today; see NEW-BUG flag in the PR body).
+    // Use a real, seeded group's idKey. Any valid value disables the select;
+    // the option list is populated after #690.
     const parentIdKey = await openSeededGroupDetail(
       page,
       testData.groups.elementary.name,
@@ -327,12 +326,12 @@ test.describe('GroupFormPage — edit mode hides Group Type', () => {
   });
 });
 
-test.describe('GroupFormPage — Parent Group / Campus selects render', () => {
+test.describe('GroupFormPage — Parent Group / Campus selects populated (#690)', () => {
   test.beforeEach(async ({ loginAsAdmin }) => {
     await loginAsAdmin();
   });
 
-  test('Parent Group select is present with a "None" placeholder option', async ({
+  test('Parent Group select renders the "None" placeholder AND seeded group options', async ({
     page,
   }) => {
     await page.goto('/admin/groups/new');
@@ -345,9 +344,16 @@ test.describe('GroupFormPage — Parent Group / Campus selects render', () => {
     await expect(
       parentSelect.locator('option', { hasText: /none \(top-level group\)/i }),
     ).toHaveCount(1);
+    // After #690, the select must load at least one real group option beyond
+    // the placeholder (the seeder always provides Nursery/Preschool/Elementary).
+    await expect
+      .poll(async () => await parentSelect.locator('option').count(), {
+        timeout: 10_000,
+      })
+      .toBeGreaterThan(1);
   });
 
-  test('Campus select is present with an "All Campuses" placeholder option', async ({
+  test('Campus select renders the "All Campuses" placeholder AND seeded campus options', async ({
     page,
   }) => {
     await page.goto('/admin/groups/new');
@@ -360,5 +366,12 @@ test.describe('GroupFormPage — Parent Group / Campus selects render', () => {
     await expect(
       campusSelect.locator('option', { hasText: /all campuses/i }),
     ).toHaveCount(1);
+    // After #690, the select must load at least one real campus option beyond
+    // the placeholder (the seeder always provides at least one campus).
+    await expect
+      .poll(async () => await campusSelect.locator('option').count(), {
+        timeout: 10_000,
+      })
+      .toBeGreaterThan(1);
   });
 });

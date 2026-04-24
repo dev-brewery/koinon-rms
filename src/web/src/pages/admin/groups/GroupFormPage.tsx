@@ -3,10 +3,11 @@
  * Create or edit a group
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { useGroup, useCreateGroup, useUpdateGroup } from '@/hooks/useGroups';
+import { useGroup, useGroups, useCreateGroup, useUpdateGroup } from '@/hooks/useGroups';
 import { useGroupTypes } from '@/hooks/useGroupTypes';
+import { useCampuses } from '@/hooks/useCampuses';
 import type { CreateGroupRequest, UpdateGroupRequest } from '@/services/api/types';
 import { groupFormSchema, groupFormSchemaForEdit } from '@/schemas/group.schema';
 
@@ -18,8 +19,24 @@ export function GroupFormPage() {
 
   const { data: group, isLoading } = useGroup(idKey);
   const { data: groupTypes } = useGroupTypes();
+  const {
+    data: campuses,
+    isLoading: campusesLoading,
+    error: campusesError,
+  } = useCampuses();
+  const {
+    data: parentGroupsResult,
+    isLoading: parentGroupsLoading,
+    error: parentGroupsError,
+  } = useGroups({ pageSize: 200 });
   const createGroup = useCreateGroup();
   const updateGroup = useUpdateGroup();
+
+  // Exclude the current group (in edit mode) from parent options — a group cannot be its own parent.
+  const parentGroupOptions = useMemo(() => {
+    const all = parentGroupsResult?.data ?? [];
+    return isEditMode && idKey ? all.filter((g) => g.idKey !== idKey) : all;
+  }, [parentGroupsResult?.data, isEditMode, idKey]);
 
   // Form state
   const [name, setName] = useState('');
@@ -264,13 +281,25 @@ export function GroupFormPage() {
               id="parentGroupId"
               value={parentGroupId}
               onChange={(e) => setParentGroupId(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              disabled={!!searchParams.get('parentId')}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-50 disabled:text-gray-500"
+              disabled={!!searchParams.get('parentId') || parentGroupsLoading}
             >
-              <option value="">None (Top-level group)</option>
+              <option value="">
+                {parentGroupsLoading ? 'Loading groups…' : 'None (Top-level group)'}
+              </option>
+              {parentGroupOptions.map((g) => (
+                <option key={g.idKey} value={g.idKey}>
+                  {g.name}
+                </option>
+              ))}
             </select>
             {searchParams.get('parentId') && (
               <p className="mt-1 text-xs text-gray-500">Parent group is pre-selected</p>
+            )}
+            {parentGroupsError && (
+              <p className="mt-1 text-xs text-red-600">
+                Could not load groups. You can still save without a parent.
+              </p>
             )}
           </div>
 
@@ -283,10 +312,23 @@ export function GroupFormPage() {
               id="campusId"
               value={campusId}
               onChange={(e) => setCampusId(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-50 disabled:text-gray-500"
+              disabled={campusesLoading}
             >
-              <option value="">All Campuses</option>
+              <option value="">
+                {campusesLoading ? 'Loading campuses…' : 'All Campuses'}
+              </option>
+              {campuses?.map((c) => (
+                <option key={c.idKey} value={c.idKey}>
+                  {c.name}
+                </option>
+              ))}
             </select>
+            {campusesError && (
+              <p className="mt-1 text-xs text-red-600">
+                Could not load campuses. You can still save without a campus.
+              </p>
+            )}
           </div>
 
           {/* Capacity */}
