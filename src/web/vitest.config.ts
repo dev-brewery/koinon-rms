@@ -53,14 +53,21 @@ export default defineConfig({
         // does not break CI). No coverage.exclude changes — every point of
         // movement comes from real tests.
         //
+        // Wave 7 (#679 browser-API hook units) added useQrScanner,
+        // useNotificationHub, useOfflineCheckin tests (0% → 96% / 80% / 94%).
+        // Achieved wave-7 floor:
+        //   lines 39.98, statements 40.32, functions 42.40, branches 26.56
+        // Thresholds bumped to ~1.5 pts below achieved to lock the win
+        // without trapping minor churn.
+        //
         // The remaining gap to higher coverage is E2E territory: full admin
         // pages (pages/admin/**, pages/communications/**, pages/settings/**)
         // and large stateful modals that require a router + multiple hook
         // providers.
-        lines: 35,
-        statements: 35,
-        functions: 38,
-        branches: 23,
+        lines: 38,
+        statements: 38,
+        functions: 40,
+        branches: 25,
         // Critical path: offline services must stay well tested.
         // These are higher than the global floor because offline queue bugs
         // cause silent check-in data loss.
