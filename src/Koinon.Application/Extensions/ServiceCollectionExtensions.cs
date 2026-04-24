@@ -175,6 +175,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IExportFormatGenerator, CsvExportGenerator>();
         services.AddScoped<IExportFormatGenerator, ExcelExportGenerator>();
 
+        // Data Import Services (#696)
+        services.AddScoped<ICsvParserService, CsvParserService>();
+        services.AddScoped<IDataImportService, DataImportService>();
+
         // Configure QuestPDF license
         QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
