@@ -21,21 +21,14 @@
  * data; narrow page.route() only for a synthetic empty-state scenario that
  * would otherwise require wiping seeded schedules.
  *
- * NEW BUG #1 (skip-and-flag): envelope not unwrapped.
- *   `src/web/src/services/api/schedules.ts` does NOT unwrap the `{ data: ... }`
- *   API envelope for getScheduleByIdKey / createSchedule / updateSchedule /
- *   getScheduleOccurrences. The Groups service unwraps it; Schedules does not
- *   (compare `src/web/src/services/api/groups.ts` L47-50). Effects observed
- *   in this spec:
- *     1. ScheduleDetailPage renders with empty heading, "Invalid Date"
- *        metadata, and an "inactive" banner for schedules that are active.
- *     2. ScheduleFormPage's post-create navigate uses `created.idKey`
- *        (undefined because `.data` is not unwrapped) and so fails to
- *        navigate to the new detail page.
- *   Tests whose assertions depend on the detail view rendering correctly
- *   or on post-create navigation are marked `.skip()` with a reference to
- *   this note. Suggested issue title:
- *     "fix(web): unwrap `data` envelope in schedules API service"
+ * BUG #1 (FIXED, #688): envelope not unwrapped in schedules API service.
+ *   `src/web/src/services/api/schedules.ts` now unwraps the `{ data: ... }`
+ *   API envelope for getScheduleByIdKey / updateSchedule /
+ *   getScheduleOccurrences (createSchedule's backend returns a flat body via
+ *   CreatedAtAction(..., schedule) so it intentionally does NOT unwrap —
+ *   that's a BE inconsistency vs. sibling controllers, not a FE bug). The
+ *   tests that were previously .skip()-ed with a reference to this bug are
+ *   now active as regression guards in the detail/edit describe blocks.
  *
  * NEW BUG #2 (skip-and-flag): schedule form create/submit is broken.
  *   (a) `src/web/src/components/admin/schedules/WeeklySchedulePicker.tsx`
@@ -217,7 +210,7 @@ test.describe('ScheduleListPage — empty state (mocked)', () => {
 // ScheduleDetailPage
 // ---------------------------------------------------------------------------
 
-test.describe('ScheduleDetailPage — rendering (partial: blocked by envelope bug)', () => {
+test.describe('ScheduleDetailPage — rendering (envelope unwrap, #688)', () => {
   test.beforeEach(async ({ loginAsAdmin, page }) => {
     await loginAsAdmin();
     await page.goto('/admin/schedules');
@@ -227,20 +220,48 @@ test.describe('ScheduleDetailPage — rendering (partial: blocked by envelope bu
     await expect(page).toHaveURL(/\/admin\/schedules\/[^/]+$/);
   });
 
-  test.skip('shows the schedule name as the page heading', async () => {
-    // BLOCKED by NEW-BUG (schedules API envelope not unwrapped). The detail
-    // page renders with an empty <h1>. Re-enable once the service is fixed.
+  test('shows the schedule name as the page heading', async ({ page }) => {
+    // Regression guard for #688: before the envelope unwrap, this heading was
+    // empty because `useSchedule()` received `{ data: {...} }` instead of the
+    // unwrapped DTO, so `schedule.name` was undefined.
+    await expect(
+      page.getByRole('heading', { name: testData.schedules.sunday9am.name, level: 1 }),
+    ).toBeVisible({ timeout: 10_000 });
   });
 
-  test.skip('renders the Schedule Details card with day and time', async () => {
-    // BLOCKED by NEW-BUG. `schedule.weeklyDayOfWeek` is undefined on the
-    // frontend because the whole DTO is nested under `.data`.
+  test('renders the Schedule Details card with day and time', async ({ page }) => {
+    // Regression guard for #688: before the envelope unwrap, these fields all
+    // read as undefined and the card either collapsed or showed stale values.
+    const detailsHeading = page.getByRole('heading', { name: /^schedule details$/i });
+    await expect(detailsHeading).toBeVisible();
+    // Scope to the Schedule Details card body — the seeded Sunday 9 AM schedule
+    // renders the "Day and Time" row with "Sunday at 9:00 AM" (formatTime12Hour
+    // + DAYS_OF_WEEK[0]) only when the DTO is unwrapped.
+    const card = detailsHeading.locator('..');
+    await expect(card.getByText(/sunday at 9:00\s*am/i)).toBeVisible({ timeout: 10_000 });
   });
 
-  test.skip('renders the Status sidebar with correct Active/Public values', async () => {
-    // BLOCKED by NEW-BUG. All status booleans read as undefined on the
-    // frontend, so the sidebar always reads "Inactive" / "No" regardless
-    // of the server payload.
+  test('renders the Status sidebar with correct Active/Public values', async ({ page }) => {
+    // Regression guard for #688: before the envelope unwrap, every status
+    // boolean read as undefined on the frontend, so the sidebar always
+    // rendered "Inactive" / "No" regardless of the server payload. After
+    // the fix, the value pill text is driven by the real DTO values.
+    const statusHeading = page.getByRole('heading', { name: /^status$/i });
+    await expect(statusHeading).toBeVisible();
+
+    // Scope assertions to the status card.
+    const statusCard = statusHeading.locator('..');
+    // All three row labels must be present regardless of state.
+    await expect(statusCard.getByText('Active').first()).toBeVisible();
+    await expect(statusCard.getByText(/check-in active/i)).toBeVisible();
+    await expect(statusCard.getByText('Public').first()).toBeVisible();
+
+    // Seeded Sunday 9 AM is active — the dd pill next to the "Active" dt
+    // should read "Active", NOT "Inactive". Use an exact-match assertion on
+    // the pill text and assert the negative case is NOT visible. The row
+    // under the "Active" dt is the first dd in the <dl>.
+    const firstValuePill = statusCard.locator('dd').first();
+    await expect(firstValuePill).toHaveText('Active', { timeout: 10_000 });
   });
 
   test('always-rendered controls (Edit, Delete, back arrow) are present', async ({
@@ -357,21 +378,73 @@ test.describe('ScheduleFormPage — create mode', () => {
 // ScheduleFormPage — edit mode (blocked by envelope bug)
 // ---------------------------------------------------------------------------
 
-test.describe('ScheduleFormPage — edit mode', () => {
+test.describe('ScheduleFormPage — edit mode (envelope unwrap, #688)', () => {
   test.beforeEach(async ({ loginAsAdmin }) => {
     await loginAsAdmin();
   });
 
-  test.skip('edit mode pre-fills the name from an existing schedule', async () => {
-    // BLOCKED by NEW-BUG. useSchedule() receives `{ data: {...} }` instead
-    // of the unwrapped DTO, so `schedule.name` is undefined and the form's
-    // name input stays empty.
+  test('edit mode pre-fills the name from an existing schedule', async ({ page }) => {
+    // Regression guard for #688: before the envelope unwrap, useSchedule()
+    // received `{ data: {...} }` and so `schedule.name` was undefined —
+    // the name input stayed empty on edit. The fix makes the detail DTO
+    // flow through `response.data` so `schedule.name` is now populated.
+    await page.goto('/admin/schedules');
+    await page
+      .getByRole('link', { name: testData.schedules.sunday9am.name })
+      .click();
+    await page.getByRole('link', { name: /^edit$/i }).click();
+    await expect(
+      page.getByRole('heading', { name: /edit schedule/i }),
+    ).toBeVisible({ timeout: 10_000 });
+
+    await expect(page.locator('#name')).toHaveValue(
+      testData.schedules.sunday9am.name,
+      { timeout: 10_000 },
+    );
   });
 
-  test.skip('edit mode saves changes and returns to the detail page', async () => {
-    // BLOCKED by NEW-BUG. The edit form never populates from the server,
-    // so submitting would attempt to persist an all-undefined payload and
-    // also can't round-trip the name back to the detail view.
+  test('edit mode saves a description edit and returns to the detail page', async ({
+    page,
+  }) => {
+    // Regression guard for #688: before the fix, the edit form never
+    // populated from the server and `updateSchedule()` returned
+    // `{ data: {...} }`, so the mutation resolved with an object whose own
+    // keys were undefined — the round-trip back to the detail view could
+    // not render the updated schedule name.
+    //
+    // This test edits the description (a non-identifying field we can safely
+    // round-trip against the shared seeded schedule) and then asserts the
+    // detail page renders. We intentionally avoid mutating the name, which
+    // other tests read from.
+    const uniqueDescription = `E2E #688 description ${uniqueSuffix('desc')}`;
+
+    await page.goto('/admin/schedules');
+    await page
+      .getByRole('link', { name: testData.schedules.sunday9am.name })
+      .click();
+    const detailUrl = page.url();
+
+    await page.getByRole('link', { name: /^edit$/i }).click();
+    await expect(page.locator('#name')).toHaveValue(
+      testData.schedules.sunday9am.name,
+      { timeout: 10_000 },
+    );
+
+    const descriptionField = page.locator('#description');
+    await descriptionField.fill(uniqueDescription);
+    await page.getByRole('button', { name: /save changes|update schedule/i }).click();
+
+    // Expect to land back on the detail page (not the /edit route).
+    await expect(page).toHaveURL(detailUrl, { timeout: 10_000 });
+
+    // And the name heading still renders (proves the unwrap on the
+    // subsequent GET /schedules/:idKey refetch).
+    await expect(
+      page.getByRole('heading', {
+        name: testData.schedules.sunday9am.name,
+        level: 1,
+      }),
+    ).toBeVisible({ timeout: 10_000 });
   });
 
   test('navigating to /admin/schedules/:idKey/edit renders the Edit Schedule heading', async ({

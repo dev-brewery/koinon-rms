@@ -36,18 +36,11 @@
  *   always shows "Failed to load check-in areas". Suggested issue title:
  *     "fix(web): CheckinAreasTab must pass campusId to /checkin/configuration"
  *
- * NEW BUG #2 (skip-and-flag): CheckinLocationsTab crashes the page.
- *   `services/api/locations.ts::getLocations()` does NOT unwrap the
- *   `{ data: [...] }` API envelope (compare devices.ts / groups.ts,
- *   which do). `useLocations()` therefore resolves to an object, not
- *   an array. When `CheckinLocationsTab` does
- *   `locationList.map(...)` after `(locations ?? [])`, it invokes .map
- *   on a non-array and React throws, triggering the global error
- *   boundary ("Something went wrong"). Every non-shell Locations-tab
- *   assertion fails because the tab never renders. The same API
- *   returns a properly shaped `{data:[...]}` in live curl checks, so
- *   the fix is strictly in the client service. Suggested issue title:
- *     "fix(web): unwrap `data` envelope in locations API service"
+ * BUG #2 (FIXED, #693): CheckinLocationsTab used to crash the page because
+ *   `services/api/locations.ts::getLocations()` didn't unwrap the
+ *   `{ data: [...] }` API envelope. The fix (see schedules sibling, same PR)
+ *   makes all locations methods unwrap. The previously .skip()-ed tests in
+ *   the Locations-tab describe block are now active as regression guards.
  *
  * NEW BUG #3 (skip-and-flag): device name edit does not persist to the
  *   list view. Create-then-edit-name-then-observe cycle shows the
@@ -138,10 +131,6 @@ test.describe('Check-in Config — page shell', () => {
   });
 
   test('can switch between tabs and active state follows (Areas ↔ Devices)', async ({ page }) => {
-    // NOTE: We intentionally do NOT click the Locations tab here because
-    // NEW BUG #2 causes that tab click to crash the page via the global
-    // error boundary. Areas and Devices both render their tab bodies
-    // without crashing.
     await gotoCheckinConfig(page);
     const areasTab = page.getByRole('button', { name: 'Areas', exact: true });
     const devicesTab = page.getByRole('button', { name: 'Devices', exact: true });
@@ -201,36 +190,88 @@ test.describe('Check-in Config — Areas tab', () => {
 // Locations tab
 // ---------------------------------------------------------------------------
 
-test.describe('Check-in Config — Locations tab', () => {
+test.describe('Check-in Config — Locations tab (envelope unwrap, #693)', () => {
   test.beforeEach(async ({ loginAsAdmin, page }) => {
     await loginAsAdmin();
     await gotoCheckinConfig(page);
   });
 
-  test('tab is present in the tab bar (shell-only)', async ({ page }) => {
-    // NEW BUG #2 prevents us from asserting tab content (the page crashes
-    // to the global error boundary once the hook resolves). We verify
-    // the navigable tab chrome instead — the Locations button is rendered
-    // but is NOT currently active (Areas is active by default).
+  test('tab becomes active and renders its body without crashing the page', async ({
+    page,
+  }) => {
+    // Regression guard for #693: before the envelope unwrap,
+    // `getLocations()` returned `{ data: [...] }` and the tab's
+    // `locationList.map(...)` call (on a non-array) crashed the page
+    // into the global error boundary. The tab now renders its body.
     const locationsTab = page.getByRole('button', { name: 'Locations', exact: true });
-    await expect(locationsTab).toBeVisible();
-    await expect(locationsTab).not.toHaveAttribute('aria-current', 'page');
-    // Do NOT click — clicking will crash the page due to the .map() on
-    // a non-array shape returned by getLocations().
+    await locationsTab.click();
+    await expect(locationsTab).toHaveAttribute('aria-current', 'page');
+
+    // The page header must still be visible — i.e. we did NOT fall
+    // through to the global error boundary ("Something went wrong").
+    await expect(
+      page.getByRole('heading', { name: /check-in setup/i }),
+    ).toBeVisible();
+    await expect(page.getByText(/something went wrong/i)).toHaveCount(0);
+
+    // Either the count summary (non-empty list) or the empty state text
+    // must render — both paths prove the `(locations ?? []).length`
+    // computation succeeds against a real array.
+    await expect(
+      page
+        .getByText(/\d+\s+(location|locations)/i)
+        .or(page.getByText(/no locations/i))
+        .first(),
+    ).toBeVisible({ timeout: 10_000 });
   });
 
-  test.skip('renders table headers (Location, Campus, Type, Status, Actions)', async ({ page }) => {
-    // SKIP: NEW BUG #2 — clicking the Locations tab crashes the page
-    // via the global error boundary because getLocations() does not
-    // unwrap the { data: [...] } envelope.
+  test('renders table headers (Location, Campus, Type, Status, Actions) when locations exist', async ({
+    page,
+  }) => {
+    // Regression guard for #693: before the fix, this assertion could not
+    // run — the tab never reached its success body.
     await switchTab(page, 'Locations');
-    await expect(page.getByRole('columnheader', { name: /^location$/i })).toBeVisible();
+
+    // If there are no seeded locations for this tenant, the empty-state
+    // branch renders instead of the table. Skip the header assertions in
+    // that case (not a regression of #693 — the crash-vs-render guard above
+    // already proves the unwrap works) while still verifying the success
+    // body rendered.
+    const emptyState = page.getByText(/no locations/i);
+    if (await emptyState.isVisible().catch(() => false)) {
+      test.info().annotations.push({
+        type: 'note',
+        description:
+          'No seeded locations in this environment; headers assertion skipped, crash-vs-render guard in the sibling test still covers #693.',
+      });
+      return;
+    }
+
+    await expect(page.getByRole('columnheader', { name: /^location$/i })).toBeVisible({
+      timeout: 10_000,
+    });
+    await expect(page.getByRole('columnheader', { name: /campus/i })).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: /status/i })).toBeVisible();
   });
 
-  test.skip('Edit Capacity button opens the capacity modal (when rows present)', async ({ page }) => {
-    // SKIP: NEW BUG #2 — tab never renders its success body.
+  test('Edit Capacity button opens the capacity modal (when rows present)', async ({
+    page,
+  }) => {
+    // Regression guard for #693.
     await switchTab(page, 'Locations');
-    await page.getByRole('button', { name: /edit capacity/i }).first().click();
+
+    const editButton = page.getByRole('button', { name: /edit capacity/i }).first();
+    // If nothing seeded, the button won't exist. Skip gracefully.
+    if (!(await editButton.isVisible().catch(() => false))) {
+      test.info().annotations.push({
+        type: 'note',
+        description:
+          'No seeded locations to exercise Edit Capacity; the crash-vs-render guard covers #693.',
+      });
+      return;
+    }
+
+    await editButton.click();
     await expect(page.getByRole('dialog')).toBeVisible();
   });
 });
