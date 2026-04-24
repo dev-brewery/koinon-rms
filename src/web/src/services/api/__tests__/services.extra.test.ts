@@ -579,12 +579,14 @@ describe('auditLogApi', () => {
     }
   });
 
-  it('getEntityAuditHistory has no envelope', async () => {
+  it('getEntityAuditHistory unwraps {data} envelope', async () => {
+    // Backend returns Ok(new { data = entries }) — the FE must unwrap.
     const api = await import('../auditLogApi');
-    mockGet.mockResolvedValueOnce([{ idKey: 'a1' }]);
+    mockGet.mockResolvedValueOnce({ data: [{ idKey: 'a1' }, { idKey: 'a2' }] });
     const out = await api.getEntityAuditHistory('Person', 'p1');
     expect(mockGet).toHaveBeenCalledWith('/audit-logs/entity/Person/p1');
-    expect(out).toEqual([{ idKey: 'a1' }]);
+    expect(Array.isArray(out)).toBe(true);
+    expect(out).toEqual([{ idKey: 'a1' }, { idKey: 'a2' }]);
   });
 
   it('exportAuditLogs uses fetch directly and returns a blob', async () => {
@@ -939,9 +941,13 @@ describe('givingApi deeper coverage', () => {
     });
   });
 
-  it('generateStatement returns body directly', async () => {
+  it('generateStatement unwraps {data} envelope', async () => {
+    // Backend GivingController returns
+    //   CreatedAtAction(..., new { data = result.Value })
+    // for POST /giving/statements — FE must unwrap. (Unlike createBatch and
+    // addContribution in the same controller, which return flat bodies.)
     const giving = await import('../giving');
-    mockPost.mockResolvedValueOnce({ idKey: 'st1' });
+    mockPost.mockResolvedValueOnce({ data: { idKey: 'st1' } });
     const out = await giving.generateStatement({ startDate: 'a', endDate: 'b' } as never);
     expect(out).toEqual({ idKey: 'st1' });
   });

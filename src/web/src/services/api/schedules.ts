@@ -30,6 +30,7 @@ export async function searchSchedules(
   const query = queryParams.toString();
   const endpoint = `/schedules${query ? `?${query}` : ''}`;
 
+  // Backend: Ok(new { data = items, meta = {...} }) — matches PagedResult<T> shape exactly.
   return get<PagedResult<ScheduleSummaryDto>>(endpoint);
 }
 
@@ -37,7 +38,9 @@ export async function searchSchedules(
  * Get schedule details by IdKey
  */
 export async function getScheduleByIdKey(idKey: string): Promise<ScheduleDetailDto> {
-  return get<ScheduleDetailDto>(`/schedules/${idKey}`);
+  // Backend: Ok(new { data = schedule }) — unwrap envelope (see #688).
+  const response = await get<{ data: ScheduleDetailDto }>(`/schedules/${idKey}`);
+  return response.data;
 }
 
 /**
@@ -56,7 +59,9 @@ export async function getScheduleOccurrences(
   const query = queryParams.toString();
   const endpoint = `/schedules/${idKey}/occurrences${query ? `?${query}` : ''}`;
 
-  return get<ScheduleOccurrenceDto[]>(endpoint);
+  // Backend: Ok(new { data = occurrences }) — unwrap envelope (see #688).
+  const response = await get<{ data: ScheduleOccurrenceDto[] }>(endpoint);
+  return response.data;
 }
 
 /**
@@ -65,6 +70,8 @@ export async function getScheduleOccurrences(
 export async function createSchedule(
   request: CreateScheduleRequest
 ): Promise<ScheduleDetailDto> {
+  // Backend: CreatedAtAction(..., schedule) — returns flat (NOT enveloped).
+  // Do NOT unwrap, or we'll read .data on the schedule itself (see #688).
   return post<ScheduleDetailDto>('/schedules', request);
 }
 
@@ -75,7 +82,9 @@ export async function updateSchedule(
   idKey: string,
   request: UpdateScheduleRequest
 ): Promise<ScheduleDetailDto> {
-  return put<ScheduleDetailDto>(`/schedules/${idKey}`, request);
+  // Backend: Ok(new { data = schedule }) — unwrap envelope (see #688).
+  const response = await put<{ data: ScheduleDetailDto }>(`/schedules/${idKey}`, request);
+  return response.data;
 }
 
 /**

@@ -27,7 +27,9 @@ export async function getLocations(params?: GetLocationsParams): Promise<Locatio
   const query = searchParams.toString();
   const endpoint = `${BASE_URL}${query ? `?${query}` : ''}`;
 
-  return get<LocationSummaryDto[]>(endpoint);
+  // Backend: Ok(new { data = result }) — unwrap envelope (see #693).
+  const response = await get<{ data: LocationSummaryDto[] }>(endpoint);
+  return response.data;
 }
 
 /**
@@ -45,21 +47,27 @@ export async function getLocationTree(params?: GetLocationsParams): Promise<Loca
   const query = searchParams.toString();
   const endpoint = `${BASE_URL}/tree${query ? `?${query}` : ''}`;
 
-  return get<LocationDto[]>(endpoint);
+  // Backend: Ok(new { data = result.Value }) — unwrap envelope (see #693).
+  const response = await get<{ data: LocationDto[] }>(endpoint);
+  return response.data;
 }
 
 /**
  * Get location details by IdKey
  */
 export async function getLocation(idKey: string): Promise<LocationDto> {
-  return get<LocationDto>(`${BASE_URL}/${idKey}`);
+  // Backend: Ok(new { data = result.Value }) — unwrap envelope (see #693).
+  const response = await get<{ data: LocationDto }>(`${BASE_URL}/${idKey}`);
+  return response.data;
 }
 
 /**
  * Create a new location
  */
 export async function createLocation(request: CreateLocationRequest): Promise<LocationDto> {
-  return post<LocationDto>(BASE_URL, request);
+  // Backend: CreatedAtAction(..., new { data = result.Value }) — unwrap envelope (see #693).
+  const response = await post<{ data: LocationDto }>(BASE_URL, request);
+  return response.data;
 }
 
 /**
@@ -69,7 +77,9 @@ export async function updateLocation(
   idKey: string,
   request: UpdateLocationRequest
 ): Promise<LocationDto> {
-  return put<LocationDto>(`${BASE_URL}/${idKey}`, request);
+  // Backend: Ok(new { data = result.Value }) — unwrap envelope (see #693).
+  const response = await put<{ data: LocationDto }>(`${BASE_URL}/${idKey}`, request);
+  return response.data;
 }
 
 /**

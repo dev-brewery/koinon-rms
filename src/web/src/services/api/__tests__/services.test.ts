@@ -386,33 +386,50 @@ describe('small CRUD services', () => {
     expect(mockDel).toHaveBeenCalledWith('/campuses/c1');
   });
 
-  it('locationsApi list/get/tree/create/update/delete', async () => {
+  it('locationsApi list/get/tree/create/update/delete unwraps {data} envelope (#693)', async () => {
     const locations = await import('../locations');
-    mockGet.mockResolvedValueOnce([]);
-    await locations.getLocations();
-    expect(mockGet).toHaveBeenCalledWith('/locations');
 
-    mockGet.mockResolvedValueOnce([]);
+    // Backend returns Ok(new { data = result }) for all locations endpoints that
+    // have bodies (including Create's CreatedAtAction). The FE service must
+    // unwrap so callers see the DTO directly, NOT { data: DTO }.
+
+    // GET /locations
+    mockGet.mockResolvedValueOnce({ data: [{ idKey: 'l1' }, { idKey: 'l2' }] });
+    const list = await locations.getLocations();
+    expect(mockGet).toHaveBeenCalledWith('/locations');
+    expect(Array.isArray(list)).toBe(true);
+    expect(list).toEqual([{ idKey: 'l1' }, { idKey: 'l2' }]);
+
+    // GET /locations with query params
+    mockGet.mockResolvedValueOnce({ data: [] });
     await locations.getLocations({ campusIdKey: 'c1', includeInactive: true });
     const listUrl = mockGet.mock.calls.at(-1)?.[0] as string;
     expect(listUrl).toContain('campusIdKey=c1');
     expect(listUrl).toContain('includeInactive=true');
 
-    mockGet.mockResolvedValueOnce([]);
-    await locations.getLocationTree();
+    // GET /locations/tree
+    mockGet.mockResolvedValueOnce({ data: [{ idKey: 'root' }] });
+    const tree = await locations.getLocationTree();
     expect(mockGet).toHaveBeenLastCalledWith('/locations/tree');
+    expect(tree).toEqual([{ idKey: 'root' }]);
 
-    mockGet.mockResolvedValueOnce({ idKey: 'l1' });
-    await locations.getLocation('l1');
+    // GET /locations/:idKey — assert unwrapped, not { data: ... }
+    mockGet.mockResolvedValueOnce({ data: { idKey: 'l1', name: 'Sanctuary' } });
+    const one = await locations.getLocation('l1');
     expect(mockGet).toHaveBeenLastCalledWith('/locations/l1');
+    expect(one).toEqual({ idKey: 'l1', name: 'Sanctuary' });
 
-    mockPost.mockResolvedValueOnce({ idKey: 'new' });
-    await locations.createLocation({ name: 'Room A' } as never);
+    // POST /locations — CreatedAtAction(..., new { data = result.Value })
+    mockPost.mockResolvedValueOnce({ data: { idKey: 'new', name: 'Room A' } });
+    const created = await locations.createLocation({ name: 'Room A' } as never);
     expect(mockPost).toHaveBeenCalledWith('/locations', { name: 'Room A' });
+    expect(created).toEqual({ idKey: 'new', name: 'Room A' });
 
-    mockPut.mockResolvedValueOnce({ idKey: 'l1' });
-    await locations.updateLocation('l1', { name: 'X' } as never);
+    // PUT /locations/:idKey
+    mockPut.mockResolvedValueOnce({ data: { idKey: 'l1', name: 'X' } });
+    const updated = await locations.updateLocation('l1', { name: 'X' } as never);
     expect(mockPut).toHaveBeenCalledWith('/locations/l1', { name: 'X' });
+    expect(updated).toEqual({ idKey: 'l1', name: 'X' });
 
     mockDel.mockResolvedValueOnce(undefined);
     await locations.deleteLocation('l1');

@@ -43,7 +43,11 @@ export async function getEntityAuditHistory(
   entityType: string,
   idKey: string
 ): Promise<AuditLogDto[]> {
-  return get<AuditLogDto[]>(`/audit-logs/entity/${entityType}/${idKey}`);
+  // Backend: Ok(new { data = entries }) — unwrap envelope.
+  const response = await get<{ data: AuditLogDto[] }>(
+    `/audit-logs/entity/${entityType}/${idKey}`
+  );
+  return response.data;
 }
 
 /**

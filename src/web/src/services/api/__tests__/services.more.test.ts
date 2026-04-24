@@ -110,34 +110,55 @@ describe('schedulesApi', () => {
     expect(url).toContain('pageSize=20');
   });
 
-  it('getScheduleByIdKey and getScheduleOccurrences', async () => {
+  it('getScheduleByIdKey and getScheduleOccurrences unwrap {data} envelope (#688)', async () => {
     const api = await import('../schedules');
-    mockGet.mockResolvedValueOnce({ idKey: 's1' });
-    await api.getScheduleByIdKey('s1');
-    expect(mockGet).toHaveBeenCalledWith('/schedules/s1');
 
-    mockGet.mockResolvedValueOnce([]);
-    await api.getScheduleOccurrences('s1');
+    // Backend: GET /schedules/{idKey} returns Ok(new { data = schedule })
+    mockGet.mockResolvedValueOnce({
+      data: { idKey: 's1', name: 'Sunday AM', isActive: true },
+    });
+    const detail = await api.getScheduleByIdKey('s1');
+    expect(mockGet).toHaveBeenCalledWith('/schedules/s1');
+    // Must be unwrapped — pages read schedule.name, schedule.isActive directly.
+    expect(detail).toEqual({ idKey: 's1', name: 'Sunday AM', isActive: true });
+
+    // Backend: GET /schedules/{idKey}/occurrences returns Ok(new { data = occurrences })
+    mockGet.mockResolvedValueOnce({
+      data: [{ occurrenceDateTime: '2026-04-26T10:00:00Z', dayOfWeekName: 'Sunday' }],
+    });
+    const occurrences = await api.getScheduleOccurrences('s1');
     const url = mockGet.mock.calls.at(-1)?.[0] as string;
     expect(url).toContain('/schedules/s1/occurrences');
     expect(url).toContain('count=10');
+    // Must be the array — not { data: [...] }.
+    expect(Array.isArray(occurrences)).toBe(true);
+    expect(occurrences[0]).toEqual({
+      occurrenceDateTime: '2026-04-26T10:00:00Z',
+      dayOfWeekName: 'Sunday',
+    });
 
-    mockGet.mockResolvedValueOnce([]);
+    mockGet.mockResolvedValueOnce({ data: [] });
     await api.getScheduleOccurrences('s1', '2024-01-01', 20);
     const url2 = mockGet.mock.calls.at(-1)?.[0] as string;
     expect(url2).toContain('startDate=2024-01-01');
     expect(url2).toContain('count=20');
   });
 
-  it('createSchedule/updateSchedule/deleteSchedule', async () => {
+  it('createSchedule returns flat body (CreatedAtAction without data envelope) and updateSchedule unwraps (#688)', async () => {
     const api = await import('../schedules');
-    mockPost.mockResolvedValueOnce({ idKey: 'new' });
-    await api.createSchedule({ name: 'X' } as never);
-    expect(mockPost).toHaveBeenCalledWith('/schedules', { name: 'X' });
 
-    mockPut.mockResolvedValueOnce({ idKey: 's1' });
-    await api.updateSchedule('s1', { name: 'Y' } as never);
+    // POST /schedules uses CreatedAtAction(..., schedule) — returns FLAT body.
+    // If we unwrapped here we'd read .data on the schedule itself and lose the fields.
+    mockPost.mockResolvedValueOnce({ idKey: 'new', name: 'X' });
+    const created = await api.createSchedule({ name: 'X' } as never);
+    expect(mockPost).toHaveBeenCalledWith('/schedules', { name: 'X' });
+    expect(created).toEqual({ idKey: 'new', name: 'X' });
+
+    // PUT /schedules/{idKey} returns Ok(new { data = schedule }) — must unwrap.
+    mockPut.mockResolvedValueOnce({ data: { idKey: 's1', name: 'Y' } });
+    const updated = await api.updateSchedule('s1', { name: 'Y' } as never);
     expect(mockPut).toHaveBeenCalledWith('/schedules/s1', { name: 'Y' });
+    expect(updated).toEqual({ idKey: 's1', name: 'Y' });
 
     mockDel.mockResolvedValueOnce(undefined);
     await api.deleteSchedule('s1');

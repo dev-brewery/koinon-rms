@@ -292,8 +292,13 @@ export async function previewStatement(
 export async function generateStatement(
   request: GenerateStatementRequest
 ): Promise<ContributionStatementDto> {
-  // POST returns 201 Created with body directly (not wrapped in data)
-  return post<ContributionStatementDto>('/giving/statements', request);
+  // Backend: CreatedAtAction(..., new { data = result.Value }) — unwrap envelope.
+  // (Other createBatch/addContribution return flat; this one is wrapped — inconsistent BE.)
+  const response = await post<{ data: ContributionStatementDto }>(
+    '/giving/statements',
+    request
+  );
+  return response.data;
 }
 
 /**
