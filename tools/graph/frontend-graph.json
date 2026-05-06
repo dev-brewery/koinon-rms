@@ -8791,6 +8791,12 @@
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
+    "Textarea": {
+      "name": "Textarea",
+      "path": "components/ui/Textarea.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
     "ToastContainer": {
       "name": "ToastContainer",
       "path": "components/ui/Toast.tsx",
@@ -8848,6 +8854,12 @@
     "Skeleton.test": {
       "name": "Skeleton.test",
       "path": "components/ui/__tests__/Skeleton.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "Textarea.test": {
+      "name": "Textarea.test",
+      "path": "components/ui/__tests__/Textarea.test.tsx",
       "hooksUsed": [],
       "apiCallsDirectly": false
     },

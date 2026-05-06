@@ -39,8 +39,8 @@ export async function verifyPickup(
 export async function recordPickup(
   request: RecordPickupRequest
 ): Promise<PickupLogDto> {
-  // POST returns 201 Created with body directly (not wrapped in data)
-  return post<PickupLogDto>('/checkin/record-pickup', request);
+  const response = await post<{ data: PickupLogDto }>('/checkin/record-pickup', request);
+  return response.data;
 }
 
 // ============================================================================

@@ -39,8 +39,8 @@ beforeEach(() => {
 });
 
 describe('authorized-pickup api (features tier)', () => {
-  it('getAuthorizedPickups (no envelope)', async () => {
-    mockGet.mockResolvedValueOnce([{ idKey: 'ap1' }] as never);
+  it('getAuthorizedPickups unwraps data envelope', async () => {
+    mockGet.mockResolvedValueOnce({ data: [{ idKey: 'ap1' }] } as never);
     const out = await getAuthorizedPickups('c1');
     expect(mockGet).toHaveBeenCalledWith('/people/c1/authorized-pickups');
     expect(out).toEqual([{ idKey: 'ap1' }]);
@@ -96,7 +96,7 @@ describe('authorized-pickup api (features tier)', () => {
   });
 
   it('recordPickup posts to /checkin/record-pickup', async () => {
-    mockPost.mockResolvedValueOnce({ idKey: 'log1' } as never);
+    mockPost.mockResolvedValueOnce({ data: { idKey: 'log1' } } as never);
     const req = {
       attendanceIdKey: 'a1',
       wasAuthorized: true,

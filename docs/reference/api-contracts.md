@@ -45,6 +45,38 @@ interface ApiError {
 }
 ```
 
+### Frontend Envelope Handling
+
+The backend wraps all success responses in `{ data: T }`. The frontend strips this envelope at the **API service boundary** — the layer between the raw HTTP client and application code.
+
+**Architecture:**
+
+```
+Backend → Ok(new { data = payload })        // envelope applied
+  ↓
+client.ts → apiClient<T>(...)               // returns raw JSON (preserves envelope)
+  ↓
+services/api/*.ts → response.data           // envelope stripped, returns T
+features/*/api.ts → response.data           // envelope stripped, returns T
+  ↓
+TanStack Query queryFn / mutationFn          // receives clean T
+  ↓
+Hooks / Components                           // never sees envelope
+```
+
+**Rules:**
+
+1. **`client.ts` returns raw JSON** — the HTTP client handles auth, errors, and timeouts but does not unwrap envelopes.
+2. **API service functions unwrap `response.data`** — every function in `services/api/*.ts` and `features/*/api.ts` strips the envelope and returns the inner payload type.
+3. **Hooks and components never handle envelopes** — TanStack Query's `queryFn` calls API service functions and receives clean data. Components use `useQuery().data` which is the payload type `T`, not `{ data: T }`.
+4. **Tests mock at the HTTP client boundary** — mock `get`/`post`/`put`/`del` with envelope-wrapped data (`{ data: ... }`), because that simulates what the client returns. The service function under test unwraps it.
+
+**Industry references:**
+
+- TanStack Query `defaultQueryFn` pattern: `const { data } = await axios.get(url); return data;` — unwrap at the query/API boundary ([TanStack Query docs: Default Query Function](https://tanstack.com/query/latest/docs/framework/react/guides/default-query-function))
+- Axios `transformResponse` convention: strip response wrappers at the HTTP client level before data reaches application code ([Axios docs: Transforming Response Data](https://axios-http.com/docs/res_schema))
+- Separation of concerns: HTTP transport details (envelopes, status codes) are isolated from domain data by the API service layer.
+
 ### Common Query Parameters
 
 ```typescript

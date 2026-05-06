@@ -219,9 +219,9 @@ describe('pickupApi', () => {
     expect(mockPost).toHaveBeenCalledWith('/checkin/verify-pickup', req);
   });
 
-  it('recordPickup returns body directly (no unwrap)', async () => {
+  it('recordPickup unwraps data envelope', async () => {
     const api = await import('../pickup');
-    mockPost.mockResolvedValueOnce({ idKey: 'log1' });
+    mockPost.mockResolvedValueOnce({ data: { idKey: 'log1' } });
     const out = await api.recordPickup({ childIdKey: 'c1' } as never);
     expect(out).toEqual({ idKey: 'log1' });
     expect(mockPost).toHaveBeenCalledWith('/checkin/record-pickup', { childIdKey: 'c1' });

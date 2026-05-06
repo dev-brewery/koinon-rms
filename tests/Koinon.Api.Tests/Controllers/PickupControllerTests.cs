@@ -230,7 +230,10 @@ public class PickupControllerTests
 
         // Assert
         var createdResult = result.Should().BeOfType<CreatedAtActionResult>().Subject;
-        var pickupLog = createdResult.Value.Should().BeOfType<PickupLogDto>().Subject;
+        var response = createdResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var pickupLog = dataProperty!.GetValue(response).Should().BeOfType<PickupLogDto>().Subject;
         pickupLog.WasAuthorized.Should().BeTrue();
         pickupLog.SupervisorOverride.Should().BeFalse();
         pickupLog.PickupPersonName.Should().Be("Sarah Smith");
@@ -295,7 +298,10 @@ public class PickupControllerTests
 
         // Assert
         var createdResult = result.Should().BeOfType<CreatedAtActionResult>().Subject;
-        var pickupLog = createdResult.Value.Should().BeOfType<PickupLogDto>().Subject;
+        var response = createdResult.Value!;
+        var dataProperty = response.GetType().GetProperty("data");
+        dataProperty.Should().NotBeNull("response should have a 'data' property");
+        var pickupLog = dataProperty!.GetValue(response).Should().BeOfType<PickupLogDto>().Subject;
         pickupLog.SupervisorOverride.Should().BeTrue();
         pickupLog.SupervisorName.Should().Be("John Supervisor");
         pickupLog.WasAuthorized.Should().BeFalse();

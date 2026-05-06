@@ -128,7 +128,7 @@ public class PickupController(
         return CreatedAtAction(
             nameof(GetPickupHistory),
             new { childIdKey = "placeholder" }, // Will be determined from attendance
-            pickupLog);
+            new { data = pickupLog });
     }
 
     /// <summary>
