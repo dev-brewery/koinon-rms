@@ -46,6 +46,7 @@ const { srcDir: WEB_SRC_DIR, outputDir: OUTPUT_DIR_BASE } = parseArgs();
 const TYPES_FILE = path.join(WEB_SRC_DIR, 'services/api/types.ts');
 const TYPES_DIR = path.join(WEB_SRC_DIR, 'types');
 const SERVICES_API_DIR = path.join(WEB_SRC_DIR, 'services/api');
+const FEATURES_DIR = path.join(WEB_SRC_DIR, 'features');
 const HOOKS_DIR = path.join(WEB_SRC_DIR, 'hooks');
 const COMPONENTS_DIR = path.join(WEB_SRC_DIR, 'components');
 const OUTPUT_DIR = OUTPUT_DIR_BASE;
@@ -180,6 +181,42 @@ function parseTypes(content, filePath = 'services/api/types.ts') {
  * @param {string} dir - Directory to scan
  * @returns {Object} Combined types from all files
  */
+function parseTypesRecursive(dir, baseDir = dir) {
+  // Recursively harvest interface/type/enum definitions (e.g. DTOs co-located
+  // with their API clients under services/api/*.ts or features/**/api.ts).
+  // Extra types in the set are harmless — they can only reduce false
+  // "no corresponding frontend type" violations.
+  const allTypes = {};
+  if (!fs.existsSync(dir)) return allTypes;
+  const skipDirs = new Set(['__tests__', 'node_modules', 'e2e', 'dist']);
+  const skipFiles = new Set(['index.ts', 'template.ts', 'client.ts', 'validators.ts']);
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (entry.isDirectory()) {
+      if (skipDirs.has(entry.name)) continue;
+      Object.assign(allTypes, parseTypesRecursive(path.join(dir, entry.name), baseDir));
+    } else if (
+      entry.isFile() &&
+      entry.name.endsWith('.ts') &&
+      !entry.name.endsWith('.test.ts') &&
+      !entry.name.endsWith('.spec.ts') &&
+      !skipFiles.has(entry.name)
+    ) {
+      const filePath = path.join(dir, entry.name);
+      try {
+        const content = fs.readFileSync(filePath, 'utf-8');
+        const rel = path.relative(WEB_SRC_DIR, filePath);
+        const fileTypes = parseTypes(content, rel);
+        for (const [name, type] of Object.entries(fileTypes)) {
+          if (!allTypes[name]) allTypes[name] = type;
+        }
+      } catch (err) {
+        // skip unreadable files
+      }
+    }
+  }
+  return allTypes;
+}
+
 function parseTypesFromDirectory(dir) {
   const allTypes = {};
 
@@ -650,8 +687,18 @@ async function main() {
     const typesFromDirCount = Object.keys(typesFromDir).length;
     console.log(`  Found ${typesFromDirCount} types/interfaces/enums\n`);
 
-    // 3. Merge types (types.ts takes precedence for duplicates)
-    const mergedTypes = { ...typesFromDir, ...types };
+    // 2b. Harvest types co-located with API clients (services/api/*.ts) and
+    // feature modules (features/**/*.ts) — e.g. CheckinOperations/SecurityRoles
+    // DTOs and defined-type request types that don't live in types.ts.
+    const typesFromServices = parseTypesRecursive(SERVICES_API_DIR);
+    const typesFromFeatures = parseTypesRecursive(FEATURES_DIR);
+    console.log(
+      `  Found ${Object.keys(typesFromServices).length} types in services/api, ` +
+      `${Object.keys(typesFromFeatures).length} in features\n`
+    );
+
+    // 3. Merge types (types.ts > types/ > services/api > features for duplicates)
+    const mergedTypes = { ...typesFromFeatures, ...typesFromServices, ...typesFromDir, ...types };
     // Resolve cross-file inheritance (e.g. types/ extending types.ts)
     resolveInheritance(mergedTypes);
     console.log(`  Total merged: ${Object.keys(mergedTypes).length} types\n`);

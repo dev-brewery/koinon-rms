@@ -943,7 +943,12 @@ export interface DefinedTypeDto {
   guid: Guid;
   name: string;
   description?: string;
-  values: DefinedValueDto[];
+  category?: string;
+  helpText?: string;
+  isSystem: boolean;
+  order: number;
+  fieldTypeAssemblyName?: string;
+  definedValues: DefinedValueDto[];
 }
 
 export interface DefinedValueDto {

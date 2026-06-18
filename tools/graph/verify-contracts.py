@@ -58,6 +58,10 @@ class ContractVerifier:
         "ImportFamilyResultDto",
         "OfflineCheckinDto",
         "SystemStatisticsDto",
+        # Backend-only DTOs (admin operations composed server-side; no
+        # corresponding frontend type is intended)
+        "DefinedValueManagementDto",
+        "PersonRoleAssignmentDto",
         # Admin export/audit (admin-only operations)
         "AuditLogExportRequest",
         "ExportJobDto",
