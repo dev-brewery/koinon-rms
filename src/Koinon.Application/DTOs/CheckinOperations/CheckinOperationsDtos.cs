@@ -12,7 +12,11 @@ public record CheckinOperationsAttendeeDto(
     string LocationName,
     DateTime CheckInTime,
     DateTime? CheckOutTime,
-    bool IsPresent);
+    bool IsPresent,
+    string? Allergies = null,
+    bool HasCriticalAllergies = false,
+    string? SecurityCode = null,
+    bool IsFirstTime = false);
 
 /// <summary>
 /// Represents a single room (location) on the operations dashboard.

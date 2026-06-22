@@ -9,6 +9,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   getCheckinOperationsDashboard,
   toggleCheckinOperationsRoom,
+  checkoutAttendee,
 } from '@/services/api/checkinOperations';
 
 export const CHECKIN_OPS_QUERY_KEY = ['checkin-operations', 'dashboard'] as const;
@@ -38,6 +39,20 @@ export function useToggleCheckinOperationsRoom() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (locationIdKey: string) => toggleCheckinOperationsRoom(locationIdKey),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CHECKIN_OPS_QUERY_KEY });
+    },
+  });
+}
+
+/**
+ * Check out an attendee. Reuses the canonical checkout endpoint; on success
+ * invalidates the dashboard so the next poll reflects the checkout.
+ */
+export function useCheckoutAttendee() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (attendanceIdKey: string) => checkoutAttendee(attendanceIdKey),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CHECKIN_OPS_QUERY_KEY });
     },

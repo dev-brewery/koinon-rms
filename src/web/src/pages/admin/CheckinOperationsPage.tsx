@@ -7,7 +7,7 @@
  */
 
 import { useState } from 'react';
-import { useCheckinOperationsDashboard, useToggleCheckinOperationsRoom } from '@/hooks/useCheckinOperations';
+import { useCheckinOperationsDashboard, useToggleCheckinOperationsRoom, useCheckoutAttendee } from '@/hooks/useCheckinOperations';
 import { SummaryStats } from '@/components/admin/checkin-ops/SummaryStats';
 import { RoomList } from '@/components/admin/checkin-ops/RoomList';
 import { AttendeeSearch } from '@/components/admin/checkin-ops/AttendeeSearch';
@@ -15,12 +15,21 @@ import { AttendeeSearch } from '@/components/admin/checkin-ops/AttendeeSearch';
 export function CheckinOperationsPage() {
   const { data, isLoading, isError, error, dataUpdatedAt } = useCheckinOperationsDashboard();
   const toggleMutation = useToggleCheckinOperationsRoom();
+  const checkoutMutation = useCheckoutAttendee();
   const [togglingLocationIdKey, setTogglingLocationIdKey] = useState<string | undefined>();
+  const [checkingOutIdKey, setCheckingOutIdKey] = useState<string | undefined>();
 
   const handleToggle = (locationIdKey: string) => {
     setTogglingLocationIdKey(locationIdKey);
     toggleMutation.mutate(locationIdKey, {
       onSettled: () => setTogglingLocationIdKey(undefined),
+    });
+  };
+
+  const handleCheckout = (attendanceIdKey: string) => {
+    setCheckingOutIdKey(attendanceIdKey);
+    checkoutMutation.mutate(attendanceIdKey, {
+      onSettled: () => setCheckingOutIdKey(undefined),
     });
   };
 
@@ -61,7 +70,7 @@ export function CheckinOperationsPage() {
         </div>
       ) : data ? (
         <>
-          <SummaryStats summary={data.summary} />
+          <SummaryStats summary={data.summary} rooms={data.rooms} />
           <section>
             <h2 className="mb-3 text-lg font-semibold text-gray-900">Rooms</h2>
             <RoomList
@@ -70,7 +79,11 @@ export function CheckinOperationsPage() {
               togglingLocationIdKey={togglingLocationIdKey}
             />
           </section>
-          <AttendeeSearch attendees={data.attendees} />
+          <AttendeeSearch
+            attendees={data.attendees}
+            onCheckout={handleCheckout}
+            checkingOutIdKey={checkingOutIdKey}
+          />
         </>
       ) : null}
     </div>

@@ -69,6 +69,8 @@ public class CheckinOperationsService(
                 a.StartDateTime,
                 a.EndDateTime,
                 a.PersonAliasId,
+                a.IsFirstTime,
+                SecurityCode = a.AttendanceCode != null ? a.AttendanceCode.Code : null,
             })
             .ToListAsync(ct);
 
@@ -80,18 +82,18 @@ public class CheckinOperationsService(
             .ToList();
 
         var peopleByAlias = personAliasIds.Count == 0
-            ? new Dictionary<int, (string FullName, string PersonIdKey)>()
+            ? new Dictionary<int, (string FullName, string PersonIdKey, string? Allergies, bool HasCriticalAllergies)>()
             : (await context.PersonAliases
                 .AsNoTracking()
                 .Where(pa => personAliasIds.Contains(pa.Id))
                 .Join(context.People.AsNoTracking(),
                     pa => pa.PersonId,
                     p => p.Id,
-                    (pa, p) => new { AliasId = pa.Id, p.FullName, PersonId = p.Id })
+                    (pa, p) => new { AliasId = pa.Id, p.FullName, PersonId = p.Id, p.Allergies, p.HasCriticalAllergies })
                 .ToListAsync(ct))
                 .ToDictionary(
                     x => x.AliasId,
-                    x => (FullName: x.FullName, PersonIdKey: IdKeyHelper.Encode(x.PersonId)));
+                    x => (FullName: x.FullName, PersonIdKey: IdKeyHelper.Encode(x.PersonId), Allergies: x.Allergies, HasCriticalAllergies: x.HasCriticalAllergies));
 
         var locationNameById = locations.ToDictionary(
             l => l.Id,
@@ -111,7 +113,11 @@ public class CheckinOperationsService(
                     LocationName: locationNameById.GetValueOrDefault(r.LocationId, string.Empty),
                     CheckInTime: r.StartDateTime,
                     CheckOutTime: r.EndDateTime,
-                    IsPresent: r.EndDateTime == null);
+                    IsPresent: r.EndDateTime == null,
+                    Allergies: person.Allergies,
+                    HasCriticalAllergies: person.HasCriticalAllergies,
+                    SecurityCode: r.SecurityCode,
+                    IsFirstTime: r.IsFirstTime);
             })
             .OrderByDescending(a => a.CheckInTime)
             .ToList();

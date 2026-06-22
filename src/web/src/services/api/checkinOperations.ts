@@ -31,6 +31,10 @@ export interface CheckinOperationsAttendeeDto {
   checkInTime: DateTime;
   checkOutTime?: DateTime | null;
   isPresent: boolean;
+  allergies?: string | null;
+  hasCriticalAllergies: boolean;
+  securityCode?: string | null;
+  isFirstTime: boolean;
 }
 
 export interface CheckinOperationsSummaryDto {
@@ -73,4 +77,13 @@ export async function toggleCheckinOperationsRoom(
     undefined
   );
   return response.data;
+}
+
+/**
+ * Check out an attendee. Reuses the canonical checkout endpoint
+ * (POST /checkout/:attendanceIdKey) — the dashboard polls every 5s, so the
+ * refreshed snapshot reflects the checkout without a dedicated response type.
+ */
+export async function checkoutAttendee(attendanceIdKey: string): Promise<void> {
+  await post(`/checkout/${encodeURIComponent(attendanceIdKey)}`, undefined);
 }
