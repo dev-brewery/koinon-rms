@@ -194,7 +194,11 @@ temp/
 # =============================================================================
 # These folders are not committed to the repo but synced separately
 # See .git-sync/ for sync configuration
-.claude/
+# Exception: agents/ and skills/ are portable project tooling and ARE
+# committed so a clone exports them to other machines.
+.claude/*
+!.claude/agents/
+!.claude/skills/
 .git-sync/
 
 # GitHub - all files (prevent agent CI modifications)
