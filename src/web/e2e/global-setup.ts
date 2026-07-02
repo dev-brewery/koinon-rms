@@ -36,6 +36,15 @@ async function globalSetup() {
     await client.query(`DELETE FROM person_alias WHERE person_id NOT IN (${personIds})`);
     await client.query(`DELETE FROM phone_number WHERE person_id NOT IN (${personIds})`);
     await client.query(`DELETE FROM person WHERE id NOT IN (${personIds})`);
+
+    // Ensure at least one campus exists. Without a campus the app redirects
+    // /admin to the setup wizard (intended first-run onboarding), which hides
+    // the admin sidebar and breaks every navigation-dependent test.
+    await client.query(`
+      INSERT INTO campus (name, short_code, is_active, "order", guid, created_date_time)
+      SELECT 'Main Campus', 'MAIN', true, 0, '99999999-9999-9999-9999-999999999999', now()
+      WHERE NOT EXISTS (SELECT 1 FROM campus)
+    `);
   } catch {
     // DB cleanup is best-effort; tests still run if cleanup fails
   } finally {

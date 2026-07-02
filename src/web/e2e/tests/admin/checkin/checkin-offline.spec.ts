@@ -245,6 +245,9 @@ test.describe('Check-in Offline Mode', () => {
   });
 
   test('@smoke should complete full offline workflow', async ({ page, context }) => {
+    // Dev-server harness spec (service-worker offline simulation); not yet
+    // validated against the containerized stack — see docs/reference/qa-playbook.md
+    test.skip(!!process.env.E2E_BASE_URL, 'dev-server harness only');
     const checkin = new CheckinPage(page);
 
     // Step 1: Cache data while online

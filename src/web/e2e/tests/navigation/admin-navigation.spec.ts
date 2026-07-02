@@ -128,7 +128,9 @@ test.describe('Admin Navigation', () => {
     for (const pageInfo of pages) {
       await page.getByRole('link', { name: pageInfo.name }).click();
       await expect(page).toHaveURL(pageInfo.url);
-      await expect(page.getByRole('heading', { name: pageInfo.heading })).toBeVisible();
+      // exact: empty-state headings like "No communications found" substring-match
+      // the page title and trip strict mode on a freshly seeded stack
+      await expect(page.getByRole('heading', { name: pageInfo.heading, exact: true })).toBeVisible();
     }
   });
 });

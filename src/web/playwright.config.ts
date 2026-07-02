@@ -53,10 +53,13 @@ export default defineConfig({
   ],
 
   // Start dev server before tests if not already running.
+  // Skipped entirely when E2E_BASE_URL is set (e.g. targeting the Docker
+  // demo stack on :3000): the app under test is already running there and
+  // starting vite would test the wrong build.
   // PWA_DEV=1 is forwarded so feat-500's service-worker assertions
   // can register a real SW against the dev server. Other specs are
   // unaffected (the hook only runs when the env var is set).
-  webServer: {
+  webServer: process.env.E2E_BASE_URL ? undefined : {
     command: 'npm run dev',
     url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,

@@ -435,9 +435,11 @@ test.describe('PersonMergeWizard', () => {
     // "People merged successfully" message.
     await page.waitForURL(`**/admin/people/${p1.idKey}`, { timeout: 20_000 });
     await expect(page).toHaveURL(new RegExp(`/admin/people/${p1.idKey}$`));
-    // Survivor's name is shown on the detail page (as the h1).
+    // Survivor's name is shown on the detail page (as the h1). level: 1 —
+    // the Authorized Pickups / Pickup History sections repeat the name in
+    // h3s and would trip strict mode.
     await expect(
-      page.getByRole('heading', { name: new RegExp(`${survivorFirst}`) }),
+      page.getByRole('heading', { name: new RegExp(`${survivorFirst}`), level: 1 }),
     ).toBeVisible();
 
     // The non-survivor should no longer appear in the active people list.

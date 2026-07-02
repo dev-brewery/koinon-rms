@@ -221,6 +221,9 @@ test.describe('Check-in QR Code Scanner', () => {
   });
 
   test('@smoke should complete full QR scan workflow', async ({ page, context }) => {
+    // Dev-server harness spec (fake camera / QR injection); not yet validated
+    // against the containerized stack — see docs/reference/qa-playbook.md
+    test.skip(!!process.env.E2E_BASE_URL, 'dev-server harness only');
     await context.grantPermissions(['camera']);
     const checkin = new CheckinPage(page);
 

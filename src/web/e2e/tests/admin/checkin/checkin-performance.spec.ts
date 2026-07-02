@@ -342,6 +342,9 @@ test.describe('Check-in Performance - Rendering', () => {
 
 test.describe('Check-in Performance - Regression Detection', () => {
   test('@smoke should not regress from baseline', async ({ page }) => {
+    // Dev-server harness spec (perf baselines recorded against vite dev);
+    // container timings differ — see docs/reference/qa-playbook.md
+    test.skip(!!process.env.E2E_BASE_URL, 'dev-server harness only');
     const checkin = new CheckinPage(page);
     const baseline = loadBaseline();
 
