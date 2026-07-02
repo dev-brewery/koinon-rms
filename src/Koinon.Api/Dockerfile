@@ -1,35 +1,35 @@
 # Multi-stage build for ASP.NET Core API
+# Build context: repository root
+# Scoped to the API project (not the solution) so additions of tooling/test
+# projects to the solution don't break or slow the image build.
+
 # Stage 1: Build
 FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
 
 WORKDIR /src
 
-# Copy project files
-COPY ["koinon-rms.sln", "./"]
+# Copy build configuration
 COPY ["Directory.Build.props", "./"]
 COPY ["Directory.Packages.props", "./"]
 COPY ["global.json", "./"]
 
-# Copy all project files
+# Copy project files first for layer-cached restore
 COPY ["src/Koinon.Domain/Koinon.Domain.csproj", "src/Koinon.Domain/"]
 COPY ["src/Koinon.Application/Koinon.Application.csproj", "src/Koinon.Application/"]
 COPY ["src/Koinon.Infrastructure/Koinon.Infrastructure.csproj", "src/Koinon.Infrastructure/"]
 COPY ["src/Koinon.Api/Koinon.Api.csproj", "src/Koinon.Api/"]
-COPY ["tests/Koinon.Domain.Tests/Koinon.Domain.Tests.csproj", "tests/Koinon.Domain.Tests/"]
-COPY ["tests/Koinon.Application.Tests/Koinon.Application.Tests.csproj", "tests/Koinon.Application.Tests/"]
-COPY ["tests/Koinon.Infrastructure.Tests/Koinon.Infrastructure.Tests.csproj", "tests/Koinon.Infrastructure.Tests/"]
-COPY ["tests/Koinon.Api.Tests/Koinon.Api.Tests.csproj", "tests/Koinon.Api.Tests/"]
 
-# Copy source code
-COPY ["src/", "src/"]
-COPY ["tests/", "tests/"]
+# Restore only the API project graph
+RUN dotnet restore src/Koinon.Api/Koinon.Api.csproj
 
-# Restore and build
-RUN dotnet restore
+# Copy source code for the API project graph
+COPY ["src/Koinon.Domain/", "src/Koinon.Domain/"]
+COPY ["src/Koinon.Application/", "src/Koinon.Application/"]
+COPY ["src/Koinon.Infrastructure/", "src/Koinon.Infrastructure/"]
+COPY ["src/Koinon.Api/", "src/Koinon.Api/"]
 
-RUN dotnet build -c Release --no-restore
-
-RUN dotnet publish -c Release --no-build -o /app/publish
+# Publish
+RUN dotnet publish src/Koinon.Api/Koinon.Api.csproj -c Release --no-restore -o /app/publish
 
 # Stage 2: Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine

@@ -198,6 +198,17 @@ builder.Services.AddHealthChecks()
 
 var app = builder.Build();
 
+// Apply pending EF Core migrations on startup when explicitly enabled.
+// Used by containerized environments (docker-compose.full.yml) where no
+// external migration step exists. Off by default: production migrations
+// should be applied as a deliberate deployment step.
+if (app.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
+{
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<KoinonDbContext>();
+    await dbContext.Database.MigrateAsync();
+}
+
 // Seed development test data (phone numbers, etc.) for E2E tests
 if (app.Environment.IsDevelopment())
 {
