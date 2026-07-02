@@ -161,12 +161,14 @@ public class PersonService(
             }
         }
 
-        // Exclude inactive by default
+        // Exclude inactive by default: deceased people and anyone whose
+        // record status is the well-known Inactive defined value (e.g. the
+        // losing side of a person merge).
         if (!parameters.IncludeInactive)
         {
-            // Assuming Active status has a well-known GUID (would need to fetch from DefinedValues)
-            // For now, just exclude IsDeceased
-            query = query.Where(p => !p.IsDeceased);
+            var inactiveGuid = SystemGuid.DefinedValue.RecordStatusInactive;
+            query = query.Where(p => !p.IsDeceased &&
+                (p.RecordStatusValue == null || p.RecordStatusValue.Guid != inactiveGuid));
         }
 
         // Get total count

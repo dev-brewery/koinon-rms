@@ -119,13 +119,18 @@ public class PersonMergeService(
             {
                 await using var transaction = await context.Database.BeginTransactionAsync(ct);
 
-                // Get both persons
+                // Get both persons. AsTracking is required: the context
+                // defaults to NoTracking, and this method mutates both
+                // entities (field selections on survivor, record status on
+                // merged) — without tracking those writes silently drop.
                 var survivor = await context.People
                     .Include(p => p.PhoneNumbers)
+                    .AsTracking()
                     .FirstOrDefaultAsync(p => p.Id == survivorId, ct);
 
                 var merged = await context.People
                     .Include(p => p.PhoneNumbers)
+                    .AsTracking()
                     .FirstOrDefaultAsync(p => p.Id == mergedId, ct);
 
                 if (survivor == null)
@@ -162,9 +167,11 @@ public class PersonMergeService(
                         .SetProperty(pa => pa.PersonId, survivorId), ct);
                 result.AliasesUpdated = aliasesUpdated;
 
-                // Update GroupMember records (handle duplicates)
+                // Update GroupMember records (handle duplicates).
+                // AsTracking: gm.PersonId is mutated below and must persist.
                 var mergedGroupMembers = await context.GroupMembers
                     .Where(gm => gm.PersonId == mergedId)
+                    .AsTracking()
                     .ToListAsync(ct);
 
                 var survivorGroupIds = await context.GroupMembers
@@ -282,14 +289,22 @@ public class PersonMergeService(
                 };
                 context.PersonMergeHistories.Add(history);
 
-                // Mark merged person as inactive
+                // Mark merged person as inactive. Look up by well-known Guid —
+                // a name-based lookup ("RecordStatus") silently mismatched the
+                // seeded type name ("Person Record Status") and left merged
+                // people Active, so they kept appearing in searches.
                 var inactiveStatusValue = await context.DefinedValues
-                    .FirstOrDefaultAsync(dv => dv.DefinedType!.Name == "RecordStatus" &&
-                                              dv.Value == "Inactive", ct);
+                    .FirstOrDefaultAsync(dv => dv.Guid == SystemGuid.DefinedValue.RecordStatusInactive, ct);
 
                 if (inactiveStatusValue != null)
                 {
                     merged.RecordStatusValueId = inactiveStatusValue.Id;
+                }
+                else
+                {
+                    logger.LogWarning(
+                        "Inactive record status defined value not found; merged person {MergedIdKey} remains active",
+                        request.MergedIdKey);
                 }
 
                 // Save all changes

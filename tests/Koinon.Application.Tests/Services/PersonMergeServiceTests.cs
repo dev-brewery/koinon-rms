@@ -40,6 +40,10 @@ public class PersonMergeServiceTests : IDisposable
     {
         var options = new DbContextOptionsBuilder<KoinonDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            // Mirror production: PostgreSqlProvider defaults to NoTracking.
+            // Without this, mutations on untracked entities persist in tests
+            // but silently drop in production (the bug behind the merge fix).
+            .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking)
             .Options;
 
         _context = new KoinonDbContext(options);
