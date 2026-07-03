@@ -1,0 +1,16 @@
+# Normalize line endings so clones behave identically on Windows and Linux.
+* text=auto
+
+# Shell scripts must stay LF (bash on Linux/macOS/Git Bash rejects CRLF).
+*.sh text eol=lf
+.husky/* text eol=lf
+
+# PowerShell is happiest with CRLF.
+*.ps1 text eol=crlf
+
+# Binary — never touch.
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff binary
+*.woff2 binary

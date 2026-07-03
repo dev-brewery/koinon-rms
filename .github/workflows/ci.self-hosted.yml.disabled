@@ -58,7 +58,7 @@ jobs:
     - name: Run unit tests
       run: dotnet test --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx"
       env:
-        ConnectionStrings__KoinonDb: "Host=ci-postgres-${{ github.run_id }};Port=5432;Database=koinon;Username=koinon;Password=koinon"
+        ConnectionStrings__DefaultConnection: "Host=ci-postgres-${{ github.run_id }};Port=5432;Database=koinon;Username=koinon;Password=koinon"
         ConnectionStrings__Redis: "ci-redis-${{ github.run_id }}:6379"
 
     - name: Publish test results
@@ -215,7 +215,7 @@ jobs:
         echo "✅ All migrations validated successfully"
 
       env:
-        ConnectionStrings__KoinonDb: "Host=ci-postgres-${{ github.run_id }};Port=5432;Database=koinon;Username=koinon;Password=koinon"
+        ConnectionStrings__DefaultConnection: "Host=ci-postgres-${{ github.run_id }};Port=5432;Database=koinon;Username=koinon;Password=koinon"
         Jwt__Secret: "ci-test-jwt-secret-key-minimum-32-characters-long"
         Jwt__Issuer: "koinon-ci-test"
         Jwt__Audience: "koinon-ci-test"

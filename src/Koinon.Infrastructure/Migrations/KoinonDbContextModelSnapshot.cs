@@ -2196,9 +2196,6 @@ namespace Koinon.Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("campus_id");
 
-                    b.Property<int?>("CampusId1")
-                        .HasColumnType("integer");
-
                     b.Property<int?>("CreatedByPersonAliasId")
                         .HasColumnType("integer")
                         .HasColumnName("created_by_person_alias_id");
@@ -2322,8 +2319,6 @@ namespace Koinon.Infrastructure.Migrations
 
                     b.HasIndex("CampusId")
                         .HasDatabaseName("ix_group_campus_id");
-
-                    b.HasIndex("CampusId1");
 
                     b.HasIndex("GroupTypeId")
                         .HasDatabaseName("ix_group_group_type_id");
@@ -3961,9 +3956,6 @@ namespace Koinon.Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("person_id");
 
-                    b.Property<int?>("PersonId1")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
                     b.HasIndex("Guid")
@@ -3973,8 +3965,6 @@ namespace Koinon.Infrastructure.Migrations
                     b.HasIndex("PersonId")
                         .HasDatabaseName("ix_person_alias_person_id")
                         .HasFilter("person_id IS NOT NULL");
-
-                    b.HasIndex("PersonId1");
 
                     b.ToTable("person_alias", (string)null);
                 });
@@ -5109,7 +5099,8 @@ namespace Koinon.Infrastructure.Migrations
                         .HasColumnName("action_type");
 
                     b.Property<int?>("CreatedByPersonAliasId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("created_by_person_alias_id");
 
                     b.Property<DateTime>("CreatedDateTime")
                         .HasColumnType("timestamp with time zone")
@@ -5139,7 +5130,8 @@ namespace Koinon.Infrastructure.Migrations
                         .HasColumnName("ip_address");
 
                     b.Property<int?>("ModifiedByPersonAliasId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("modified_by_person_alias_id");
 
                     b.Property<DateTime?>("ModifiedDateTime")
                         .HasColumnType("timestamp with time zone")
@@ -5832,13 +5824,9 @@ namespace Koinon.Infrastructure.Migrations
             modelBuilder.Entity("Koinon.Domain.Entities.Group", b =>
                 {
                     b.HasOne("Koinon.Domain.Entities.Campus", "Campus")
-                        .WithMany()
+                        .WithMany("Groups")
                         .HasForeignKey("CampusId")
                         .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Koinon.Domain.Entities.Campus", null)
-                        .WithMany("Groups")
-                        .HasForeignKey("CampusId1");
 
                     b.HasOne("Koinon.Domain.Entities.GroupType", "GroupType")
                         .WithMany("Groups")
@@ -6117,13 +6105,9 @@ namespace Koinon.Infrastructure.Migrations
             modelBuilder.Entity("Koinon.Domain.Entities.PersonAlias", b =>
                 {
                     b.HasOne("Koinon.Domain.Entities.Person", "Person")
-                        .WithMany()
+                        .WithMany("PersonAliases")
                         .HasForeignKey("PersonId")
                         .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Koinon.Domain.Entities.Person", null)
-                        .WithMany("PersonAliases")
-                        .HasForeignKey("PersonId1");
 
                     b.Navigation("Person");
                 });

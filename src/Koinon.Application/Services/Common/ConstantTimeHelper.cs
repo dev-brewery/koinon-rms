@@ -1,4 +1,4 @@
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
 
 namespace Koinon.Application.Services.Common;
@@ -30,7 +30,7 @@ namespace Koinon.Application.Services.Common;
 /// - Public queries (email address exists check, availability searches)
 /// - Non-security operations where timing doesn't matter
 ///
-/// See: ARCHITECTURAL_REVIEW_PHASE2.2.md#timing-attack-prevention
+/// See: docs/archive/ARCHITECTURAL_REVIEW_PHASE2.2.md#timing-attack-prevention
 /// </summary>
 public static class ConstantTimeHelper
 {

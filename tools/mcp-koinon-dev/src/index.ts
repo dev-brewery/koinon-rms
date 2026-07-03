@@ -30,10 +30,11 @@ import {
 import { z } from 'zod';
 import * as fs from 'fs';
 import * as path from 'path';
-import { searchRag, getRagStatus, getRagImpactAnalysis } from './rag-client.js';
+import { searchRag, getRagStatus, getRagImpactAnalysis, addLesson, searchLessons } from './rag-client.js';
 
-// Configuration
-const PROJECT_ROOT = process.env.KOINON_PROJECT_ROOT || '/home/mbrewer/projects/koinon-rms';
+// Configuration: default to the launcher's cwd (Claude Code starts stdio MCP
+// servers from the project root, same contract as koinon-index).
+const PROJECT_ROOT = process.env.KOINON_PROJECT_ROOT || process.cwd();
 
 // Type definitions for graph baseline
 interface GraphBaseline {
@@ -90,11 +91,6 @@ const QueryApiGraphSchema = z.object({
   entityName: z.string().optional()
 });
 
-const ImplementationTemplateSchema = z.object({
-  type: z.enum(['entity', 'dto', 'service', 'controller']),
-  entityName: z.string()
-});
-
 const ImpactAnalysisSchema = z.object({
   file_path: z.string()
 });
@@ -111,6 +107,16 @@ const RagImpactSchema = z.object({
   file_path: z.string(),
   change_description: z.string().optional(),
   include_tests: z.boolean().optional().default(true)
+});
+
+const LessonAddSchema = z.object({
+  lesson: z.string().min(20),
+  topic: z.string().min(2)
+});
+
+const LessonSearchSchema = z.object({
+  query: z.string(),
+  limit: z.number().min(1).max(20).optional().default(5)
 });
 
 // Type definitions for impact analysis
@@ -498,242 +504,6 @@ function validateNewController(name: string): any {
     issues,
     message: 'Could not parse controller name'
   };
-}
-
-function getImplementationTemplate(type: string, entityName: string): any {
-  const pascalCase = entityName.charAt(0).toUpperCase() + entityName.slice(1);
-  const conventions = [
-    'Never expose integer IDs in DTOs or routes',
-    'Use IdKey for URL routes',
-    'All async operations must use async/await',
-    'Use CancellationToken for long-running operations',
-    'Database tables and columns use snake_case',
-    'C# classes and properties use PascalCase',
-    'Private fields must be _camelCase',
-    'Implement proper error handling',
-    'Use required modifier for non-nullable properties'
-  ];
-
-  switch (type) {
-    case 'entity': {
-      const template = `namespace Koinon.Domain.Entities;
-
-public class ${pascalCase} : Entity
-{
-    // TODO: Add properties here
-    // Remember: Use 'required' modifier for non-nullable properties
-    // Example: public required string FirstName { get; set; }
-}`;
-      
-      return {
-        type: 'entity',
-        entityName: pascalCase,
-        template,
-        filePath: `src/Koinon.Domain/Entities/${pascalCase}.cs`,
-        conventions: [
-          ...conventions,
-          'Inherit from Entity base class',
-          'Implement all properties with appropriate types',
-          'Use navigation properties as virtual for lazy loading',
-          'Include audit fields (CreatedDateTime, ModifiedDateTime)'
-        ]
-      };
-    }
-
-    case 'dto': {
-      const template = `namespace Koinon.Application.DTOs;
-
-public record ${pascalCase}Dto
-{
-    public required string IdKey { get; init; }
-    
-    // TODO: Add properties here
-    // Remember: Use 'init' for record properties (immutability)
-    // Example: public required string FirstName { get; init; }
-}`;
-      
-      return {
-        type: 'dto',
-        entityName: pascalCase,
-        dtoName: `${pascalCase}Dto`,
-        template,
-        filePath: `src/Koinon.Application/DTOs/${pascalCase}Dto.cs`,
-        conventions: [
-          ...conventions,
-          'Use record type for DTOs (immutability)',
-          'Always include IdKey property',
-          'Never expose integer Id property',
-          'Use init-only setters for immutability',
-          'Mark required properties with required modifier'
-        ]
-      };
-    }
-
-    case 'service': {
-      const templateInterface = `namespace Koinon.Application.Services;
-
-public interface I${pascalCase}Service
-{
-    Task<${pascalCase}Dto?> GetByIdKeyAsync(string idKey, CancellationToken ct = default);
-    Task<IEnumerable<${pascalCase}Dto>> GetAllAsync(CancellationToken ct = default);
-    Task<${pascalCase}Dto> CreateAsync(${pascalCase}Dto dto, CancellationToken ct = default);
-    Task<${pascalCase}Dto?> UpdateAsync(string idKey, ${pascalCase}Dto dto, CancellationToken ct = default);
-    Task<bool> DeleteAsync(string idKey, CancellationToken ct = default);
-}`;
-
-      const templateImplementation = `namespace Koinon.Application.Services;
-
-public class ${pascalCase}Service : I${pascalCase}Service
-{
-    private readonly I${pascalCase}Repository _repository;
-    
-    public ${pascalCase}Service(I${pascalCase}Repository repository)
-    {
-        _repository = repository;
-    }
-    
-    public async Task<${pascalCase}Dto?> GetByIdKeyAsync(string idKey, CancellationToken ct = default)
-    {
-        // TODO: Implement
-        throw new NotImplementedException();
-    }
-    
-    public async Task<IEnumerable<${pascalCase}Dto>> GetAllAsync(CancellationToken ct = default)
-    {
-        // TODO: Implement
-        throw new NotImplementedException();
-    }
-    
-    public async Task<${pascalCase}Dto> CreateAsync(${pascalCase}Dto dto, CancellationToken ct = default)
-    {
-        // TODO: Implement
-        throw new NotImplementedException();
-    }
-    
-    public async Task<${pascalCase}Dto?> UpdateAsync(string idKey, ${pascalCase}Dto dto, CancellationToken ct = default)
-    {
-        // TODO: Implement
-        throw new NotImplementedException();
-    }
-    
-    public async Task<bool> DeleteAsync(string idKey, CancellationToken ct = default)
-    {
-        // TODO: Implement
-        throw new NotImplementedException();
-    }
-}`;
-      
-      return {
-        type: 'service',
-        entityName: pascalCase,
-        serviceName: `I${pascalCase}Service`,
-        templates: {
-          interface: templateInterface,
-          implementation: templateImplementation
-        },
-        filePaths: {
-          interface: `src/Koinon.Application/Services/I${pascalCase}Service.cs`,
-          implementation: `src/Koinon.Application/Services/${pascalCase}Service.cs`
-        },
-        conventions: [
-          ...conventions,
-          'Service should depend on repository interface',
-          'All methods must be async',
-          'Use CancellationToken for all async operations',
-          'Return DTOs, not entities',
-          'Map entities to DTOs in service',
-          'Implement validation in service layer',
-          'Never expose repository directly to controllers'
-        ]
-      };
-    }
-
-    case 'controller': {
-      const resourcePlural = pascalCase.toLowerCase() + 's';
-      const template = `namespace Koinon.Api.Controllers;
-
-using Microsoft.AspNetCore.Mvc;
-using Koinon.Application.DTOs;
-using Koinon.Application.Services;
-
-[ApiController]
-[Route("api/v1/${resourcePlural}")]
-public class ${pascalCase}Controller : ControllerBase
-{
-    private readonly I${pascalCase}Service _service;
-    
-    public ${pascalCase}Controller(I${pascalCase}Service service)
-    {
-        _service = service;
-    }
-    
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<${pascalCase}Dto>>> GetAll(CancellationToken ct)
-    {
-        var result = await _service.GetAllAsync(ct);
-        return Ok(result);
-    }
-    
-    [HttpGet("{idKey}")]
-    public async Task<ActionResult<${pascalCase}Dto>> GetByIdKey(string idKey, CancellationToken ct)
-    {
-        var result = await _service.GetByIdKeyAsync(idKey, ct);
-        if (result is null) 
-            return NotFound();
-        return Ok(result);
-    }
-    
-    [HttpPost]
-    public async Task<ActionResult<${pascalCase}Dto>> Create([FromBody] ${pascalCase}Dto dto, CancellationToken ct)
-    {
-        var result = await _service.CreateAsync(dto, ct);
-        return CreatedAtAction(nameof(GetByIdKey), new { idKey = result.IdKey }, result);
-    }
-    
-    [HttpPut("{idKey}")]
-    public async Task<ActionResult<${pascalCase}Dto>> Update(string idKey, [FromBody] ${pascalCase}Dto dto, CancellationToken ct)
-    {
-        var result = await _service.UpdateAsync(idKey, dto, ct);
-        if (result is null)
-            return NotFound();
-        return Ok(result);
-    }
-    
-    [HttpDelete("{idKey}")]
-    public async Task<IActionResult> Delete(string idKey, CancellationToken ct)
-    {
-        var success = await _service.DeleteAsync(idKey, ct);
-        if (!success)
-            return NotFound();
-        return NoContent();
-    }
-}`;
-      
-      return {
-        type: 'controller',
-        entityName: pascalCase,
-        controllerName: `${pascalCase}Controller`,
-        template,
-        filePath: `src/Koinon.Api/Controllers/${pascalCase}Controller.cs`,
-        resourcePlural,
-        conventions: [
-          ...conventions,
-          'Controller depends on service interface, not implementation',
-          'Use attribute routing with [Route(...)]',
-          'Follow REST conventions (GET, POST, PUT, DELETE)',
-          'Use IdKey in URL parameters, never integer IDs',
-          'Return appropriate HTTP status codes',
-          'Include CancellationToken in all async methods',
-          'Use [FromBody] for request body parameters',
-          'No business logic in controller - delegate to service',
-          'Use CreatedAtAction for POST responses'
-        ]
-      };
-    }
-
-    default:
-      throw new Error(`Unknown template type: ${type}`);
-  }
 }
 
 
@@ -1203,25 +973,6 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         }
       },
       {
-        name: 'get_implementation_template',
-        description: 'Generates implementation templates for entities, DTOs, services, and controllers following Koinon RMS conventions',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            type: {
-              type: 'string',
-              enum: ['entity', 'dto', 'service', 'controller'],
-              description: 'Type of template to generate'
-            },
-            entityName: {
-              type: 'string',
-              description: 'Entity name (will be converted to PascalCase)'
-            }
-          },
-          required: ['type', 'entityName']
-        }
-      },
-      {
         name: 'get_impact_analysis',
         description: 'Analyzes the impact of changes to a file across layers and work units, showing dependent files and affected functionality',
         inputSchema: {
@@ -1293,6 +1044,30 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           type: 'object',
           properties: {},
           required: []
+        }
+      },
+      {
+        name: 'lesson_search',
+        description: 'Semantic search over the team\'s institutional lessons store (indexed on the shared Qdrant, not in the repo). Run at session start with your task keywords, and before debugging anything that smells like a known trap. Rules live in docs/reference/conventions.md; this holds the experiential layer: gotchas, root causes, why-decisions.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            query: { type: 'string', description: 'Natural-language description of your task or problem' },
+            limit: { type: 'number', description: 'Max results (default 5)' }
+          },
+          required: ['query']
+        }
+      },
+      {
+        name: 'lesson_add',
+        description: 'Record an institutional lesson in the team\'s indexed store. Use when something cost real time: a gotcha, a root cause, a why-decision. Write it self-contained (what, why, how to avoid). Do NOT use for rules — those go in docs/reference/conventions.md via an ADR.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            lesson: { type: 'string', description: 'The lesson, self-contained, min 20 chars' },
+            topic: { type: 'string', description: 'Short topic tag, e.g. "data-access", "migrations", "kiosk"' }
+          },
+          required: ['lesson', 'topic']
         }
       }
     ]
@@ -1434,19 +1209,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
       }
 
-      case 'get_implementation_template': {
-        const { type, entityName } = ImplementationTemplateSchema.parse(args);
-        const result = getImplementationTemplate(type, entityName);
-
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(result, null, 2)
-            }
-          ]
-        };
-      }
       case 'get_impact_analysis': {
         const { file_path } = ImpactAnalysisSchema.parse(args);
         const result = analyzeFileImpact(file_path);
@@ -1492,6 +1254,34 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case 'rag_index_status': {
         const result = await getRagStatus();
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(result, null, 2)
+            }
+          ]
+        };
+      }
+
+      case 'lesson_search': {
+        const { query, limit } = LessonSearchSchema.parse(args);
+        const result = await searchLessons(query, limit);
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(result, null, 2)
+            }
+          ]
+        };
+      }
+
+      case 'lesson_add': {
+        const { lesson, topic } = LessonAddSchema.parse(args);
+        const result = await addLesson(lesson, topic);
 
         return {
           content: [

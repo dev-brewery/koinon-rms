@@ -1,4 +1,4 @@
-using Koinon.Application.DTOs;
+﻿using Koinon.Application.DTOs;
 using Koinon.Application.Interfaces;
 using Koinon.Domain.Data;
 using Koinon.Domain.Entities;
@@ -38,7 +38,7 @@ namespace Koinon.Application.Services.Common;
 ///       var (person, aliases) = data[personId];  // O(1) lookup, zero queries
 ///   }
 ///
-/// See: ARCHITECTURAL_REVIEW_PHASE2.2.md#systematic-n-1-elimination
+/// See: docs/archive/ARCHITECTURAL_REVIEW_PHASE2.2.md#systematic-n-1-elimination
 /// </summary>
 public class CheckinDataLoader(IApplicationDbContext context, ILogger<CheckinDataLoader> logger)
 {

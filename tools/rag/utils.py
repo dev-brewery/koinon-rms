@@ -3,16 +3,65 @@ Shared utilities for RAG indexing system.
 
 Used by both index-codebase.py and reindex-changes.py.
 """
+import os
 from pathlib import Path
+
+import requests
 
 
 # Constants
+# ALL RAG endpoints live on the team's inference server — no localhost
+# dependencies (ADR 0005). Env vars override for exceptional setups only.
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 COLLECTION_NAME = "koinon-code"
 CHUNK_SIZE = 1000  # Characters per chunk
-OLLAMA_URL = "http://host.docker.internal:11434/api/embed"
+RAG_HOST = os.environ.get("RAG_HOST", "192.168.1.225")
+QDRANT_URL = os.environ.get("QDRANT_URL", f"http://{RAG_HOST}:6333")
+# Embeddings come from the model gateway on :4000 (OpenAI-compatible
+# /v1/embeddings, also proxies the chat models).
+EMBEDDINGS_URL = (
+    os.environ.get("EMBEDDINGS_URL")
+    or os.environ.get("OLLAMA_URL")  # legacy name, still honored
+    or f"http://{RAG_HOST}:4000"
+).rstrip("/")
 OLLAMA_MODEL = "nomic-embed-text"
 VECTOR_SIZE = 768  # nomic-embed-text produces 768-dimensional vectors
+
+
+def get_embeddings(texts, prefix="search_document"):
+    """Embed texts against the inference server, speaking whichever protocol
+    it exposes: Ollama-style /api/embed first, then OpenAI-style
+    /v1/embeddings (llama.cpp --embeddings, TEI, vLLM). The index and all
+    queries MUST use the same model (nomic-embed-text, 768-dim)."""
+    inputs = [f"{prefix}: {t}" for t in texts]
+
+    resp = requests.post(
+        f"{EMBEDDINGS_URL}/api/embed",
+        json={"model": OLLAMA_MODEL, "input": inputs},
+        timeout=120,
+    )
+    if resp.ok:
+        return resp.json()["embeddings"]
+
+    resp2 = requests.post(
+        f"{EMBEDDINGS_URL}/v1/embeddings",
+        json={"model": OLLAMA_MODEL, "input": inputs},
+        timeout=120,
+    )
+    if resp2.ok:
+        return [d["embedding"] for d in resp2.json()["data"]]
+
+    raise Exception(
+        f"No embeddings API at {EMBEDDINGS_URL} "
+        f"(/api/embed -> {resp.status_code}, /v1/embeddings -> {resp2.status_code}). "
+        f"The inference server must expose nomic-embed-text via Ollama or an "
+        f"OpenAI-compatible endpoint."
+    )
+
+
+def get_embedding(text, prefix="search_query"):
+    """Embed a single query string."""
+    return get_embeddings([text], prefix=prefix)[0]
 
 # Exclusions
 EXCLUDE_DIRS = {

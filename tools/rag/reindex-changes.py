@@ -36,29 +36,12 @@ from utils import (
     EXCLUDE_DIRS,
     FILE_EXTENSIONS,
     PROJECT_ROOT,
-    OLLAMA_URL,
+    QDRANT_URL,
+    get_embeddings,
     OLLAMA_MODEL
 )
 
 
-def get_embeddings(texts):
-    """Get embeddings from Ollama API."""
-    # Prefix for better retrieval (as done in index-codebase.py)
-    inputs = [f"search_document: {text}" for text in texts]
-
-    response = requests.post(
-        OLLAMA_URL,
-        json={
-            "model": OLLAMA_MODEL,
-            "input": inputs
-        }
-    )
-
-    if not response.ok:
-        raise Exception(f"Ollama API error: {response.text}")
-
-    data = response.json()
-    return data['embeddings']
 
 
 def get_changed_files() -> list[Path]:
@@ -223,9 +206,9 @@ def main():
     print(f"Found {len(changed_files)} changed files")
 
     # Initialize client
-    print(f"\nConnecting to Qdrant (host.docker.internal:6333)...")
+    print(f"\nConnecting to Qdrant ({QDRANT_URL})...")
     print(f"Using Ollama model: {OLLAMA_MODEL}")
-    client = QdrantClient(url="http://host.docker.internal:6333")
+    client = QdrantClient(url=QDRANT_URL)
 
     # Verify collection exists
     try:

@@ -26,7 +26,8 @@ from utils import (
     PROJECT_ROOT,
     COLLECTION_NAME,
     CHUNK_SIZE,
-    OLLAMA_URL,
+    QDRANT_URL,
+    get_embeddings,
     OLLAMA_MODEL,
     VECTOR_SIZE,
     EXCLUDE_DIRS,
@@ -37,24 +38,6 @@ from utils import (
 )
 
 
-def get_embeddings(texts):
-    """Get embeddings from Ollama API."""
-    # Prefix for better retrieval (as done in rag-indexer.js)
-    inputs = [f"search_document: {text}" for text in texts]
-
-    response = requests.post(
-        OLLAMA_URL,
-        json={
-            "model": OLLAMA_MODEL,
-            "input": inputs
-        }
-    )
-
-    if not response.ok:
-        raise Exception(f"Ollama API error: {response.text}")
-
-    data = response.json()
-    return data['embeddings']
 
 
 def index_file(client: QdrantClient, file_path: Path):
@@ -114,8 +97,8 @@ def main():
     print("=" * 60)
 
     # Initialize client
-    print(f"\nConnecting to Qdrant (host.docker.internal:6333)...")
-    client = QdrantClient(url="http://host.docker.internal:6333")
+    print(f"\nConnecting to Qdrant ({QDRANT_URL})...")
+    client = QdrantClient(url=QDRANT_URL)
 
     print(f"Using Ollama model: {OLLAMA_MODEL} ({VECTOR_SIZE} dimensions)")
 

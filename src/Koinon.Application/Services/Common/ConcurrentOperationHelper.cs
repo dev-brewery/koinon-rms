@@ -1,4 +1,4 @@
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using Koinon.Application.Interfaces;
 using Koinon.Domain.Data;
 using Koinon.Domain.Entities;
@@ -33,7 +33,7 @@ namespace Koinon.Application.Services.Common;
 /// UNIQUE (group_id, occurrence_date, schedule_id);
 /// ```
 ///
-/// See: ARCHITECTURAL_REVIEW_PHASE2.2.md#concurrency-control-strategy
+/// See: docs/archive/ARCHITECTURAL_REVIEW_PHASE2.2.md#concurrency-control-strategy
 /// </summary>
 public class ConcurrentOperationHelper(IApplicationDbContext context, ILogger<ConcurrentOperationHelper> logger)
 {

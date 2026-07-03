@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-05-06T16:46:31-04:00",
+  "generated_at": "2026-07-02T17:07:05-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -1784,7 +1784,11 @@
         "LocationName": "string",
         "CheckInTime": "DateTime",
         "CheckOutTime": "DateTime?",
-        "IsPresent": "bool"
+        "IsPresent": "bool",
+        "Allergies": "string?",
+        "HasCriticalAllergies": "bool",
+        "SecurityCode": "string?",
+        "IsFirstTime": "bool"
       }
     },
     "CheckinOperationsRoomDto": {
@@ -2072,6 +2076,39 @@
       },
       "linked_entity": "Communication"
     },
+    "EmailAttachmentDto": {
+      "name": "EmailAttachmentDto",
+      "namespace": "Koinon.Application.DTOs.Communications",
+      "properties": {
+        "FileName": "string",
+        "Content": "byte[]",
+        "ContentType": "string"
+      },
+      "linked_entity": "Communication"
+    },
+    "QueuedSmsDto": {
+      "name": "QueuedSmsDto",
+      "namespace": "Koinon.Application.DTOs.Communications",
+      "properties": {
+        "ToPhoneNumber": "string",
+        "Message": "string",
+        "MediaUrls": "IEnumerable<string>?"
+      },
+      "linked_entity": "Communication"
+    },
+    "TwilioWebhookDto": {
+      "name": "TwilioWebhookDto",
+      "namespace": "Koinon.Application.DTOs.Communications",
+      "properties": {
+        "MessageSid": "string?",
+        "MessageStatus": "string?",
+        "To": "string?",
+        "From": "string?",
+        "ErrorCode": "int?",
+        "ErrorMessage": "string?"
+      },
+      "linked_entity": "Communication"
+    },
     "CommunicationTemplateDto": {
       "name": "CommunicationTemplateDto",
       "namespace": "Koinon.Application.DTOs",
@@ -2125,39 +2162,6 @@
         "IsActive": "bool?"
       },
       "linked_entity": "CommunicationTemplate"
-    },
-    "EmailAttachmentDto": {
-      "name": "EmailAttachmentDto",
-      "namespace": "Koinon.Application.DTOs.Communications",
-      "properties": {
-        "FileName": "string",
-        "Content": "byte[]",
-        "ContentType": "string"
-      },
-      "linked_entity": "Communication"
-    },
-    "QueuedSmsDto": {
-      "name": "QueuedSmsDto",
-      "namespace": "Koinon.Application.DTOs.Communications",
-      "properties": {
-        "ToPhoneNumber": "string",
-        "Message": "string",
-        "MediaUrls": "IEnumerable<string>?"
-      },
-      "linked_entity": "Communication"
-    },
-    "TwilioWebhookDto": {
-      "name": "TwilioWebhookDto",
-      "namespace": "Koinon.Application.DTOs.Communications",
-      "properties": {
-        "MessageSid": "string?",
-        "MessageStatus": "string?",
-        "To": "string?",
-        "From": "string?",
-        "ErrorCode": "int?",
-        "ErrorMessage": "string?"
-      },
-      "linked_entity": "Communication"
     },
     "CreateNotificationDto": {
       "name": "CreateNotificationDto",
@@ -4859,47 +4863,6 @@
         "ILogger<AuditService>"
       ]
     },
-    "AuthService": {
-      "name": "AuthService",
-      "namespace": "Koinon.Application.Services",
-      "methods": [
-        {
-          "name": "AuthService",
-          "return_type": "class",
-          "is_async": false
-        },
-        {
-          "name": "LoginAsync",
-          "return_type": "Task<TokenResponse?>",
-          "is_async": false
-        },
-        {
-          "name": "RefreshTokenAsync",
-          "return_type": "Task<TokenResponse?>",
-          "is_async": false
-        },
-        {
-          "name": "LogoutAsync",
-          "return_type": "Task<bool>",
-          "is_async": false
-        },
-        {
-          "name": "VerifyPasswordAsync",
-          "return_type": "Task<bool>",
-          "is_async": false
-        },
-        {
-          "name": "HashPasswordAsync",
-          "return_type": "Task<string>",
-          "is_async": false
-        }
-      ],
-      "dependencies": [
-        "IApplicationDbContext",
-        "IConfiguration",
-        "ILogger<AuthService>"
-      ]
-    },
     "AuthorizedPickupService": {
       "name": "AuthorizedPickupService",
       "namespace": "Koinon.Application.Services",
@@ -4953,6 +4916,47 @@
       "dependencies": [
         "IApplicationDbContext",
         "ILogger<AuthorizedPickupService>"
+      ]
+    },
+    "AuthService": {
+      "name": "AuthService",
+      "namespace": "Koinon.Application.Services",
+      "methods": [
+        {
+          "name": "AuthService",
+          "return_type": "class",
+          "is_async": false
+        },
+        {
+          "name": "LoginAsync",
+          "return_type": "Task<TokenResponse?>",
+          "is_async": false
+        },
+        {
+          "name": "RefreshTokenAsync",
+          "return_type": "Task<TokenResponse?>",
+          "is_async": false
+        },
+        {
+          "name": "LogoutAsync",
+          "return_type": "Task<bool>",
+          "is_async": false
+        },
+        {
+          "name": "VerifyPasswordAsync",
+          "return_type": "Task<bool>",
+          "is_async": false
+        },
+        {
+          "name": "HashPasswordAsync",
+          "return_type": "Task<string>",
+          "is_async": false
+        }
+      ],
+      "dependencies": [
+        "IApplicationDbContext",
+        "IConfiguration",
+        "ILogger<AuthService>"
       ]
     },
     "BatchDonationEntryService": {
@@ -7170,14 +7174,14 @@
       "methods": [],
       "dependencies": []
     },
-    "IAuthService": {
-      "name": "IAuthService",
+    "IAuthorizedPickupService": {
+      "name": "IAuthorizedPickupService",
       "namespace": "Koinon.Application.Interfaces",
       "methods": [],
       "dependencies": []
     },
-    "IAuthorizedPickupService": {
-      "name": "IAuthorizedPickupService",
+    "IAuthService": {
+      "name": "IAuthService",
       "namespace": "Koinon.Application.Interfaces",
       "methods": [],
       "dependencies": []
@@ -8025,50 +8029,6 @@
         "ILogger<CommunicationPreferencesController>"
       ]
     },
-    "CommunicationTemplatesController": {
-      "name": "CommunicationTemplatesController",
-      "namespace": "Koinon.Api.Controllers",
-      "route": "api/v1/communication-templates",
-      "endpoints": [
-        {
-          "name": "GetByIdKey",
-          "method": "GET",
-          "route": "{idKey}",
-          "request_type": null,
-          "response_type": null,
-          "requires_auth": true,
-          "required_roles": []
-        },
-        {
-          "name": "Update",
-          "method": "PUT",
-          "route": "{idKey}",
-          "request_type": null,
-          "response_type": null,
-          "requires_auth": true,
-          "required_roles": []
-        },
-        {
-          "name": "Delete",
-          "method": "DELETE",
-          "route": "{idKey}",
-          "request_type": null,
-          "response_type": null,
-          "requires_auth": true,
-          "required_roles": []
-        }
-      ],
-      "patterns": {
-        "response_envelope": true,
-        "idkey_routes": true,
-        "problem_details": true,
-        "result_pattern": true
-      },
-      "dependencies": [
-        "ICommunicationTemplateService",
-        "ILogger<CommunicationTemplatesController>"
-      ]
-    },
     "CommunicationsController": {
       "name": "CommunicationsController",
       "namespace": "Koinon.Api.Controllers",
@@ -8157,6 +8117,50 @@
         "ICommunicationService",
         "IMergeFieldService",
         "ILogger<CommunicationsController>"
+      ]
+    },
+    "CommunicationTemplatesController": {
+      "name": "CommunicationTemplatesController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/communication-templates",
+      "endpoints": [
+        {
+          "name": "GetByIdKey",
+          "method": "GET",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Update",
+          "method": "PUT",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Delete",
+          "method": "DELETE",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": true,
+        "result_pattern": true
+      },
+      "dependencies": [
+        "ICommunicationTemplateService",
+        "ILogger<CommunicationTemplatesController>"
       ]
     },
     "DashboardController": {
@@ -8788,59 +8792,6 @@
         "ILogger<GroupMembershipRequestsController>"
       ]
     },
-    "GroupTypesController": {
-      "name": "GroupTypesController",
-      "namespace": "Koinon.Api.Controllers",
-      "route": "api/v1/admin/group-types",
-      "endpoints": [
-        {
-          "name": "GetByIdKey",
-          "method": "GET",
-          "route": "{idKey}",
-          "request_type": null,
-          "response_type": null,
-          "requires_auth": true,
-          "required_roles": []
-        },
-        {
-          "name": "GetGroups",
-          "method": "GET",
-          "route": "{idKey}/groups",
-          "request_type": null,
-          "response_type": null,
-          "requires_auth": true,
-          "required_roles": []
-        },
-        {
-          "name": "Update",
-          "method": "PUT",
-          "route": "{idKey}",
-          "request_type": null,
-          "response_type": null,
-          "requires_auth": true,
-          "required_roles": []
-        },
-        {
-          "name": "Archive",
-          "method": "DELETE",
-          "route": "{idKey}",
-          "request_type": null,
-          "response_type": null,
-          "requires_auth": true,
-          "required_roles": []
-        }
-      ],
-      "patterns": {
-        "response_envelope": true,
-        "idkey_routes": true,
-        "problem_details": true,
-        "result_pattern": false
-      },
-      "dependencies": [
-        "IGroupTypeService",
-        "ILogger<GroupTypesController>"
-      ]
-    },
     "GroupsController": {
       "name": "GroupsController",
       "namespace": "Koinon.Api.Controllers",
@@ -8965,6 +8916,59 @@
         "IGroupService",
         "IMyGroupsService",
         "ILogger<GroupsController>"
+      ]
+    },
+    "GroupTypesController": {
+      "name": "GroupTypesController",
+      "namespace": "Koinon.Api.Controllers",
+      "route": "api/v1/admin/group-types",
+      "endpoints": [
+        {
+          "name": "GetByIdKey",
+          "method": "GET",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "GetGroups",
+          "method": "GET",
+          "route": "{idKey}/groups",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Update",
+          "method": "PUT",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        },
+        {
+          "name": "Archive",
+          "method": "DELETE",
+          "route": "{idKey}",
+          "request_type": null,
+          "response_type": null,
+          "requires_auth": true,
+          "required_roles": []
+        }
+      ],
+      "patterns": {
+        "response_envelope": true,
+        "idkey_routes": true,
+        "problem_details": true,
+        "result_pattern": false
+      },
+      "dependencies": [
+        "IGroupTypeService",
+        "ILogger<GroupTypesController>"
       ]
     },
     "ImportController": {
@@ -10283,6 +10287,21 @@
       "relationship": "maps_to"
     },
     {
+      "source": "EmailAttachmentDto",
+      "target": "Communication",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "QueuedSmsDto",
+      "target": "Communication",
+      "relationship": "maps_to"
+    },
+    {
+      "source": "TwilioWebhookDto",
+      "target": "Communication",
+      "relationship": "maps_to"
+    },
+    {
       "source": "CommunicationTemplateDto",
       "target": "CommunicationTemplate",
       "relationship": "maps_to"
@@ -10300,21 +10319,6 @@
     {
       "source": "UpdateCommunicationTemplateDto",
       "target": "CommunicationTemplate",
-      "relationship": "maps_to"
-    },
-    {
-      "source": "EmailAttachmentDto",
-      "target": "Communication",
-      "relationship": "maps_to"
-    },
-    {
-      "source": "QueuedSmsDto",
-      "target": "Communication",
-      "relationship": "maps_to"
-    },
-    {
-      "source": "TwilioWebhookDto",
-      "target": "Communication",
       "relationship": "maps_to"
     },
     {
@@ -11263,11 +11267,6 @@
       "relationship": "depends_on"
     },
     {
-      "source": "CommunicationTemplatesController",
-      "target": "ICommunicationTemplateService",
-      "relationship": "depends_on"
-    },
-    {
       "source": "CommunicationsController",
       "target": "ICommunicationService",
       "relationship": "depends_on"
@@ -11275,6 +11274,11 @@
     {
       "source": "CommunicationsController",
       "target": "IMergeFieldService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "CommunicationTemplatesController",
+      "target": "ICommunicationTemplateService",
       "relationship": "depends_on"
     },
     {
@@ -11333,11 +11337,6 @@
       "relationship": "depends_on"
     },
     {
-      "source": "GroupTypesController",
-      "target": "IGroupTypeService",
-      "relationship": "depends_on"
-    },
-    {
       "source": "GroupsController",
       "target": "IGroupService",
       "relationship": "depends_on"
@@ -11345,6 +11344,11 @@
     {
       "source": "GroupsController",
       "target": "IMyGroupsService",
+      "relationship": "depends_on"
+    },
+    {
+      "source": "GroupTypesController",
+      "target": "IGroupTypeService",
       "relationship": "depends_on"
     },
     {
@@ -11503,16 +11507,6 @@
       "relationship": "returns"
     },
     {
-      "source": "AuthService",
-      "target": "TokenResponse",
-      "relationship": "returns"
-    },
-    {
-      "source": "AuthService",
-      "target": "TokenResponse",
-      "relationship": "returns"
-    },
-    {
       "source": "AuthorizedPickupService",
       "target": "AuthorizedPickupDto",
       "relationship": "returns"
@@ -11540,6 +11534,16 @@
     {
       "source": "AuthorizedPickupService",
       "target": "PickupLogDto",
+      "relationship": "returns"
+    },
+    {
+      "source": "AuthService",
+      "target": "TokenResponse",
+      "relationship": "returns"
+    },
+    {
+      "source": "AuthService",
+      "target": "TokenResponse",
       "relationship": "returns"
     },
     {

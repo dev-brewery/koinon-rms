@@ -9,12 +9,22 @@
  * that would block agent workflows.
  */
 
-// Constants matching tools/rag/utils.py
+// Constants matching tools/rag/utils.py.
+// ALL RAG endpoints live on the team's inference server — no localhost
+// dependencies (ADR 0005). The embeddings client speaks both protocols
+// (Ollama /api/embed and OpenAI /v1/embeddings) so whichever server-side
+// embedder is enabled works without a repo change. Env vars override for
+// exceptional setups only.
 const COLLECTION_NAME = 'koinon-code';
-const OLLAMA_URL = 'http://host.docker.internal:11434/api/embed';
+const RAG_HOST = process.env.RAG_HOST || '192.168.1.225';
+// Embeddings are served by the model gateway on :4000 (OpenAI-compatible
+// /v1/embeddings; the Ollama-protocol attempt below is a harmless fast miss).
+const EMBEDDINGS_BASE_URL = (
+  process.env.EMBEDDINGS_URL || process.env.OLLAMA_URL || `http://${RAG_HOST}:4000`
+).replace(/\/+$/, '');
 const OLLAMA_MODEL = 'nomic-embed-text';
 const VECTOR_SIZE = 768;
-const QDRANT_URL = 'http://localhost:6333';
+const QDRANT_URL = process.env.QDRANT_URL || `http://${RAG_HOST}:6333`;
 const REQUEST_TIMEOUT = 5000; // 5 seconds
 
 // Types
@@ -57,41 +67,66 @@ export interface RagImpactResult {
 }
 
 /**
- * Get embedding vector from Ollama for a query string.
- * Uses 'search_query:' prefix for query embeddings (matching Python utils).
+ * Get embedding vector from the inference server. nomic prefixes:
+ * 'search_query:' for queries, 'search_document:' when storing documents
+ * (matching Python utils). Tries the Ollama protocol (/api/embed) first,
+ * then OpenAI-compatible (/v1/embeddings). Index and queries must share
+ * the model: nomic-embed-text, 768-dim.
  */
-async function getEmbedding(text: string): Promise<number[] | null> {
-  try {
+async function getEmbedding(
+  text: string,
+  prefix: 'search_query' | 'search_document' = 'search_query'
+): Promise<number[] | null> {
+  const input = `${prefix}: ${text}`;
+
+  const post = async (url: string, body: unknown): Promise<Response | null> => {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
-
-    const response = await fetch(OLLAMA_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: OLLAMA_MODEL,
-        input: [`search_query: ${text}`]
-      }),
-      signal: controller.signal
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      console.error(`Ollama API error: ${response.status} ${response.statusText}`);
+    try {
+      return await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: controller.signal
+      });
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.error(`Embeddings request timed out: ${url}`);
+      } else {
+        console.error(`Embeddings request failed: ${url}`, error);
+      }
       return null;
+    } finally {
+      clearTimeout(timeoutId);
     }
+  };
 
-    const data = await response.json() as { embeddings?: number[][] };
-    return data.embeddings?.[0] || null;
-  } catch (error) {
-    if (error instanceof Error && error.name === 'AbortError') {
-      console.error('Ollama request timed out');
-    } else {
-      console.error('Ollama embedding error:', error);
-    }
-    return null;
+  // Ollama protocol
+  const ollamaRes = await post(`${EMBEDDINGS_BASE_URL}/api/embed`, {
+    model: OLLAMA_MODEL,
+    input: [input]
+  });
+  if (ollamaRes?.ok) {
+    const data = await ollamaRes.json() as { embeddings?: number[][] };
+    if (data.embeddings?.[0]) return data.embeddings[0];
   }
+
+  // OpenAI-compatible protocol
+  const openaiRes = await post(`${EMBEDDINGS_BASE_URL}/v1/embeddings`, {
+    model: OLLAMA_MODEL,
+    input: [input]
+  });
+  if (openaiRes?.ok) {
+    const data = await openaiRes.json() as { data?: { embedding?: number[] }[] };
+    if (data.data?.[0]?.embedding) return data.data[0].embedding;
+  }
+
+  console.error(
+    `No embeddings API at ${EMBEDDINGS_BASE_URL} ` +
+    `(/api/embed -> ${ollamaRes?.status ?? 'unreachable'}, ` +
+    `/v1/embeddings -> ${openaiRes?.status ?? 'unreachable'})`
+  );
+  return null;
 }
 
 /**
@@ -102,7 +137,8 @@ async function isQdrantAvailable(): Promise<boolean> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
 
-    const response = await fetch(`${QDRANT_URL}/health`, {
+    // Qdrant serves /healthz (a probe of /health 404s and reads as "down")
+    const response = await fetch(`${QDRANT_URL}/healthz`, {
       signal: controller.signal
     });
 
@@ -114,22 +150,23 @@ async function isQdrantAvailable(): Promise<boolean> {
 }
 
 /**
- * Check if Ollama is available.
+ * Check if an embeddings API is available (either protocol).
  */
 async function isOllamaAvailable(): Promise<boolean> {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
-
-    const response = await fetch('http://host.docker.internal:11434/api/tags', {
-      signal: controller.signal
-    });
-
-    clearTimeout(timeoutId);
-    return response.ok;
-  } catch {
-    return false;
-  }
+  const probe = async (path: string): Promise<boolean> => {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+      const response = await fetch(`${EMBEDDINGS_BASE_URL}${path}`, {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      return response.ok;
+    } catch {
+      return false;
+    }
+  };
+  return (await probe('/api/tags')) || (await probe('/v1/models'));
 }
 
 /**
@@ -360,5 +397,136 @@ export async function getRagImpactAnalysis(
     semantic_matches: filteredResults,
     related_tests: testResults,
     warning: semanticResults.warning
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Institutional lessons store (ADR 0005): team knowledge lives in an INDEXED
+// location — a dedicated Qdrant collection on the inference server — never
+// as a blob committed to the repo. Rules still belong in conventions.md/ADRs;
+// this holds the experiential layer: gotchas, why-decisions, debugging
+// lessons, searchable semantically by every agent and dev.
+// ---------------------------------------------------------------------------
+
+const LESSONS_COLLECTION = process.env.LESSONS_COLLECTION || 'koinon-lessons';
+
+export interface LessonResult {
+  id: string;
+  text: string;
+  topic: string;
+  date: string;
+  score?: number;
+}
+
+export interface LessonAddResponse {
+  success: boolean;
+  id?: string;
+  warning?: string;
+}
+
+export interface LessonSearchResponse {
+  success: boolean;
+  results: LessonResult[];
+  warning?: string;
+}
+
+// Single-flight: concurrent lesson_add calls share one ensure operation so
+// they can't race each other creating the collection (Qdrant 409s the losers).
+let lessonsCollectionReady: Promise<boolean> | null = null;
+
+function ensureLessonsCollection(): Promise<boolean> {
+  if (!lessonsCollectionReady) {
+    lessonsCollectionReady = (async (): Promise<boolean> => {
+      try {
+        const existing = await fetch(`${QDRANT_URL}/collections/${LESSONS_COLLECTION}`);
+        if (existing.ok) return true;
+        const created = await fetch(`${QDRANT_URL}/collections/${LESSONS_COLLECTION}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ vectors: { size: VECTOR_SIZE, distance: 'Cosine' } })
+        });
+        if (created.ok) return true;
+        // Lost a cross-process create race (409): existing collection is success.
+        const recheck = await fetch(`${QDRANT_URL}/collections/${LESSONS_COLLECTION}`);
+        return recheck.ok;
+      } catch {
+        return false;
+      }
+    })().then((ok) => {
+      if (!ok) lessonsCollectionReady = null; // allow retry on next call
+      return ok;
+    });
+  }
+  return lessonsCollectionReady;
+}
+
+/**
+ * Record an institutional lesson in the indexed store. Use for experiential
+ * knowledge that cost real time (gotchas, root causes, why-decisions) — NOT
+ * for rules, which belong in docs/reference/conventions.md via an ADR.
+ */
+export async function addLesson(text: string, topic: string): Promise<LessonAddResponse> {
+  if (!(await isQdrantAvailable())) {
+    return { success: false, warning: `Qdrant unavailable at ${QDRANT_URL} - lesson NOT recorded` };
+  }
+  if (!(await ensureLessonsCollection())) {
+    return { success: false, warning: `Could not create/access '${LESSONS_COLLECTION}' collection` };
+  }
+  const vector = await getEmbedding(text, 'search_document');
+  if (!vector) {
+    return { success: false, warning: 'Embeddings unavailable - lesson NOT recorded' };
+  }
+
+  const id = crypto.randomUUID();
+  const res = await fetch(`${QDRANT_URL}/collections/${LESSONS_COLLECTION}/points?wait=true`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      points: [{
+        id,
+        vector,
+        payload: { text, topic, date: new Date().toISOString().slice(0, 10) }
+      }]
+    })
+  });
+  if (!res.ok) {
+    return { success: false, warning: `Qdrant upsert failed: ${res.status} ${res.statusText}` };
+  }
+  return { success: true, id };
+}
+
+/**
+ * Semantic search over the institutional lessons store. Run at session start
+ * with your task keywords, and before debugging anything that smells like a
+ * known trap.
+ */
+export async function searchLessons(query: string, limit: number = 5): Promise<LessonSearchResponse> {
+  if (!(await isQdrantAvailable())) {
+    return { success: false, results: [], warning: `Qdrant unavailable at ${QDRANT_URL}` };
+  }
+  const vector = await getEmbedding(query);
+  if (!vector) {
+    return { success: false, results: [], warning: 'Embeddings unavailable - fall back to docs/reference + ADRs' };
+  }
+
+  const res = await fetch(`${QDRANT_URL}/collections/${LESSONS_COLLECTION}/points/search`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ vector, limit, with_payload: true })
+  });
+  if (!res.ok) {
+    // Collection may simply not exist yet — that's an empty store, not an error
+    return { success: true, results: [], warning: `No lessons store yet ('${LESSONS_COLLECTION}' missing or unreadable)` };
+  }
+  const data = await res.json() as { result?: { id: string; score: number; payload?: Record<string, unknown> }[] };
+  return {
+    success: true,
+    results: (data.result || []).map((p) => ({
+      id: String(p.id),
+      text: String(p.payload?.text ?? ''),
+      topic: String(p.payload?.topic ?? ''),
+      date: String(p.payload?.date ?? ''),
+      score: p.score
+    }))
   };
 }

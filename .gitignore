@@ -60,6 +60,10 @@ tools/token-optimizer-mcp/
 # Build output
 dist/
 build/
+# koinon-dev MCP server ships its build so a fresh clone works with zero steps
+# (CI drift check rebuilds and diffs it)
+!tools/mcp-koinon-dev/dist/
+!tools/mcp-koinon-dev/dist/**
 
 # Environment files
 .env
@@ -130,8 +134,10 @@ Desktop.ini
 # =============================================================================
 # Docker
 # =============================================================================
-# All docker-compose files (prevent agent CI modifications)
-docker-compose*.yml
+# Local-only compose overrides. The shared compose files (dev/full/test/ci/rag)
+# ARE committed — a gitignore rule never stopped edits to tracked files anyway,
+# it only silently swallowed legitimate new compose files.
+docker-compose.override.yml
 
 # =============================================================================
 # Testing
@@ -207,8 +213,9 @@ temp/
 # Claude Code temporary files
 tmp/validate-output.log
 
-# MCP configuration (contains local secrets)
-.mcp.json
+# .mcp.json IS committed: it's Claude Code's project-scoped MCP config and
+# must export with a clone (relative paths/npx only, dev-default creds that
+# match the committed compose files — no real secrets; see ADR 0005).
 
 # MAXIMUS session files (transient, reinitialized per session)
 .maximus-session

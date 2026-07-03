@@ -4,8 +4,10 @@ Critical architecture validators - PRIMARY BLOCKERS.
 These validators MUST pass or the PR is blocked.
 They detect semantic violations that regex cannot catch.
 """
-import requests
 from .helpers import has_business_logic, is_n_plus_one_pattern, extract_api_call
+# All endpoints + the embedding protocol live in utils (network server
+# defaults, no localhost dependencies — ADR 0005)
+from utils import QDRANT_URL, get_embedding
 
 # Optional RAG dependency - graceful degradation if unavailable
 try:
@@ -15,29 +17,8 @@ except ImportError:
     RAG_AVAILABLE = False
     QdrantClient = None
 
-# Constants
-OLLAMA_URL = "http://host.docker.internal:11434/api/embed"
-OLLAMA_MODEL = "nomic-embed-text"
-
 # Global client instance (initialized once, reused across validators)
-client = QdrantClient(url="http://host.docker.internal:6333") if RAG_AVAILABLE else None
-
-
-def get_embedding(text):
-    """Get embedding from Ollama API for a single text."""
-    response = requests.post(
-        OLLAMA_URL,
-        json={
-            "model": OLLAMA_MODEL,
-            "input": [f"search_query: {text}"]  # Query prefix for search
-        }
-    )
-
-    if not response.ok:
-        raise Exception(f"Ollama API error: {response.text}")
-
-    data = response.json()
-    return data['embeddings'][0]
+client = QdrantClient(url=QDRANT_URL) if RAG_AVAILABLE else None
 
 
 def validate_no_business_logic_in_controllers():
