@@ -506,13 +506,15 @@ public class DataImportService(
             ? DeserializeErrors(job.ErrorDetails)
             : new List<ImportRowError>();
 
-        // Generate CSV
+        // Generate CSV. RFC 4180 record separator is CRLF; emit it explicitly so the
+        // export is byte-identical across Windows and Linux (not AppendLine).
+        const string crlf = "\r\n";
         var csv = new StringBuilder();
-        csv.AppendLine("Row,Column,Value,Error");
+        csv.Append("Row,Column,Value,Error").Append(crlf);
 
         foreach (var error in errors)
         {
-            csv.AppendLine($"{error.Row},\"{error.Column}\",\"{EscapeCsv(error.Value)}\",\"{EscapeCsv(error.Message)}\"");
+            csv.Append($"{error.Row},\"{error.Column}\",\"{EscapeCsv(error.Value)}\",\"{EscapeCsv(error.Message)}\"").Append(crlf);
         }
 
         var bytes = Encoding.UTF8.GetBytes(csv.ToString());
@@ -883,7 +885,9 @@ public class DataImportService(
         // Check for exact name match (case-insensitive)
         var existingFamily = await context.Families
             .AsNoTracking()
-            .Where(f => f.Name.ToLower() == request.Name.ToLower() && f.IsActive)
+            // request.Name.ToLowerInvariant() (client-side, host-locale-independent);
+            // f.Name.ToLower() stays as-is because EF translates it to Postgres lower().
+            .Where(f => f.Name.ToLower() == request.Name.ToLowerInvariant() && f.IsActive)
             .FirstOrDefaultAsync(ct);
 
         return existingFamily != null;

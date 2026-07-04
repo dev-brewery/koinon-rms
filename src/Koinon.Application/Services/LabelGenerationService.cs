@@ -368,11 +368,13 @@ public class LabelGenerationService(
 
     private static LabelDto GenerateChildSecurityLabel(Dictionary<string, string> fields)
     {
-        // Simple security code label with large text
+        // Simple security code label with large text.
+        // ZPL is a byte-oriented wire format: terminate commands with an explicit
+        // LF so output is identical on Windows and Linux (never Environment.NewLine).
         var zpl = new StringBuilder()
-            .AppendLine("^XA")
-            .AppendLine("^FO50,50^A0N,150,150^FD{SecurityCode}^FS")
-            .AppendLine("^XZ")
+            .Append("^XA\n")
+            .Append("^FO50,50^A0N,150,150^FD{SecurityCode}^FS\n")
+            .Append("^XZ\n")
             .ToString();
 
         var content = ReplacePlaceholders(zpl, fields);
@@ -388,11 +390,11 @@ public class LabelGenerationService(
     private static LabelDto GenerateVisitorNameLabel(Dictionary<string, string> fields)
     {
         var zpl = new StringBuilder()
-            .AppendLine("^XA")
-            .AppendLine("^FO50,30^A0N,60,60^FD{FullName}^FS")
-            .AppendLine("^FO50,100^A0N,30,30^FD{GroupName}^FS")
-            .AppendLine("^FO50,140^A0N,25,25^FD{ServiceTime}^FS")
-            .AppendLine("^XZ")
+            .Append("^XA\n")
+            .Append("^FO50,30^A0N,60,60^FD{FullName}^FS\n")
+            .Append("^FO50,100^A0N,30,30^FD{GroupName}^FS\n")
+            .Append("^FO50,140^A0N,25,25^FD{ServiceTime}^FS\n")
+            .Append("^XZ\n")
             .ToString();
 
         var content = ReplacePlaceholders(zpl, fields);
@@ -411,13 +413,13 @@ public class LabelGenerationService(
         // ^XA = Start of label, ^XZ = End of label
         // ^FO = Field Origin (position), ^A = Font, ^FD = Field Data
         return new StringBuilder()
-            .AppendLine("^XA")
-            .AppendLine("^FO50,30^A0N,50,50^FD{NickName} {LastName}^FS")
-            .AppendLine("^FO50,90^A0N,30,30^FD{GroupName}^FS")
-            .AppendLine("^FO50,130^A0N,25,25^FD{ServiceTime}^FS")
-            .AppendLine("^FO300,30^A0N,80,80^FD{SecurityCode}^FS")
-            .AppendLine("^FO300,120^A0N,20,20^FDCode: {SecurityCode}^FS")
-            .AppendLine("^XZ")
+            .Append("^XA\n")
+            .Append("^FO50,30^A0N,50,50^FD{NickName} {LastName}^FS\n")
+            .Append("^FO50,90^A0N,30,30^FD{GroupName}^FS\n")
+            .Append("^FO50,130^A0N,25,25^FD{ServiceTime}^FS\n")
+            .Append("^FO300,30^A0N,80,80^FD{SecurityCode}^FS\n")
+            .Append("^FO300,120^A0N,20,20^FDCode: {SecurityCode}^FS\n")
+            .Append("^XZ\n")
             .ToString();
     }
 
@@ -425,22 +427,22 @@ public class LabelGenerationService(
     {
         // Parent claim ticket with large security code
         return new StringBuilder()
-            .AppendLine("^XA")
-            .AppendLine("^FO50,20^A0N,100,100^FD{SecurityCode}^FS")
-            .AppendLine("^FO50,130^A0N,25,25^FD{FullName}^FS")
-            .AppendLine("^FO50,160^A0N,20,20^FD{ServiceTime} - {CheckInTime}^FS")
-            .AppendLine("^XZ")
+            .Append("^XA\n")
+            .Append("^FO50,20^A0N,100,100^FD{SecurityCode}^FS\n")
+            .Append("^FO50,130^A0N,25,25^FD{FullName}^FS\n")
+            .Append("^FO50,160^A0N,20,20^FD{ServiceTime} - {CheckInTime}^FS\n")
+            .Append("^XZ\n")
             .ToString();
     }
 
     private static string GetAllergyAlertZplTemplate()
     {
         return new StringBuilder()
-            .AppendLine("^XA")
-            .AppendLine("^FO50,20^A0N,40,40^FDALLERGY ALERT^FS")
-            .AppendLine("^FO50,70^A0N,30,30^FD{FullName}^FS")
-            .AppendLine("^FO50,110^A0N,25,25^FD{Allergies}^FS")
-            .AppendLine("^XZ")
+            .Append("^XA\n")
+            .Append("^FO50,20^A0N,40,40^FDALLERGY ALERT^FS\n")
+            .Append("^FO50,70^A0N,30,30^FD{FullName}^FS\n")
+            .Append("^FO50,110^A0N,25,25^FD{Allergies}^FS\n")
+            .Append("^XZ\n")
             .ToString();
     }
 
@@ -448,20 +450,20 @@ public class LabelGenerationService(
     {
         // Simple security code label with large text
         return new StringBuilder()
-            .AppendLine("^XA")
-            .AppendLine("^FO50,50^A0N,150,150^FD{SecurityCode}^FS")
-            .AppendLine("^XZ")
+            .Append("^XA\n")
+            .Append("^FO50,50^A0N,150,150^FD{SecurityCode}^FS\n")
+            .Append("^XZ\n")
             .ToString();
     }
 
     private static string GetVisitorNameZplTemplate()
     {
         return new StringBuilder()
-            .AppendLine("^XA")
-            .AppendLine("^FO50,30^A0N,60,60^FD{FullName}^FS")
-            .AppendLine("^FO50,100^A0N,30,30^FD{GroupName}^FS")
-            .AppendLine("^FO50,140^A0N,25,25^FD{ServiceTime}^FS")
-            .AppendLine("^XZ")
+            .Append("^XA\n")
+            .Append("^FO50,30^A0N,60,60^FD{FullName}^FS\n")
+            .Append("^FO50,100^A0N,30,30^FD{GroupName}^FS\n")
+            .Append("^FO50,140^A0N,25,25^FD{ServiceTime}^FS\n")
+            .Append("^XZ\n")
             .ToString();
     }
 

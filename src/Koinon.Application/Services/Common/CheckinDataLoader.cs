@@ -1,4 +1,4 @@
-﻿using Koinon.Application.DTOs;
+using Koinon.Application.DTOs;
 using Koinon.Application.Interfaces;
 using Koinon.Domain.Data;
 using Koinon.Domain.Entities;

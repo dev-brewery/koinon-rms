@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-07-02T17:07:05-04:00",
+  "generated_at": "2026-07-03T12:29:31-04:00",
   "entities": {
     "Attendance": {
       "name": "Attendance",
@@ -10112,7 +10112,7 @@
         "order": "number",
         "valueCount": "number"
       },
-      "path": "features\\admin\\defined-types\\api.ts"
+      "path": "features/admin/defined-types/api.ts"
     },
     "DefinedValueDto": {
       "name": "DefinedValueDto",
@@ -10152,7 +10152,7 @@
         "description": "string",
         "order": "number"
       },
-      "path": "features\\admin\\defined-types\\api.ts"
+      "path": "features/admin/defined-types/api.ts"
     },
     "UpdateDefinedValueRequest": {
       "name": "UpdateDefinedValueRequest",
@@ -10163,7 +10163,7 @@
         "order": "number",
         "isActive": "boolean"
       },
-      "path": "features\\admin\\defined-types\\api.ts"
+      "path": "features/admin/defined-types/api.ts"
     },
     "ReorderItem": {
       "name": "ReorderItem",
@@ -10172,7 +10172,7 @@
         "idKey": "IdKey",
         "order": "number"
       },
-      "path": "features\\admin\\defined-types\\api.ts"
+      "path": "features/admin/defined-types/api.ts"
     },
     "ReorderDefinedValuesRequest": {
       "name": "ReorderDefinedValuesRequest",
@@ -10180,7 +10180,7 @@
       "properties": {
         "items": "ReorderItem[]"
       },
-      "path": "features\\admin\\defined-types\\api.ts"
+      "path": "features/admin/defined-types/api.ts"
     },
     "AuthorizedPickup": {
       "name": "AuthorizedPickup",
@@ -10198,7 +10198,7 @@
         "photoUrl": "string",
         "isActive": "boolean"
       },
-      "path": "features\\authorized-pickup\\api.ts"
+      "path": "features/authorized-pickup/api.ts"
     },
     "PickupLog": {
       "name": "PickupLog",
@@ -10214,7 +10214,7 @@
         "checkoutDateTime": "DateTime",
         "notes": "string"
       },
-      "path": "features\\authorized-pickup\\api.ts"
+      "path": "features/authorized-pickup/api.ts"
     },
     "PickupVerificationResult": {
       "name": "PickupVerificationResult",
@@ -10226,7 +10226,7 @@
         "message": "string",
         "requiresSupervisorOverride": "boolean"
       },
-      "path": "features\\authorized-pickup\\api.ts"
+      "path": "features/authorized-pickup/api.ts"
     },
     "CreateAuthorizedPickupRequest": {
       "name": "CreateAuthorizedPickupRequest",
@@ -10306,7 +10306,7 @@
         "checkedInAt": "DateTime",
         "messagesSentCount": "number"
       },
-      "path": "features\\pager\\api.ts"
+      "path": "features/pager/api.ts"
     },
     "PagerMessage": {
       "name": "PagerMessage",
@@ -10320,7 +10320,7 @@
         "deliveredDateTime": "DateTime | null",
         "sentByPersonName": "string"
       },
-      "path": "features\\pager\\api.ts"
+      "path": "features/pager/api.ts"
     },
     "PageHistory": {
       "name": "PageHistory",
@@ -10332,7 +10332,7 @@
         "parentPhoneNumber": "string",
         "messages": "PagerMessage[]"
       },
-      "path": "features\\pager\\api.ts"
+      "path": "features/pager/api.ts"
     },
     "SendPageRequest": {
       "name": "SendPageRequest",
@@ -10368,7 +10368,7 @@
         "capacityPillColor": "CapacityPillColor",
         "isOpen": "boolean"
       },
-      "path": "services\\api\\checkinOperations.ts"
+      "path": "services/api/checkinOperations.ts"
     },
     "CheckinOperationsAttendeeDto": {
       "name": "CheckinOperationsAttendeeDto",
@@ -10387,7 +10387,7 @@
         "securityCode": "string | null",
         "isFirstTime": "boolean"
       },
-      "path": "services\\api\\checkinOperations.ts"
+      "path": "services/api/checkinOperations.ts"
     },
     "CheckinOperationsSummaryDto": {
       "name": "CheckinOperationsSummaryDto",
@@ -10397,7 +10397,7 @@
         "currentlyPresent": "number",
         "checkedOut": "number"
       },
-      "path": "services\\api\\checkinOperations.ts"
+      "path": "services/api/checkinOperations.ts"
     },
     "CheckinOperationsDashboardDto": {
       "name": "CheckinOperationsDashboardDto",
@@ -10408,7 +10408,7 @@
         "summary": "CheckinOperationsSummaryDto",
         "generatedAt": "DateTime"
       },
-      "path": "services\\api\\checkinOperations.ts"
+      "path": "services/api/checkinOperations.ts"
     },
     "ToggleRoomResponseDto": {
       "name": "ToggleRoomResponseDto",
@@ -10417,31 +10417,31 @@
         "locationIdKey": "IdKey",
         "isOpen": "boolean"
       },
-      "path": "services\\api\\checkinOperations.ts"
+      "path": "services/api/checkinOperations.ts"
     },
     "CapacityPillColor": {
       "name": "CapacityPillColor",
       "kind": "type",
       "properties": {},
-      "path": "services\\api\\checkinOperations.ts"
-    },
-    "CreateCommunicationRequest": {
-      "name": "CreateCommunicationRequest",
-      "kind": "type",
-      "properties": {},
-      "path": "services\\api\\communications.ts"
+      "path": "services/api/checkinOperations.ts"
     },
     "CreateCommunicationTemplateRequest": {
       "name": "CreateCommunicationTemplateRequest",
       "kind": "type",
       "properties": {},
-      "path": "services\\api\\communicationTemplates.ts"
+      "path": "services/api/communicationTemplates.ts"
     },
     "UpdateCommunicationTemplateRequest": {
       "name": "UpdateCommunicationTemplateRequest",
       "kind": "type",
       "properties": {},
-      "path": "services\\api\\communicationTemplates.ts"
+      "path": "services/api/communicationTemplates.ts"
+    },
+    "CreateCommunicationRequest": {
+      "name": "CreateCommunicationRequest",
+      "kind": "type",
+      "properties": {},
+      "path": "services/api/communications.ts"
     },
     "GenerateKioskTokenResponse": {
       "name": "GenerateKioskTokenResponse",
@@ -10452,7 +10452,7 @@
         "deviceName": "string",
         "expiresAt": "string"
       },
-      "path": "services\\api\\devices.ts"
+      "path": "services/api/devices.ts"
     },
     "SecurityRoleDto": {
       "name": "SecurityRoleDto",
@@ -10466,7 +10466,7 @@
         "claimCount": "number",
         "memberCount": "number"
       },
-      "path": "services\\api\\securityRoles.ts"
+      "path": "services/api/securityRoles.ts"
     },
     "RoleSecurityClaimDto": {
       "name": "RoleSecurityClaimDto",
@@ -10478,7 +10478,7 @@
         "description": "string | null",
         "allowOrDeny": "'A' | 'D'"
       },
-      "path": "services\\api\\securityRoles.ts"
+      "path": "services/api/securityRoles.ts"
     },
     "PersonSecurityRoleMemberDto": {
       "name": "PersonSecurityRoleMemberDto",
@@ -10489,7 +10489,7 @@
         "email": "string | null",
         "expiresDateTime": "string | null"
       },
-      "path": "services\\api\\securityRoles.ts"
+      "path": "services/api/securityRoles.ts"
     },
     "SecurityRoleDetailDto": {
       "name": "SecurityRoleDetailDto",
@@ -10503,7 +10503,7 @@
         "claims": "RoleSecurityClaimDto[]",
         "members": "PersonSecurityRoleMemberDto[]"
       },
-      "path": "services\\api\\securityRoles.ts"
+      "path": "services/api/securityRoles.ts"
     },
     "SecurityClaimDto": {
       "name": "SecurityClaimDto",
@@ -10514,7 +10514,7 @@
         "claimValue": "string",
         "description": "string | null"
       },
-      "path": "services\\api\\securityRoles.ts"
+      "path": "services/api/securityRoles.ts"
     },
     "CreateSecurityRoleRequest": {
       "name": "CreateSecurityRoleRequest",
@@ -10524,7 +10524,7 @@
         "description": "string | null",
         "isActive": "boolean"
       },
-      "path": "services\\api\\securityRoles.ts"
+      "path": "services/api/securityRoles.ts"
     },
     "UpdateSecurityRoleRequest": {
       "name": "UpdateSecurityRoleRequest",
@@ -10534,7 +10534,7 @@
         "description": "string | null",
         "isActive": "boolean"
       },
-      "path": "services\\api\\securityRoles.ts"
+      "path": "services/api/securityRoles.ts"
     },
     "AssignClaimRequest": {
       "name": "AssignClaimRequest",
@@ -10543,7 +10543,7 @@
         "claimIdKey": "string",
         "allowOrDeny": "'A' | 'D'"
       },
-      "path": "services\\api\\securityRoles.ts"
+      "path": "services/api/securityRoles.ts"
     },
     "AssignPersonRequest": {
       "name": "AssignPersonRequest",
@@ -10552,7 +10552,7 @@
         "personIdKey": "string",
         "expiresDateTime": "string | null"
       },
-      "path": "services\\api\\securityRoles.ts"
+      "path": "services/api/securityRoles.ts"
     },
     "PaginationMeta": {
       "name": "PaginationMeta",
@@ -14836,6 +14836,69 @@
         "bulkUpdateCommunicationPreferences"
       ]
     },
+    "useCommunicationTemplates": {
+      "name": "useCommunicationTemplates",
+      "path": "hooks/useCommunicationTemplates.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "communicationtemplates"
+      ],
+      "usesQuery": false,
+      "usesMutation": false,
+      "dependencies": []
+    },
+    "useCommunicationTemplate": {
+      "name": "useCommunicationTemplate",
+      "path": "hooks/useCommunicationTemplates.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "communication-templates"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getCommunicationTemplate"
+      ]
+    },
+    "useCreateCommunicationTemplate": {
+      "name": "useCreateCommunicationTemplate",
+      "path": "hooks/useCommunicationTemplates.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "communication-templates"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "createCommunicationTemplate"
+      ]
+    },
+    "useUpdateCommunicationTemplate": {
+      "name": "useUpdateCommunicationTemplate",
+      "path": "hooks/useCommunicationTemplates.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "communication-templates"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "updateCommunicationTemplate"
+      ]
+    },
+    "useDeleteCommunicationTemplate": {
+      "name": "useDeleteCommunicationTemplate",
+      "path": "hooks/useCommunicationTemplates.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "communication-templates"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "deleteCommunicationTemplate"
+      ]
+    },
     "useCommunication": {
       "name": "useCommunication",
       "path": "hooks/useCommunications.ts",
@@ -14934,69 +14997,6 @@
       "usesMutation": true,
       "dependencies": [
         "previewCommunication"
-      ]
-    },
-    "useCommunicationTemplates": {
-      "name": "useCommunicationTemplates",
-      "path": "hooks/useCommunicationTemplates.ts",
-      "apiBinding": "",
-      "queryKey": [
-        "communicationtemplates"
-      ],
-      "usesQuery": false,
-      "usesMutation": false,
-      "dependencies": []
-    },
-    "useCommunicationTemplate": {
-      "name": "useCommunicationTemplate",
-      "path": "hooks/useCommunicationTemplates.ts",
-      "apiBinding": "",
-      "queryKey": [
-        "communication-templates"
-      ],
-      "usesQuery": true,
-      "usesMutation": false,
-      "dependencies": [
-        "getCommunicationTemplate"
-      ]
-    },
-    "useCreateCommunicationTemplate": {
-      "name": "useCreateCommunicationTemplate",
-      "path": "hooks/useCommunicationTemplates.ts",
-      "apiBinding": "",
-      "queryKey": [
-        "communication-templates"
-      ],
-      "usesQuery": false,
-      "usesMutation": true,
-      "dependencies": [
-        "createCommunicationTemplate"
-      ]
-    },
-    "useUpdateCommunicationTemplate": {
-      "name": "useUpdateCommunicationTemplate",
-      "path": "hooks/useCommunicationTemplates.ts",
-      "apiBinding": "",
-      "queryKey": [
-        "communication-templates"
-      ],
-      "usesQuery": false,
-      "usesMutation": true,
-      "dependencies": [
-        "updateCommunicationTemplate"
-      ]
-    },
-    "useDeleteCommunicationTemplate": {
-      "name": "useDeleteCommunicationTemplate",
-      "path": "hooks/useCommunicationTemplates.ts",
-      "apiBinding": "",
-      "queryKey": [
-        "communication-templates"
-      ],
-      "usesQuery": false,
-      "usesMutation": true,
-      "dependencies": [
-        "deleteCommunicationTemplate"
       ]
     },
     "useDashboardStats": {
@@ -15470,6 +15470,84 @@
       "usesMutation": false,
       "dependencies": []
     },
+    "useGroupTypes": {
+      "name": "useGroupTypes",
+      "path": "hooks/useGroupTypes.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "group-types"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getGroupTypes"
+      ]
+    },
+    "useGroupType": {
+      "name": "useGroupType",
+      "path": "hooks/useGroupTypes.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "group-types"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getGroupType"
+      ]
+    },
+    "useCreateGroupType": {
+      "name": "useCreateGroupType",
+      "path": "hooks/useGroupTypes.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "group-types"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "createGroupType"
+      ]
+    },
+    "useUpdateGroupType": {
+      "name": "useUpdateGroupType",
+      "path": "hooks/useGroupTypes.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "group-types"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "updateGroupType"
+      ]
+    },
+    "useArchiveGroupType": {
+      "name": "useArchiveGroupType",
+      "path": "hooks/useGroupTypes.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "group-types"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "archiveGroupType"
+      ]
+    },
+    "useGroupsByType": {
+      "name": "useGroupsByType",
+      "path": "hooks/useGroupTypes.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "group-types"
+      ],
+      "usesQuery": true,
+      "usesMutation": false,
+      "dependencies": [
+        "getGroupsByType"
+      ]
+    },
     "useGroups": {
       "name": "useGroups",
       "path": "hooks/useGroups.ts",
@@ -15605,84 +15683,6 @@
       "usesMutation": false,
       "dependencies": [
         "getGroupAttendanceDetail"
-      ]
-    },
-    "useGroupTypes": {
-      "name": "useGroupTypes",
-      "path": "hooks/useGroupTypes.ts",
-      "apiBinding": "",
-      "queryKey": [
-        "group-types"
-      ],
-      "usesQuery": true,
-      "usesMutation": false,
-      "dependencies": [
-        "getGroupTypes"
-      ]
-    },
-    "useGroupType": {
-      "name": "useGroupType",
-      "path": "hooks/useGroupTypes.ts",
-      "apiBinding": "",
-      "queryKey": [
-        "group-types"
-      ],
-      "usesQuery": true,
-      "usesMutation": false,
-      "dependencies": [
-        "getGroupType"
-      ]
-    },
-    "useCreateGroupType": {
-      "name": "useCreateGroupType",
-      "path": "hooks/useGroupTypes.ts",
-      "apiBinding": "",
-      "queryKey": [
-        "group-types"
-      ],
-      "usesQuery": false,
-      "usesMutation": true,
-      "dependencies": [
-        "createGroupType"
-      ]
-    },
-    "useUpdateGroupType": {
-      "name": "useUpdateGroupType",
-      "path": "hooks/useGroupTypes.ts",
-      "apiBinding": "",
-      "queryKey": [
-        "group-types"
-      ],
-      "usesQuery": false,
-      "usesMutation": true,
-      "dependencies": [
-        "updateGroupType"
-      ]
-    },
-    "useArchiveGroupType": {
-      "name": "useArchiveGroupType",
-      "path": "hooks/useGroupTypes.ts",
-      "apiBinding": "",
-      "queryKey": [
-        "group-types"
-      ],
-      "usesQuery": false,
-      "usesMutation": true,
-      "dependencies": [
-        "archiveGroupType"
-      ]
-    },
-    "useGroupsByType": {
-      "name": "useGroupsByType",
-      "path": "hooks/useGroupTypes.ts",
-      "apiBinding": "",
-      "queryKey": [
-        "group-types"
-      ],
-      "usesQuery": true,
-      "usesMutation": false,
-      "dependencies": [
-        "getGroupsByType"
       ]
     },
     "useImport": {
@@ -16968,6 +16968,34 @@
       "method": "GET",
       "responseType": "void"
     },
+    "getCommunicationTemplate": {
+      "name": "getCommunicationTemplate",
+      "path": "services/api/communicationTemplates.ts",
+      "endpoint": "/communication-templates/${idKey}",
+      "method": "GET",
+      "responseType": "CommunicationTemplateDto"
+    },
+    "createCommunicationTemplate": {
+      "name": "createCommunicationTemplate",
+      "path": "services/api/communicationTemplates.ts",
+      "endpoint": "/communication-templates",
+      "method": "POST",
+      "responseType": "CommunicationTemplateDto"
+    },
+    "updateCommunicationTemplate": {
+      "name": "updateCommunicationTemplate",
+      "path": "services/api/communicationTemplates.ts",
+      "endpoint": "/communication-templates/${idKey}",
+      "method": "PUT",
+      "responseType": "CommunicationTemplateDto"
+    },
+    "deleteCommunicationTemplate": {
+      "name": "deleteCommunicationTemplate",
+      "path": "services/api/communicationTemplates.ts",
+      "endpoint": "/communication-templates/${idKey}",
+      "method": "DELETE",
+      "responseType": "void"
+    },
     "createCommunication": {
       "name": "createCommunication",
       "path": "services/api/communications.ts",
@@ -17037,34 +17065,6 @@
       "endpoint": "/people/${personIdKey}/communication-preferences",
       "method": "PUT",
       "responseType": "CommunicationPreferenceDto[]"
-    },
-    "getCommunicationTemplate": {
-      "name": "getCommunicationTemplate",
-      "path": "services/api/communicationTemplates.ts",
-      "endpoint": "/communication-templates/${idKey}",
-      "method": "GET",
-      "responseType": "CommunicationTemplateDto"
-    },
-    "createCommunicationTemplate": {
-      "name": "createCommunicationTemplate",
-      "path": "services/api/communicationTemplates.ts",
-      "endpoint": "/communication-templates",
-      "method": "POST",
-      "responseType": "CommunicationTemplateDto"
-    },
-    "updateCommunicationTemplate": {
-      "name": "updateCommunicationTemplate",
-      "path": "services/api/communicationTemplates.ts",
-      "endpoint": "/communication-templates/${idKey}",
-      "method": "PUT",
-      "responseType": "CommunicationTemplateDto"
-    },
-    "deleteCommunicationTemplate": {
-      "name": "deleteCommunicationTemplate",
-      "path": "services/api/communicationTemplates.ts",
-      "endpoint": "/communication-templates/${idKey}",
-      "method": "DELETE",
-      "responseType": "void"
     },
     "getDashboardStats": {
       "name": "getDashboardStats",
@@ -17374,6 +17374,48 @@
       "method": "GET",
       "responseType": "EligiblePersonDto[]"
     },
+    "getGroupTypes": {
+      "name": "getGroupTypes",
+      "path": "services/api/reference.ts",
+      "endpoint": "/group-types",
+      "method": "GET",
+      "responseType": "GroupTypeDto[]"
+    },
+    "getGroupType": {
+      "name": "getGroupType",
+      "path": "services/api/groupTypes.ts",
+      "endpoint": "${BASE_URL}/${idKey}",
+      "method": "GET",
+      "responseType": "GroupTypeDetailAdminDto"
+    },
+    "createGroupType": {
+      "name": "createGroupType",
+      "path": "services/api/groupTypes.ts",
+      "endpoint": "/unknown",
+      "method": "POST",
+      "responseType": "GroupTypeAdminDto"
+    },
+    "updateGroupType": {
+      "name": "updateGroupType",
+      "path": "services/api/groupTypes.ts",
+      "endpoint": "${BASE_URL}/${idKey}",
+      "method": "PUT",
+      "responseType": "GroupTypeAdminDto"
+    },
+    "archiveGroupType": {
+      "name": "archiveGroupType",
+      "path": "services/api/groupTypes.ts",
+      "endpoint": "${BASE_URL}/${idKey}",
+      "method": "DELETE",
+      "responseType": "void"
+    },
+    "getGroupsByType": {
+      "name": "getGroupsByType",
+      "path": "services/api/groupTypes.ts",
+      "endpoint": "${BASE_URL}/${idKey}/groups",
+      "method": "GET",
+      "responseType": "GroupTypeGroupDto[]"
+    },
     "getGroupByIdKey": {
       "name": "getGroupByIdKey",
       "path": "services/api/groups.ts",
@@ -17443,48 +17485,6 @@
       "endpoint": "/groups/${groupIdKey}/attendance/${occurrenceIdKey}",
       "method": "GET",
       "responseType": "GroupAttendanceDetailDto[]"
-    },
-    "getGroupTypes": {
-      "name": "getGroupTypes",
-      "path": "services/api/reference.ts",
-      "endpoint": "/group-types",
-      "method": "GET",
-      "responseType": "GroupTypeDto[]"
-    },
-    "getGroupType": {
-      "name": "getGroupType",
-      "path": "services/api/groupTypes.ts",
-      "endpoint": "${BASE_URL}/${idKey}",
-      "method": "GET",
-      "responseType": "GroupTypeDetailAdminDto"
-    },
-    "createGroupType": {
-      "name": "createGroupType",
-      "path": "services/api/groupTypes.ts",
-      "endpoint": "/unknown",
-      "method": "POST",
-      "responseType": "GroupTypeAdminDto"
-    },
-    "updateGroupType": {
-      "name": "updateGroupType",
-      "path": "services/api/groupTypes.ts",
-      "endpoint": "${BASE_URL}/${idKey}",
-      "method": "PUT",
-      "responseType": "GroupTypeAdminDto"
-    },
-    "archiveGroupType": {
-      "name": "archiveGroupType",
-      "path": "services/api/groupTypes.ts",
-      "endpoint": "${BASE_URL}/${idKey}",
-      "method": "DELETE",
-      "responseType": "void"
-    },
-    "getGroupsByType": {
-      "name": "getGroupsByType",
-      "path": "services/api/groupTypes.ts",
-      "endpoint": "${BASE_URL}/${idKey}/groups",
-      "method": "GET",
-      "responseType": "GroupTypeGroupDto[]"
     },
     "uploadCsvPreview": {
       "name": "uploadCsvPreview",
@@ -18083,6 +18083,147 @@
     }
   },
   "components": {
+    "ErrorBoundary": {
+      "name": "ErrorBoundary",
+      "path": "components/ErrorBoundary.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "LocationPicker": {
+      "name": "LocationPicker",
+      "path": "components/LocationPicker.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "RouteErrorBoundary": {
+      "name": "RouteErrorBoundary",
+      "path": "components/RouteErrorBoundary.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "ErrorBoundary.test": {
+      "name": "ErrorBoundary.test",
+      "path": "components/__tests__/ErrorBoundary.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "LocationPicker.test": {
+      "name": "LocationPicker.test",
+      "path": "components/__tests__/LocationPicker.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "RouteErrorBoundary.test": {
+      "name": "RouteErrorBoundary.test",
+      "path": "components/__tests__/RouteErrorBoundary.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "Breadcrumb": {
+      "name": "Breadcrumb",
+      "path": "components/admin/Breadcrumb.tsx",
+      "hooksUsed": [
+        "useLocation"
+      ],
+      "apiCallsDirectly": false
+    },
+    "CampusCard": {
+      "name": "CampusCard",
+      "path": "components/admin/CampusCard.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "CampusEditorModal": {
+      "name": "CampusEditorModal",
+      "path": "components/admin/CampusEditorModal.tsx",
+      "hooksUsed": [
+        "useCreateCampus",
+        "useUpdateCampus"
+      ],
+      "apiCallsDirectly": false
+    },
+    "GlobalSearchModal": {
+      "name": "GlobalSearchModal",
+      "path": "components/admin/GlobalSearchModal.tsx",
+      "hooksUsed": [
+        "useGlobalSearch"
+      ],
+      "apiCallsDirectly": false
+    },
+    "GroupTypeCard": {
+      "name": "GroupTypeCard",
+      "path": "components/admin/GroupTypeCard.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "GroupTypeEditorModal": {
+      "name": "GroupTypeEditorModal",
+      "path": "components/admin/GroupTypeEditorModal.tsx",
+      "hooksUsed": [
+        "useGroupType",
+        "useCreateGroupType",
+        "useUpdateGroupType"
+      ],
+      "apiCallsDirectly": false
+    },
+    "GroupTypeGroupsModal": {
+      "name": "GroupTypeGroupsModal",
+      "path": "components/admin/GroupTypeGroupsModal.tsx",
+      "hooksUsed": [
+        "useGroupsByType"
+      ],
+      "apiCallsDirectly": false
+    },
+    "Header": {
+      "name": "Header",
+      "path": "components/admin/Header.tsx",
+      "hooksUsed": [
+        "useAuth",
+        "useIsMobile"
+      ],
+      "apiCallsDirectly": false
+    },
+    "LocationEditorModal": {
+      "name": "LocationEditorModal",
+      "path": "components/admin/LocationEditorModal.tsx",
+      "hooksUsed": [
+        "useCampuses",
+        "useLocations",
+        "useCreateLocation",
+        "useUpdateLocation"
+      ],
+      "apiCallsDirectly": false
+    },
+    "LocationTreeNode": {
+      "name": "LocationTreeNode",
+      "path": "components/admin/LocationTreeNode.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "Sidebar": {
+      "name": "Sidebar",
+      "path": "components/admin/Sidebar.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "Breadcrumb.test": {
+      "name": "Breadcrumb.test",
+      "path": "components/admin/__tests__/Breadcrumb.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "CampusCard.test": {
+      "name": "CampusCard.test",
+      "path": "components/admin/__tests__/CampusCard.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "GroupTypeCard.test": {
+      "name": "GroupTypeCard.test",
+      "path": "components/admin/__tests__/GroupTypeCard.test.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
     "AnalyticsSummaryCards": {
       "name": "AnalyticsSummaryCards",
       "path": "components/admin/analytics/AnalyticsSummaryCards.tsx",
@@ -18139,29 +18280,6 @@
       "name": "AuditLogTable",
       "path": "components/admin/audit/AuditLogTable.tsx",
       "hooksUsed": [],
-      "apiCallsDirectly": false
-    },
-    "Breadcrumb": {
-      "name": "Breadcrumb",
-      "path": "components/admin/Breadcrumb.tsx",
-      "hooksUsed": [
-        "useLocation"
-      ],
-      "apiCallsDirectly": false
-    },
-    "CampusCard": {
-      "name": "CampusCard",
-      "path": "components/admin/CampusCard.tsx",
-      "hooksUsed": [],
-      "apiCallsDirectly": false
-    },
-    "CampusEditorModal": {
-      "name": "CampusEditorModal",
-      "path": "components/admin/CampusEditorModal.tsx",
-      "hooksUsed": [
-        "useCreateCampus",
-        "useUpdateCampus"
-      ],
       "apiCallsDirectly": false
     },
     "AttendeeSearch": {
@@ -18294,14 +18412,6 @@
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
-    "GlobalSearchModal": {
-      "name": "GlobalSearchModal",
-      "path": "components/admin/GlobalSearchModal.tsx",
-      "hooksUsed": [
-        "useGlobalSearch"
-      ],
-      "apiCallsDirectly": false
-    },
     "GroupAttendanceHistorySection": {
       "name": "GroupAttendanceHistorySection",
       "path": "components/admin/groups/GroupAttendanceHistorySection.tsx",
@@ -18334,56 +18444,6 @@
       "hooksUsed": [
         "useChildGroups"
       ],
-      "apiCallsDirectly": false
-    },
-    "GroupTypeCard": {
-      "name": "GroupTypeCard",
-      "path": "components/admin/GroupTypeCard.tsx",
-      "hooksUsed": [],
-      "apiCallsDirectly": false
-    },
-    "GroupTypeEditorModal": {
-      "name": "GroupTypeEditorModal",
-      "path": "components/admin/GroupTypeEditorModal.tsx",
-      "hooksUsed": [
-        "useGroupType",
-        "useCreateGroupType",
-        "useUpdateGroupType"
-      ],
-      "apiCallsDirectly": false
-    },
-    "GroupTypeGroupsModal": {
-      "name": "GroupTypeGroupsModal",
-      "path": "components/admin/GroupTypeGroupsModal.tsx",
-      "hooksUsed": [
-        "useGroupsByType"
-      ],
-      "apiCallsDirectly": false
-    },
-    "Header": {
-      "name": "Header",
-      "path": "components/admin/Header.tsx",
-      "hooksUsed": [
-        "useAuth",
-        "useIsMobile"
-      ],
-      "apiCallsDirectly": false
-    },
-    "LocationEditorModal": {
-      "name": "LocationEditorModal",
-      "path": "components/admin/LocationEditorModal.tsx",
-      "hooksUsed": [
-        "useCampuses",
-        "useLocations",
-        "useCreateLocation",
-        "useUpdateLocation"
-      ],
-      "apiCallsDirectly": false
-    },
-    "LocationTreeNode": {
-      "name": "LocationTreeNode",
-      "path": "components/admin/LocationTreeNode.tsx",
-      "hooksUsed": [],
       "apiCallsDirectly": false
     },
     "AttendanceHistorySection": {
@@ -18543,30 +18603,6 @@
     "WizardStepIndicator": {
       "name": "WizardStepIndicator",
       "path": "components/admin/setup-wizard/WizardStepIndicator.tsx",
-      "hooksUsed": [],
-      "apiCallsDirectly": false
-    },
-    "Sidebar": {
-      "name": "Sidebar",
-      "path": "components/admin/Sidebar.tsx",
-      "hooksUsed": [],
-      "apiCallsDirectly": false
-    },
-    "Breadcrumb.test": {
-      "name": "Breadcrumb.test",
-      "path": "components/admin/__tests__/Breadcrumb.test.tsx",
-      "hooksUsed": [],
-      "apiCallsDirectly": false
-    },
-    "CampusCard.test": {
-      "name": "CampusCard.test",
-      "path": "components/admin/__tests__/CampusCard.test.tsx",
-      "hooksUsed": [],
-      "apiCallsDirectly": false
-    },
-    "GroupTypeCard.test": {
-      "name": "GroupTypeCard.test",
-      "path": "components/admin/__tests__/GroupTypeCard.test.tsx",
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
@@ -18899,12 +18935,6 @@
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
-    "ErrorBoundary": {
-      "name": "ErrorBoundary",
-      "path": "components/ErrorBoundary.tsx",
-      "hooksUsed": [],
-      "apiCallsDirectly": false
-    },
     "BatchStatusBadge": {
       "name": "BatchStatusBadge",
       "path": "components/giving/BatchStatusBadge.tsx",
@@ -19056,12 +19086,6 @@
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
-    "LocationPicker": {
-      "name": "LocationPicker",
-      "path": "components/LocationPicker.tsx",
-      "hooksUsed": [],
-      "apiCallsDirectly": false
-    },
     "EditMemberModal": {
       "name": "EditMemberModal",
       "path": "components/mygroups/EditMemberModal.tsx",
@@ -19205,12 +19229,6 @@
     "PWAUpdatePrompt.test": {
       "name": "PWAUpdatePrompt.test",
       "path": "components/pwa/__tests__/PWAUpdatePrompt.test.tsx",
-      "hooksUsed": [],
-      "apiCallsDirectly": false
-    },
-    "RouteErrorBoundary": {
-      "name": "RouteErrorBoundary",
-      "path": "components/RouteErrorBoundary.tsx",
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
@@ -19404,24 +19422,6 @@
     "Toast.test": {
       "name": "Toast.test",
       "path": "components/ui/__tests__/Toast.test.tsx",
-      "hooksUsed": [],
-      "apiCallsDirectly": false
-    },
-    "ErrorBoundary.test": {
-      "name": "ErrorBoundary.test",
-      "path": "components/__tests__/ErrorBoundary.test.tsx",
-      "hooksUsed": [],
-      "apiCallsDirectly": false
-    },
-    "LocationPicker.test": {
-      "name": "LocationPicker.test",
-      "path": "components/__tests__/LocationPicker.test.tsx",
-      "hooksUsed": [],
-      "apiCallsDirectly": false
-    },
-    "RouteErrorBoundary.test": {
-      "name": "RouteErrorBoundary.test",
-      "path": "components/__tests__/RouteErrorBoundary.test.tsx",
       "hooksUsed": [],
       "apiCallsDirectly": false
     }
@@ -22188,16 +22188,6 @@
       "type": "api_binding"
     },
     {
-      "from": "FirstTimeVisitorList",
-      "to": "useFirstTimeVisitorsByDateRange",
-      "type": "uses_hook"
-    },
-    {
-      "from": "FirstTimeVisitorWidget",
-      "to": "useTodaysFirstTimeVisitors",
-      "type": "uses_hook"
-    },
-    {
       "from": "Breadcrumb",
       "to": "useLocation",
       "type": "uses_hook"
@@ -22213,53 +22203,8 @@
       "type": "uses_hook"
     },
     {
-      "from": "AddMemberModal",
-      "to": "usePeople",
-      "type": "uses_hook"
-    },
-    {
-      "from": "FamilyMemberCard",
-      "to": "useUpdateFamilyMember",
-      "type": "uses_hook"
-    },
-    {
       "from": "GlobalSearchModal",
       "to": "useGlobalSearch",
-      "type": "uses_hook"
-    },
-    {
-      "from": "GroupAttendanceHistorySection",
-      "to": "useGroupAttendanceHistory",
-      "type": "uses_hook"
-    },
-    {
-      "from": "GroupAttendanceHistorySection",
-      "to": "useGroupAttendanceDetail",
-      "type": "uses_hook"
-    },
-    {
-      "from": "GroupSchedulesSection",
-      "to": "useGroupSchedules",
-      "type": "uses_hook"
-    },
-    {
-      "from": "GroupSchedulesSection",
-      "to": "useAddGroupSchedule",
-      "type": "uses_hook"
-    },
-    {
-      "from": "GroupSchedulesSection",
-      "to": "useRemoveGroupSchedule",
-      "type": "uses_hook"
-    },
-    {
-      "from": "GroupSchedulesSection",
-      "to": "useSchedules",
-      "type": "uses_hook"
-    },
-    {
-      "from": "GroupTree",
-      "to": "useChildGroups",
       "type": "uses_hook"
     },
     {
@@ -22310,6 +22255,61 @@
     {
       "from": "LocationEditorModal",
       "to": "useUpdateLocation",
+      "type": "uses_hook"
+    },
+    {
+      "from": "FirstTimeVisitorList",
+      "to": "useFirstTimeVisitorsByDateRange",
+      "type": "uses_hook"
+    },
+    {
+      "from": "FirstTimeVisitorWidget",
+      "to": "useTodaysFirstTimeVisitors",
+      "type": "uses_hook"
+    },
+    {
+      "from": "AddMemberModal",
+      "to": "usePeople",
+      "type": "uses_hook"
+    },
+    {
+      "from": "FamilyMemberCard",
+      "to": "useUpdateFamilyMember",
+      "type": "uses_hook"
+    },
+    {
+      "from": "GroupAttendanceHistorySection",
+      "to": "useGroupAttendanceHistory",
+      "type": "uses_hook"
+    },
+    {
+      "from": "GroupAttendanceHistorySection",
+      "to": "useGroupAttendanceDetail",
+      "type": "uses_hook"
+    },
+    {
+      "from": "GroupSchedulesSection",
+      "to": "useGroupSchedules",
+      "type": "uses_hook"
+    },
+    {
+      "from": "GroupSchedulesSection",
+      "to": "useAddGroupSchedule",
+      "type": "uses_hook"
+    },
+    {
+      "from": "GroupSchedulesSection",
+      "to": "useRemoveGroupSchedule",
+      "type": "uses_hook"
+    },
+    {
+      "from": "GroupSchedulesSection",
+      "to": "useSchedules",
+      "type": "uses_hook"
+    },
+    {
+      "from": "GroupTree",
+      "to": "useChildGroups",
       "type": "uses_hook"
     },
     {

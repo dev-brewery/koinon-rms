@@ -12,6 +12,29 @@
 const fs = require('fs');
 const path = require('path');
 
+/**
+ * Read a source file as UTF-8 with line endings normalized to LF.
+ *
+ * The graph output embeds captured source text (e.g. multi-line type
+ * definitions). Reading raw would bake the checkout's line endings into the
+ * baseline — CRLF on a Windows working tree (core.autocrlf=true), LF on the
+ * Linux CI runner — making the generated baseline non-deterministic across
+ * platforms. Normalizing here, at the single point where source enters the
+ * tool, keeps the baseline byte-identical on every OS.
+ */
+function readSource(filePath) {
+  return fs.readFileSync(filePath, 'utf-8').replace(/\r\n/g, '\n');
+}
+
+/**
+ * Sort readdir entries ({ withFileTypes: true }) by name using code-unit
+ * comparison. Not localeCompare — that is locale-dependent and would itself
+ * be non-deterministic across machines. Gives a stable, OS-independent order.
+ */
+function sortByName(entries) {
+  return entries.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+}
+
 // ============================================================================
 // Argument Parsing
 // ============================================================================
@@ -190,7 +213,8 @@ function parseTypesRecursive(dir, baseDir = dir) {
   if (!fs.existsSync(dir)) return allTypes;
   const skipDirs = new Set(['__tests__', 'node_modules', 'e2e', 'dist']);
   const skipFiles = new Set(['index.ts', 'template.ts', 'client.ts', 'validators.ts']);
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+  // Sort for deterministic order: readdirSync order is filesystem/OS-dependent.
+  for (const entry of sortByName(fs.readdirSync(dir, { withFileTypes: true }))) {
     if (entry.isDirectory()) {
       if (skipDirs.has(entry.name)) continue;
       Object.assign(allTypes, parseTypesRecursive(path.join(dir, entry.name), baseDir));
@@ -203,8 +227,10 @@ function parseTypesRecursive(dir, baseDir = dir) {
     ) {
       const filePath = path.join(dir, entry.name);
       try {
-        const content = fs.readFileSync(filePath, 'utf-8');
-        const rel = path.relative(WEB_SRC_DIR, filePath);
+        const content = readSource(filePath);
+        // Normalize to forward slashes so the embedded path is identical on
+        // Windows and Linux (path.relative uses the OS separator).
+        const rel = path.relative(WEB_SRC_DIR, filePath).replace(/\\/g, '/');
         const fileTypes = parseTypes(content, rel);
         for (const [name, type] of Object.entries(fileTypes)) {
           if (!allTypes[name]) allTypes[name] = type;
@@ -228,12 +254,13 @@ function parseTypesFromDirectory(dir) {
   const skipFiles = new Set(['index.ts', 'template.ts']);
 
   const files = fs.readdirSync(dir)
-    .filter(f => f.endsWith('.ts') && !skipFiles.has(f));
+    .filter(f => f.endsWith('.ts') && !skipFiles.has(f))
+    .sort();
 
   for (const file of files) {
     const filePath = path.join(dir, file);
     try {
-      const content = fs.readFileSync(filePath, 'utf-8');
+      const content = readSource(filePath);
       const relativePath = `types/${file}`;
       const fileTypes = parseTypes(content, relativePath);
 
@@ -306,11 +333,12 @@ function parseApiFunctions(typesMap) {
   }
 
   const files = fs.readdirSync(SERVICES_API_DIR)
-    .filter(f => f.endsWith('.ts') && !skipFiles.has(f));
+    .filter(f => f.endsWith('.ts') && !skipFiles.has(f))
+    .sort();
 
   for (const file of files) {
     const filePath = path.join(SERVICES_API_DIR, file);
-    const content = fs.readFileSync(filePath, 'utf-8');
+    const content = readSource(filePath);
 
     // Extract exports: export async function name(...): Promise<Type>
     const funcRegex = /export\s+async\s+function\s+(\w+)\s*\([^)]*\)\s*:\s*Promise<([^>]+)>\s*\{/g;
@@ -443,11 +471,12 @@ function parseHooks(apiFunctions) {
   }
 
   const files = fs.readdirSync(HOOKS_DIR)
-    .filter(f => f.startsWith('use') && f.endsWith('.ts'));
+    .filter(f => f.startsWith('use') && f.endsWith('.ts'))
+    .sort();
 
   for (const file of files) {
     const filePath = path.join(HOOKS_DIR, file);
-    const content = fs.readFileSync(filePath, 'utf-8');
+    const content = readSource(filePath);
 
     // Extract: export function useHookName(...)
     const hookRegex = /export\s+function\s+(use\w+)\s*\([^)]*\)\s*\{/g;
@@ -529,7 +558,7 @@ function parseComponents(hooks) {
 
   for (const filePath of componentFiles) {
     try {
-      const content = fs.readFileSync(filePath, 'utf-8');
+      const content = readSource(filePath);
       const componentName = extractComponentName(filePath, content);
 
       if (componentName) {
@@ -559,7 +588,7 @@ function findComponentFiles(dir) {
   const files = [];
 
   try {
-    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    const entries = sortByName(fs.readdirSync(dir, { withFileTypes: true }));
     for (const entry of entries) {
       const fullPath = path.join(dir, entry.name);
       if (entry.isDirectory()) {
@@ -674,7 +703,7 @@ async function main() {
     console.log('Reading services/api/types.ts...');
     let types = {};
     if (fs.existsSync(TYPES_FILE)) {
-      const typesContent = fs.readFileSync(TYPES_FILE, 'utf-8');
+      const typesContent = readSource(TYPES_FILE);
       types = parseTypes(typesContent, 'services/api/types.ts');
       console.log(`  Found ${Object.keys(types).length} types/interfaces/enums\n`);
     } else {

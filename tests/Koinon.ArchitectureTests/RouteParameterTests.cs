@@ -17,12 +17,12 @@ public class RouteParameterTests
     /// Deliberate exceptions, one per line with a justifying comment.
     /// Adding to this list is a reviewed decision, not a convenience.
     /// </summary>
-    private static readonly string[] Allowlist = [];
+    private static readonly string[] _allowlist = [];
 
-    private static readonly Assembly ApiAssembly = typeof(Koinon.Api.Controllers.AuthController).Assembly;
+    private static readonly Assembly _apiAssembly = typeof(Koinon.Api.Controllers.AuthController).Assembly;
 
     private static IEnumerable<Type> Controllers() =>
-        ApiAssembly.GetTypes().Where(t =>
+        _apiAssembly.GetTypes().Where(t =>
             t.IsClass && !t.IsAbstract && typeof(ControllerBase).IsAssignableFrom(t));
 
     private static IEnumerable<MethodInfo> Actions(Type controller) =>
@@ -35,22 +35,26 @@ public class RouteParameterTests
         var violations = new List<string>();
 
         foreach (var controller in Controllers())
-        foreach (var action in Actions(controller))
-        foreach (var param in action.GetParameters())
         {
-            var isIdName = param.Name is not null &&
-                           (param.Name.Equals("id", StringComparison.OrdinalIgnoreCase) ||
-                            param.Name.EndsWith("Id", StringComparison.Ordinal));
-            var isIntegral = param.ParameterType == typeof(int) || param.ParameterType == typeof(long) ||
-                             param.ParameterType == typeof(int?) || param.ParameterType == typeof(long?);
-            // [FromBody]/[FromQuery] DTO members are out of scope here; this
-            // guards route/query scalars, which is where enumeration happens.
-            if (isIdName && isIntegral)
+            foreach (var action in Actions(controller))
             {
-                var key = $"{controller.Name}.{action.Name}({param.Name})";
-                if (!Allowlist.Contains(key))
+                foreach (var param in action.GetParameters())
                 {
-                    violations.Add(key);
+                    var isIdName = param.Name is not null &&
+                                   (param.Name.Equals("id", StringComparison.OrdinalIgnoreCase) ||
+                                    param.Name.EndsWith("Id", StringComparison.Ordinal));
+                    var isIntegral = param.ParameterType == typeof(int) || param.ParameterType == typeof(long) ||
+                                     param.ParameterType == typeof(int?) || param.ParameterType == typeof(long?);
+                    // [FromBody]/[FromQuery] DTO members are out of scope here; this
+                    // guards route/query scalars, which is where enumeration happens.
+                    if (isIdName && isIntegral)
+                    {
+                        var key = $"{controller.Name}.{action.Name}({param.Name})";
+                        if (!_allowlist.Contains(key))
+                        {
+                            violations.Add(key);
+                        }
+                    }
                 }
             }
         }

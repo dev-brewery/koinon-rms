@@ -1,4 +1,4 @@
-﻿using Koinon.Application.Interfaces;
+using Koinon.Application.Interfaces;
 using Koinon.Domain.Data;
 using Microsoft.Extensions.Logging;
 

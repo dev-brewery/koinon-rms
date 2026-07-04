@@ -11,17 +11,17 @@ namespace Koinon.ArchitectureTests;
 /// </summary>
 public class LayerDependencyTests
 {
-    private static readonly System.Reflection.Assembly DomainAssembly =
+    private static readonly System.Reflection.Assembly _domainAssembly =
         typeof(Koinon.Domain.Entities.Person).Assembly;
-    private static readonly System.Reflection.Assembly ApplicationAssembly =
+    private static readonly System.Reflection.Assembly _applicationAssembly =
         typeof(Koinon.Application.Interfaces.IApplicationDbContext).Assembly;
-    private static readonly System.Reflection.Assembly InfrastructureAssembly =
+    private static readonly System.Reflection.Assembly _infrastructureAssembly =
         typeof(Koinon.Infrastructure.Data.KoinonDbContext).Assembly;
 
     [Fact]
     public void Domain_DependsOnNoOtherLayer()
     {
-        var result = Types.InAssembly(DomainAssembly)
+        var result = Types.InAssembly(_domainAssembly)
             .ShouldNot()
             .HaveDependencyOnAny("Koinon.Application", "Koinon.Infrastructure", "Koinon.Api")
             .GetResult();
@@ -33,7 +33,7 @@ public class LayerDependencyTests
     [Fact]
     public void Application_DoesNotDependOnInfrastructureOrApi()
     {
-        var result = Types.InAssembly(ApplicationAssembly)
+        var result = Types.InAssembly(_applicationAssembly)
             .ShouldNot()
             .HaveDependencyOnAny("Koinon.Infrastructure", "Koinon.Api")
             .GetResult();
@@ -45,7 +45,7 @@ public class LayerDependencyTests
     [Fact]
     public void Infrastructure_DoesNotDependOnApi()
     {
-        var result = Types.InAssembly(InfrastructureAssembly)
+        var result = Types.InAssembly(_infrastructureAssembly)
             .ShouldNot()
             .HaveDependencyOnAny("Koinon.Api")
             .GetResult();

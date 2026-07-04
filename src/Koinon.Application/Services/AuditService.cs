@@ -362,15 +362,19 @@ public class AuditService(
     /// <returns>CSV file as byte array.</returns>
     private byte[] GenerateCsvExport(List<AuditLog> auditLogs)
     {
+        // RFC 4180 defines the CSV record separator as CRLF; emit it explicitly so
+        // exports are byte-identical across Windows and Linux (not AppendLine, which
+        // follows the host OS).
+        const string crlf = "\r\n";
         var sb = new StringBuilder();
 
         // Header
-        sb.AppendLine("Timestamp,Action,Entity Type,Entity ID,Person,IP Address,User Agent,Changed Properties,Additional Info");
+        sb.Append("Timestamp,Action,Entity Type,Entity ID,Person,IP Address,User Agent,Changed Properties,Additional Info").Append(crlf);
 
         // Rows
         foreach (var log in auditLogs)
         {
-            sb.AppendLine(string.Join(",",
+            sb.Append(string.Join(",",
                 EscapeCsvValue(log.Timestamp.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)),
                 EscapeCsvValue(log.ActionType.ToString()),
                 EscapeCsvValue(log.EntityType),
@@ -379,7 +383,7 @@ public class AuditService(
                 EscapeCsvValue(log.IpAddress ?? ""),
                 EscapeCsvValue(log.UserAgent ?? ""),
                 EscapeCsvValue(log.ChangedProperties ?? ""),
-                EscapeCsvValue(log.AdditionalInfo ?? "")));
+                EscapeCsvValue(log.AdditionalInfo ?? ""))).Append(crlf);
         }
 
         return Encoding.UTF8.GetBytes(sb.ToString());
