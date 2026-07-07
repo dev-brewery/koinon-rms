@@ -41,7 +41,7 @@ public class AddressTests
         var formatted = address.FormattedAddress;
 
         // Assert
-        var expected = string.Join(Environment.NewLine,
+        var expected = string.Join("\n",
             "123 Main St",
             "Apt 4B",
             "Springfield, IL 62701",
@@ -65,7 +65,7 @@ public class AddressTests
         var formatted = address.FormattedAddress;
 
         // Assert
-        var expected = string.Join(Environment.NewLine,
+        var expected = string.Join("\n",
             "123 Main St",
             "Springfield, IL 62701");
         Assert.Equal(expected, formatted);
