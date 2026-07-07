@@ -47,6 +47,8 @@ function stagedFiles() {
 }
 
 if (staged) {
+  run('Graph baseline guard', 'node scripts/guard-baseline.mjs');
+
   const files = stagedFiles();
   const cs = files.filter((f) => f.endsWith('.cs'));
   const webTs = files.filter((f) => /^src\/web\/.*\.(ts|tsx)$/.test(f));

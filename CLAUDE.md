@@ -58,6 +58,12 @@ agent; outcomes are recorded as ADRs in `docs/adr/`.
   class components. (`src/web/src/api/client.ts` is dead code — never import.)
 - **Structural changes update the graph baseline:** `npm run graph:update`,
   commit `tools/graph/graph-baseline.json` with the code.
+- **Impact analysis before code changes.** A PreToolUse guard denies
+  Edit/Write on any code file — and `git commit` — until
+  `node scripts/hooks/impact-analyze.mjs <file>` (or `--changed`) has been
+  run and its output (dependents + layer rules) actually read. Analyses
+  expire after 90 minutes. There is no agent-side bypass; if the gate blocks
+  wrongly, report it to a human — never work around it.
 
 ## Commands
 

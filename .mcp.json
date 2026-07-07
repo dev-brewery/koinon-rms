@@ -2,11 +2,11 @@
   "mcpServers": {
     "koinon-index": {
       "command": "node",
-      "args": ["tools/mcp-servers/codebase-index/server.js"]
+      "args": ["${CLAUDE_PROJECT_DIR:-.}/tools/mcp-servers/codebase-index/server.js"]
     },
     "koinon-dev": {
       "command": "node",
-      "args": ["tools/mcp-koinon-dev/dist/index.js"]
+      "args": ["${CLAUDE_PROJECT_DIR:-.}/tools/mcp-koinon-dev/dist/index.js"]
     },
     "postgres": {
       "command": "npx",

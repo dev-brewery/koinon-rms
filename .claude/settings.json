@@ -1,0 +1,33 @@
+  {
+    "permissions": {
+      "deny": [
+        "Edit(/.claude/**)",
+        "Edit(/.husky/**)",
+        "Edit(/.github/workflows/**)",
+        "Edit(/scripts/hooks/**)",
+        "Edit(/tools/graph/backend-graph.json)",
+        "Edit(/tools/graph/frontend-graph.json)",
+        "Edit(/tools/graph/graph-baseline.json)",
+        "Read(./.env)",
+        "Read(./.env.*)",
+        "Read(./secrets/**)"
+      ]
+    },
+    "hooks": {
+      "PreToolUse": [
+        {
+          "matcher": "Bash|PowerShell|Edit|Write|NotebookEdit|mcp__postgres__.*",
+          "hooks": [
+            { "type": "command", "command": "node scripts/hooks/pre-tool-guard.mjs" }
+          ]
+        }
+      ],
+      "SessionStart": [
+        {
+          "hooks": [
+            { "type": "command", "command": "node scripts/hooks/session-onboard.mjs" }
+          ]
+        }
+      ]
+    }
+  }

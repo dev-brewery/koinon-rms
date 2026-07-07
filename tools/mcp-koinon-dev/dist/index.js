@@ -502,8 +502,12 @@ function analyzeFileImpact(filePath) {
             });
         }
     }
-    const layersAffected = [...new Set(affected.map(f => f.layer))];
-    const highImpact = affected.length > 5 || layersAffected.length > 2;
+    // Multiple api_functions can share a module file (several exports in one
+    // .ts), so dedupe by path; keep the first (richest-relationship) occurrence.
+    const seenPaths = new Set();
+    const uniqueAffected = affected.filter(f => seenPaths.has(f.path) ? false : (seenPaths.add(f.path), true));
+    const layersAffected = [...new Set(uniqueAffected.map(f => f.layer))];
+    const highImpact = uniqueAffected.length > 5 || layersAffected.length > 2;
     if (fileAnalysis.entityName) {
         workUnits.set(`WU-1.2.${fileAnalysis.entityName}`, {
             id: `WU-1.2.${fileAnalysis.entityName}`,
@@ -512,7 +516,7 @@ function analyzeFileImpact(filePath) {
         });
     }
     return {
-        affected_files: affected.map(f => ({
+        affected_files: uniqueAffected.map(f => ({
             path: f.path,
             layer: f.layer,
             relationship: f.entityName ? `dependent_on_${f.entityName}` :
@@ -521,7 +525,7 @@ function analyzeFileImpact(filePath) {
                         f.controllerName ? `serves_${f.controllerName}` : 'related'
         })),
         affected_work_units: Array.from(workUnits.values()),
-        impact_summary: { total_files: affected.length, high_impact: highImpact, layers_affected: layersAffected }
+        impact_summary: { total_files: uniqueAffected.length, high_impact: highImpact, layers_affected: layersAffected }
     };
 }
 function parseFilePath(filePath) {
@@ -558,10 +562,12 @@ function parseFilePath(filePath) {
 function findFrontendConnections(baseline, entityName, linkedDtos) {
     const connections = [];
     const dtoNames = linkedDtos.map(([name]) => name);
-    const relevantApiFunctions = (baseline.api_functions || []).filter((fn) => dtoNames.some(dto => fn.return_type?.includes(dto)));
+    // baseline.api_functions is an object keyed by function name (not an array);
+    // each value carries { name, path, endpoint, method, responseType }.
+    const relevantApiFunctions = Object.values(baseline.api_functions || {}).filter((fn) => dtoNames.some(dto => fn.responseType?.includes(dto)));
     for (const fn of relevantApiFunctions) {
         connections.push({
-            path: `src/web/src/services/api/${fn.name}.ts`,
+            path: `src/web/src/${fn.path}`,
             layer: 'Frontend',
             apiFunctionName: fn.name
         });
@@ -586,10 +592,10 @@ function findFrontendConnections(baseline, entityName, linkedDtos) {
 }
 function findFrontendConnectionsForDto(baseline, dtoName) {
     const connections = [];
-    const relevantApiFunctions = (baseline.api_functions || []).filter((fn) => fn.return_type?.includes(dtoName));
+    const relevantApiFunctions = Object.values(baseline.api_functions || {}).filter((fn) => fn.responseType?.includes(dtoName));
     for (const fn of relevantApiFunctions) {
         connections.push({
-            path: `src/web/src/services/api/${fn.name}.ts`,
+            path: `src/web/src/${fn.path}`,
             layer: 'Frontend',
             apiFunctionName: fn.name
         });
@@ -615,10 +621,10 @@ function findFrontendConnectionsForDto(baseline, dtoName) {
 function findFrontendConnectionsForController(baseline, controllerName) {
     const connections = [];
     const resourceName = controllerName.replace('Controller', '');
-    const relevantApiFunctions = (baseline.api_functions || []).filter((fn) => fn.endpoint?.includes(resourceName.toLowerCase()));
+    const relevantApiFunctions = Object.values(baseline.api_functions || {}).filter((fn) => fn.endpoint?.includes(resourceName.toLowerCase()));
     for (const fn of relevantApiFunctions) {
         connections.push({
-            path: `src/web/src/services/api/${fn.name}.ts`,
+            path: `src/web/src/${fn.path}`,
             layer: 'Frontend',
             apiFunctionName: fn.name
         });

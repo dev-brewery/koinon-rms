@@ -506,6 +506,9 @@ jobs:
         fi
         echo "Committed dist/ is up to date"
 
+    - name: Smoke-test get_impact_analysis against committed baseline
+      run: npm --prefix tools/mcp-koinon-dev test
+
   # Browser smoke tests against the full containerized stack.
   # This is the gate that catches check-in kiosk regressions (the MVP).
   e2e-smoke:

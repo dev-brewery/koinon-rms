@@ -201,10 +201,12 @@ temp/
 # These folders are not committed to the repo but synced separately
 # See .git-sync/ for sync configuration
 # Exception: agents/ and skills/ are portable project tooling and ARE
-# committed so a clone exports them to other machines.
+# committed so a clone exports them to other machines. settings.json is
+# committed so the PreToolUse enforcement hooks bind every clone.
 .claude/*
 !.claude/agents/
 !.claude/skills/
+!.claude/settings.json
 .git-sync/
 
 # GitHub - all files (prevent agent CI modifications)
@@ -217,29 +219,9 @@ tmp/validate-output.log
 # must export with a clone (relative paths/npx only, dev-default creds that
 # match the committed compose files — no real secrets; see ADR 0005).
 
-# MAXIMUS session files (transient, reinitialized per session)
-.maximus-session
-.maximus-session.json
-.maximus-verdict.json
-
 # Change Orders and Requests
 docs/change-orders/
 test-results/.last-run.json
-
-# MAXIMUS orchestrator - local backup and session files
-.maximus/
-docs/EMERGENCY-SECURITY-FIXES.md
-docs/security-fixes/README.md
-tools/graph/__pycache__/verify-contracts.cpython-312.pyc
-issues.json
-list_bugs.sh
-view_issue.sh
-issue_429.txt
-issue_419.txt
-sprint_23_bugs.json
-test_output.txt
-build_output.txt
-build_errors.txt
 
 venv-rag/
 

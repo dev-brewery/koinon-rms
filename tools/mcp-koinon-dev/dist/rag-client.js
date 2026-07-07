@@ -22,7 +22,15 @@ const EMBEDDINGS_BASE_URL = (process.env.EMBEDDINGS_URL || process.env.OLLAMA_UR
 const OLLAMA_MODEL = 'nomic-embed-text';
 const VECTOR_SIZE = 768;
 const QDRANT_URL = process.env.QDRANT_URL || `http://${RAG_HOST}:6333`;
-const REQUEST_TIMEOUT = 5000; // 5 seconds
+const REQUEST_TIMEOUT = 5000; // 5 seconds — Qdrant health/search, always fast
+// Embedding calls tolerate the gateway's lazy cold-load: a warm call is ~100ms,
+// but the first-after-idle call blocks (or 400s) while nomic-embed-text loads.
+// Graceful persistence — a patient timeout across several backed-off attempts —
+// absorbs that, instead of failing at 5s and making semantic search look "down"
+// (the recurring misdiagnosis that made every session fall back to grep).
+const EMBED_TIMEOUT = Number(process.env.EMBED_TIMEOUT) || 20000;
+const EMBED_MAX_ATTEMPTS = Number(process.env.EMBED_ATTEMPTS) || 4;
+const EMBED_BACKOFF_MS = Number(process.env.EMBED_BACKOFF_MS) || 1500;
 /**
  * Get embedding vector from the inference server. nomic prefixes:
  * 'search_query:' for queries, 'search_document:' when storing documents
@@ -32,9 +40,9 @@ const REQUEST_TIMEOUT = 5000; // 5 seconds
  */
 async function getEmbedding(text, prefix = 'search_query') {
     const input = `${prefix}: ${text}`;
-    const post = async (url, body) => {
+    const post = async (url, body, timeoutMs) => {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
         try {
             return await fetch(url, {
                 method: 'POST',
@@ -56,29 +64,40 @@ async function getEmbedding(text, prefix = 'search_query') {
             clearTimeout(timeoutId);
         }
     };
-    // Ollama protocol
-    const ollamaRes = await post(`${EMBEDDINGS_BASE_URL}/api/embed`, {
-        model: OLLAMA_MODEL,
-        input: [input]
-    });
-    if (ollamaRes?.ok) {
-        const data = await ollamaRes.json();
-        if (data.embeddings?.[0])
-            return data.embeddings[0];
+    // One protocol-flexible attempt: Ollama /api/embed (some deployments) then
+    // OpenAI-compatible /v1/embeddings (the koinon gateway). Resolves to the
+    // vector, or a status string describing why this attempt missed.
+    const attempt = async () => {
+        const ollamaRes = await post(`${EMBEDDINGS_BASE_URL}/api/embed`, { model: OLLAMA_MODEL, input: [input] }, EMBED_TIMEOUT);
+        if (ollamaRes?.ok) {
+            const data = await ollamaRes.json();
+            if (data.embeddings?.[0])
+                return data.embeddings[0];
+        }
+        const openaiRes = await post(`${EMBEDDINGS_BASE_URL}/v1/embeddings`, { model: OLLAMA_MODEL, input: [input] }, EMBED_TIMEOUT);
+        if (openaiRes?.ok) {
+            const data = await openaiRes.json();
+            if (data.data?.[0]?.embedding)
+                return data.data[0].embedding;
+        }
+        return `/api/embed -> ${ollamaRes?.status ?? 'unreachable'}, /v1/embeddings -> ${openaiRes?.status ?? 'unreachable'}`;
+    };
+    // Graceful persistence: a cold gateway 400s or stalls while loading the model,
+    // then serves in ~100ms. Retry with growing backoff so the first-after-idle
+    // call recovers rather than making the whole semantic layer report "down".
+    let lastStatus = 'unreachable';
+    for (let i = 1; i <= EMBED_MAX_ATTEMPTS; i++) {
+        const result = await attempt();
+        if (Array.isArray(result))
+            return result;
+        lastStatus = result;
+        if (i < EMBED_MAX_ATTEMPTS) {
+            await new Promise((r) => setTimeout(r, EMBED_BACKOFF_MS * i));
+        }
     }
-    // OpenAI-compatible protocol
-    const openaiRes = await post(`${EMBEDDINGS_BASE_URL}/v1/embeddings`, {
-        model: OLLAMA_MODEL,
-        input: [input]
-    });
-    if (openaiRes?.ok) {
-        const data = await openaiRes.json();
-        if (data.data?.[0]?.embedding)
-            return data.data[0].embedding;
-    }
-    console.error(`No embeddings API at ${EMBEDDINGS_BASE_URL} ` +
-        `(/api/embed -> ${ollamaRes?.status ?? 'unreachable'}, ` +
-        `/v1/embeddings -> ${openaiRes?.status ?? 'unreachable'})`);
+    console.error(`Embeddings unavailable after ${EMBED_MAX_ATTEMPTS} patient attempts at ${EMBEDDINGS_BASE_URL} ` +
+        `(last: ${lastStatus}). The gateway did not warm up — a REAL failure, not a cold start; ` +
+        `semantic search must NOT be silently skipped.`);
     return null;
 }
 /**
