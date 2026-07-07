@@ -47,8 +47,10 @@ it in the noise. Counters drift #1/#3 applied to the handoff itself.
    SessionStart hook injects only the tight covenant; the deep why lives here, summoned only
    when needed. Skills are committed (`!.claude/skills/` in .gitignore) so it TRAVELS to
    another PC — one of the two things (with committing) that make the "why" portable.
-- No window (skills dir is not deny-protected). **Verify:** invoking it loads the doctrine;
-  it stays out of context until invoked.
+- **Window: yes** — verified 2026-07-07: the blanket `Edit(/.claude/**)` deny in
+  `.claude/settings.json` covers `.claude/skills/` too (the earlier "no window" claim was
+  wrong). Owner must open the window to install; draft+validate in scratchpad first.
+  **Verify:** invoking it loads the doctrine; it stays out of context until invoked.
 
 ## Phase 1 — Verify the standards are indexed (read-only; NO window)
 The architect review is worthless if the standards aren't retrievable (drift #3 haystack).
@@ -63,10 +65,14 @@ The architect review is worthless if the standards aren't retrievable (drift #3 
 2.1 `scripts/hooks/architect-review.mjs` (NEW): input = files + `--deduced` + `--proposed`.
    - Precisely retrieve (RAG + `trace_feature`): the specific ADR(s), conventions, contract,
      and existing pattern relevant to THIS change — focused needles, never the whole corpus.
-   - Call the configurable architect brain: `ARCHITECT_URL` (default `http://192.168.1.225:4000`),
-     `ARCHITECT_MODEL` (default the current dense reasoning model — owner-confirmed;
-     Qwen3.6 27b dense was named, SLOW; keep it a dial). `/v1/chat/completions`, isolated
-     context = ONLY problem + proposal + retrieved standards.
+   - Call the configurable architect brain — **owner-decided 2026-07-07: PRIMARY = an
+     OpenAI-API request (fast, hosted); FALLBACK = local Qwen at the :4000 gateway, and
+     the fallback MUST emit a visible notice to the user that it activated** (local can
+     take ~5 min on complex requests). Both paths are OpenAI-compatible
+     `/v1/chat/completions`; dials: `ARCHITECT_URL`/`ARCHITECT_MODEL` (primary),
+     `ARCHITECT_FALLBACK_URL`/`ARCHITECT_FALLBACK_MODEL` (default
+     `http://192.168.1.225:4000`, Qwen). Isolated context = ONLY problem + proposal +
+     retrieved standards. Both down → HARD STOP (quality-over-autonomy).
    - Ruling: `APPROVED | APPROVED_WITH_CONDITIONS | REJECTED` + cited reasons (which ADR/
      contract/convention). Write a **content-bound** ruling to `.claude/approvals/<sha>.json`
      (sha = hash of the changed file-set + proposal). RAG/brain down → HARD STOP (quality-over-autonomy).
@@ -74,8 +80,10 @@ The architect review is worthless if the standards aren't retrievable (drift #3 
    file until a fresh APPROVED ruling exists whose hash matches the current change. The
    approval store lives under `.claude/` — deny-protected from the developer agent; only
    `architect-review.mjs` (a sanctioned named-script invocation) writes it → unforgeable.
-2.3 Resolve OPEN DECISIONS with the owner: (a) architect brain — local-slow vs faster/API;
-   (b) acceptance-criteria source — linked issue vs spec vs developer-stated+convention-checked.
+2.3 OPEN DECISIONS — **RESOLVED by the owner 2026-07-07**: (a) architect brain = OpenAI-API
+   primary with local-Qwen fallback + visible fallback notice (see 2.1); (b) acceptance-
+   criteria source = the **linked GitHub issue** (the architect reads criteria from the
+   issue the change references — changes need a linked issue with real criteria).
 - **Window:** yes. **Verify:** a proposal that violates a known ADR gets REJECTED with the
   citation; a conforming one gets APPROVED; a forged approval (developer writing the store)
   is blocked by the deny rule.
