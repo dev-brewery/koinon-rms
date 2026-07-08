@@ -55,7 +55,7 @@ services:
         ENTRYPOINT ["dotnet", "ef"]
     container_name: koinon-migrate-test
     environment:
-      ConnectionStrings__KoinonDb: "Host=postgres-test;Port=5432;Database=koinon_test;Username=koinon;Password=koinon_test"
+      ConnectionStrings__DefaultConnection: "Host=postgres-test;Port=5432;Database=koinon_test;Username=koinon;Password=koinon_test"
     depends_on:
       postgres-test:
         condition: service_healthy
@@ -81,7 +81,7 @@ services:
         ENTRYPOINT ["dotnet", "run", "--project", "tools/TestData/TestData.csproj", "--no-build", "--"]
     container_name: koinon-seed-test
     environment:
-      ConnectionStrings__KoinonDb: "Host=postgres-test;Port=5432;Database=koinon_test;Username=koinon;Password=koinon_test"
+      ConnectionStrings__DefaultConnection: "Host=postgres-test;Port=5432;Database=koinon_test;Username=koinon;Password=koinon_test"
     depends_on:
       postgres-test:
         condition: service_healthy
@@ -102,7 +102,7 @@ services:
     container_name: koinon-api-test
     environment:
       ASPNETCORE_ENVIRONMENT: Testing
-      ConnectionStrings__KoinonDb: "Host=postgres-test;Port=5432;Database=koinon_test;Username=koinon;Password=koinon_test"
+      ConnectionStrings__DefaultConnection: "Host=postgres-test;Port=5432;Database=koinon_test;Username=koinon;Password=koinon_test"
       ConnectionStrings__Redis: "redis-test:6379"
     ports:
       - "5001:8080"
@@ -128,7 +128,7 @@ services:
 #    docker-compose -f docker-compose.test.yml --profile setup --profile api up
 #
 # 4. Run .NET integration tests against this environment:
-#    ConnectionStrings__KoinonDb="Host=localhost;Port=5433;Database=koinon_test;Username=koinon;Password=koinon_test" \
+#    ConnectionStrings__DefaultConnection="Host=localhost;Port=5433;Database=koinon_test;Username=koinon;Password=koinon_test" \
 #    dotnet test tests/Koinon.Api.IntegrationTests
 #
 # 5. Cleanup:

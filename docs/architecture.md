@@ -688,7 +688,7 @@ services:
       - "5000:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__Koinon=Host=db;Database=koinon;Username=koinon;Password=${DB_PASSWORD}
+      - ConnectionStrings__DefaultConnection=Host=db;Database=koinon;Username=koinon;Password=${DB_PASSWORD}
       - Redis__ConnectionString=redis:6379
     depends_on:
       db:

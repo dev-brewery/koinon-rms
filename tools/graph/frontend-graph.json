@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-06-18T15:30:00.029Z",
+  "generated_at": "2026-07-04T14:02:22.648Z",
   "types": {
     "DefinedTypeSummary": {
       "name": "DefinedTypeSummary",
@@ -282,7 +282,11 @@
         "locationName": "string",
         "checkInTime": "DateTime",
         "checkOutTime": "DateTime | null",
-        "isPresent": "boolean"
+        "isPresent": "boolean",
+        "allergies": "string | null",
+        "hasCriticalAllergies": "boolean",
+        "securityCode": "string | null",
+        "isFirstTime": "boolean"
       },
       "path": "services/api/checkinOperations.ts"
     },
@@ -4630,6 +4634,13 @@
       "method": "POST",
       "responseType": "ToggleRoomResponseDto"
     },
+    "checkoutAttendee": {
+      "name": "checkoutAttendee",
+      "path": "services/api/checkinOperations.ts",
+      "endpoint": "/unknown",
+      "method": "GET",
+      "responseType": "void"
+    },
     "getCommunicationTemplate": {
       "name": "getCommunicationTemplate",
       "path": "services/api/communicationTemplates.ts",
@@ -6039,6 +6050,19 @@
       "usesMutation": true,
       "dependencies": [
         "toggleCheckinOperationsRoom"
+      ]
+    },
+    "useCheckoutAttendee": {
+      "name": "useCheckoutAttendee",
+      "path": "hooks/useCheckinOperations.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "checkoutattendee"
+      ],
+      "usesQuery": false,
+      "usesMutation": true,
+      "dependencies": [
+        "checkoutAttendee"
       ]
     },
     "useCommunicationPreferences": {
@@ -7936,6 +7960,17 @@
         "disableTwoFactor"
       ]
     },
+    "useSetupWizard": {
+      "name": "useSetupWizard",
+      "path": "hooks/useSetupWizard.ts",
+      "apiBinding": "",
+      "queryKey": [
+        "setupwizard"
+      ],
+      "usesQuery": false,
+      "usesMutation": false,
+      "dependencies": []
+    },
     "useSupervisorAttendance": {
       "name": "useSupervisorAttendance",
       "path": "hooks/useSupervisorAttendance.ts",
@@ -8421,6 +8456,54 @@
     "WeeklySchedulePicker": {
       "name": "WeeklySchedulePicker",
       "path": "components/admin/schedules/WeeklySchedulePicker.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "CampusStep": {
+      "name": "CampusStep",
+      "path": "components/admin/setup-wizard/CampusStep.tsx",
+      "hooksUsed": [
+        "useCreateCampus"
+      ],
+      "apiCallsDirectly": false
+    },
+    "CheckinSetupStep": {
+      "name": "CheckinSetupStep",
+      "path": "components/admin/setup-wizard/CheckinSetupStep.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "CompleteStep": {
+      "name": "CompleteStep",
+      "path": "components/admin/setup-wizard/CompleteStep.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "LocationsStep": {
+      "name": "LocationsStep",
+      "path": "components/admin/setup-wizard/LocationsStep.tsx",
+      "hooksUsed": [
+        "useCreateLocation"
+      ],
+      "apiCallsDirectly": false
+    },
+    "ScheduleStep": {
+      "name": "ScheduleStep",
+      "path": "components/admin/setup-wizard/ScheduleStep.tsx",
+      "hooksUsed": [
+        "useCreateSchedule"
+      ],
+      "apiCallsDirectly": false
+    },
+    "WelcomeStep": {
+      "name": "WelcomeStep",
+      "path": "components/admin/setup-wizard/WelcomeStep.tsx",
+      "hooksUsed": [],
+      "apiCallsDirectly": false
+    },
+    "WizardStepIndicator": {
+      "name": "WizardStepIndicator",
+      "path": "components/admin/setup-wizard/WizardStepIndicator.tsx",
       "hooksUsed": [],
       "apiCallsDirectly": false
     },
@@ -9448,6 +9531,21 @@
     {
       "from": "ChildCard",
       "to": "useCheckOutFromRoster",
+      "type": "uses_hook"
+    },
+    {
+      "from": "CampusStep",
+      "to": "useCreateCampus",
+      "type": "uses_hook"
+    },
+    {
+      "from": "LocationsStep",
+      "to": "useCreateLocation",
+      "type": "uses_hook"
+    },
+    {
+      "from": "ScheduleStep",
+      "to": "useCreateSchedule",
       "type": "uses_hook"
     },
     {

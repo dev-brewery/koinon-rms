@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>Koinon.ArchitectureTests</AssemblyName>
+    <RootNamespace>Koinon.ArchitectureTests</RootNamespace>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <!-- References every layer: these tests assert the contracts between them -->
+  <ItemGroup>
+    <ProjectReference Include="../../src/Koinon.Domain/Koinon.Domain.csproj" />
+    <ProjectReference Include="../../src/Koinon.Application/Koinon.Application.csproj" />
+    <ProjectReference Include="../../src/Koinon.Infrastructure/Koinon.Infrastructure.csproj" />
+    <ProjectReference Include="../../src/Koinon.Api/Koinon.Api.csproj" />
+  </ItemGroup>
+
+  <!-- Testing packages -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="NetArchTest.Rules" />
+  </ItemGroup>
+
+</Project>

@@ -61,7 +61,7 @@ public class DataSeeder
     /// DefinedValues that the giving flow (AddContribution) requires. After a
     /// reset the migrations aren't re-run, so the rows would never come back.
     /// </summary>
-    private static readonly HashSet<string> ExcludedTables =
+    private static readonly HashSet<string> _excludedTables =
         new(StringComparer.Ordinal)
         {
             "defined_type",
@@ -90,7 +90,7 @@ public class DataSeeder
         var truncatedCount = 0;
 
         // Truncate each table (except migration-owned reference tables).
-        foreach (var table in tables.Where(t => !ExcludedTables.Contains(t)))
+        foreach (var table in tables.Where(t => !_excludedTables.Contains(t)))
         {
             _logger.LogDebug("Truncating table: {Table}", table);
             // Table names cannot be parameterized in SQL - must use raw SQL.
@@ -108,8 +108,8 @@ public class DataSeeder
         _logger.LogInformation(
             "Truncated {Count} tables (skipped {SkippedCount} migration-owned tables: {Skipped})",
             truncatedCount,
-            ExcludedTables.Count,
-            string.Join(", ", ExcludedTables));
+            _excludedTables.Count,
+            string.Join(", ", _excludedTables));
     }
 
     /// <summary>

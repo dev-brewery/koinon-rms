@@ -65,6 +65,34 @@ test.describe('@smoke golden path', () => {
     await expect(page.getByText(/invalid|incorrect|failed/i).first()).toBeVisible();
   });
 
+  test('check-in search API answers within budget', async ({ request }) => {
+    // The MVP contract: kiosk search <200ms (docs: CLAUDE.md, memory graph
+    // "Check-in Performance Budget"). Warn-only on the budget — CI runners
+    // are noisy — but a hard failure past 2s or on a non-200 means the hot
+    // path is genuinely broken. KioskAuthorize allows token-less requests in
+    // Development, which is what the demo stack runs.
+    const apiBase = process.env.E2E_API_URL || 'http://localhost:5000';
+    const timings: number[] = [];
+
+    for (let i = 0; i < 5; i++) {
+      const start = Date.now();
+      const res = await request.get(
+        `${apiBase}/api/v1/checkin/search?query=Johnson`
+      );
+      timings.push(Date.now() - start);
+      expect(res.status(), 'kiosk search must answer 200').toBe(200);
+    }
+
+    const median = timings.sort((a, b) => a - b)[Math.floor(timings.length / 2)];
+    if (median > 200) {
+      console.warn(
+        `⚠ kiosk search median ${median}ms exceeds the 200ms budget ` +
+        `(timings: ${timings.join(', ')}ms) — profile before the demo`
+      );
+    }
+    expect(median, 'kiosk search is pathologically slow').toBeLessThan(2000);
+  });
+
   test('check-in kiosk boots and probes the print bridge', async ({ page }) => {
     // Install the bridge mock BEFORE navigation: CheckinPage probes printer
     // availability on mount. This also proves the app points at

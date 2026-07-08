@@ -25,10 +25,10 @@ dotnet run --project tools/Koinon.TestDataSeeder -- seed --reset
 
 ```bash
 # Using connection string option (provide your actual PostgreSQL connection string)
-dotnet run --project tools/Koinon.TestDataSeeder -- seed --connection "Host=myhost;Port=5432;Database=mydb;Username=myuser;Pwd=\$POSTGRES_PASSWORD"
+dotnet run --project tools/Koinon.TestDataSeeder -- seed --connection "Host=myhost;Port=5432;Database=mydb;Username=myuser;Password=\$POSTGRES_PASSWORD"
 
 # Using environment variable (set to your actual PostgreSQL connection string)
-export KOINON_CONNECTION_STRING="Host=myhost;Port=5432;Database=mydb;Username=myuser;Pwd=\$POSTGRES_PASSWORD"
+export KOINON_CONNECTION_STRING="Host=myhost;Port=5432;Database=mydb;Username=myuser;Password=\$POSTGRES_PASSWORD"
 dotnet run --project tools/Koinon.TestDataSeeder -- seed
 ```
 

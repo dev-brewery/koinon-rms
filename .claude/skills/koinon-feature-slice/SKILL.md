@@ -46,16 +46,16 @@ agent if anything about your slice has no existing precedent.
 
 ## Frontend (src/web)
 
-10. **Types** — add DTO interfaces to `src/services/api/types.ts` (camelCase
-    mirror of the C# records).
-11. **API service** — `src/services/api/<name>.ts`: exported async functions
-    using `get/post/put/del` from `./client` (NEVER raw fetch or a new client),
-    unwrap the `{ data }` envelope, Zod-validate via `validators.ts` pattern.
-    Export from `services/api/index.ts`.
-12. **Hook** — `src/hooks/use<Name>.ts`: TanStack Query
+10. **Types** — add DTO interfaces to `src/web/src/services/api/types.ts`
+    (camelCase mirror of the C# records).
+11. **API service** — `src/web/src/services/api/<name>.ts`: exported async
+    functions using `get/post/put/del` from `./client` (NEVER raw fetch or a
+    new client), unwrap the `{ data }` envelope, Zod-validate via
+    `validators.ts` pattern. Export from `services/api/index.ts`.
+12. **Hook** — `src/web/src/hooks/use<Name>.ts`: TanStack Query
     (`useQuery`/`useMutation`), feature-scoped query keys, invalidate on
     mutation success.
-13. **Page** — `src/pages/admin/<name>/…` functional components; list/detail/
+13. **Page** — `src/web/src/pages/admin/<name>/…` functional components; list/detail/
     form split like the families feature; UI state local, server state in hooks.
 14. **Route** — register in `App.tsx`: lazy import + `<Route>` inside the
     `/admin` `ProtectedRoute` layout (or public section if truly public).

@@ -64,9 +64,12 @@ public class PersonAliasConfiguration : IEntityTypeConfiguration<PersonAlias>
         builder.Property(pa => pa.ModifiedByPersonAliasId)
             .HasColumnName("modified_by_person_alias_id");
 
-        // Relationship to Person (optional - can be null for merge-only records)
+        // Relationship to Person (optional - can be null for merge-only records).
+        // Inverse must be Person.PersonAliases: an anonymous WithMany() here made
+        // EF treat the discovered navigation as a SECOND relationship with a
+        // shadow FK column (PersonId1).
         builder.HasOne(pa => pa.Person)
-            .WithMany()
+            .WithMany(p => p.PersonAliases)
             .HasForeignKey(pa => pa.PersonId)
             .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);

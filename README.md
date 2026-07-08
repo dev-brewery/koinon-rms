@@ -53,43 +53,58 @@ The first milestone is a fully-functional check-in system optimized for:
 
 ## Quick Start
 
+Works the same on Windows and Linux.
+
 ### Prerequisites
 
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-- [Node.js 20+](https://nodejs.org/) (recommend using nvm)
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) (version pinned in `global.json`)
+- [Node.js 20+](https://nodejs.org/)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or Docker Engine + Compose on Linux)
 
-### Development Setup
+### See it running (full demo stack in Docker)
 
 ```bash
-# Clone the repository
-git clone https://github.com/your-org/koinon-rms.git
+git clone https://github.com/dev-brewery/koinon-rms.git
 cd koinon-rms
-
-# Start infrastructure (PostgreSQL + Redis)
-docker-compose up -d
-
-# Run database migrations
-dotnet ef database update -p src/Koinon.Infrastructure -s src/Koinon.Api
-
-# Start the API (in one terminal)
-cd src/Koinon.Api
-dotnet watch run
-
-# Start the frontend (in another terminal)
-cd src/web
-npm install
-npm run dev
+npm ci                                             # root tooling (husky, validation)
+cp .env.example .env
+docker compose -f docker-compose.full.yml up -d --build
 ```
 
-The API will be available at `http://localhost:5000` and the frontend at `http://localhost:5173`.
-
-### Full Stack in Docker
-
-To run everything in containers:
+- Web: http://localhost:3000 · API: http://localhost:5000 (health: `/health`, Swagger: `/swagger`)
+- Migrations apply automatically on API start (containerized dev only).
+- **First run:** seed demo data, then log in as `john.smith@example.com` / `admin123`:
 
 ```bash
-docker-compose -f docker-compose.full.yml up --build
+docker run --rm -v "$(pwd):/repo" -w /repo --network koinon_network \
+  mcr.microsoft.com/dotnet/sdk:8.0-alpine \
+  dotnet run --project tools/Koinon.TestDataSeeder -- seed \
+  --connection "Host=postgres;Port=5432;Database=koinon;Username=koinon;Password=koinon"
+```
+
+The first `/admin` visit launches the setup wizard (no campus is seeded) — that's
+intended onboarding, not a bug. Launch/login troubleshooting lives in
+`.claude/skills/koinon-demo-stack/SKILL.md`.
+
+### One-command end-to-end test
+
+Starts the stack if needed, seeds if needed, runs the Playwright smoke suite,
+opens the report:
+
+```powershell
+tools/qa/run-e2e-demo.ps1        # Windows
+```
+```bash
+tools/qa/run-e2e-demo.sh         # Linux / macOS
+```
+
+### Local development loop (code changes)
+
+```bash
+docker compose up -d                                              # postgres + redis only
+dotnet ef database update -p src/Koinon.Infrastructure -s src/Koinon.Api
+npm run dev:api                                                   # terminal 1 — API on :5000
+npm --prefix src/web ci && npm run dev:web                        # terminal 2 — web on :5173
 ```
 
 ---
@@ -104,12 +119,12 @@ koinon-rms/
 │   ├── Koinon.Infrastructure/ # EF Core, Redis, external services
 │   ├── Koinon.Api/            # ASP.NET Core Web API
 │   └── web/                   # React frontend
-├── tests/                     # Unit and integration tests
-├── docs/                      # Documentation
-│   ├── entity-mappings.md     # Entity mappings
-│   ├── api-contracts.md       # REST API specifications
-│   └── work-breakdown.md      # Development work units
-└── tools/                     # Migration and utility scripts
+├── tests/                     # Unit, integration, and architecture tests
+├── docs/
+│   ├── reference/             # Canonical: conventions, contracts, playbooks
+│   ├── adr/                   # Architecture decision records
+│   └── archive/               # Historical documents (do not trust)
+└── tools/                     # MCP servers, QA runners, seeders, print-bridge
 ```
 
 ---
@@ -119,9 +134,13 @@ koinon-rms/
 | Document | Description |
 |----------|-------------|
 | [CLAUDE.md](./CLAUDE.md) | Project context for AI-assisted development |
-| [Entity Mappings](./docs/entity-mappings.md) | Field-by-field entity mapping |
-| [API Contracts](./docs/api-contracts.md) | REST API TypeScript interfaces |
-| [Work Breakdown](./docs/work-breakdown.md) | Development work units and phases |
+| [Conventions](./docs/reference/conventions.md) | Canonical architecture conventions |
+| [QA Playbook](./docs/reference/qa-playbook.md) | Testing handbook (tiers, E2E, printer mocking) |
+| [Entity Mappings](./docs/reference/entity-mappings.md) | Field-by-field entity mapping |
+| [API Contracts](./docs/reference/api-contracts.md) | REST API TypeScript interfaces |
+| [Work Breakdown](./docs/reference/work-breakdown.md) | Development work units and phases |
+| [ADRs](./docs/adr/) | Architecture decision records |
+| [docs/README.md](./docs/README.md) | Map of all other documentation |
 
 ---
 
@@ -129,24 +148,24 @@ koinon-rms/
 
 ### Commands
 
+All from the repo root, on either OS:
+
 ```bash
-# Run tests
-dotnet test
+npm run build          # dotnet build
+npm test               # dotnet test + frontend vitest
+npm run typecheck      # frontend TypeScript check
+npm run lint           # frontend ESLint
+npm run validate       # full local gate (what pre-push runs)
+npm run graph:validate # architecture graph drift check
+dotnet format          # backend formatting (CI enforces --verify-no-changes)
 
-# Create a migration
+# Migrations
 dotnet ef migrations add <Name> -p src/Koinon.Infrastructure -s src/Koinon.Api
-
-# Apply migrations
 dotnet ef database update -p src/Koinon.Infrastructure -s src/Koinon.Api
 
-# Format code
-dotnet format
-
-# Frontend type checking
-cd src/web && npm run typecheck
-
-# Frontend linting
-cd src/web && npm run lint
+# Browser tests (full suite; smoke tier runs in CI)
+tools/qa/run-e2e-demo.ps1 --all      # Windows
+tools/qa/run-e2e-demo.sh --all       # Linux / macOS
 ```
 
 ### Architecture
@@ -218,7 +237,7 @@ Error:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `ConnectionStrings__Koinon` | (required) | PostgreSQL connection string |
+| `ConnectionStrings__DefaultConnection` | (required) | PostgreSQL connection string |
 | `ConnectionStrings__Redis` | `localhost:6379` | Redis connection string |
 | `Jwt__Secret` | (required) | JWT signing secret (min 32 chars) |
 | `Jwt__Issuer` | `koinon` | JWT issuer claim |
@@ -231,7 +250,7 @@ Error:
 ```json
 {
   "ConnectionStrings": {
-    "Koinon": "Host=localhost;Database=koinon;Username=koinon;Password=koinon",
+    "DefaultConnection": "Host=localhost;Database=koinon;Username=koinon;Password=koinon",
     "Redis": "localhost:6379"
   },
   "Jwt": {
@@ -251,44 +270,23 @@ Error:
 
 ---
 
-## Roadmap
+## Status
 
-### Phase 1: Foundation (Current)
-- [x] Project architecture
-- [ ] Core entities (Person, Group, Family)
-- [ ] Database context and migrations
-- [ ] Basic API endpoints
-
-### Phase 2: Services
-- [ ] Person service with search
-- [ ] Family management
-- [ ] Group management
-- [ ] Authentication/Authorization
-
-### Phase 3: Check-in MVP
-- [ ] Check-in configuration
-- [ ] Family search
-- [ ] Attendance recording
-- [ ] Label printing
-- [ ] Offline support
-
-### Phase 4: Admin Interface
-- [ ] Person/Family CRUD UI
-- [ ] Group management UI
-- [ ] Check-in configuration UI
-
-### Future
-- [ ] Event registration
-- [ ] Giving/Contributions
-- [ ] Communication tools
-- [ ] Reporting
-- [ ] Data migration tools
+The foundation phases are complete: ~60 domain entities, 40 API controllers,
+50+ migrations, JWT auth, the check-in kiosk with label printing (via the
+print-bridge service), and the admin interface. Current work is demo
+hardening and feature completion — see
+[work-breakdown.md](./docs/reference/work-breakdown.md) and the GitHub
+issue tracker for what's in flight.
 
 ---
 
 ## Contributing
 
-This project is currently in early development. Contribution guidelines will be established as the project matures.
+See [CONTRIBUTING.md](./CONTRIBUTING.md). Short version: read
+`docs/reference/conventions.md` first, follow the feature-slice order, every
+user-facing change needs an E2E test, and the architecture tests + graph
+baseline will hold you to the layer rules mechanically.
 
 ---
 

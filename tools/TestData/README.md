@@ -107,7 +107,7 @@ services:
     depends_on:
       - postgres
     environment:
-      - ConnectionStrings__KoinonDb=Host=postgres;Port=5432;Database=koinon;Username=koinon;Password=koinon
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=koinon;Username=koinon;Password=koinon
     command: seed --size small
 ```
 

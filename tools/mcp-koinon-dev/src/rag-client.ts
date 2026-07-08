@@ -9,13 +9,31 @@
  * that would block agent workflows.
  */
 
-// Constants matching tools/rag/utils.py
+// Constants matching tools/rag/utils.py.
+// ALL RAG endpoints live on the team's inference server — no localhost
+// dependencies (ADR 0005). The embeddings client speaks both protocols
+// (Ollama /api/embed and OpenAI /v1/embeddings) so whichever server-side
+// embedder is enabled works without a repo change. Env vars override for
+// exceptional setups only.
 const COLLECTION_NAME = 'koinon-code';
-const OLLAMA_URL = 'http://host.docker.internal:11434/api/embed';
+const RAG_HOST = process.env.RAG_HOST || '192.168.1.225';
+// Embeddings are served by the model gateway on :4000 (OpenAI-compatible
+// /v1/embeddings; the Ollama-protocol attempt below is a harmless fast miss).
+const EMBEDDINGS_BASE_URL = (
+  process.env.EMBEDDINGS_URL || process.env.OLLAMA_URL || `http://${RAG_HOST}:4000`
+).replace(/\/+$/, '');
 const OLLAMA_MODEL = 'nomic-embed-text';
 const VECTOR_SIZE = 768;
-const QDRANT_URL = 'http://localhost:6333';
-const REQUEST_TIMEOUT = 5000; // 5 seconds
+const QDRANT_URL = process.env.QDRANT_URL || `http://${RAG_HOST}:6333`;
+const REQUEST_TIMEOUT = 5000; // 5 seconds — Qdrant health/search, always fast
+// Embedding calls tolerate the gateway's lazy cold-load: a warm call is ~100ms,
+// but the first-after-idle call blocks (or 400s) while nomic-embed-text loads.
+// Graceful persistence — a patient timeout across several backed-off attempts —
+// absorbs that, instead of failing at 5s and making semantic search look "down"
+// (the recurring misdiagnosis that made every session fall back to grep).
+const EMBED_TIMEOUT = Number(process.env.EMBED_TIMEOUT) || 20000;
+const EMBED_MAX_ATTEMPTS = Number(process.env.EMBED_ATTEMPTS) || 4;
+const EMBED_BACKOFF_MS = Number(process.env.EMBED_BACKOFF_MS) || 1500;
 
 // Types
 export interface RagSearchResult {
@@ -57,41 +75,76 @@ export interface RagImpactResult {
 }
 
 /**
- * Get embedding vector from Ollama for a query string.
- * Uses 'search_query:' prefix for query embeddings (matching Python utils).
+ * Get embedding vector from the inference server. nomic prefixes:
+ * 'search_query:' for queries, 'search_document:' when storing documents
+ * (matching Python utils). Tries the Ollama protocol (/api/embed) first,
+ * then OpenAI-compatible (/v1/embeddings). Index and queries must share
+ * the model: nomic-embed-text, 768-dim.
  */
-async function getEmbedding(text: string): Promise<number[] | null> {
-  try {
+async function getEmbedding(
+  text: string,
+  prefix: 'search_query' | 'search_document' = 'search_query'
+): Promise<number[] | null> {
+  const input = `${prefix}: ${text}`;
+
+  const post = async (url: string, body: unknown, timeoutMs: number): Promise<Response | null> => {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
-
-    const response = await fetch(OLLAMA_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: OLLAMA_MODEL,
-        input: [`search_query: ${text}`]
-      }),
-      signal: controller.signal
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      console.error(`Ollama API error: ${response.status} ${response.statusText}`);
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: controller.signal
+      });
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.error(`Embeddings request timed out: ${url}`);
+      } else {
+        console.error(`Embeddings request failed: ${url}`, error);
+      }
       return null;
+    } finally {
+      clearTimeout(timeoutId);
     }
+  };
 
-    const data = await response.json() as { embeddings?: number[][] };
-    return data.embeddings?.[0] || null;
-  } catch (error) {
-    if (error instanceof Error && error.name === 'AbortError') {
-      console.error('Ollama request timed out');
-    } else {
-      console.error('Ollama embedding error:', error);
+  // One protocol-flexible attempt: Ollama /api/embed (some deployments) then
+  // OpenAI-compatible /v1/embeddings (the koinon gateway). Resolves to the
+  // vector, or a status string describing why this attempt missed.
+  const attempt = async (): Promise<number[] | string> => {
+    const ollamaRes = await post(`${EMBEDDINGS_BASE_URL}/api/embed`, { model: OLLAMA_MODEL, input: [input] }, EMBED_TIMEOUT);
+    if (ollamaRes?.ok) {
+      const data = await ollamaRes.json() as { embeddings?: number[][] };
+      if (data.embeddings?.[0]) return data.embeddings[0];
     }
-    return null;
+    const openaiRes = await post(`${EMBEDDINGS_BASE_URL}/v1/embeddings`, { model: OLLAMA_MODEL, input: [input] }, EMBED_TIMEOUT);
+    if (openaiRes?.ok) {
+      const data = await openaiRes.json() as { data?: { embedding?: number[] }[] };
+      if (data.data?.[0]?.embedding) return data.data[0].embedding;
+    }
+    return `/api/embed -> ${ollamaRes?.status ?? 'unreachable'}, /v1/embeddings -> ${openaiRes?.status ?? 'unreachable'}`;
+  };
+
+  // Graceful persistence: a cold gateway 400s or stalls while loading the model,
+  // then serves in ~100ms. Retry with growing backoff so the first-after-idle
+  // call recovers rather than making the whole semantic layer report "down".
+  let lastStatus = 'unreachable';
+  for (let i = 1; i <= EMBED_MAX_ATTEMPTS; i++) {
+    const result = await attempt();
+    if (Array.isArray(result)) return result;
+    lastStatus = result;
+    if (i < EMBED_MAX_ATTEMPTS) {
+      await new Promise((r) => setTimeout(r, EMBED_BACKOFF_MS * i));
+    }
   }
+
+  console.error(
+    `Embeddings unavailable after ${EMBED_MAX_ATTEMPTS} patient attempts at ${EMBEDDINGS_BASE_URL} ` +
+    `(last: ${lastStatus}). The gateway did not warm up — a REAL failure, not a cold start; ` +
+    `semantic search must NOT be silently skipped.`
+  );
+  return null;
 }
 
 /**
@@ -102,7 +155,8 @@ async function isQdrantAvailable(): Promise<boolean> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
 
-    const response = await fetch(`${QDRANT_URL}/health`, {
+    // Qdrant serves /healthz (a probe of /health 404s and reads as "down")
+    const response = await fetch(`${QDRANT_URL}/healthz`, {
       signal: controller.signal
     });
 
@@ -114,22 +168,23 @@ async function isQdrantAvailable(): Promise<boolean> {
 }
 
 /**
- * Check if Ollama is available.
+ * Check if an embeddings API is available (either protocol).
  */
 async function isOllamaAvailable(): Promise<boolean> {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
-
-    const response = await fetch('http://host.docker.internal:11434/api/tags', {
-      signal: controller.signal
-    });
-
-    clearTimeout(timeoutId);
-    return response.ok;
-  } catch {
-    return false;
-  }
+  const probe = async (path: string): Promise<boolean> => {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+      const response = await fetch(`${EMBEDDINGS_BASE_URL}${path}`, {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      return response.ok;
+    } catch {
+      return false;
+    }
+  };
+  return (await probe('/api/tags')) || (await probe('/v1/models'));
 }
 
 /**
@@ -360,5 +415,136 @@ export async function getRagImpactAnalysis(
     semantic_matches: filteredResults,
     related_tests: testResults,
     warning: semanticResults.warning
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Institutional lessons store (ADR 0005): team knowledge lives in an INDEXED
+// location — a dedicated Qdrant collection on the inference server — never
+// as a blob committed to the repo. Rules still belong in conventions.md/ADRs;
+// this holds the experiential layer: gotchas, why-decisions, debugging
+// lessons, searchable semantically by every agent and dev.
+// ---------------------------------------------------------------------------
+
+const LESSONS_COLLECTION = process.env.LESSONS_COLLECTION || 'koinon-lessons';
+
+export interface LessonResult {
+  id: string;
+  text: string;
+  topic: string;
+  date: string;
+  score?: number;
+}
+
+export interface LessonAddResponse {
+  success: boolean;
+  id?: string;
+  warning?: string;
+}
+
+export interface LessonSearchResponse {
+  success: boolean;
+  results: LessonResult[];
+  warning?: string;
+}
+
+// Single-flight: concurrent lesson_add calls share one ensure operation so
+// they can't race each other creating the collection (Qdrant 409s the losers).
+let lessonsCollectionReady: Promise<boolean> | null = null;
+
+function ensureLessonsCollection(): Promise<boolean> {
+  if (!lessonsCollectionReady) {
+    lessonsCollectionReady = (async (): Promise<boolean> => {
+      try {
+        const existing = await fetch(`${QDRANT_URL}/collections/${LESSONS_COLLECTION}`);
+        if (existing.ok) return true;
+        const created = await fetch(`${QDRANT_URL}/collections/${LESSONS_COLLECTION}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ vectors: { size: VECTOR_SIZE, distance: 'Cosine' } })
+        });
+        if (created.ok) return true;
+        // Lost a cross-process create race (409): existing collection is success.
+        const recheck = await fetch(`${QDRANT_URL}/collections/${LESSONS_COLLECTION}`);
+        return recheck.ok;
+      } catch {
+        return false;
+      }
+    })().then((ok) => {
+      if (!ok) lessonsCollectionReady = null; // allow retry on next call
+      return ok;
+    });
+  }
+  return lessonsCollectionReady;
+}
+
+/**
+ * Record an institutional lesson in the indexed store. Use for experiential
+ * knowledge that cost real time (gotchas, root causes, why-decisions) — NOT
+ * for rules, which belong in docs/reference/conventions.md via an ADR.
+ */
+export async function addLesson(text: string, topic: string): Promise<LessonAddResponse> {
+  if (!(await isQdrantAvailable())) {
+    return { success: false, warning: `Qdrant unavailable at ${QDRANT_URL} - lesson NOT recorded` };
+  }
+  if (!(await ensureLessonsCollection())) {
+    return { success: false, warning: `Could not create/access '${LESSONS_COLLECTION}' collection` };
+  }
+  const vector = await getEmbedding(text, 'search_document');
+  if (!vector) {
+    return { success: false, warning: 'Embeddings unavailable - lesson NOT recorded' };
+  }
+
+  const id = crypto.randomUUID();
+  const res = await fetch(`${QDRANT_URL}/collections/${LESSONS_COLLECTION}/points?wait=true`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      points: [{
+        id,
+        vector,
+        payload: { text, topic, date: new Date().toISOString().slice(0, 10) }
+      }]
+    })
+  });
+  if (!res.ok) {
+    return { success: false, warning: `Qdrant upsert failed: ${res.status} ${res.statusText}` };
+  }
+  return { success: true, id };
+}
+
+/**
+ * Semantic search over the institutional lessons store. Run at session start
+ * with your task keywords, and before debugging anything that smells like a
+ * known trap.
+ */
+export async function searchLessons(query: string, limit: number = 5): Promise<LessonSearchResponse> {
+  if (!(await isQdrantAvailable())) {
+    return { success: false, results: [], warning: `Qdrant unavailable at ${QDRANT_URL}` };
+  }
+  const vector = await getEmbedding(query);
+  if (!vector) {
+    return { success: false, results: [], warning: 'Embeddings unavailable - fall back to docs/reference + ADRs' };
+  }
+
+  const res = await fetch(`${QDRANT_URL}/collections/${LESSONS_COLLECTION}/points/search`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ vector, limit, with_payload: true })
+  });
+  if (!res.ok) {
+    // Collection may simply not exist yet — that's an empty store, not an error
+    return { success: true, results: [], warning: `No lessons store yet ('${LESSONS_COLLECTION}' missing or unreadable)` };
+  }
+  const data = await res.json() as { result?: { id: string; score: number; payload?: Record<string, unknown> }[] };
+  return {
+    success: true,
+    results: (data.result || []).map((p) => ({
+      id: String(p.id),
+      text: String(p.payload?.text ?? ''),
+      topic: String(p.payload?.topic ?? ''),
+      date: String(p.payload?.date ?? ''),
+      score: p.score
+    }))
   };
 }

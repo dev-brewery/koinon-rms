@@ -833,7 +833,10 @@ public class GroupService(
             return Array.Empty<GroupAttendanceOccurrenceDto>();
         }
 
-        var occurrenceIds = occurrences.Select(o => o.Id).ToArray();
+        // ToList (not ToArray): List<int>.Contains binds to the instance method,
+        // avoiding the .NET 8 ReadOnlySpan<int> Contains overload that breaks EF's
+        // expression interpreter (in-memory provider). See GroupServiceTests.
+        var occurrenceIds = occurrences.Select(o => o.Id).ToList();
 
         var attendeeCounts = await context.Attendances
             .Where(a => occurrenceIds.Contains(a.OccurrenceId) && a.DidAttend == true)

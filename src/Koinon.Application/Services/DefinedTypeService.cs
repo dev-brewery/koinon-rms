@@ -261,7 +261,9 @@ public class DefinedTypeService(
             return Result.Success();
         }
 
-        var itemIds = decodedItems.Select(i => i.Id).ToArray();
+        // ToList (not ToArray): avoids the .NET 8 ReadOnlySpan<int> Contains overload
+        // that breaks EF's expression interpreter; List<int>.Contains is safe.
+        var itemIds = decodedItems.Select(i => i.Id).ToList();
 
         // AsTracking required for reorder mutations (global QueryTrackingBehavior is NoTracking). (fixes #685)
         var values = await context.DefinedValues

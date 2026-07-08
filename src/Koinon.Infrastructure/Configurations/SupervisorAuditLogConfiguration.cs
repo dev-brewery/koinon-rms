@@ -84,6 +84,12 @@ public class SupervisorAuditLogConfiguration : IEntityTypeConfiguration<Supervis
         builder.Property(e => e.ModifiedDateTime)
             .HasColumnName("modified_date_time");
 
+        builder.Property(e => e.CreatedByPersonAliasId)
+            .HasColumnName("created_by_person_alias_id");
+
+        builder.Property(e => e.ModifiedByPersonAliasId)
+            .HasColumnName("modified_by_person_alias_id");
+
         // Composite index for common queries
         builder.HasIndex(e => new { e.PersonId, e.ActionType })
             .HasDatabaseName("ix_supervisor_audit_log_person_id_action_type");

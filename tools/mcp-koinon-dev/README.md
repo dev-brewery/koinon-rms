@@ -12,6 +12,10 @@ This MCP server helps maintain code quality and architectural consistency by:
 - Detecting legacy anti-patterns
 - Providing work unit validation
 - Offering contextual architectural guidance
+- Semantic code search (`rag_search`) over the indexed codebase
+- Recording and searching institutional lessons (`lesson_add` /
+  `lesson_search`) in the indexed `koinon-lessons` collection on the team
+  inference server — see `docs/claude/mcp-tools.md`
 
 ## Features
 
@@ -116,27 +120,40 @@ Pre-configured prompts for common review tasks:
 
 ## Installation
 
+None. `dist/` is committed so the server runs on a fresh clone with zero
+steps (same policy as `tools/mcp-servers/codebase-index`). CI rebuilds and
+diffs `dist/` to catch source/build drift.
+
+If you change `src/`, rebuild and commit the result:
+
 ```bash
-cd tools/mcp-koinon-dev
-npm install
-npm run build
+npm run mcp:build        # from the repo root
+# or: cd tools/mcp-koinon-dev && npm ci && npm run build
 ```
+
+## Configuration
+
+- **Project root:** defaults to the process working directory (Claude Code
+  launches stdio MCP servers from the repo root). Override with
+  `KOINON_PROJECT_ROOT` only if you run the server from somewhere else.
+- **RAG endpoints:** default to the team inference server (`RAG_HOST`,
+  default `192.168.1.225` — Qdrant `:6333`, embeddings via the model
+  gateway `:4000`, either OpenAI or Ollama protocol). **No localhost
+  dependencies.** When an endpoint is down, the `rag_*` tools return empty
+  results with a warning instead of failing. See `docs/claude/mcp-tools.md`.
 
 ## Usage
 
 ### In Claude Code Configuration
 
-Add to your Claude Code MCP configuration:
+Already wired in the repo's `.mcp.json` (relative path, no env needed):
 
 ```json
 {
   "mcpServers": {
     "koinon-dev": {
       "command": "node",
-      "args": ["/home/mbrewer/projects/koinon-rms/tools/mcp-koinon-dev/dist/index.js"],
-      "env": {
-        "KOINON_PROJECT_ROOT": "/home/mbrewer/projects/koinon-rms"
-      }
+      "args": ["tools/mcp-koinon-dev/dist/index.js"]
     }
   }
 }

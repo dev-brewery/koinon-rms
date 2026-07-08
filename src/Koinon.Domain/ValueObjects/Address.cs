@@ -56,7 +56,9 @@ public record Address(
             parts.Add(Country);
         }
 
-        return string.Join(Environment.NewLine, parts);
+        // Explicit LF, not Environment.NewLine: this formatted value can be exported
+        // or persisted, so its bytes must not depend on the host OS.
+        return string.Join("\n", parts);
     }
 
     /// <summary>

@@ -2,9 +2,9 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, dev ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, develop, dev ]
 
 env:
   DOTNET_VERSION: '8.0.x'
@@ -67,7 +67,7 @@ jobs:
     - name: Run unit tests
       run: dotnet test --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx"
       env:
-        ConnectionStrings__KoinonDb: "Host=localhost;Port=5432;Database=koinon_test;Username=koinon;Password=koinon_test"
+        ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=koinon_test;Username=koinon;Password=koinon_test"
         ConnectionStrings__Redis: "localhost:6379"
 
     - name: Publish test results
@@ -222,7 +222,7 @@ jobs:
         echo "All migrations validated successfully"
 
       env:
-        ConnectionStrings__KoinonDb: "Host=localhost;Port=5432;Database=koinon_test;Username=koinon;Password=koinon_test"
+        ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=koinon_test;Username=koinon;Password=koinon_test"
         Jwt__Secret: "ci-test-jwt-secret-key-minimum-32-characters-long"
         Jwt__Issuer: "koinon-ci-test"
         Jwt__Audience: "koinon-ci-test"
@@ -265,6 +265,13 @@ jobs:
         > "$UP_METHODS_FILE"
         for migration in $NEW_MIGRATIONS; do
           if [ -f "$migration" ]; then
+            # Explicit, reviewed escape hatch: a migration may declare its
+            # destructive operations intentional with a justification comment.
+            if grep -q "DESTRUCTIVE-CHANGE-APPROVED:" "$migration"; then
+              echo "Skipping (explicitly approved destructive change): $migration"
+              grep "DESTRUCTIVE-CHANGE-APPROVED:" "$migration"
+              continue
+            fi
             echo "Checking: $migration"
             awk '/protected override void Up\(/,/protected override void Down\(/' "$migration" | \
               head -n -1 >> "$UP_METHODS_FILE"
@@ -431,11 +438,207 @@ jobs:
           echo "work-units.json is valid JSON"
         fi
 
+  # Architecture graph baseline drift check
+  graph-validation:
+    name: Graph Validation
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install root dependencies
+      run: npm ci
+
+    - name: Install frontend dependencies
+      run: npm ci
+      working-directory: src/web
+
+    - name: Regenerate graph baseline
+      run: npm run graph:update
+
+    - name: Verify contracts
+      run: npm run graph:verify
+
+    - name: Check for graph drift
+      run: node scripts/graph-drift.mjs
+
+  # Verify that local architect/code-review evidence landed with the PR.
+  # GitHub-hosted CI does not call private model/RAG endpoints; it only checks
+  # the structured, signed artifact against the exact PR diff.
+  architecture-review-artifact:
+    name: Architecture Review Artifact
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install root dependencies
+      run: npm ci
+
+    - name: Verify signed architecture review artifact
+      run: >
+        node scripts/architecture/verify-review-artifact.mjs
+        --base ${{ github.event.pull_request.base.sha }}
+        --head ${{ github.event.pull_request.head.sha }}
+        --reviews docs/architecture/reviews
+        --signers docs/architecture/signers/trusted-agent-signers.json
+
+  # koinon-dev MCP server: committed dist/ must match src/
+  mcp-dist-drift:
+    name: MCP Server Dist Drift
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: Rebuild koinon-dev MCP server
+      run: npm --prefix tools/mcp-koinon-dev ci && npm --prefix tools/mcp-koinon-dev run build
+
+    - name: Check committed dist/ matches source
+      run: |
+        if ! git diff --exit-code tools/mcp-koinon-dev/dist; then
+          echo "::error::tools/mcp-koinon-dev/dist is stale. Run 'npm run mcp:build' and commit the result."
+          exit 1
+        fi
+        echo "Committed dist/ is up to date"
+
+    - name: Smoke-test get_impact_analysis against committed baseline
+      run: npm --prefix tools/mcp-koinon-dev test
+
+  # Browser smoke tests against the full containerized stack.
+  # This is the gate that catches check-in kiosk regressions (the MVP).
+  e2e-smoke:
+    name: E2E Smoke (Docker stack)
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Start full stack
+      run: docker compose -f docker-compose.full.yml up -d --build
+
+    - name: Wait for API and web health
+      run: |
+        timeout 300 bash -c 'until curl -sf http://localhost:5000/health > /dev/null; do sleep 5; done'
+        timeout 60 bash -c 'until curl -sf http://localhost:3000/health > /dev/null; do sleep 3; done'
+        echo "Stack is healthy"
+
+    - name: Seed demo data
+      run: |
+        docker run --rm -v "$PWD:/repo" -w /repo --network koinon_network \
+          mcr.microsoft.com/dotnet/sdk:8.0-alpine \
+          dotnet run --project tools/Koinon.TestDataSeeder -- seed \
+          --connection "Host=postgres;Port=5432;Database=koinon;Username=koinon;Password=koinon"
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: src/web/package-lock.json
+
+    - name: Install frontend dependencies
+      run: npm ci
+      working-directory: src/web
+
+    - name: Install Playwright chromium
+      run: npx playwright install --with-deps chromium
+      working-directory: src/web
+
+    - name: Run smoke suite
+      run: npx playwright test e2e/tests/smoke.spec.ts --project=chromium
+      working-directory: src/web
+      env:
+        E2E_BASE_URL: http://localhost:3000
+
+    - name: Upload Playwright report
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-smoke-report
+        path: src/web/playwright-report
+
+    - name: Stack logs on failure
+      if: failure()
+      run: docker compose -f docker-compose.full.yml logs --tail 100
+
+    - name: Teardown
+      if: always()
+      run: docker compose -f docker-compose.full.yml down -v
+
+  # Windows canary: cross-platform development is a hard requirement.
+  # Build + DB-free unit tests + frontend typecheck on windows-latest so
+  # Windows breakage fails PRs mechanically. (DB/Testcontainers suites need
+  # Linux containers and stay on the ubuntu jobs.)
+  windows-canary:
+    name: Windows Canary
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        global-json-file: global.json
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: src/web/package-lock.json
+
+    - name: Build solution
+      run: dotnet build --configuration Release
+
+    - name: Run DB-free test suites
+      run: >
+        dotnet test tests/Koinon.Domain.Tests --no-build --configuration Release &&
+        dotnet test tests/Koinon.Application.Tests --no-build --configuration Release &&
+        dotnet test tests/Koinon.ArchitectureTests --no-build --configuration Release
+
+    - name: Frontend typecheck
+      run: npm ci; npm run typecheck
+      working-directory: src/web
+
   # Summary job
   ci-success:
     name: CI Success
     runs-on: ubuntu-latest
-    needs: [backend, frontend, migration-check, integration, work-unit-validation]
+    needs: [backend, frontend, migration-check, integration, work-unit-validation, graph-validation, architecture-review-artifact, mcp-dist-drift, e2e-smoke, windows-canary]
     if: always()
     steps:
     - name: Check all jobs
@@ -444,7 +647,12 @@ jobs:
            [[ "${{ needs.frontend.result }}" == "success" ]] && \
            [[ "${{ needs.migration-check.result }}" == "success" || "${{ needs.migration-check.result }}" == "skipped" ]] && \
            [[ "${{ needs.integration.result }}" == "success" ]] && \
-           [[ "${{ needs.work-unit-validation.result }}" == "success" || "${{ needs.work-unit-validation.result }}" == "skipped" ]]; then
+           [[ "${{ needs.work-unit-validation.result }}" == "success" || "${{ needs.work-unit-validation.result }}" == "skipped" ]] && \
+           [[ "${{ needs.graph-validation.result }}" == "success" ]] && \
+           [[ "${{ needs.architecture-review-artifact.result }}" == "success" || "${{ needs.architecture-review-artifact.result }}" == "skipped" ]] && \
+           [[ "${{ needs.mcp-dist-drift.result }}" == "success" ]] && \
+           [[ "${{ needs.e2e-smoke.result }}" == "success" ]] && \
+           [[ "${{ needs.windows-canary.result }}" == "success" ]]; then
           echo "All CI checks passed"
           exit 0
         else

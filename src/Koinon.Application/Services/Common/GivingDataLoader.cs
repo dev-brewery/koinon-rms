@@ -38,7 +38,7 @@ namespace Koinon.Application.Services.Common;
 ///       var details = contribution.ContributionDetails;  // O(1) lookup, zero queries
 ///   }
 ///
-/// See: ARCHITECTURAL_REVIEW_PHASE2.2.md#systematic-n-1-elimination
+/// See: docs/archive/ARCHITECTURAL_REVIEW_PHASE2.2.md#systematic-n-1-elimination
 /// </summary>
 public class GivingDataLoader(IApplicationDbContext context, ILogger<GivingDataLoader> logger)
 {

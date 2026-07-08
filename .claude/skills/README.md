@@ -10,6 +10,7 @@ discovers `.claude/skills/*/SKILL.md` automatically.
 | `koinon-demo-stack` | Launching, seeding, verifying, and debugging the Docker demo stack |
 | `koinon-feature-slice` | The step-by-step checklist for implementing a feature across all layers |
 | `koinon-e2e` | Writing/running Playwright browser tests, the smoke tier, and the print-bridge mocking doctrine for kiosk check-in |
+| `harness-doctrine` | The "why" behind the enforcement harness — drift model, quality-over-autonomy, the architect-review cycle; owner-summoned to redirect a drifting session |
 
 They work together with:
 

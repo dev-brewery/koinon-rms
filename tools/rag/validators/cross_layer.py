@@ -3,7 +3,9 @@ Cross-layer validators - check relationships between architectural layers.
 
 Validates that Entity -> DTO -> Service -> Controller chains are complete.
 """
-import requests
+# All endpoints + the embedding protocol live in utils (network server
+# defaults, no localhost dependencies — ADR 0005)
+from utils import QDRANT_URL, get_embedding
 
 # Optional RAG dependency - graceful degradation if unavailable
 try:
@@ -13,29 +15,8 @@ except ImportError:
     RAG_AVAILABLE = False
     QdrantClient = None
 
-# Constants
-OLLAMA_URL = "http://host.docker.internal:11434/api/embed"
-OLLAMA_MODEL = "nomic-embed-text"
-
 # Global client instance
-client = QdrantClient(url="http://host.docker.internal:6333") if RAG_AVAILABLE else None
-
-
-def get_embedding(text):
-    """Get embedding from Ollama API for a single text."""
-    response = requests.post(
-        OLLAMA_URL,
-        json={
-            "model": OLLAMA_MODEL,
-            "input": [f"search_query: {text}"]
-        }
-    )
-
-    if not response.ok:
-        raise Exception(f"Ollama API error: {response.text}")
-
-    data = response.json()
-    return data['embeddings'][0]
+client = QdrantClient(url=QDRANT_URL) if RAG_AVAILABLE else None
 
 
 def validate_dto_coverage():

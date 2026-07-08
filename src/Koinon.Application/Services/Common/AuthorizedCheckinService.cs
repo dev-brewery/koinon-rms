@@ -21,7 +21,7 @@ namespace Koinon.Application.Services.Common;
 /// - No timing windows where auth can be bypassed
 /// - Single source of truth for authorization policy
 ///
-/// See: ARCHITECTURAL_REVIEW_PHASE2.2.md#authorization-as-first-class
+/// See: docs/archive/ARCHITECTURAL_REVIEW_PHASE2.2.md#authorization-as-first-class
 /// </summary>
 public abstract class AuthorizedCheckinService(
     IApplicationDbContext context,

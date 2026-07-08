@@ -169,8 +169,11 @@ public class GroupConfiguration : IEntityTypeConfiguration<Group>
             .HasForeignKey(e => e.GroupTypeId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // Inverse must be Campus.Groups: an anonymous WithMany() here made EF
+        // treat the discovered Campus.Groups navigation as a SECOND
+        // relationship with a shadow FK column (CampusId1).
         builder.HasOne(e => e.Campus)
-            .WithMany()
+            .WithMany(c => c.Groups)
             .HasForeignKey(e => e.CampusId)
             .OnDelete(DeleteBehavior.Restrict);
 
