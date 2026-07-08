@@ -8,10 +8,11 @@
 //         2 bad invocation, 3 required infrastructure down (HARD STOP — quality
 //         is the invariant; summon the owner, do not degrade).
 //
-// Brains (owner decision 2026-07-07): PRIMARY = OpenAI-compatible API
-// (ARCHITECT_URL + ARCHITECT_MODEL + ARCHITECT_API_KEY, key via env or repo
-// .env — never committed). FALLBACK = the local gateway (qwen36-dense), and a
-// visible notice MUST be emitted when the fallback activates. Both down → 3.
+// Brains (owner correction 2026-07-07): PRIMARY = Codex through the Claude Code
+// bridge/plugin. The current executable shim uses `codex exec`; Plus/Pro/Team
+// entitlements are not a Platform API key. FALLBACK = the local gateway
+// (qwen36-dense), and a visible notice MUST be emitted when it activates.
+// Both down → 3.
 //
 // The ruling is bound to sha256(file set + per-file content hash + diagnosis +
 // proposal): edit anything and the sha no longer matches, so a stale or forged
@@ -387,7 +388,10 @@ async function main() {
 
   let ruling, brainUsed = PRIMARY, fallbackActivated = false, primaryError = '';
   try {
-    console.error(`Consulting architect brain (${PRIMARY.label}: ${PRIMARY.model || 'NOT CONFIGURED'})...`);
+    const primaryName = PRIMARY.provider === 'codex'
+      ? `codex${PRIMARY.codexModel ? `:${PRIMARY.codexModel}` : ''}`
+      : (PRIMARY.model || 'NOT CONFIGURED');
+    console.error(`Consulting architect brain (${PRIMARY.label}: ${primaryName})...`);
     ruling = await callBrain(PRIMARY, userContent);
   } catch (e) {
     primaryError = e.message;
