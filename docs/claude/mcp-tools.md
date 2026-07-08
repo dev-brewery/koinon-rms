@@ -43,7 +43,8 @@ you change its `src/`, run `npm run mcp:build` and commit the result.
 | `get_architecture_guidance` | Topic-based guidance (entity, api, ...) |
 | `query_api_graph` | `get_controller_pattern` / `get_entity_chain` / `list_inconsistencies` / `validate_new_controller` against `tools/graph/graph-baseline.json` |
 | `get_impact_analysis` | Affected files + work units for a file path |
-| `rag_search` / `rag_impact_analysis` / `rag_index_status` | Semantic code search over the indexed codebase (stack below); degrades gracefully with a warning when it's down |
+| `rag_search` / `rag_impact_analysis` / `rag_index_status` | Semantic code search over the indexed codebase (`koinon-code`); degrades gracefully with a warning when it's down |
+| `standards_search` | Semantic search over `koinon-standards`. Use `scope=product_decisions` before finalizing implementation approach, `scope=rules`/`adrs`/`all` for convention and architecture review |
 | `lesson_search` | Semantic search over the team's institutional lessons (indexed `koinon-lessons` collection). Run at session start and before debugging anything that smells like a known trap |
 | `lesson_add` | Record a lesson that cost real time (gotcha, root cause, why-decision) — self-contained text + topic tag. Rules do NOT go here; they go in conventions.md via ADR |
 
@@ -76,8 +77,9 @@ Qdrant collection on the inference server — never as a blob in the repo
 Everything lives on the team inference server at `192.168.1.225` — **no
 localhost dependencies, nothing to install or run on your machine**:
 
-- **Qdrant** `http://192.168.1.225:6333` — holds the indexed `koinon-code`
-  collection (768-dim, nomic-embed-text).
+- **Qdrant** `http://192.168.1.225:6333` — holds `koinon-code`,
+  `koinon-standards`, and `koinon-lessons` collections (768-dim,
+  nomic-embed-text).
 - **Embeddings** `http://192.168.1.225:4000` — the model gateway (also
   proxies the team's chat models; `GET /v1/models` lists them). Serves
   `nomic-embed-text` via OpenAI-compatible `/v1/embeddings`; the client
@@ -85,9 +87,25 @@ localhost dependencies, nothing to install or run on your machine**:
 
 Overrides (`RAG_HOST`, `QDRANT_URL`, `EMBEDDINGS_URL`) exist for exceptional
 setups only — never commit a config that points at localhost. When an
-endpoint is down, `rag_*` return empty results with a warning — never
-blocked. Reindex the shared collection after large changes:
-`npm run rag:reindex` (incremental) or `npm run rag:index` (full).
+endpoint is down, `rag_*` / `standards_search` return empty results with a
+warning — never blocked. Reindex the shared code collection after large
+changes: `npm run rag:reindex` (incremental) or `npm run rag:index` (full).
+Reindex standards/ADRs/product decisions after canon changes:
+`npm run rag:index:standards`.
+
+### Product/refinement decisions in `koinon-standards`
+
+Accepted product-management, UX/refinement, and structural product decisions
+live under `docs/product/decisions/*.md` and are indexed into
+`koinon-standards` as `doc_type=product-decision`; they do **not** get a
+separate collection. The deterministic workflow is:
+
+1. write/update a decision markdown file using `docs/product/decisions/template.md`;
+2. get explicit owner/chief-architect agreement before `status: accepted`;
+3. run `npm run rag:index:standards`;
+4. agents query `standards_search` with `scope=product_decisions` before
+   finalizing implementation approach, then query `scope=rules`/`adrs`/`all`
+   for standards conformance.
 
 ## Removed servers (July 2026) and how to get them back
 

@@ -3,11 +3,12 @@
 Index the governing standards into a dedicated Qdrant collection.
 
 The architect-review gate judges proposals against the canon —
-docs/reference/*.md (conventions, api-contracts, entity-mappings, ...) and
-docs/adr/*.md — so those documents must be retrievable by relevance. They
-live in their own collection (koinon-standards) rather than koinon-code
-because that collection's layer/type payload schema is code-shaped and
-drives rag_search filters.
+docs/reference/*.md (conventions, api-contracts, entity-mappings, ...),
+docs/adr/*.md, and durable product/refinement decisions under
+docs/product/decisions/*.md — so those documents must be retrievable by
+relevance. They live in their own collection (koinon-standards) rather than
+koinon-code because that collection's layer/type payload schema is
+code-shaped and drives rag_search filters.
 
 Mirrors index-codebase.py: same Qdrant server, same embedding path
 (nomic-embed-text, 768-dim via the model gateway), same recreate-collection
@@ -38,20 +39,28 @@ from utils import (
 )
 
 STANDARDS_COLLECTION = "koinon-standards"
-STANDARDS_GLOBS = ("docs/reference/*.md", "docs/adr/*.md")
-# Not standards: the ADR template is placeholder text, the audit report is a
-# point-in-time snapshot, and the work breakdown is planning — indexing them
-# would pollute retrieval with non-canon matches.
+STANDARDS_GLOBS = (
+    "docs/reference/*.md",
+    "docs/adr/*.md",
+    "docs/product/decisions/*.md",
+)
+# Not standards: templates/placeholders, README indexes, audit snapshots, and
+# work breakdown planning pollute retrieval with non-canon matches. Product
+# decisions are included only once they are accepted/reviewable markdown docs.
 EXCLUDE_FILES = {
     "docs/adr/template.md",
     "docs/adr/README.md",
     "docs/reference/index-audit-report.md",
     "docs/reference/work-breakdown.md",
+    "docs/product/decisions/README.md",
+    "docs/product/decisions/template.md",
 }
 
 
 def determine_doc_type(rel_path: str) -> str:
     """Classify a standards document from its path (posix-normalized)."""
+    if rel_path.startswith("docs/product/decisions/"):
+        return "product-decision"
     if rel_path.startswith("docs/adr/"):
         return "adr"
     name = Path(rel_path).name
@@ -62,6 +71,34 @@ def determine_doc_type(rel_path: str) -> str:
     if name == "entity-mappings.md":
         return "entity-mapping"
     return "reference"
+
+
+def parse_frontmatter(content: str) -> dict[str, str | list[str]]:
+    """Parse a tiny YAML-frontmatter subset used by product-decision docs.
+
+    The indexer intentionally avoids a YAML dependency: only `key: value` and
+    one-line bracket lists (`[a, b]`) are needed for deterministic retrieval
+    payloads. Unknown/malformed lines are ignored; the source doc remains the
+    authority.
+    """
+    if not content.startswith("---\n"):
+        return {}
+    try:
+        _, raw, _ = content.split("---", 2)
+    except ValueError:
+        return {}
+    meta: dict[str, str | list[str]] = {}
+    for line in raw.splitlines():
+        if ":" not in line or line.startswith(" "):
+            continue
+        key, value = line.split(":", 1)
+        key = key.strip().replace("-", "_")
+        value = value.strip().strip('"\'')
+        if value.startswith("[") and value.endswith("]"):
+            meta[key] = [x.strip().strip('"\'') for x in value[1:-1].split(",") if x.strip()]
+        elif value:
+            meta[key] = value
+    return meta
 
 
 def chunk_markdown(content: str) -> list[tuple[str, str]]:
@@ -106,6 +143,7 @@ def index_standard(client: QdrantClient, file_path: Path) -> int:
     # Posix-normalized so payloads are byte-identical across Windows/Linux.
     rel_path = file_path.relative_to(PROJECT_ROOT).as_posix()
     doc_type = determine_doc_type(rel_path)
+    metadata = parse_frontmatter(content) if doc_type == "product-decision" else {}
 
     chunks = chunk_markdown(content)
     if not chunks:
@@ -122,16 +160,26 @@ def index_standard(client: QdrantClient, file_path: Path) -> int:
         hash_input = f"standards:{rel_path}:chunk-{i}".encode()
         point_id = int(hashlib.md5(hash_input).hexdigest()[:16], 16)
 
+        payload = {
+            "path": rel_path,
+            "doc_type": doc_type,
+            "section": section,
+            "content": text,
+            "chunk_index": i,
+        }
+        if metadata:
+            payload.update({
+                "decision_id": metadata.get("id", ""),
+                "decision_type": metadata.get("decision_type", ""),
+                "status": metadata.get("status", ""),
+                "applies_to": metadata.get("applies_to", []),
+                "date": metadata.get("date", ""),
+            })
+
         points.append(PointStruct(
             id=point_id,
             vector=embedding,
-            payload={
-                "path": rel_path,
-                "doc_type": doc_type,
-                "section": section,
-                "content": text,
-                "chunk_index": i,
-            }
+            payload=payload
         ))
 
     if points:

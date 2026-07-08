@@ -21,7 +21,7 @@ import { CallToolRequestSchema, ListToolsRequestSchema, ListResourcesRequestSche
 import { z } from 'zod';
 import * as fs from 'fs';
 import * as path from 'path';
-import { searchRag, getRagStatus, getRagImpactAnalysis, addLesson, searchLessons } from './rag-client.js';
+import { searchRag, searchStandards, getRagStatus, getRagImpactAnalysis, addLesson, searchLessons } from './rag-client.js';
 // Configuration: default to the launcher's cwd (Claude Code starts stdio MCP
 // servers from the project root, same contract as koinon-index).
 const PROJECT_ROOT = process.env.KOINON_PROJECT_ROOT || process.cwd();
@@ -75,6 +75,11 @@ const RagImpactSchema = z.object({
     file_path: z.string(),
     change_description: z.string().optional(),
     include_tests: z.boolean().optional().default(true)
+});
+const StandardsSearchSchema = z.object({
+    query: z.string(),
+    scope: z.enum(['all', 'rules', 'adrs', 'product_decisions']).optional().default('all'),
+    limit: z.number().min(1).max(50).optional().default(10)
 });
 const LessonAddSchema = z.object({
     lesson: z.string().min(20),
@@ -845,6 +850,19 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                 }
             },
             {
+                name: 'standards_search',
+                description: 'Semantic search over the koinon-standards collection. Use scope=product_decisions to retrieve accepted product/refinement/structural decisions before finalizing an implementation approach; use rules/adrs/all for convention and ADR checks. This does not create a separate decisions collection.',
+                inputSchema: {
+                    type: 'object',
+                    properties: {
+                        query: { type: 'string', description: 'Natural-language query for standards, ADRs, or product decisions' },
+                        scope: { type: 'string', enum: ['all', 'rules', 'adrs', 'product_decisions'], description: 'Subset of koinon-standards to search' },
+                        limit: { type: 'number', description: 'Maximum results to return (default: 10, max: 50)' }
+                    },
+                    required: ['query']
+                }
+            },
+            {
                 name: 'lesson_search',
                 description: 'Semantic search over the team\'s institutional lessons store (indexed on the shared Qdrant, not in the repo). Run at session start with your task keywords, and before debugging anything that smells like a known trap. Rules live in docs/reference/conventions.md; this holds the experiential layer: gotchas, root causes, why-decisions.',
                 inputSchema: {
@@ -1026,6 +1044,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             }
             case 'rag_index_status': {
                 const result = await getRagStatus();
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: JSON.stringify(result, null, 2)
+                        }
+                    ]
+                };
+            }
+            case 'standards_search': {
+                const { query, scope, limit } = StandardsSearchSchema.parse(args);
+                const result = await searchStandards(query, scope, limit);
                 return {
                     content: [
                         {

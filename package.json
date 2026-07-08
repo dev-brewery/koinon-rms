@@ -19,6 +19,7 @@
     "test:graph": "node scripts/py.mjs -m pytest tools/graph/tests/",
     "rag:install": "node scripts/py.mjs -m pip install -r tools/rag/requirements.txt",
     "rag:index": "node scripts/py.mjs tools/rag/index-codebase.py",
+    "rag:index:standards": "node scripts/py.mjs tools/rag/index-standards.py",
     "rag:reindex": "node scripts/py.mjs tools/rag/reindex-changes.py",
     "rag:validate": "node scripts/py.mjs tools/rag/validate.py",
     "build": "dotnet build",
