@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "signers": [
+    {
+      "keyId": "koinon-bootstrap-agent-2026-07",
+      "algorithm": "ed25519",
+      "publicKeySha256": "9e0ff7349656492db36b5f972a82390b4044306d0279052548400db798c8fa1b",
+      "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAHleoGYegeLqR9EXsZ90wxHlntz16MNqwdF8VMMSVznw=\n-----END PUBLIC KEY-----\n",
+      "comment": "Bootstrap local architect-review signing key. Private key is stored outside the repository on the development machine."
+    }
+  ]
+}

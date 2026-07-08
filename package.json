@@ -14,6 +14,8 @@
     "graph:update": "npm run graph:backend && npm run graph:frontend && npm run graph:merge",
     "graph:verify": "node scripts/py.mjs tools/graph/verify-contracts.py",
     "graph:validate": "npm run graph:update && npm run graph:verify && node scripts/graph-drift.mjs",
+    "architecture:review:verify": "node scripts/architecture/verify-review-artifact.mjs",
+    "test:architecture": "node --test scripts/architecture/*.test.mjs",
     "test:graph": "node scripts/py.mjs -m pytest tools/graph/tests/",
     "rag:install": "node scripts/py.mjs -m pip install -r tools/rag/requirements.txt",
     "rag:index": "node scripts/py.mjs tools/rag/index-codebase.py",

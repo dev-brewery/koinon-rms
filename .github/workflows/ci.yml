@@ -474,6 +474,37 @@ jobs:
     - name: Check for graph drift
       run: node scripts/graph-drift.mjs
 
+  # Verify that local architect/code-review evidence landed with the PR.
+  # GitHub-hosted CI does not call private model/RAG endpoints; it only checks
+  # the structured, signed artifact against the exact PR diff.
+  architecture-review-artifact:
+    name: Architecture Review Artifact
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install root dependencies
+      run: npm ci
+
+    - name: Verify signed architecture review artifact
+      run: >
+        node scripts/architecture/verify-review-artifact.mjs
+        --base ${{ github.event.pull_request.base.sha }}
+        --head ${{ github.event.pull_request.head.sha }}
+        --reviews docs/architecture/reviews
+        --signers docs/architecture/signers/trusted-agent-signers.json
+
   # koinon-dev MCP server: committed dist/ must match src/
   mcp-dist-drift:
     name: MCP Server Dist Drift
@@ -607,7 +638,7 @@ jobs:
   ci-success:
     name: CI Success
     runs-on: ubuntu-latest
-    needs: [backend, frontend, migration-check, integration, work-unit-validation, graph-validation, mcp-dist-drift, e2e-smoke, windows-canary]
+    needs: [backend, frontend, migration-check, integration, work-unit-validation, graph-validation, architecture-review-artifact, mcp-dist-drift, e2e-smoke, windows-canary]
     if: always()
     steps:
     - name: Check all jobs
@@ -618,6 +649,7 @@ jobs:
            [[ "${{ needs.integration.result }}" == "success" ]] && \
            [[ "${{ needs.work-unit-validation.result }}" == "success" || "${{ needs.work-unit-validation.result }}" == "skipped" ]] && \
            [[ "${{ needs.graph-validation.result }}" == "success" ]] && \
+           [[ "${{ needs.architecture-review-artifact.result }}" == "success" || "${{ needs.architecture-review-artifact.result }}" == "skipped" ]] && \
            [[ "${{ needs.mcp-dist-drift.result }}" == "success" ]] && \
            [[ "${{ needs.e2e-smoke.result }}" == "success" ]] && \
            [[ "${{ needs.windows-canary.result }}" == "success" ]]; then
