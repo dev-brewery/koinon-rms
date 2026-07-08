@@ -65,11 +65,14 @@ The architect review is worthless if the standards aren't retrievable (drift #3 
 2.1 `scripts/hooks/architect-review.mjs` (NEW): input = files + `--deduced` + `--proposed`.
    - Precisely retrieve (RAG + `trace_feature`): the specific ADR(s), conventions, contract,
      and existing pattern relevant to THIS change — focused needles, never the whole corpus.
-   - Call the configurable architect brain — **owner-decided 2026-07-07: PRIMARY = an
-     OpenAI-API request (fast, hosted); FALLBACK = local Qwen at the :4000 gateway, and
-     the fallback MUST emit a visible notice to the user that it activated** (local can
-     take ~5 min on complex requests). Both paths are OpenAI-compatible
-     `/v1/chat/completions`; dials: `ARCHITECT_URL`/`ARCHITECT_MODEL` (primary),
+   - Call the configurable architect brain — **owner-corrected 2026-07-07: PRIMARY =
+     Codex through the installed Claude Code bridge/plugin; Plus/Pro entitlements
+     do NOT create a Platform API key and `ARCHITECT_API_KEY` is not the path;
+     FALLBACK = local Qwen at the :4000 gateway, and the fallback MUST emit a visible
+     notice to the user that it activated** (local can take ~5 min on complex requests).
+     Dials: `ARCHITECT_PROVIDER=codex`, `ARCHITECT_CODEX_BIN`, `ARCHITECT_CODEX_MODEL`,
+     optional `ARCHITECT_CODEX_HOME` only if the bridge is implemented via CLI under
+     a separate host account, plus
      `ARCHITECT_FALLBACK_URL`/`ARCHITECT_FALLBACK_MODEL` (default
      `http://192.168.1.225:4000`, Qwen). Isolated context = ONLY problem + proposal +
      retrieved standards. Both down → HARD STOP (quality-over-autonomy).
@@ -80,7 +83,7 @@ The architect review is worthless if the standards aren't retrievable (drift #3 
    file until a fresh APPROVED ruling exists whose hash matches the current change. The
    approval store lives under `.claude/` — deny-protected from the developer agent; only
    `architect-review.mjs` (a sanctioned named-script invocation) writes it → unforgeable.
-2.3 OPEN DECISIONS — **RESOLVED by the owner 2026-07-07**: (a) architect brain = OpenAI-API
+2.3 OPEN DECISIONS — **RESOLVED by the owner 2026-07-07**: (a) architect brain = Codex CLI
    primary with local-Qwen fallback + visible fallback notice (see 2.1); (b) acceptance-
    criteria source = the **linked GitHub issue** (the architect reads criteria from the
    issue the change references — changes need a linked issue with real criteria).

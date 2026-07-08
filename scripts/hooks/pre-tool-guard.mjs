@@ -13,26 +13,44 @@
 //     bypassPermissions mode, where built-in protected paths are allowed
 //     (research/hooks-guide.md:L905, research/permission-modes.md:L393).
 //
+// [PATCH 2026-07-07] Additions after the enumeration gaps proven that day
+// (Agent spawn un-gated; docs/adr canon writable; python-heredoc interpreter
+// hole; no approval gate): docs/adr is now canon-protected here AND in deny
+// rules; stdin-interpreter forms are matched; Edit/Write/commit on a code file
+// additionally require a fresh APPROVED architect ruling from
+// scripts/hooks/architect-review.mjs (.claude/approvals/, content-bound).
+// `Agent` itself is blocked by permissions.deny — platform-level, not here.
+//
 // Exit 2 = block, stderr → agent (research/hooks-reference.md:L652). NOTE: any
 // non-2 exit PROCEEDS with the tool call (research/hooks-reference.md:L672), so a
 // crash here fails OPEN — which is exactly why the deny rules above are the
 // backstop and this hook scopes its own failures narrowly (M8).
 
-import { readFileSync } from 'node:fs';
-import { isAbsolute, relative, resolve } from 'node:path';
+import { readFileSync, readdirSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { isAbsolute, relative, resolve, join } from 'node:path';
 
 // Protected-path fragment shared by the shell-write checks. Matches the four
-// protected dirs and the three generated graph JSONs anywhere in a command.
-const PROT = String.raw`(\.claude[\\/]|\.husky[\\/]|\.github[\\/]workflows[\\/]|scripts[\\/]hooks[\\/]|tools[\\/]graph[\\/](?:backend-graph|frontend-graph|graph-baseline)\.json)`;
+// protected dirs, the canon (docs/adr), and the three generated graph JSONs
+// anywhere in a command. [PATCH 2026-07-07: + docs/adr]
+const PROT = String.raw`(\.claude[\\/]|\.husky[\\/]|\.github[\\/]workflows[\\/]|scripts[\\/]hooks[\\/]|docs[\\/]adr[\\/]|tools[\\/]graph[\\/](?:backend-graph|frontend-graph|graph-baseline)\.json)`;
 
 const PROTECTED_DIRS = /(^|[\\/])(\.claude|\.husky)[\\/]|(^|[\\/])\.github[\\/]workflows[\\/]|(^|[\\/])scripts[\\/]hooks[\\/]/i;
 const GENERATED_GRAPH = /tools[\\/]graph[\\/](backend-graph|frontend-graph|graph-baseline)\.json/i;
+// [PATCH 2026-07-07] The canon: ADRs are minted through the owner's window
+// only. An agent-written ADR is unreviewed precedent (this happened: ADR 0006).
+const CANON_DIRS = /(^|[\\/])docs[\\/]adr[\\/]/i;
 // Exemptions: harness-owned agent workspaces that are NOT enforcement config —
 // auto-memory (~/.claude/projects/<slug>/memory/) and plan-mode plans
 // (~/.claude/plans/). Under HOME .claude, so the project-scoped deny rules never
 // reach them either (research/permissions.md:L264); the hook mirrors that.
 const MEMORY_DIR = /[\\/]\.claude[\\/]projects[\\/][^\\/]+[\\/]memory[\\/]/i;
 const PLANS_DIR = /[\\/]\.claude[\\/]plans[\\/]/i;
+
+// [PATCH 2026-07-07] Approval-gate policy: how long an architect ruling
+// unlocks its file set, and which rulings count.
+const APPROVAL_TTL_MS = 24 * 60 * 60 * 1000;
+const APPROVING_RULINGS = new Set(['APPROVED', 'APPROVED_WITH_CONDITIONS']);
 
 function block(reason, fix) {
   console.error(`BLOCKED: ${reason}`);
@@ -52,6 +70,34 @@ async function getCommon() {
   }
 }
 
+// [PATCH 2026-07-07] Load the set of file paths covered by a fresh, integrity-
+// valid APPROVED ruling. A record only counts when its filename and its `sha`
+// both equal sha256(files+deduced+proposed) — a tampered or renamed record
+// covers nothing. Unreadable/expired/rejected records cover nothing (closed).
+function approvedFiles(root, normalizeKey) {
+  const dir = join(root, '.claude', 'approvals');
+  let names = [];
+  try { names = readdirSync(dir); } catch { return new Set(); }
+  const covered = new Set();
+  const now = Date.now();
+  for (const n of names) {
+    if (!n.endsWith('.json')) continue;
+    try {
+      const rec = JSON.parse(readFileSync(join(dir, n), 'utf8'));
+      if (!APPROVING_RULINGS.has(rec.ruling)) continue;
+      if (!(now - Date.parse(rec.at) < APPROVAL_TTL_MS)) continue;
+      const sha = createHash('sha256')
+        .update(JSON.stringify({ files: rec.files, deduced: rec.deduced, proposed: rec.proposed }))
+        .digest('hex');
+      if (sha !== rec.sha || n !== `${sha}.json`) continue;
+      for (const f of rec.files) covered.add(normalizeKey(f.path));
+    } catch { /* malformed record covers nothing */ }
+  }
+  return covered;
+}
+
+const APPROVAL_FIX = 'Run `node scripts/hooks/architect-review.mjs --files <a,b> --deduced "<diagnosis>" --proposed "<fix>" [--issue N]`. Only an APPROVED ruling unlocks the change; REJECTED means revise the proposal, and infrastructure-down means HALT and summon the owner.';
+
 // ---- M2: shell writes to protected paths, WITHOUT flagging reads --------------
 // Each pattern targets a genuine write/delete of a protected path. Reads
 // (`cat x`, `cp x /scratch`, `grep`, `2>/dev/null`) are deliberately NOT matched.
@@ -69,7 +115,10 @@ function cmdWritesProtected(cmd) {
   // allowed; `cp /tmp/x .claude/y` (write) is blocked.
   const COPY_DEST = new RegExp(String.raw`\b(cp|mv|Copy-Item|Move-Item)\b[^|;&]*` + PROT + String.raw`[^\s"';|&]*["']?(\s+-\w+)*\s*$`, 'i');
   // Inline interpreters writing a protected path (`node -e "...writeFileSync('.claude/..')"`).
-  const INTERP = /\b(node\s+(?:-e|--eval)|deno\s+eval|python3?\s+-c|ruby\s+-e|perl\s+-e)\b/i;
+  // [PATCH 2026-07-07] Also stdin-script forms (`python - <<EOF`, `node -`):
+  // the heredoc body is part of the command text, so the write-call check
+  // applies to it exactly as it does to -e/-c payloads.
+  const INTERP = /\b(node\s+(?:-e|--eval)|deno\s+eval|python3?\s+-c|ruby\s+-e|perl\s+-e)\b|\b(node|python3?|deno|ruby|perl)\s+-\s/i;
   const INTERP_WRITE = /\b(writeFileSync|appendFileSync|copyFileSync|renameSync|createWriteStream|mkdirSync|rmSync|unlinkSync|WriteAllText|WriteAllBytes|open\s*\([^)]*['"][wa])/i;
   const cmdProtected = new RegExp(PROT, 'i').test(cmd);
   return (
@@ -100,13 +149,20 @@ async function main() {
     block('guard received unparseable hook input (fail-closed)');
   }
 
-  // ---- Edit-family: path protection + impact gate --------------------------
+  // ---- Edit-family: path protection + impact gate + approval gate ----------
   if (tool === 'Edit' || tool === 'Write' || tool === 'NotebookEdit') {
     const p = String(ti.file_path ?? ti.notebook_path ?? '');
     if (PROTECTED_DIRS.test(p) && !MEMORY_DIR.test(p) && !PLANS_DIR.test(p)) {
       block(
         `${p} is protected infrastructure — agents cannot modify their own constraints, hooks, or CI.`,
         'Workflow/CI changes: draft in tools/graph/WORKFLOW-DRAFT*.yml for a human. If a hook blocks you wrongly, report it — do not edit it.'
+      );
+    }
+    // [PATCH 2026-07-07] The canon is owner-minted only.
+    if (CANON_DIRS.test(p)) {
+      block(
+        `${p} is the architectural canon (docs/adr/) — precedent is minted only in an owner-opened window.`,
+        'Draft the ADR in your scratchpad and hand it to the owner; never write docs/adr/ directly.'
       );
     }
     if (GENERATED_GRAPH.test(p)) {
@@ -122,11 +178,18 @@ async function main() {
       const rel = relative(root, resolve(root, p));
       if (!rel.startsWith('..') && !isAbsolute(rel)) {
         const entry = common.loadLedger(common.ledgerPath(root))[common.normalizeKey(rel)];
+        const fwd = rel.replaceAll('\\', '/');
         if (!entry || Date.now() - entry.at > common.EDIT_TTL_MS) {
-          const fwd = rel.replaceAll('\\', '/');
           block(
             `${fwd} — no current impact analysis. You may not modify code whose blast radius you have not established.`,
             `Run \`node scripts/hooks/impact-analyze.mjs "${fwd}"\`, READ the dependents and layer rules it prints, then retry this edit. Analyses expire after 90 minutes.`
+          );
+        }
+        // [PATCH 2026-07-07] Approval gate: no architect ruling, no edit.
+        if (!approvedFiles(root, common.normalizeKey).has(common.normalizeKey(rel))) {
+          block(
+            `${fwd} — no APPROVED architect ruling covers this file. Diagnosis and proposal must be reviewed before code changes (docs/claude/covenant.md #5).`,
+            APPROVAL_FIX
           );
         }
       }
@@ -148,8 +211,8 @@ async function main() {
 
     if (cmdWritesProtected(cmd)) {
       block(
-        'command writes to or deletes protected infrastructure (.claude/, .husky/, .github/workflows/, scripts/hooks/, or generated graph JSON).',
-        'Generated graph JSON: `npm run graph:update` only. CI: draft in tools/graph/WORKFLOW-DRAFT*.yml. Constraints/hooks/ledger: report problems, never modify.'
+        'command writes to or deletes protected infrastructure (.claude/, .husky/, .github/workflows/, scripts/hooks/, docs/adr/, or generated graph JSON).',
+        'Generated graph JSON: `npm run graph:update` only. CI: draft in tools/graph/WORKFLOW-DRAFT*.yml. Constraints/hooks/ledger/canon: report problems, never modify.'
       );
     }
 
@@ -192,12 +255,15 @@ async function main() {
       block('SQL DROP outside localhost.', 'Schema changes only via EF migrations.');
     }
 
-    // Commit gate: every changed code file needs impact analysis on record.
+    // Commit gate: every changed code file needs impact analysis AND an
+    // architect approval on record. [PATCH 2026-07-07: + approval]
     if (/\bgit(\s+-\S+(\s+\S+)?)*\s+commit\b/i.test(cmd)) {
       const common = await getCommon();
-      const ledger = common.loadLedger(common.ledgerPath(common.repoRoot()));
+      const root = common.repoRoot();
+      const ledger = common.loadLedger(common.ledgerPath(root));
       const nowTs = Date.now();
-      const missing = common.changedCodeFiles(common.repoRoot()).filter((f) => {
+      const changed = common.changedCodeFiles(root);
+      const missing = changed.filter((f) => {
         const entry = ledger[common.normalizeKey(f)];
         return !entry || nowTs - entry.at > common.COMMIT_TTL_MS;
       });
@@ -205,6 +271,14 @@ async function main() {
         block(
           `git commit refused — ${missing.length} changed code file(s) have no impact analysis on record:\n    ${missing.join('\n    ')}`,
           'Run `node scripts/hooks/impact-analyze.mjs --changed`, READ the dependents and layer rules for each, then commit.'
+        );
+      }
+      const covered = approvedFiles(root, common.normalizeKey);
+      const unapproved = changed.filter((f) => !covered.has(common.normalizeKey(f)));
+      if (unapproved.length > 0) {
+        block(
+          `git commit refused — ${unapproved.length} changed code file(s) have no APPROVED architect ruling:\n    ${unapproved.join('\n    ')}`,
+          APPROVAL_FIX
         );
       }
     }
