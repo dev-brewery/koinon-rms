@@ -3,11 +3,11 @@
   "reviewType": "architect-code-review",
   "repository": "dev-brewery/koinon-rms",
   "baseCommit": "fb830fac735e3eba2c8608d036cea6d91a0eb522",
-  "headCommit": "e58e51691c5e55265021b21cc0969ba75fabaf01",
-  "createdAt": "2026-07-08T14:10:54.142537Z",
+  "headCommit": "f05dfd18627aa3fbc1136bbb8c3486aa5f9221e7",
+  "createdAt": "2026-07-08T14:26:54.930238Z",
   "change": {
-    "diffSha256": "e9f8388cc6de3b8d5f3c7c96291064e16b7a03da6a7a0082b2615e0557537b26",
-    "graphBaselineSha256": "e652a5cb17c945c88bff3730e293a13a0fd0e20999d434a103e4f9da0afedafc",
+    "diffSha256": "2de948c808910b22dd50f6f494738c07faa09fc217d7ce9a367210953f6a9cfc",
+    "graphBaselineSha256": "80cb395d2b2bb4445c9c84b0f9e484cbcaf8c5bc5e8c6f10a746ddf9fa373686",
     "files": [
       {
         "path": "docs/adr/0006-standards-rag-collection.md",
@@ -58,6 +58,31 @@
         "path": "src/web/src/services/api/import.ts",
         "status": "M",
         "sha256": "69c0fa37d0c21cec8dc5c608b85ba85adf372651cce5d7d69ee41ccc05a613a2"
+      },
+      {
+        "path": "tools/graph/backend-graph.json",
+        "status": "M",
+        "sha256": "e593622baf8671417b9a65bb3113fb9f549b15b750c87b4d45b5b8b8d869d0f6"
+      },
+      {
+        "path": "tools/graph/frontend-graph.json",
+        "status": "M",
+        "sha256": "ecc6bba6c6f4b327678ff04c3363b69cb8b065383d1b61d82bb00f93d8e84894"
+      },
+      {
+        "path": "tools/graph/generate-frontend.js",
+        "status": "M",
+        "sha256": "025cf2b6d6a0e91b57619d20ee69af9b53be17c455c3f887b87197ae3fe6f5b8"
+      },
+      {
+        "path": "tools/graph/graph-baseline.json",
+        "status": "M",
+        "sha256": "80cb395d2b2bb4445c9c84b0f9e484cbcaf8c5bc5e8c6f10a746ddf9fa373686"
+      },
+      {
+        "path": "tools/graph/tests/test_generate_frontend.test.js",
+        "status": "M",
+        "sha256": "0932073023489397049b177fc887fb6ebe9785675a1a36f2d848699ab9f6fb20"
       },
       {
         "path": "tools/mcp-koinon-dev/dist/index.js",
@@ -122,7 +147,7 @@
         },
         {
           "path": "docs/reference/conventions.md",
-          "query": "frontend one HTTP client; API success envelope PagedResult inside data",
+          "query": "frontend one HTTP client; API success envelope PagedResult inside data; graph baseline committed with structural/tooling change",
           "collection": "koinon-standards",
           "doc_type": "reference"
         },
@@ -148,9 +173,11 @@
       "npm --prefix src/web test -- src/services/api/__tests__/services.extra.test.ts src/hooks/__tests__/useImportJobs.test.tsx",
       "npm --prefix tools/mcp-koinon-dev run build && npm --prefix tools/mcp-koinon-dev test",
       "npm run test:architecture",
+      "npx jest tools/graph/tests/test_generate_frontend.test.js -t \"nested\" --runInBand --rootDir . --testPathIgnorePatterns .claude/worktrees",
+      "npm run graph:validate",
       "npm run validate:quick"
     ],
-    "summary": "Standards index rebuilt; product_decisions scope returns PD-0001 from koinon-standards. #720 reproduced with failing service test, fixed, targeted unit/hook/typecheck/lint/MCP/architecture gates and Import History E2E passed."
+    "summary": "Standards index rebuilt; product_decisions scope returns PD-0001 from koinon-standards. #720 reproduced with failing service test, fixed, targeted unit/hook/typecheck/lint/MCP/architecture gates and Import History E2E passed. Graph parser regression was reproduced and fixed so nested generic get(url) calls keep /import/jobs in graph baseline."
   },
   "architectRuling": {
     "ruling": "APPROVED",
@@ -170,6 +197,10 @@
       {
         "standard": "docs/adr/0006-standards-rag-collection.md#Consequences",
         "finding": "MCP standards_search exposes koinon-standards scopes while rag_search remains code-only, preserving collection boundaries."
+      },
+      {
+        "standard": "docs/reference/conventions.md#Process",
+        "finding": "Graph baseline drift caused by the change was resolved by fixing the parser regression and committing regenerated graph artifacts with the code."
       }
     ],
     "conditions": []
@@ -178,7 +209,7 @@
     "keyId": "koinon-bootstrap-agent-2026-07",
     "algorithm": "ed25519",
     "publicKeySha256": "9e0ff7349656492db36b5f972a82390b4044306d0279052548400db798c8fa1b",
-    "signedPayloadSha256": "2db99298bccd510284f9ad485b851d494019bab6d821e1261ae31a79c287568c",
-    "signature": "4aBceNxSYKzbAt016lxy5sJWnv0L4z/waT5lYPLRQCpwUnd5G3rY7YnO1cpVH1HJNSc0tu8qLj23IiTXUtEyAw=="
+    "signedPayloadSha256": "a093d58b577ca42dec88da41c7570be18c980731606fc20ca06341494dc5320f",
+    "signature": "y46Wf+lGcdHXyokOylUebY5PEcnjAZnQIKh+JpqKYwg940uhhGUOVmLa3GZ4uj0NncWlJQtKhJiljEYGpkD4Bg=="
   }
 }
