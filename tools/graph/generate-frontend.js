@@ -375,7 +375,9 @@ function extractHttpDetails(funcBody) {
   };
 
   // Pattern 1: Direct call with string literal: get<T>('/endpoint')
-  const directCallRegex = /\b(get|post|put|patch|del)\s*<[^>]*>\s*\(\s*['"`]([^'">`]+)/;
+  // Use a greedy generic match so nested wrappers like
+  // get<{ data: PagedResult<ImportJobDto> }>('/endpoint') still parse.
+  const directCallRegex = /\b(get|post|put|patch|del)\s*<[\s\S]+>\s*\(\s*['"`]([^'">`]+)/;
   const directMatch = funcBody.match(directCallRegex);
 
   if (directMatch) {
@@ -399,9 +401,12 @@ function extractHttpDetails(funcBody) {
   }
 
   // Pattern 3: URL variable with template literal: const url = `/endpoint...`; get<T>(url)
+  // Prefer the static path prefix before ${...}; this handles nested query
+  // templates like `/import/jobs${queryString ? `?${queryString}` : ''}`.
+  const urlVarPrefixRegex = /const\s+url\s*=\s*`([^`$]+)\$\{/;
   const urlVarRegex = /const\s+url\s*=\s*`([^`]+)`/;
-  const urlVarMatch = funcBody.match(urlVarRegex);
-  const methodCallRegex = /\b(get|post|put|patch|del)\s*<[^>]*>\s*\(\s*url/;
+  const urlVarMatch = funcBody.match(urlVarPrefixRegex) || funcBody.match(urlVarRegex);
+  const methodCallRegex = /\b(get|post|put|patch|del)\s*<[\s\S]+>\s*\(\s*url/;
   const methodCallMatch = funcBody.match(methodCallRegex);
 
   if (urlVarMatch && methodCallMatch) {

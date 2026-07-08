@@ -299,6 +299,36 @@ describe('extractHttpDetails()', () => {
     expect(result.endpoint).toBe('/people/${idKey}');
   });
 
+  test('should extract endpoint when response generic is nested', () => {
+    const funcBody = `
+      const response = await get<{ data: PagedResult<ImportJobDto> }>('/import/jobs');
+      return response.data.items;
+    `;
+
+    const result = extractHttpDetails(funcBody);
+
+    expect(result).toEqual({
+      method: 'GET',
+      endpoint: '/import/jobs',
+    });
+  });
+
+  test('should extract url variable endpoint when response generic is nested', () => {
+    const funcBody = [
+      'const queryString = params.toString();',
+      'const url = `/import/jobs${queryString ? `?${queryString}` : ``}`;',
+      'const response = await get<{ data: PagedResult<ImportJobDto> }>(url);',
+      'return response.data.items;',
+    ].join('\n');
+
+    const result = extractHttpDetails(funcBody);
+
+    expect(result).toEqual({
+      method: 'GET',
+      endpoint: '/import/jobs',
+    });
+  });
+
   test('should return null for missing method', () => {
     const funcBody = `return something('/people');`;
 
