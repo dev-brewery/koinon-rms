@@ -62,10 +62,10 @@ public class PrinterDiscoveryServiceTests
     }
 
     [Fact]
-    public void GetPrinterInfo_WithValidPrinterName_ReturnsInfo()
+    public async Task GetPrinterInfo_WithValidPrinterName_ReturnsInfo()
     {
         // Arrange - Get first available printer from system
-        var printers = _service.GetAvailablePrintersAsync().Result;
+        var printers = await _service.GetAvailablePrintersAsync();
 
         if (printers.Count == 0)
         {

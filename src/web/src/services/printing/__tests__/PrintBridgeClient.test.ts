@@ -40,12 +40,28 @@ describe('PrintBridgeClient', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
   });
 
   // ---------------------------------------------------------------------------
   // checkHealth
   // ---------------------------------------------------------------------------
   describe('checkHealth', () => {
+    it('uses VITE_PRINT_BRIDGE_URL when no constructor URL is provided', async () => {
+      vi.stubEnv('VITE_PRINT_BRIDGE_URL', 'http://localhost:7777');
+      client = new PrintBridgeClient();
+      fetchSpy.mockResolvedValueOnce(
+        okJson({ status: 'ok', version: '1.0.0', timestamp: 'now' })
+      );
+
+      await client.checkHealth();
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'http://localhost:7777/health',
+        expect.objectContaining({ method: 'GET' })
+      );
+    });
+
     it('returns success + data when health endpoint returns 200', async () => {
       fetchSpy.mockResolvedValueOnce(
         okJson({ status: 'ok', version: '1.0.0', timestamp: 'now' })

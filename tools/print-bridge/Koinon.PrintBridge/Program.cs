@@ -38,13 +38,17 @@ try
     builder.Services.AddSingleton<ZplPrintService>();
     builder.Services.AddSingleton<WindowsPrintService>();
     builder.Services.AddControllers();
+    var allowedOrigins = GetAllowedOrigins(builder.Configuration);
+    Log.Information("Print Bridge CORS allowed origins: {Origins}", string.Join(", ", allowedOrigins));
+
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowKiosk", policy =>
         {
-            // SECURITY: Only allow requests from localhost web app (Vite dev server)
-            // NEVER allow production origins - this is a localhost-only print bridge
-            policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")
+            // SECURITY: Only allow explicitly configured kiosk origins. The bridge
+            // still binds to localhost only, but hosted QA/demo kiosks are a
+            // different browser origin from the browser-local bridge.
+            policy.WithOrigins(allowedOrigins)
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
@@ -94,6 +98,34 @@ catch (Exception ex)
 finally
 {
     Log.CloseAndFlush();
+}
+
+static string[] GetAllowedOrigins(IConfiguration configuration)
+{
+    var configuredOrigins = configuration
+        .GetSection("PrintBridge:AllowedOrigins")
+        .Get<string[]>() ?? Array.Empty<string>();
+
+    var commaSeparatedOrigins = configuration.GetValue<string>("PrintBridge:AllowedOriginsCsv");
+    var csvOrigins = string.IsNullOrWhiteSpace(commaSeparatedOrigins)
+        ? Array.Empty<string>()
+        : commaSeparatedOrigins
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+    var defaultOrigins = new[]
+    {
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000"
+    };
+
+    return defaultOrigins
+        .Concat(configuredOrigins)
+        .Concat(csvOrigins)
+        .Where(origin => !string.IsNullOrWhiteSpace(origin))
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .ToArray();
 }
 
 // Hidden form to keep the application running

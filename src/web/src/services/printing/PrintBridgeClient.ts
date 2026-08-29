@@ -3,7 +3,18 @@
  * The print bridge runs locally on Windows and provides label printing via localhost:9632.
  */
 
-const PRINT_BRIDGE_URL = 'http://localhost:9632';
+const DEFAULT_PRINT_BRIDGE_URL = 'http://localhost:9632';
+
+/**
+ * Resolve the browser-local print bridge URL.
+ *
+ * The production kiosk talks to a desktop bridge on the browser machine, so the
+ * default remains localhost. Preview/demo builds can override this at build
+ * time when the bridge is exposed elsewhere for integration testing.
+ */
+export function getPrintBridgeUrl(): string {
+  return import.meta.env.VITE_PRINT_BRIDGE_URL || DEFAULT_PRINT_BRIDGE_URL;
+}
 
 export interface PrinterInfo {
   name: string;
@@ -49,7 +60,7 @@ export type PrintBridgeResponse<T> =
 export class PrintBridgeClient {
   private baseUrl: string;
 
-  constructor(baseUrl: string = PRINT_BRIDGE_URL) {
+  constructor(baseUrl: string = getPrintBridgeUrl()) {
     this.baseUrl = baseUrl;
   }
 
