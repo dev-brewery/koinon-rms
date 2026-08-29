@@ -2,22 +2,27 @@
   "schemaVersion": 1,
   "reviewType": "architect-code-review",
   "repository": "dev-brewery/koinon-rms",
-  "baseCommit": "f694a9eaae05ba33cfcee478362ebbe5f68b8687",
-  "headCommit": "9633186d1c0257e7dbfd9de4999df16d37439590",
-  "createdAt": "2026-08-29T15:54:39.202Z",
+  "baseCommit": "0a90f38c992119fe0dccc892c0bba9b664254c11",
+  "headCommit": "00a2893ff6df8055a4166fb74191a6420f40aac2",
+  "createdAt": "2026-08-29T16:04:26.597Z",
   "change": {
-    "diffSha256": "dc3133a6fea2cdea930a44c5db436f6b8daedaabd25914289cc466b341a1c3a0",
+    "diffSha256": "027908ffe9b58747d8b64bc45c104b54d350b6fc66e00b7ff441ba59bfb6aafe",
     "graphBaselineSha256": "80cb395d2b2bb4445c9c84b0f9e484cbcaf8c5bc5e8c6f10a746ddf9fa373686",
     "files": [
       {
-        "path": "src/Koinon.Application/Services/Common/GradeCalculationHelper.cs",
+        "path": "src/web/src/hooks/__tests__/useCheckin.test.tsx",
         "status": "M",
-        "sha256": "b38ac7e3b4dec2afb0626c6c574e02b1e9a4258ff46b0549a1ea1505b1363c3b"
+        "sha256": "ce1c8f50ae044befd9bb6934697205cecaeddebda1880bae71781beb60138918"
       },
       {
-        "path": "tests/Koinon.Application.Tests/Services/GradeCalculationHelperTests.cs",
+        "path": "src/web/src/hooks/useCheckin.ts",
         "status": "M",
-        "sha256": "99dc4ef659b3f357dadf176967efd5bb0360d395a5170a66a6da931f52f38ab2"
+        "sha256": "b51f750af92762fa42072c253ce5fb1cbe661958abd96eb83635cc33f6b1e5fc"
+      },
+      {
+        "path": "src/web/src/pages/admin/people/PersonFormPage.tsx",
+        "status": "M",
+        "sha256": "a651c1795053207ef0b523c04d6ff1a031c8afa1d9b5e52666a89c7425de2482"
       }
     ]
   },
@@ -47,7 +52,7 @@
       "dotnet restore/build (affected projects or full solution)",
       "node scripts/architecture/verify-review-artifact.mjs --base <base> --head <head>"
     ],
-    "summary": "GradeCalculationHelper tests were date-dependent (hardcoded 2025 vs real Aug-2026 clock) and a theory was tautological; added DateOnly-injectable overload mirroring GradeCalculationService pattern and rewrote tests against fixed dates. 38/38 grade tests pass; full solution restore clean."
+    "summary": "Recovers destroyed overnight fixes: useCheckinConfiguration idle-guard (no empty-param 400 on kiosk load; removes a request from the perf-budgeted path) and PersonFormPage stale email validation error clearing. Re-verified: 11/11 vitest incl. new regression test, typecheck, lint."
   },
   "architectRuling": {
     "ruling": "APPROVED",
@@ -67,7 +72,7 @@
     "keyId": "koinon-bootstrap-agent-2026-07",
     "algorithm": "ed25519",
     "publicKeySha256": "9e0ff7349656492db36b5f972a82390b4044306d0279052548400db798c8fa1b",
-    "signedPayloadSha256": "e648f1efacaf33534563c4ffcd22980e8a357753627460bfff93a5d382fe054a",
-    "signature": "c1AzpSQMUQ1mKPxvJnM7fwIlkbODL5Dpe1IesPTqRU65TZnq04c9VN0ayXBv1CAM+nigUCcuQ/0INvTejceKDw=="
+    "signedPayloadSha256": "e99dadb45a04ced92c8cc8fc4d353d329f2735888a77a342d97543cbad9f7ea4",
+    "signature": "fWcccIXStKz4VrgZjW8mk11whzR3D9KZkDqL4cf0SbnN3j+RobmMaYSb5U2C1CZBzshJt6YYrBelGs+XTct3CA=="
   }
 }
