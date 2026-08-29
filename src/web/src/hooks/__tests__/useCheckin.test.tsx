@@ -28,6 +28,13 @@ import { renderHookWithQuery } from '@/test-utils/queryTestHarness';
 beforeEach(() => vi.clearAllMocks());
 
 describe('useCheckinConfiguration', () => {
+  it('does not request configuration until kioskId or campusId is available', async () => {
+    const { result } = renderHookWithQuery(() => useCheckinConfiguration());
+
+    expect(result.current.fetchStatus).toBe('idle');
+    expect(checkinApi.getCheckinConfiguration).not.toHaveBeenCalled();
+  });
+
   it('forwards params', async () => {
     vi.mocked(checkinApi.getCheckinConfiguration).mockResolvedValueOnce({} as never);
     const { result } = renderHookWithQuery(() => useCheckinConfiguration({ kioskId: 'k1' }));

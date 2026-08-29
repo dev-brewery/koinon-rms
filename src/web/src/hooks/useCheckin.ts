@@ -11,9 +11,12 @@ import type {
  * Get check-in configuration for kiosk
  */
 export function useCheckinConfiguration(params: CheckinConfigParams = {}) {
+  const hasConfigurationScope = Boolean(params.kioskId || params.campusId);
+
   return useQuery({
     queryKey: ['checkin', 'configuration', params],
     queryFn: () => checkinApi.getCheckinConfiguration(params),
+    enabled: hasConfigurationScope,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
