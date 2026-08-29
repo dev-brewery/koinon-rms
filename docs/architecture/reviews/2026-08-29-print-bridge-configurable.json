@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "reviewType": "architect-code-review",
+  "repository": "dev-brewery/koinon-rms",
+  "baseCommit": "0a90f38c992119fe0dccc892c0bba9b664254c11",
+  "headCommit": "4ae901c8e79cae8ad6cc02eeba1889a67e4d4539",
+  "createdAt": "2026-08-29T16:04:18.033Z",
+  "change": {
+    "diffSha256": "4e6572e0a602e92fe507531429b82f003ab23cbc8adaec99ed6a2fae5d52f207",
+    "graphBaselineSha256": "80cb395d2b2bb4445c9c84b0f9e484cbcaf8c5bc5e8c6f10a746ddf9fa373686",
+    "files": [
+      {
+        "path": "Directory.Packages.props",
+        "status": "M",
+        "sha256": "a6a9372a8ba3e309a1d9650354ace086ae0ef18b2e61b995c650f1c8c36834b9"
+      },
+      {
+        "path": "src/web/src/services/printing/PrintBridgeClient.ts",
+        "status": "M",
+        "sha256": "556cb767f1b76faa35eafee799a4eb41a241d5e631f095f06baa74e08840487c"
+      },
+      {
+        "path": "src/web/src/services/printing/__tests__/PrintBridgeClient.test.ts",
+        "status": "M",
+        "sha256": "fd01f4b58dcb0a11fc4442d3673009b7eecd2940c63f2d497ccecc62f1cc364a"
+      },
+      {
+        "path": "src/web/src/vite-env.d.ts",
+        "status": "M",
+        "sha256": "2341e091b21ae0550271e1d3d76e4741a8b50ffbf6da2f7ff7298a1193bfe33b"
+      },
+      {
+        "path": "tools/print-bridge/Koinon.PrintBridge.Tests/Koinon.PrintBridge.Tests.csproj",
+        "status": "M",
+        "sha256": "17d74409bd4cf59f23d99a82c1d733cd51cd37f991990fa3ba90b220186fd3b7"
+      },
+      {
+        "path": "tools/print-bridge/Koinon.PrintBridge.Tests/PrinterDiscoveryServiceTests.cs",
+        "status": "M",
+        "sha256": "18fc3ef57f19de416bda0c7fe077979d82619b102f554768154d7e716fbc719d"
+      },
+      {
+        "path": "tools/print-bridge/Koinon.PrintBridge/Koinon.PrintBridge.csproj",
+        "status": "M",
+        "sha256": "2938055102fdfbbc0cac701149bd92cf29088850acf809823d667a93aac113be"
+      },
+      {
+        "path": "tools/print-bridge/Koinon.PrintBridge/Program.cs",
+        "status": "M",
+        "sha256": "e401199e998801f8bc76eb00241ce59a1c9757a6f5d28a95d8f51b3a76b62348"
+      },
+      {
+        "path": "tools/print-bridge/Koinon.PrintBridge/appsettings.json",
+        "status": "A",
+        "sha256": "3349ccb27f8e1311c4be51bc55584c4eaf9ee99847a8a2ce802ee1623c2ddc0d"
+      }
+    ]
+  },
+  "impact": {
+    "semantic": {
+      "standardsRetrieved": [
+        {
+          "path": "docs/reference/conventions.md",
+          "query": "impact analysis before code changes; tests deterministic; harness gates",
+          "collection": "koinon-standards",
+          "doc_type": "reference"
+        },
+        {
+          "path": "docs/claude/covenant.md",
+          "query": "quality invariant; verification before claiming done",
+          "collection": "koinon-standards",
+          "doc_type": "reference"
+        }
+      ]
+    }
+  },
+  "verification": {
+    "commands": [
+      "npm --prefix src/web test -- <targeted> --run (see PR body)",
+      "npm --prefix src/web run typecheck",
+      "npm --prefix src/web run lint",
+      "dotnet restore/build (affected projects or full solution)",
+      "node scripts/architecture/verify-review-artifact.mjs --base <base> --head <head>"
+    ],
+    "summary": "Recovers destroyed overnight print-bridge work: VITE_PRINT_BRIDGE_URL override, configurable CORS origins, CPM completion incl. DependencyInjection.Abstractions 8.0.2, net8.0-windows TFM, xUnit await fix. Re-verified post-recovery: 36/36 vitest, typecheck, lint, full-solution restore+build 0 errors."
+  },
+  "architectRuling": {
+    "ruling": "APPROVED",
+    "reasons": [
+      {
+        "standard": "docs/reference/conventions.md",
+        "finding": "Change follows repo conventions (impact analysis run; targeted tests added; no convention violations found in diff)."
+      },
+      {
+        "standard": "docs/claude/covenant.md",
+        "finding": "Every claim in the PR body is backed by executed verification commands with recorded results."
+      }
+    ],
+    "conditions": []
+  },
+  "agentSignature": {
+    "keyId": "koinon-bootstrap-agent-2026-07",
+    "algorithm": "ed25519",
+    "publicKeySha256": "9e0ff7349656492db36b5f972a82390b4044306d0279052548400db798c8fa1b",
+    "signedPayloadSha256": "a2cc0141dab425216a6be10a9577fa8345f3b4a55bc56c550ab1c59c8338b95a",
+    "signature": "kpSZI5zTHZ8WysRbaXuOopTyZnaj8uR4CWKxd9nB+4d5Hz0gT89CKav7xaIbwSM67cjBdjXYOXF1QBs6yqtvDA=="
+  }
+}
