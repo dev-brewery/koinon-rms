@@ -1,0 +1,215 @@
+{
+  "schemaVersion": 1,
+  "reviewType": "architect-code-review",
+  "repository": "dev-brewery/koinon-rms",
+  "baseCommit": "fb830fac735e3eba2c8608d036cea6d91a0eb522",
+  "headCommit": "f05dfd18627aa3fbc1136bbb8c3486aa5f9221e7",
+  "createdAt": "2026-07-08T14:26:54.930238Z",
+  "change": {
+    "diffSha256": "2de948c808910b22dd50f6f494738c07faa09fc217d7ce9a367210953f6a9cfc",
+    "graphBaselineSha256": "80cb395d2b2bb4445c9c84b0f9e484cbcaf8c5bc5e8c6f10a746ddf9fa373686",
+    "files": [
+      {
+        "path": "docs/adr/0006-standards-rag-collection.md",
+        "status": "M",
+        "sha256": "4dacb02ffaa304ba1b53bdc948e9741700af25ff944388edb66eef6638853c76"
+      },
+      {
+        "path": "docs/claude/mcp-tools.md",
+        "status": "M",
+        "sha256": "e25297eaebefc634fbb99d88e4697266908b7c6ef4df5c655cd632a34f2d38f4"
+      },
+      {
+        "path": "docs/product/decisions/PD-0001-product-decisions-live-in-standards.md",
+        "status": "A",
+        "sha256": "3d268971fe041175badab41d90cab7f188f4a027fc1765c09b80fb0c10623808"
+      },
+      {
+        "path": "docs/product/decisions/README.md",
+        "status": "A",
+        "sha256": "da4c40018c308e50ecc12a0fde2c93a2965e1a4b674d35690388906982403bb6"
+      },
+      {
+        "path": "docs/product/decisions/template.md",
+        "status": "A",
+        "sha256": "be50f8f33189418c2b56d76e6310170bece9840db780fd911f404d9946ce0a20"
+      },
+      {
+        "path": "package.json",
+        "status": "M",
+        "sha256": "070ce248a9c4e994ec52c6da39385e65858ccd787e17df62b9363ea6b0df28a0"
+      },
+      {
+        "path": "src/Koinon.Api/Dockerfile",
+        "status": "M",
+        "sha256": "98412d4a5e97fb5950f76023178b629abe8380c2f0fbc2017fa1e248de73beca"
+      },
+      {
+        "path": "src/web/e2e/tests/admin/feat-679-import-pages.spec.ts",
+        "status": "M",
+        "sha256": "9eb86fc48ac4f9480845646ef55f168d1a7575e2aa7eb28fc36161014df9a888"
+      },
+      {
+        "path": "src/web/src/services/api/__tests__/services.extra.test.ts",
+        "status": "M",
+        "sha256": "b7992a7cf12bfdd35d394da0b5a374bcf5d87b40a53d4857d722fb11cd056fb6"
+      },
+      {
+        "path": "src/web/src/services/api/import.ts",
+        "status": "M",
+        "sha256": "69c0fa37d0c21cec8dc5c608b85ba85adf372651cce5d7d69ee41ccc05a613a2"
+      },
+      {
+        "path": "tools/graph/backend-graph.json",
+        "status": "M",
+        "sha256": "e593622baf8671417b9a65bb3113fb9f549b15b750c87b4d45b5b8b8d869d0f6"
+      },
+      {
+        "path": "tools/graph/frontend-graph.json",
+        "status": "M",
+        "sha256": "ecc6bba6c6f4b327678ff04c3363b69cb8b065383d1b61d82bb00f93d8e84894"
+      },
+      {
+        "path": "tools/graph/generate-frontend.js",
+        "status": "M",
+        "sha256": "025cf2b6d6a0e91b57619d20ee69af9b53be17c455c3f887b87197ae3fe6f5b8"
+      },
+      {
+        "path": "tools/graph/graph-baseline.json",
+        "status": "M",
+        "sha256": "80cb395d2b2bb4445c9c84b0f9e484cbcaf8c5bc5e8c6f10a746ddf9fa373686"
+      },
+      {
+        "path": "tools/graph/tests/test_generate_frontend.test.js",
+        "status": "M",
+        "sha256": "0932073023489397049b177fc887fb6ebe9785675a1a36f2d848699ab9f6fb20"
+      },
+      {
+        "path": "tools/mcp-koinon-dev/dist/index.js",
+        "status": "M",
+        "sha256": "24b1cfa979c5d6b1d1f1e1412db4610f4e08e2b2ebc5bab757e5ae688dd0a523"
+      },
+      {
+        "path": "tools/mcp-koinon-dev/dist/index.js.map",
+        "status": "M",
+        "sha256": "fa3f3550f5cc867a5be5f0a1793d2ebb937bf9286605e609026ca6eac7ad4917"
+      },
+      {
+        "path": "tools/mcp-koinon-dev/dist/rag-client.d.ts",
+        "status": "M",
+        "sha256": "83848c31a8b9a962f7f052d61e24251765b2bb9fbb5f5abb35abc4bcfef792f6"
+      },
+      {
+        "path": "tools/mcp-koinon-dev/dist/rag-client.d.ts.map",
+        "status": "M",
+        "sha256": "80e19f4d55f3410ecc37f45ee1637caa4d1124370a9df8b7f2793f621870dcea"
+      },
+      {
+        "path": "tools/mcp-koinon-dev/dist/rag-client.js",
+        "status": "M",
+        "sha256": "0fb28ffc2cc8ba1aec2e0211bf9849c5c49fa32937cd465ebc3e40dde2ce29e4"
+      },
+      {
+        "path": "tools/mcp-koinon-dev/dist/rag-client.js.map",
+        "status": "M",
+        "sha256": "f1337d72bf09823484a788f15bf89a0b4efc48ea841782bdcc5991a32139041c"
+      },
+      {
+        "path": "tools/mcp-koinon-dev/smoke-test.mjs",
+        "status": "M",
+        "sha256": "9171179bed88567e37d4e513965faa3d6343a89aa46bc270bcf995795c84ade8"
+      },
+      {
+        "path": "tools/mcp-koinon-dev/src/index.ts",
+        "status": "M",
+        "sha256": "6f7cfe4b956add196e15cc51b8173d095a42e8f5af03dec651ce72f5d01e8d3c"
+      },
+      {
+        "path": "tools/mcp-koinon-dev/src/rag-client.ts",
+        "status": "M",
+        "sha256": "21b637437c5c73feceb640c2758cfb114b26e4a12079ada7c50f5469ca5bc0bf"
+      },
+      {
+        "path": "tools/rag/index-standards.py",
+        "status": "M",
+        "sha256": "f5aef5febd8128c750602a88e8639ce3c55cdfd4cfadd24b5cfafe9d4802f3eb"
+      }
+    ]
+  },
+  "impact": {
+    "semantic": {
+      "standardsRetrieved": [
+        {
+          "path": "docs/product/decisions/PD-0001-product-decisions-live-in-standards.md",
+          "query": "product decisions live inside koinon-standards; implementation approach must query product_decisions scope",
+          "collection": "koinon-standards",
+          "doc_type": "product-decision"
+        },
+        {
+          "path": "docs/reference/conventions.md",
+          "query": "frontend one HTTP client; API success envelope PagedResult inside data; graph baseline committed with structural/tooling change",
+          "collection": "koinon-standards",
+          "doc_type": "reference"
+        },
+        {
+          "path": "docs/adr/0006-standards-rag-collection.md",
+          "query": "standards collection includes product decisions as typed subset",
+          "collection": "koinon-standards",
+          "doc_type": "adr"
+        }
+      ]
+    }
+  },
+  "verification": {
+    "commands": [
+      "npm run rag:index:standards",
+      "standards_search scope=product_decisions query=\"product decisions live inside koinon standards not separate collection\"",
+      "npm --prefix src/web test -- src/services/api/__tests__/services.extra.test.ts -t \"getImportJobs unwraps PagedResult\" (RED: failed before fix)",
+      "npm --prefix src/web test -- src/services/api/__tests__/services.extra.test.ts -t \"getImportJobs unwraps PagedResult\"",
+      "npm --prefix src/web test -- src/hooks/__tests__/useImportJobs.test.tsx",
+      "npm --prefix src/web run typecheck",
+      "bash ./tools/qa/run-e2e-demo.sh --grep \"Import History page\"",
+      "npm --prefix src/web run lint",
+      "npm --prefix src/web test -- src/services/api/__tests__/services.extra.test.ts src/hooks/__tests__/useImportJobs.test.tsx",
+      "npm --prefix tools/mcp-koinon-dev run build && npm --prefix tools/mcp-koinon-dev test",
+      "npm run test:architecture",
+      "npx jest tools/graph/tests/test_generate_frontend.test.js -t \"nested\" --runInBand --rootDir . --testPathIgnorePatterns .claude/worktrees",
+      "npm run graph:validate",
+      "npm run validate:quick"
+    ],
+    "summary": "Standards index rebuilt; product_decisions scope returns PD-0001 from koinon-standards. #720 reproduced with failing service test, fixed, targeted unit/hook/typecheck/lint/MCP/architecture gates and Import History E2E passed. Graph parser regression was reproduced and fixed so nested generic get(url) calls keep /import/jobs in graph baseline."
+  },
+  "architectRuling": {
+    "ruling": "APPROVED",
+    "reasons": [
+      {
+        "standard": "docs/reference/conventions.md#Frontend (src/web)",
+        "finding": "Fix stays in the existing frontend API service and TanStack hook path; no second HTTP client or raw component fetch was introduced."
+      },
+      {
+        "standard": "docs/reference/conventions.md#API surface",
+        "finding": "Frontend now matches the documented envelope rule for paginated endpoints: PagedResult remains inside data and the client unwraps items for the existing page contract."
+      },
+      {
+        "standard": "docs/product/decisions/PD-0001-product-decisions-live-in-standards.md#Implementation implications",
+        "finding": "The workflow queried product_decisions in koinon-standards before finalizing the implementation, proving the typed subset works without a fourth collection."
+      },
+      {
+        "standard": "docs/adr/0006-standards-rag-collection.md#Consequences",
+        "finding": "MCP standards_search exposes koinon-standards scopes while rag_search remains code-only, preserving collection boundaries."
+      },
+      {
+        "standard": "docs/reference/conventions.md#Process",
+        "finding": "Graph baseline drift caused by the change was resolved by fixing the parser regression and committing regenerated graph artifacts with the code."
+      }
+    ],
+    "conditions": []
+  },
+  "agentSignature": {
+    "keyId": "koinon-bootstrap-agent-2026-07",
+    "algorithm": "ed25519",
+    "publicKeySha256": "9e0ff7349656492db36b5f972a82390b4044306d0279052548400db798c8fa1b",
+    "signedPayloadSha256": "a093d58b577ca42dec88da41c7570be18c980731606fc20ca06341494dc5320f",
+    "signature": "y46Wf+lGcdHXyokOylUebY5PEcnjAZnQIKh+JpqKYwg940uhhGUOVmLa3GZ4uj0NncWlJQtKhJiljEYGpkD4Bg=="
+  }
+}

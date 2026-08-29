@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-07-04T14:02:22.648Z",
+  "generated_at": "2026-07-08T14:25:56.314Z",
   "types": {
     "DefinedTypeSummary": {
       "name": "DefinedTypeSummary",
@@ -4539,7 +4539,7 @@
     "searchFamiliesForCheckin": {
       "name": "searchFamiliesForCheckin",
       "path": "services/api/checkin.ts",
-      "endpoint": "/unknown",
+      "endpoint": "/families/search?query=${encodeURIComponent(request.searchValue)}",
       "method": "GET",
       "responseType": "CheckinFamilyDto[]"
     },
@@ -4861,7 +4861,7 @@
     "getPendingFollowUps": {
       "name": "getPendingFollowUps",
       "path": "services/api/followups.ts",
-      "endpoint": "/followups/pending${queryString ",
+      "endpoint": "/followups/pending",
       "method": "GET",
       "responseType": "FollowUpDto[]"
     },
@@ -5169,7 +5169,7 @@
     "getImportTemplates": {
       "name": "getImportTemplates",
       "path": "services/api/import.ts",
-      "endpoint": "/import/templates${queryString ",
+      "endpoint": "/import/templates",
       "method": "GET",
       "responseType": "ImportTemplateDto[]"
     },
@@ -5211,7 +5211,7 @@
     "getImportJobs": {
       "name": "getImportJobs",
       "path": "services/api/import.ts",
-      "endpoint": "/import/jobs${queryString ",
+      "endpoint": "/import/jobs",
       "method": "GET",
       "responseType": "ImportJobDto[]"
     },
@@ -5379,21 +5379,21 @@
     "searchPagers": {
       "name": "searchPagers",
       "path": "services/api/pager.ts",
-      "endpoint": "/pager/search${queryString ",
+      "endpoint": "/pager/search",
       "method": "GET",
       "responseType": "PagerAssignmentDto[]"
     },
     "getPagerHistory": {
       "name": "getPagerHistory",
       "path": "services/api/pager.ts",
-      "endpoint": "/pager/${pagerNumber}/history${queryString ",
+      "endpoint": "/pager/",
       "method": "GET",
       "responseType": "PageHistoryDto"
     },
     "getNextPagerNumber": {
       "name": "getNextPagerNumber",
       "path": "services/api/pager.ts",
-      "endpoint": "/pager/next-number${queryString ",
+      "endpoint": "/pager/next-number",
       "method": "GET",
       "responseType": "number"
     },
@@ -5533,7 +5533,7 @@
     "getPickupHistory": {
       "name": "getPickupHistory",
       "path": "services/api/pickup.ts",
-      "endpoint": "/checkin/people/${childIdKey}/pickup-history${queryString ",
+      "endpoint": "/checkin/people/",
       "method": "GET",
       "responseType": "PickupLogDto[]"
     },

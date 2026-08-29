@@ -804,16 +804,29 @@ describe('importApi deeper coverage', () => {
     expect(body.get('importType')).toBe('People');
   });
 
-  it('getImportJobs / getImportJobStatus', async () => {
+  it('getImportJobs unwraps PagedResult items and uses importType query param', async () => {
     const api = await import('../import');
-    mockGet.mockResolvedValueOnce({ data: [] });
-    await api.getImportJobs();
+    const pagedJobs = {
+      items: [{ idKey: 'j1', importType: 'People' }],
+      totalCount: 1,
+      page: 1,
+      pageSize: 20,
+      totalPages: 1,
+      hasPreviousPage: false,
+      hasNextPage: false,
+    };
+
+    mockGet.mockResolvedValueOnce({ data: pagedJobs });
+    await expect(api.getImportJobs()).resolves.toEqual(pagedJobs.items);
     expect(mockGet).toHaveBeenLastCalledWith('/import/jobs');
 
-    mockGet.mockResolvedValueOnce({ data: [] });
-    await api.getImportJobs('People');
-    expect(mockGet).toHaveBeenLastCalledWith('/import/jobs?type=People');
+    mockGet.mockResolvedValueOnce({ data: pagedJobs });
+    await expect(api.getImportJobs('People')).resolves.toEqual(pagedJobs.items);
+    expect(mockGet).toHaveBeenLastCalledWith('/import/jobs?importType=People');
+  });
 
+  it('getImportJobStatus unwraps a single job envelope', async () => {
+    const api = await import('../import');
     mockGet.mockResolvedValueOnce({ data: { idKey: 'j1' } });
     await api.getImportJobStatus('j1');
     expect(mockGet).toHaveBeenLastCalledWith('/import/jobs/j1');

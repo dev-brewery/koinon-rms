@@ -25,6 +25,27 @@ export interface RagSearchResponse {
         type?: string;
     };
 }
+export type StandardsScope = 'all' | 'rules' | 'adrs' | 'product_decisions';
+export interface StandardsSearchResult {
+    path: string;
+    doc_type: string;
+    section: string;
+    score: number;
+    snippet: string;
+    decision_id?: string;
+    decision_type?: string;
+    status?: string;
+    applies_to?: string[];
+    date?: string;
+}
+export interface StandardsSearchResponse {
+    success: boolean;
+    collection: string;
+    scope: StandardsScope;
+    query: string;
+    results: StandardsSearchResult[];
+    warning?: string;
+}
 export interface RagIndexStatus {
     healthy: boolean;
     qdrant_available: boolean;
@@ -51,6 +72,11 @@ export interface RagImpactResult {
  * @param limit - Maximum results to return (default: 10)
  */
 export declare function searchRag(query: string, filterLayer?: string, filterType?: string, limit?: number): Promise<RagSearchResponse>;
+/**
+ * Semantic search over the standards corpus, including product/refinement
+ * decisions indexed as doc_type=product-decision inside koinon-standards.
+ */
+export declare function searchStandards(query: string, scope?: StandardsScope, limit?: number): Promise<StandardsSearchResponse>;
 /**
  * Get RAG index status and health information.
  */

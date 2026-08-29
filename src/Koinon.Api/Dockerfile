@@ -28,8 +28,9 @@ COPY ["src/Koinon.Application/", "src/Koinon.Application/"]
 COPY ["src/Koinon.Infrastructure/", "src/Koinon.Infrastructure/"]
 COPY ["src/Koinon.Api/", "src/Koinon.Api/"]
 
-# Publish
-RUN dotnet publish src/Koinon.Api/Koinon.Api.csproj -c Release --no-restore -o /app/publish
+# Publish. Do not use --no-restore here: Docker layer restores can leave
+# package assets incomplete for publish on clean builders (NETSDK1064).
+RUN dotnet publish src/Koinon.Api/Koinon.Api.csproj -c Release -o /app/publish
 
 # Stage 2: Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine

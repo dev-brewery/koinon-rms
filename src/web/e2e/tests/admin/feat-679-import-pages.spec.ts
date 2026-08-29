@@ -38,16 +38,9 @@
  * Fixed in #696: IDataImportService is now registered in DI, so
  *   GET /api/v1/import/jobs returns 200 (no longer the DI 500).
  *
- * SECOND BUG (not fixed in #696, flagged separately): the backend returns
- *   `{ data: PagedResult<ImportJobDto> }` (i.e. `{ data: { items, totalCount, … } }`)
- *   from GET /api/v1/import/jobs, but the frontend client
- *   `getImportJobs()` in `src/web/src/services/api/import.ts` unwraps it as
- *   `{ data: ImportJobDto[] }`. The mismatched shape causes the hook's
- *   `data.filter()` call to throw and the page renders the global
- *   ErrorState. We mock `**\/api/v1/import/jobs**` with an array-shaped
- *   response so the page chrome tests can still run; filing this as a
- *   follow-up issue (title suggestion: "fix(web): align getImportJobs
- *   unwrapping with PagedResult<ImportJobDto> shape").
+ * Fixed in #720: the frontend client unwraps the backend's
+ *   `{ data: PagedResult<ImportJobDto> }` response to `items`, so this spec
+ *   now mocks the real paged payload shape rather than the old flat array.
  *
  * Guardrails:
  *  - No data-testid attributes added to production code.
@@ -96,24 +89,29 @@ async function uploadCsv(page: Page, fileName: string, content: Buffer): Promise
 // ImportHistoryPage
 //
 // DI resolution for /import/jobs is fixed in #696 (endpoint no longer
-// returns 500). A separate shape mismatch between the controller's
-// PagedResult payload and the frontend's array-expectation remains open
-// (see SECOND BUG in the header). Until that is resolved, we mock the
-// jobs list with the shape the frontend currently expects so the page
-// chrome tests can exercise heading, filter, CTAs, and refresh.
+// returns 500). #720 aligned the frontend client with the controller's
+// PagedResult payload, so this mock intentionally uses the real backend
+// shape while page chrome tests exercise heading, filter, CTAs, and refresh.
 // ---------------------------------------------------------------------------
 
 test.describe('Import History page', () => {
   test.beforeEach(async ({ loginAsAdmin, page }) => {
     await loginAsAdmin();
-    // Shape matches what getImportJobs() unwraps today: { data: ImportJobDto[] }.
-    // This mock is temporary; remove once the backend/frontend contract is
-    // aligned (see SECOND BUG in the spec header).
     await page.route('**/api/v1/import/jobs**', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ data: [] }),
+        body: JSON.stringify({
+          data: {
+            items: [],
+            totalCount: 0,
+            page: 1,
+            pageSize: 20,
+            totalPages: 0,
+            hasPreviousPage: false,
+            hasNextPage: false,
+          },
+        }),
       });
     });
     await page.goto('/admin/import/history');

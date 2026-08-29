@@ -15,6 +15,7 @@
 // embedder is enabled works without a repo change. Env vars override for
 // exceptional setups only.
 const COLLECTION_NAME = 'koinon-code';
+const STANDARDS_COLLECTION = process.env.STANDARDS_COLLECTION || 'koinon-standards';
 const RAG_HOST = process.env.RAG_HOST || '192.168.1.225';
 // Embeddings are served by the model gateway on :4000 (OpenAI-compatible
 // /v1/embeddings; the Ollama-protocol attempt below is a harmless fast miss).
@@ -223,6 +224,76 @@ export async function searchRag(query, filterLayer, filterType, limit = 10) {
             warning: `Qdrant search error: ${error instanceof Error ? error.message : 'unknown error'}`,
             query,
             filters: { layer: filterLayer, type: filterType }
+        };
+    }
+}
+/**
+ * Semantic search over the standards corpus, including product/refinement
+ * decisions indexed as doc_type=product-decision inside koinon-standards.
+ */
+export async function searchStandards(query, scope = 'all', limit = 10) {
+    if (!await isQdrantAvailable()) {
+        return { success: false, collection: STANDARDS_COLLECTION, scope, query, results: [], warning: `Qdrant unavailable at ${QDRANT_URL}` };
+    }
+    const embedding = await getEmbedding(query);
+    if (!embedding) {
+        return { success: false, collection: STANDARDS_COLLECTION, scope, query, results: [], warning: 'Embeddings unavailable - fall back to docs/reference, docs/adr, and docs/product/decisions' };
+    }
+    const docTypesByScope = {
+        all: undefined,
+        rules: ['convention', 'api-contract', 'entity-mapping', 'reference'],
+        adrs: ['adr'],
+        product_decisions: ['product-decision']
+    };
+    const docTypes = docTypesByScope[scope];
+    const filter = docTypes ? { must: [{ key: 'doc_type', match: { any: docTypes } }] } : undefined;
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+        const response = await fetch(`${QDRANT_URL}/collections/${STANDARDS_COLLECTION}/points/search`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ vector: embedding, filter, limit, with_payload: true }),
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        if (!response.ok) {
+            return {
+                success: false,
+                collection: STANDARDS_COLLECTION,
+                scope,
+                query,
+                results: [],
+                warning: `Standards search failed: ${response.status} ${response.statusText}. Run npm run rag:index:standards if the collection is missing.`
+            };
+        }
+        const data = await response.json();
+        const results = (data.result || []).map((r) => {
+            const payload = r.payload || {};
+            const applies = payload.applies_to;
+            return {
+                path: String(payload.path || 'unknown'),
+                doc_type: String(payload.doc_type || 'unknown'),
+                section: String(payload.section || ''),
+                score: r.score || 0,
+                snippet: String(payload.content || '').substring(0, 500),
+                decision_id: payload.decision_id ? String(payload.decision_id) : undefined,
+                decision_type: payload.decision_type ? String(payload.decision_type) : undefined,
+                status: payload.status ? String(payload.status) : undefined,
+                applies_to: Array.isArray(applies) ? applies.map(String) : undefined,
+                date: payload.date ? String(payload.date) : undefined
+            };
+        });
+        return { success: true, collection: STANDARDS_COLLECTION, scope, query, results };
+    }
+    catch (error) {
+        return {
+            success: false,
+            collection: STANDARDS_COLLECTION,
+            scope,
+            query,
+            results: [],
+            warning: `Standards search error: ${error instanceof Error ? error.message : 'unknown error'}`
         };
     }
 }

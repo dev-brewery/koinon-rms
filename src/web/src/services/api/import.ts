@@ -10,6 +10,16 @@ import type {
   ImportJobDto,
 } from '@/types/import';
 
+type PagedResult<T> = {
+  items: T[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
+};
+
 const API_BASE_URL =
   import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 
@@ -155,14 +165,14 @@ export async function getImportJobs(
 ): Promise<ImportJobDto[]> {
   const params = new URLSearchParams();
   if (type) {
-    params.set('type', type);
+    params.set('importType', type);
   }
 
   const queryString = params.toString();
   const url = `/import/jobs${queryString ? `?${queryString}` : ''}`;
 
-  const response = await get<{ data: ImportJobDto[] }>(url);
-  return response.data;
+  const response = await get<{ data: PagedResult<ImportJobDto> }>(url);
+  return response.data.items;
 }
 
 /**

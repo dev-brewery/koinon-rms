@@ -17,7 +17,17 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(HERE, '..', '..');
 const SERVER = join(HERE, 'dist', 'index.js');
 
-const child = spawn('node', [SERVER], { cwd: REPO_ROOT, stdio: ['pipe', 'pipe', 'ignore'] });
+const child = spawn('node', [SERVER], {
+  cwd: REPO_ROOT,
+  stdio: ['pipe', 'pipe', 'ignore'],
+  env: {
+    ...process.env,
+    // Keep smoke deterministic: standards_search must gracefully degrade when
+    // the shared RAG stack is unavailable; CI must not depend on private LAN.
+    QDRANT_URL: 'http://127.0.0.1:9',
+    EMBEDDINGS_URL: 'http://127.0.0.1:9'
+  }
+});
 let buf = '';
 const pending = new Map();
 child.stdout.on('data', (d) => {
@@ -47,6 +57,10 @@ try {
   await req('initialize', { protocolVersion: '2024-11-05', capabilities: {}, clientInfo: { name: 'smoke', version: '1' } });
   child.stdin.write(JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized', params: {} }) + '\n');
 
+  const listed = await req('tools/list', {});
+  const toolNames = new Set((listed.tools || []).map((t) => t.name));
+  check('standards_search tool is registered', toolNames.has('standards_search'));
+
   // One entity, one controller: exercises all three findFrontendConnections*
   // paths (Domain→DTO, DTO→api_function, Controller→api_function).
   for (const file of ['src/Koinon.Domain/Entities/Person.cs', 'src/Koinon.Api/Controllers/PeopleController.cs']) {
@@ -61,6 +75,15 @@ try {
     const dupes = data.affected_files.length - new Set(data.affected_files.map((f) => f.path)).size;
     check(`${file}: no duplicate paths`, dupes === 0, `${dupes} dupes`);
   }
+
+  const standards = await req('tools/call', {
+    name: 'standards_search',
+    arguments: { query: 'check-in kiosk refinement decisions', scope: 'product_decisions', limit: 3 }
+  });
+  check('standards_search degrades without private RAG', !standards.isError);
+  const standardsData = JSON.parse(standards.content?.[0]?.text ?? '{}');
+  check('standards_search targets koinon-standards', standardsData.collection === 'koinon-standards');
+  check('standards_search keeps product decision scope', standardsData.scope === 'product_decisions');
 } catch (e) {
   check('server responded', false, e.message);
 } finally {

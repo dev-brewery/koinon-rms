@@ -36,37 +36,42 @@ populated by a new `tools/rag/index-standards.py`.
   filters; markdown chunks would pollute code-similarity results and the
   filter vocabulary. Standards get their own payload
   (`path`, `doc_type`, `section`, `content`, `chunk_index`).
-- **Scope:** `docs/reference/*.md` + `docs/adr/*.md`, excluding non-standard
-  files (`docs/adr/template.md`, and README indexes).
+- **Scope:** `docs/reference/*.md` + `docs/adr/*.md` +
+  `docs/product/decisions/*.md`, excluding templates, README indexes, audit
+  snapshots, and planning docs. Product/refinement decisions are standards
+  context and are stored in this collection as `doc_type=product-decision`;
+  they do **not** get a separate collection.
 - **Heading-aware chunking** (split on markdown headings, cap each section at
-  the shared `CHUNK_SIZE`) so retrieval returns focused rule sections.
+  the shared `CHUNK_SIZE`) so retrieval returns focused rule/decision sections.
 - **Endpoints and embeddings are inherited unchanged** from
   `tools/rag/utils.py` (`QDRANT_URL`/`RAG_HOST`, `get_embeddings`,
   nomic-embed-text, 768-dim). No localhost is introduced (ADR 0005 holds).
   `utils.py` and the existing code-indexing path are not modified.
 - **The index is a derived retrieval artifact, never a source of truth.**
-  `docs/reference/*.md` and `docs/adr/*` remain the reviewable canon
-  (consistent with ADR 0005's rules-vs-lessons split); `koinon-standards`
-  is a rebuildable projection of them, exactly as `koinon-code` is of the
-  source tree.
+  `docs/reference/*.md`, `docs/adr/*`, and `docs/product/decisions/*.md`
+  remain the reviewable canon (consistent with ADR 0005's rules-vs-lessons
+  split); `koinon-standards` is a rebuildable projection of them, exactly as
+  `koinon-code` is of the source tree. Product/refinement decisions are
+  written by changing committed markdown first, then reindexing — never by
+  direct Qdrant writes.
 
 ## Consequences
 
-- The architect-review gate can be fed the precise standard a change
-  implicates, from an indexed store rather than the raw doc tree.
-- **Retrieval wiring is a follow-on, not delivered here.** The `rag_search`
-  MCP tool hardcodes `koinon-code` (`tools/mcp-koinon-dev/src/rag-client.ts:18,242`);
-  it cannot see `koinon-standards`. Phase 2's `architect-review.mjs` must
-  query this collection directly (or the client must be extended to accept a
-  collection, mirroring the `LESSONS_COLLECTION` env pattern). Until that
-  exists, `koinon-standards` is reachable only by direct Qdrant search.
+- The architect-review gate can be fed the precise standard or accepted
+  product/refinement decision a change implicates, from an indexed store
+  rather than the raw doc tree.
+- The MCP server exposes `standards_search` against `koinon-standards`; use
+  `scope=product_decisions` for product/refinement decisions, `scope=rules`
+  for conventions/reference docs, `scope=adrs` for ADRs, and `scope=all` when
+  the review needs all canon sources. `rag_search` remains code-only against
+  `koinon-code`.
 - **Freshness is manual for now.** The incremental reindexer
   (`reindex-changes.py`, run by `validate.py`) is code-only, so editing a
   convention or adding an ADR does not refresh `koinon-standards`.
   `index-standards.py` must be re-run whenever a standard changes. Because
   standards change only through a deliberate, gated act (an ADR merge), the
   re-run is tied to that process rather than automated; automating a markdown
-  incremental path is deferred as tracked technical debt.
-- The fresh-clone / RAG-stack bring-up documentation and any `npm run rag:*`
-  scripts must learn about the new collection so it is built alongside
-  `koinon-code`.
+  incremental path is deferred as tracked technical debt. Product decision
+  changes follow the same path.
+- `npm run rag:index:standards` rebuilds `koinon-standards` after standards,
+  ADR, or product-decision changes.
