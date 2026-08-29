@@ -103,6 +103,14 @@ export function PersonFormPage() {
     }
   };
 
+  const clearValidationError = (fieldName: string) => {
+    setValidationErrors(prev => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { [fieldName]: _removed, ...rest } = prev;
+      return rest;
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -395,6 +403,7 @@ export function PersonFormPage() {
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
+                  clearValidationError('email');
                 }}
                 onBlur={() => validateField('email', email)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
