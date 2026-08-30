@@ -33,14 +33,14 @@ public class GradeCalculationHelperTests
     [InlineData(14, 2025, "Pre-K")]
     public void CalculateGrade_DuringSchoolYear_ReturnsCorrectGrade(int monthsInFuture, int currentYear, string expectedGrade)
     {
-        // This test simulates being in September (month 9) of a school year
+        // Fixed date: September of currentYear — deterministic, never touches the wall clock
         // Arrange
-        var currentMonth = 9; // September
-        var schoolYear = currentMonth >= 8 ? currentYear + 1 : currentYear;
+        var today = new DateOnly(currentYear, 9, 15);
+        var schoolYear = today.Month >= 8 ? today.Year + 1 : today.Year;
         var graduationYear = schoolYear + (monthsInFuture - 1);
 
         // Act
-        var result = GradeCalculationHelper.CalculateGrade(graduationYear);
+        var result = GradeCalculationHelper.CalculateGrade(graduationYear, today);
 
         // Assert
         result.Should().Be(expectedGrade);
@@ -50,10 +50,11 @@ public class GradeCalculationHelperTests
     public void CalculateGrade_AlreadyGraduated_ReturnsGraduated()
     {
         // Arrange
-        var graduationYear = DateTime.Today.Year - 1; // Last year
+        var today = new DateOnly(2025, 9, 15);
+        var graduationYear = 2024; // Last year
 
         // Act
-        var result = GradeCalculationHelper.CalculateGrade(graduationYear);
+        var result = GradeCalculationHelper.CalculateGrade(graduationYear, today);
 
         // Assert
         result.Should().Be("Graduated");
@@ -63,13 +64,11 @@ public class GradeCalculationHelperTests
     public void CalculateGrade_TooYoung_ReturnsNull()
     {
         // Arrange - someone who would graduate 20 years from now (too young for Pre-K)
-        var currentYear = DateTime.Today.Year;
-        var currentMonth = DateTime.Today.Month;
-        var schoolYear = currentMonth >= 8 ? currentYear + 1 : currentYear;
-        var graduationYear = schoolYear + 20;
+        var today = new DateOnly(2025, 9, 15); // school year 2026
+        var graduationYear = 2026 + 20;
 
         // Act
-        var result = GradeCalculationHelper.CalculateGrade(graduationYear);
+        var result = GradeCalculationHelper.CalculateGrade(graduationYear, today);
 
         // Assert
         result.Should().BeNull();
@@ -78,59 +77,17 @@ public class GradeCalculationHelperTests
     [Fact]
     public void CalculateGrade_BeforeAugust_UsesCurrentYearAsSchoolYear()
     {
-        // This test verifies the school year calculation before August
-        // In July 2025, we're still in school year 2024-2025
-        // Someone graduating in 2025 would be a senior (12th grade)
-
-        // Arrange
-        var currentYear = DateTime.Today.Year;
-        var currentMonth = DateTime.Today.Month;
-
-        // Only run this test if we're before August
-        if (currentMonth < 8)
-        {
-            var graduationYear = currentYear; // Graduates this year
-
-            // Act
-            var result = GradeCalculationHelper.CalculateGrade(graduationYear);
-
-            // Assert
-            result.Should().Be("12th Grade");
-        }
-        else
-        {
-            // Skip this test if we're in August or later
-            Assert.True(true);
-        }
+        // July 2025: still school year 2024-2025; graduating 2025 = senior
+        var result = GradeCalculationHelper.CalculateGrade(2025, new DateOnly(2025, 7, 15));
+        result.Should().Be("12th Grade");
     }
 
     [Fact]
     public void CalculateGrade_AfterAugust_UsesNextYearAsSchoolYear()
     {
-        // This test verifies the school year calculation after August
-        // In September 2025, we're in school year 2025-2026
-        // Someone graduating in 2026 would be a senior (12th grade)
-
-        // Arrange
-        var currentYear = DateTime.Today.Year;
-        var currentMonth = DateTime.Today.Month;
-
-        // Only run this test if we're in August or later
-        if (currentMonth >= 8)
-        {
-            var graduationYear = currentYear + 1; // Graduates next year
-
-            // Act
-            var result = GradeCalculationHelper.CalculateGrade(graduationYear);
-
-            // Assert
-            result.Should().Be("12th Grade");
-        }
-        else
-        {
-            // Skip this test if we're before August
-            Assert.True(true);
-        }
+        // September 2025: school year 2025-2026; graduating 2026 = senior
+        var result = GradeCalculationHelper.CalculateGrade(2026, new DateOnly(2025, 9, 15));
+        result.Should().Be("12th Grade");
     }
 
     [Theory]
@@ -144,35 +101,10 @@ public class GradeCalculationHelperTests
         int graduationYear,
         string expectedGrade)
     {
-        // This test validates the grade calculation logic
-        // Note: This test doesn't mock DateTime.Today, but demonstrates the logic
-
-        // Calculate school year
-        var schoolYear = currentMonth >= 8 ? currentYear + 1 : currentYear;
-        var yearsUntilGraduation = graduationYear - schoolYear;
-
-        // Manually verify the expected grade matches the logic
-        var calculatedGrade = yearsUntilGraduation switch
-        {
-            < 0 => "Graduated",
-            0 => "12th Grade",
-            1 => "11th Grade",
-            2 => "10th Grade",
-            3 => "9th Grade",
-            4 => "8th Grade",
-            5 => "7th Grade",
-            6 => "6th Grade",
-            7 => "5th Grade",
-            8 => "4th Grade",
-            9 => "3rd Grade",
-            10 => "2nd Grade",
-            11 => "1st Grade",
-            12 => "Kindergarten",
-            13 => "Pre-K",
-            _ => null
-        };
-
-        // Assert
-        calculatedGrade.Should().Be(expectedGrade);
+        // Fixed-date overload makes this a real production-code assertion
+        // (the previous version re-implemented the switch and never called the helper).
+        var result = GradeCalculationHelper.CalculateGrade(
+            graduationYear, new DateOnly(currentYear, currentMonth, 15));
+        result.Should().Be(expectedGrade);
     }
 }
