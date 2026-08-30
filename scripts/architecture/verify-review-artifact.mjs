@@ -12,6 +12,11 @@ import { pathToFileURL } from 'node:url';
 
 const DEFAULT_REVIEWS_DIR = 'docs/architecture/reviews';
 const DEFAULT_SIGNERS_FILE = 'docs/architecture/signers/trusted-agent-signers.json';
+// #738: trust anchor must be an explicit ref (default origin/dev), NEVER the
+// PR checkout — otherwise a PR can add its own key to trusted-agent-signers.json
+// and self-satisfy the gate. Overridable for local development only via
+// ARTIFACT_TRUST_REF; CI never sets it.
+const TRUST_REF = process.env.ARTIFACT_TRUST_REF || 'origin/dev';
 const REVIEW_EXCLUDE = ':(exclude)docs/architecture/reviews/**';
 const CODE_FILE = /\.(cs|csproj|props|targets|ts|tsx|js|jsx|mjs|cjs|py|ps1|psm1|sh|sql|ipynb)$|(^|[\\/])(package\.json|tsconfig[^\\/]*\.json|appsettings[^\\/]*\.json|docker-compose[^\\/]*\.ya?ml)$/i;
 const PROTECTED_FILE = /^(\.github\/workflows\/|\.claude\/|\.husky\/|scripts\/hooks\/|scripts\/architecture\/|docs\/adr\/|docs\/reference\/|tools\/graph\/|tools\/mcp-koinon-dev\/)/i;
@@ -100,14 +105,20 @@ function computeDiffSha(root, base, head) {
   return sha256Hex(gitBuffer(root, ['diff', '--binary', `${base}...${head}`, '--', '.', REVIEW_EXCLUDE]));
 }
 
-function loadTrustedSigners(root, signersFile = DEFAULT_SIGNERS_FILE) {
-  const abs = join(root, signersFile);
-  if (!existsSync(abs)) return { errors: [`Trusted signers file missing: ${signersFile}`], signers: new Map() };
+function loadTrustedSigners(root, signersFile = DEFAULT_SIGNERS_FILE, trustRef = TRUST_REF) {
+  // Read the signers file from the trust ref (origin/dev), not the working
+  // tree. If the ref is unavailable (e.g. bare local dev), fail closed.
+  let content;
+  try {
+    content = gitBuffer(root, ['show', `${trustRef}:${signersFile}`]).toString('utf8');
+  } catch (e) {
+    return { errors: [`Trusted signers unavailable from trust ref ${trustRef}: ${e.message}`], signers: new Map() };
+  }
   let parsed;
   try {
-    parsed = JSON.parse(readFileSync(abs, 'utf8'));
+    parsed = JSON.parse(content);
   } catch (e) {
-    return { errors: [`Trusted signers file is invalid JSON: ${e.message}`], signers: new Map() };
+    return { errors: [`Trusted signers file at ${trustRef} is invalid JSON: ${e.message}`], signers: new Map() };
   }
   const errors = [];
   const signers = new Map();
