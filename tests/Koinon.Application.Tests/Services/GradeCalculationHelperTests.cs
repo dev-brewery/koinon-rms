@@ -83,7 +83,17 @@ public class GradeCalculationHelperTests
     }
 
     [Fact]
-    public void CalculateGrade_AfterAugust_UsesNextYearAsSchoolYear()
+    public void CalculateGrade_InAugust_UsesNextYearAsSchoolYear()
+    {
+        // August 1, 2025: school year 2025-2026 begins; graduating 2026 = senior.
+        // This pins the Month >= 8 boundary — if the cutoff regressed to >= 9,
+        // the result would be "11th Grade" and this test fails.
+        var result = GradeCalculationHelper.CalculateGrade(2026, new DateOnly(2025, 8, 1));
+        result.Should().Be("12th Grade");
+    }
+
+    [Fact]
+    public void CalculateGrade_InSeptember_UsesNextYearAsSchoolYear()
     {
         // September 2025: school year 2025-2026; graduating 2026 = senior
         var result = GradeCalculationHelper.CalculateGrade(2026, new DateOnly(2025, 9, 15));

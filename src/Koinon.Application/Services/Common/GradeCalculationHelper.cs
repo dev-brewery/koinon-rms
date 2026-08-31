@@ -18,25 +18,16 @@ public static class GradeCalculationHelper
     /// - Years until graduation: 2030 - 2026 = 4
     /// - Grade: 8th Grade (4 years before 12th)
     /// </example>
-    public static string? CalculateGrade(int? graduationYear)
-    {
-        return CalculateGrade(graduationYear, DateOnly.FromDateTime(DateTime.Today));
-    }
-
-    /// <summary>
-    /// Calculates current school grade from graduation year as of a fixed date.
-    /// Deterministic overload for tests — mirrors GradeCalculationService's
-    /// injectable-date pattern so tests never depend on the wall clock.
-    /// </summary>
-    public static string? CalculateGrade(int? graduationYear, DateOnly today)
+    public static string? CalculateGrade(int? graduationYear, DateOnly? asOf = null)
     {
         if (graduationYear == null)
         {
             return null;
         }
 
-        // School year starts in August, so after August we're in the new school year
+        // School year starts in August, so in August or later we're in the new school year
         // Example: In September 2025, we're in school year 2025-2026
+        var today = asOf ?? DateOnly.FromDateTime(DateTime.Today);
         var schoolYear = today.Month >= 8 ? today.Year + 1 : today.Year;
         var yearsUntilGraduation = graduationYear.Value - schoolYear;
 
