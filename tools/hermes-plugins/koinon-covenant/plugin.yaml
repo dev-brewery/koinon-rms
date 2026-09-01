@@ -1,0 +1,12 @@
+name: koinon-covenant
+version: 1.0.0
+description: "Koinon RMS dev-cycle enforcement + guidance. Blocks merges/pushes to protected branches, approval-store and harness tampering, destructive checkouts over dirty trees, and un-reviewed code edits; injects the dev-cycle mandates retrieved from OpenViking; warns on unevidenced completion claims."
+pip_dependencies:
+  - httpx
+requires_env: []
+hooks:
+  - pre_tool_call
+  - post_tool_call
+  - pre_llm_call
+  - pre_verify
+  - transform_tool_result
