@@ -106,12 +106,13 @@ function hardStop(detail) {
 
 // ---- args -------------------------------------------------------------------
 function parseArgs(argv) {
-  const a = { files: [], deduced: '', proposed: '', issue: '', retrieveOnly: false };
+  const a = { files: [], deduced: '', proposed: '', mandates: '', issue: '', retrieveOnly: false };
   for (let i = 0; i < argv.length; i++) {
     const k = argv[i];
     if (k === '--files') a.files = argv[++i].split(',').map(s => s.trim()).filter(Boolean);
     else if (k === '--deduced') a.deduced = argv[++i];
     else if (k === '--proposed') a.proposed = argv[++i];
+    else if (k === '--mandates') a.mandates = argv[++i];
     else if (k === '--issue') a.issue = argv[++i];
     else if (k === '--retrieve-only') a.retrieveOnly = true;
     else die(2, `Unknown argument: ${k}`);
@@ -120,6 +121,23 @@ function parseArgs(argv) {
     die(2, 'Usage: architect-review.mjs --files a,b --deduced "<diagnosis>" --proposed "<fix>" [--issue N]');
   }
   return a;
+}
+
+export function retrievalQuery(deduced, proposed) {
+  return `${deduced}\n${proposed}`;
+}
+
+export function buildUserContent({ fileHashes, deduced, proposed, mandates, criteria, standards, lessons }) {
+  return [
+    '## Files in this change', ...fileHashes.map(f => `- ${f.path} (${f.hash === 'NEW' ? 'new file' : 'existing'})`),
+    '\n## Diagnosis (what the developer deduced)', deduced,
+    '\n## Proposal (what the developer intends to do)', proposed,
+    '\n## Acceptance criteria', criteria,
+    ...(mandates ? ['\n## Dev-cycle mandates (compact canonical projection)', mandates] : []),
+    '\n## Governing standards (retrieved by relevance — judge against THESE)',
+    ...standards.map(h => `--- ${h.payload.path} § ${h.payload.section} (score ${h.score.toFixed(2)})\n${h.payload.content}`),
+    ...(lessons.length ? ['\n## Institutional lessons', ...lessons.map(h => `- ${h.payload.text ?? h.payload.content ?? ''}`)] : []),
+  ].join('\n');
 }
 
 // ---- retrieval (graceful & persistent: absorbs embed cold-start) -------------
@@ -360,7 +378,7 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
 
   console.error('Retrieving standards for this change (koinon-standards)...');
-  const vector = await embed(`${args.deduced}\n${args.proposed}`);
+  const vector = await embed(retrievalQuery(args.deduced, args.proposed));
   const standards = await retrieveStandards(vector);
   const lessons = await qdrantSearch('koinon-lessons', vector, 3);
   if (!standards.length) hardStop('koinon-standards returned zero chunks — the index is empty or the score floor excluded everything; run tools/rag/index-standards.py.');
@@ -376,15 +394,10 @@ async function main() {
   const criteria = acceptanceCriteria(args.issue);
   const { sha, fileHashes } = bindChange(args.files, args.deduced, args.proposed);
 
-  const userContent = [
-    '## Files in this change', ...fileHashes.map(f => `- ${f.path} (${f.hash === 'NEW' ? 'new file' : 'existing'})`),
-    '\n## Diagnosis (what the developer deduced)', args.deduced,
-    '\n## Proposal (what the developer intends to do)', args.proposed,
-    '\n## Acceptance criteria', criteria,
-    '\n## Governing standards (retrieved by relevance — judge against THESE)',
-    ...standards.map(h => `--- ${h.payload.path} § ${h.payload.section} (score ${h.score.toFixed(2)})\n${h.payload.content}`),
-    ...(lessons.length ? ['\n## Institutional lessons', ...lessons.map(h => `- ${h.payload.text ?? h.payload.content ?? ''}`)] : []),
-  ].join('\n');
+  const userContent = buildUserContent({
+    fileHashes, deduced: args.deduced, proposed: args.proposed,
+    mandates: args.mandates, criteria, standards, lessons,
+  });
 
   let ruling, brainUsed = PRIMARY, fallbackActivated = false, primaryError = '';
   try {
@@ -427,4 +440,6 @@ async function main() {
   process.exit(ruling.ruling === 'REJECTED' ? 1 : 0);
 }
 
-main().catch(e => hardStop(`Unexpected failure: ${e.stack || e.message}`));
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch(e => hardStop(`Unexpected failure: ${e.stack || e.message}`));
+}
