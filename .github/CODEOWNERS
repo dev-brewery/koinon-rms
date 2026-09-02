@@ -1,0 +1,14 @@
+# CODEOWNERS — #738 enforcement rails
+# Gate paths require maintainer review. Combined with branch protection
+# ("require review from code owners"), no agent-authored PR can modify the
+# gates themselves: CI workflows, architecture-review verifier + signers,
+# git hooks, graph baseline tooling, ADRs/conventions.
+/.github/              @dev-brewery
+/scripts/architecture/ @dev-brewery
+/docs/architecture/signers/ @dev-brewery
+/.husky/               @dev-brewery
+/scripts/hooks/        @dev-brewery
+/tools/graph/          @dev-brewery
+/.claude/pipeline/     @dev-brewery
+/docs/adr/             @dev-brewery
+/docs/reference/       @dev-brewery
