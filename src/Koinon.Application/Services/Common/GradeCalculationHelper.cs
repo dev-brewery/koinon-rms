@@ -18,19 +18,17 @@ public static class GradeCalculationHelper
     /// - Years until graduation: 2030 - 2026 = 4
     /// - Grade: 8th Grade (4 years before 12th)
     /// </example>
-    public static string? CalculateGrade(int? graduationYear)
+    public static string? CalculateGrade(int? graduationYear, DateOnly? asOf = null)
     {
         if (graduationYear == null)
         {
             return null;
         }
 
-        var currentYear = DateTime.Today.Year;
-        var currentMonth = DateTime.Today.Month;
-
-        // School year starts in August, so after August we're in the new school year
+        // School year starts in August, so in August or later we're in the new school year
         // Example: In September 2025, we're in school year 2025-2026
-        var schoolYear = currentMonth >= 8 ? currentYear + 1 : currentYear;
+        var today = asOf ?? DateOnly.FromDateTime(DateTime.Today);
+        var schoolYear = today.Month >= 8 ? today.Year + 1 : today.Year;
         var yearsUntilGraduation = graduationYear.Value - schoolYear;
 
         return yearsUntilGraduation switch
