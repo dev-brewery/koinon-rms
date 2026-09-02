@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "reviewType": "architect-code-review",
+  "repository": "dev-brewery/koinon-rms",
+  "baseCommit": "30246092766d3dc5470d7de7cfb5613734ef7d04",
+  "headCommit": "45b5dd174e1ab4fa6984266a1fc62a0676969ed5",
+  "createdAt": "2026-09-01T22:15:18.000Z",
+  "change": {
+    "diffSha256": "d5c5a0cf9261a4f36a2983766f271daebbcd44ec8a056048d7cc7f3271a71d38",
+    "graphBaselineSha256": "80cb395d2b2bb4445c9c84b0f9e484cbcaf8c5bc5e8c6f10a746ddf9fa373686",
+    "files": [
+      {
+        "path": "src/Koinon.Application/Services/Common/GradeCalculationHelper.cs",
+        "status": "M",
+        "sha256": "87409bb286971405b8f522f1937aaeecf5a0b27dc453f680374e02f5ce48848a"
+      },
+      {
+        "path": "tests/Koinon.Application.Tests/Services/GradeCalculationHelperTests.cs",
+        "status": "M",
+        "sha256": "2614ffb3a9b6fdd4c8f5d5c225feca2ebf44de624b4a3e1d1ffa4889424b233d"
+      }
+    ]
+  },
+  "impact": {
+    "semantic": {
+      "standardsRetrieved": [
+        {
+          "path": "docs/reference/conventions.md",
+          "query": "impact analysis before code changes; tests deterministic; harness gates",
+          "collection": "koinon-standards",
+          "doc_type": "reference"
+        },
+        {
+          "path": "docs/claude/covenant.md",
+          "query": "quality invariant; verification before claiming done",
+          "collection": "koinon-standards",
+          "doc_type": "reference"
+        }
+      ]
+    }
+  },
+  "verification": {
+    "commands": [
+      "npm --prefix src/web test -- <targeted> --run (see PR body)",
+      "npm --prefix src/web run typecheck",
+      "npm --prefix src/web run lint",
+      "dotnet restore/build (affected projects or full solution)",
+      "node scripts/architecture/verify-review-artifact.mjs --base <base> --head <head>"
+    ],
+    "summary": "GradeCalculationHelper tests were date-dependent (hardcoded 2025 vs real Aug-2026 clock) and a theory was tautological; added an optional DateOnly asOf seam mirroring the existing GradeCalculationService pattern, rewrote tests against fixed dates, and added explicit August-boundary coverage. The prior PR CI run passed Backend Build & Test and Windows Canary for this exact two-file change before rebasing onto dev."
+  },
+  "architectRuling": {
+    "ruling": "APPROVED",
+    "reasons": [
+      {
+        "standard": "docs/reference/qa-playbook.md § Debugging failed runs",
+        "finding": "The diagnosis identifies a deterministic wall-clock dependency that makes the suite fail after the August school-year rollover; fixing the test and production time seam conforms to the rule that unreliable red tests must be fixed."
+      },
+      {
+        "standard": "docs/reference/conventions.md § Process",
+        "finding": "Explicit fixed-date and August-boundary coverage fixes the missing deterministic test coverage in-change and follows the existing GradeCalculationServiceTests pattern rather than introducing a second approach."
+      },
+      {
+        "standard": "docs/reference/conventions.md § The feature slice (logic flow for a new feature)",
+        "finding": "The optional DateOnly parameter is confined to application logic and tests, preserves existing callers through its default, and requires no controller, route, DTO, persistence, entity-mapping, or schema changes."
+      }
+    ],
+    "conditions": []
+  },
+  "agentSignature": {
+    "keyId": "koinon-bootstrap-agent-2026-07",
+    "algorithm": "ed25519",
+    "publicKeySha256": "9e0ff7349656492db36b5f972a82390b4044306d0279052548400db798c8fa1b",
+    "signedPayloadSha256": "77b0927f936cf333aeceb8be1561f171aa60fae9fe31f3656fb2ec2b4256391a",
+    "signature": "IKPXQG9/R8gClWVqCJUAWKLiWC/lC5/a8VXgN6I4/q0BbX2PUk5QJovtMWgHXJgy0Z07Cnrpqb94th09w4CaCw=="
+  }
+}
