@@ -30,14 +30,20 @@ function makeRepo() {
   writeFileSync(join(root, 'src/Koinon.Domain/Entities/Person.cs'), 'public class Person {}\n');
   writeFileSync(join(root, 'docs/reference/conventions.md'), '# Conventions\n\n## Layering\nKeep clean architecture.\n');
   writeFileSync(join(root, 'tools/graph/graph-baseline.json'), '{"version":"1"}\n');
+  const { publicKey, privateKey } = generateKeyPairSync('ed25519');
+  const publicPem = publicKey.export({ type: 'spki', format: 'pem' });
+  const keyId = 'trusted-reviewer';
+  const trust = { schemaVersion: 1, signers: [{ keyId, algorithm: 'ed25519', publicKeyPem: publicPem }] };
+  writeFileSync(join(root, 'docs/architecture/signers/trusted-agent-signers.json'), JSON.stringify(trust, null, 2));
   git(root, ['add', '.']);
   git(root, ['commit', '-m', 'base']);
   const base = git(root, ['rev-parse', 'HEAD']);
+  git(root, ['update-ref', 'refs/remotes/origin/dev', base]);
   writeFileSync(join(root, 'src/Koinon.Domain/Entities/Person.cs'), 'public class Person { public string IdKey { get; set; } = ""; }\n');
   git(root, ['add', '.']);
   git(root, ['commit', '-m', 'change']);
   const head = git(root, ['rev-parse', 'HEAD']);
-  return { root, base, head };
+  return { root, base, head, signer: { keyId, publicPem, privateKey } };
 }
 
 function diffHash(root, base, head) {
@@ -45,12 +51,8 @@ function diffHash(root, base, head) {
   return createHash('sha256').update(diff).digest('hex');
 }
 
-function writeSignedArtifact(root, base, head, overrides = {}) {
-  const { publicKey, privateKey } = generateKeyPairSync('ed25519');
-  const publicPem = publicKey.export({ type: 'spki', format: 'pem' });
-  const keyId = 'test-agent';
-  const trust = { schemaVersion: 1, signers: [{ keyId, algorithm: 'ed25519', publicKeyPem: publicPem }] };
-  writeFileSync(join(root, 'docs/architecture/signers/trusted-agent-signers.json'), JSON.stringify(trust, null, 2));
+function writeSignedArtifact(root, base, head, signerKey, overrides = {}) {
+  const { keyId, publicPem, privateKey } = signerKey;
   const changedPath = 'src/Koinon.Domain/Entities/Person.cs';
   const artifact = {
     schemaVersion: 1,
@@ -91,7 +93,7 @@ function writeSignedArtifact(root, base, head, overrides = {}) {
 test('accepts a signed review artifact bound to the exact PR diff', () => {
   const repo = makeRepo();
   try {
-    writeSignedArtifact(repo.root, repo.base, repo.head);
+    writeSignedArtifact(repo.root, repo.base, repo.head, repo.signer);
     const result = verifyReviewArtifacts({ root: repo.root, base: repo.base, head: repo.head });
     assert.equal(result.passed, true, result.errors.join('\n'));
   } finally {
@@ -103,11 +105,7 @@ test('accepts an artifact-only follow-up commit when non-review diff is unchange
   const repo = makeRepo();
   try {
     const reviewedHead = repo.head;
-    writeSignedArtifact(repo.root, repo.base, reviewedHead);
-    git(repo.root, ['add', 'docs/architecture/signers/trusted-agent-signers.json']);
-    git(repo.root, ['commit', '-m', 'add trusted signer']);
-    const signedHead = git(repo.root, ['rev-parse', 'HEAD']);
-    writeSignedArtifact(repo.root, repo.base, signedHead);
+    writeSignedArtifact(repo.root, repo.base, reviewedHead, repo.signer);
     git(repo.root, ['add', 'docs/architecture/reviews/test-review.json']);
     git(repo.root, ['commit', '-m', 'add review artifact']);
     const finalHead = git(repo.root, ['rev-parse', 'HEAD']);
@@ -121,12 +119,39 @@ test('accepts an artifact-only follow-up commit when non-review diff is unchange
 test('rejects stale artifacts when code changes after review', () => {
   const repo = makeRepo();
   try {
-    writeSignedArtifact(repo.root, repo.base, repo.head, {
+    writeSignedArtifact(repo.root, repo.base, repo.head, repo.signer, {
       change: { diffSha256: '0'.repeat(64), graphBaselineSha256: '0'.repeat(64), files: [] },
     });
     const result = verifyReviewArtifacts({ root: repo.root, base: repo.base, head: repo.head });
     assert.equal(result.passed, false);
     assert.match(result.errors.join('\n'), /diffSha256|changed code file/);
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
+test('rejects a signer trusted only by the changed tree', () => {
+  const repo = makeRepo();
+  try {
+    const { publicKey, privateKey } = generateKeyPairSync('ed25519');
+    const rogueSigner = {
+      keyId: 'pr-tree-only-signer',
+      publicPem: publicKey.export({ type: 'spki', format: 'pem' }),
+      privateKey,
+    };
+    const rogueTrust = {
+      schemaVersion: 1,
+      signers: [{ keyId: rogueSigner.keyId, algorithm: 'ed25519', publicKeyPem: rogueSigner.publicPem }],
+    };
+    writeFileSync(
+      join(repo.root, 'docs/architecture/signers/trusted-agent-signers.json'),
+      JSON.stringify(rogueTrust, null, 2),
+    );
+    writeSignedArtifact(repo.root, repo.base, repo.head, rogueSigner);
+
+    const result = verifyReviewArtifacts({ root: repo.root, base: repo.base, head: repo.head });
+    assert.equal(result.passed, false);
+    assert.match(result.errors.join('\n'), /keyId is not trusted: pr-tree-only-signer/);
   } finally {
     rmSync(repo.root, { recursive: true, force: true });
   }
