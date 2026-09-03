@@ -88,8 +88,13 @@ public class AuthService(
             return null;
         }
 
-        // Find refresh token
+        // Find refresh token.
+        // AsTracking: global default is NoTracking (PostgreSqlProvider); without it the
+        // RevokedAt/RevokedByIp/ReplacedByToken mutations below would be silently dropped
+        // on SaveChanges — rotation would never revoke the old token, leaving stolen
+        // refresh tokens valid until expiry (#712).
         var token = await context.RefreshTokens
+            .AsTracking()
             .Include(rt => rt.Person)
                 .ThenInclude(p => p!.ConnectionStatusValue)
             .Include(rt => rt.Person)
@@ -122,7 +127,11 @@ public class AuthService(
     {
         logger.LogInformation("Logout attempt");
 
+        // AsTracking: global default is NoTracking (PostgreSqlProvider); without it the
+        // RevokedAt/RevokedByIp mutations below would be silently dropped on SaveChanges —
+        // logout would be a silent server-side no-op and the token would stay valid (#712).
         var token = await context.RefreshTokens
+            .AsTracking()
             .FirstOrDefaultAsync(rt => rt.Token == refreshToken, ct);
 
         if (token == null)

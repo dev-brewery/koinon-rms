@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using Microsoft.Extensions.Configuration;
 using AutoMapper;
 using FluentAssertions;
 using FluentValidation;
@@ -481,5 +483,122 @@ public class NoTrackingSweepTests
             "TransactionCode mutation must be persisted; pre-fix it was silently dropped under NoTracking.");
         reloaded.Summary.Should().Be("New summary");
         reloaded.ContributionDetails.Sum(d => d.Amount).Should().Be(200m);
+    }
+
+    // -----------------------------------------------------------------------
+    // AuthService.RefreshTokenAsync / LogoutAsync (#712)
+    // -----------------------------------------------------------------------
+
+    private static IConfiguration CreateAuthTestConfiguration()
+    {
+        var configData = new Dictionary<string, string?>
+        {
+            ["Jwt:Secret"] = "test-secret-key-that-is-at-least-32-characters-long-for-testing",
+            ["Jwt:Issuer"] = "Koinon.Api.Test",
+            ["Jwt:Audience"] = "Koinon.Web.Test",
+            ["Jwt:AccessTokenExpirationMinutes"] = "15",
+            ["Jwt:RefreshTokenExpirationDays"] = "7"
+        };
+        return new ConfigurationBuilder().AddInMemoryCollection(configData).Build();
+    }
+
+    [Fact]
+    public async Task AuthService_RefreshTokenAsync_UnderNoTracking_PersistsRevocationOfOldToken()
+    {
+        using var context = CreateContext();
+
+        context.People.Add(new Person
+        {
+            Id = 1,
+            FirstName = "Grace",
+            LastName = "Mwangi",
+            Email = "grace@example.com",
+            Gender = Gender.Female,
+            CreatedDateTime = DateTime.UtcNow
+        });
+        var oldToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+        context.RefreshTokens.Add(new RefreshToken
+        {
+            Id = 1,
+            PersonId = 1,
+            Token = oldToken,
+            ExpiresAt = DateTime.UtcNow.AddDays(7),
+            CreatedByIp = "127.0.0.1",
+            CreatedDateTime = DateTime.UtcNow
+        });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var service = new AuthService(
+            context, CreateAuthTestConfiguration(), Mock.Of<ILogger<AuthService>>());
+
+        var result = await service.RefreshTokenAsync(oldToken, "192.168.1.10");
+
+        result.Should().NotBeNull("rotation of a valid token must still succeed");
+        result!.RefreshToken.Should().NotBe(oldToken, "rotation must issue a new token");
+
+        context.ChangeTracker.Clear();
+        var reloaded = await context.RefreshTokens
+            .AsNoTracking()
+            .FirstOrDefaultAsync(rt => rt.Id == 1);
+        reloaded.Should().NotBeNull();
+        reloaded!.RevokedAt.Should().NotBeNull(
+            "the old refresh token must be revoked server-side on rotation; pre-fix the mutation " +
+            "was silently dropped under NoTracking and a stolen token stayed valid until expiry (#712).");
+        reloaded.RevokedByIp.Should().Be("192.168.1.10");
+        reloaded.ReplacedByToken.Should().Be(result.RefreshToken);
+
+        // Second use of the revoked token must be rejected — this is the theft defense.
+        var secondUse = await service.RefreshTokenAsync(oldToken, "192.168.1.10");
+        secondUse.Should().BeNull("a revoked refresh token must not refresh again");
+    }
+
+    [Fact]
+    public async Task AuthService_LogoutAsync_UnderNoTracking_PersistsRevocation()
+    {
+        using var context = CreateContext();
+
+        context.People.Add(new Person
+        {
+            Id = 1,
+            FirstName = "Grace",
+            LastName = "Mwangi",
+            Email = "grace@example.com",
+            Gender = Gender.Female,
+            CreatedDateTime = DateTime.UtcNow
+        });
+        var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+        context.RefreshTokens.Add(new RefreshToken
+        {
+            Id = 1,
+            PersonId = 1,
+            Token = token,
+            ExpiresAt = DateTime.UtcNow.AddDays(7),
+            CreatedByIp = "127.0.0.1",
+            CreatedDateTime = DateTime.UtcNow
+        });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var service = new AuthService(
+            context, CreateAuthTestConfiguration(), Mock.Of<ILogger<AuthService>>());
+
+        var loggedOut = await service.LogoutAsync(token, "192.168.1.10");
+
+        loggedOut.Should().BeTrue("logout of an active token must succeed");
+
+        context.ChangeTracker.Clear();
+        var reloaded = await context.RefreshTokens
+            .AsNoTracking()
+            .FirstOrDefaultAsync(rt => rt.Id == 1);
+        reloaded.Should().NotBeNull();
+        reloaded!.RevokedAt.Should().NotBeNull(
+            "logout must revoke the refresh token server-side; pre-fix the mutation was " +
+            "silently dropped under NoTracking and logout was a client-side no-op (#712).");
+        reloaded.RevokedByIp.Should().Be("192.168.1.10");
+
+        // The logged-out token must no longer be usable.
+        var refresh = await service.RefreshTokenAsync(token, "192.168.1.10");
+        refresh.Should().BeNull("a logged-out refresh token must not refresh");
     }
 }
