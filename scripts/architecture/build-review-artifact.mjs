@@ -15,7 +15,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { verifyReviewArtifacts } from './verify-review-artifact.mjs';
+import { verifyReviewArtifacts, sha256Hex } from './verify-review-artifact.mjs';
 
 const REPO_ROOT = resolve(fileURLToPath(import.meta.url), '..', '..', '..');
 const APPROVALS_DIR = join(REPO_ROOT, '.claude', 'approvals');
@@ -93,18 +93,11 @@ if (dirty.trim()) {
 }
 
 // ---- condition 2: hash the verifier's way; refuse on drift vs the record -------
-function sha256File(abs) {
-  return verifySha(readFileSync(abs));
-}
-import { createHash } from 'node:crypto';
-function verifySha(buf) {
-  return createHash('sha256').update(buf).digest('hex');
-}
 const artifactFiles = [];
 for (const f of changedFiles) {
   const abs = join(REPO_ROOT, f.path);
   if (!existsSync(abs)) fail(`changed file '${f.path}' missing from working tree.`);
-  const h = sha256File(abs);
+  const h = sha256Hex(readFileSync(abs));
   const ruled = recordFiles.get(f.path);
   if (ruled && ruled.hash && ruled.hash !== 'NEW' && ruled.hash !== h) {
     fail(`content drift: '${f.path}' hash ${h.slice(0, 8)}… ≠ record hash ${ruled.hash.slice(0, 8)}… — file changed after the ruling; obtain a fresh ruling.`);
@@ -146,7 +139,7 @@ const artifact = {
 // same invariants the verifier enforces, using its own computed facts.
 const vGated = new Set(gatedFiles.map((f) => f.path));
 const aFiles = new Set(artifact.change.files.map((f) => f.path));
-for (const f of vGated) if (!aFiles.has(f)) fail(`internal: gated file ${f.path} not in artifact files`);
+for (const p of vGated) if (!aFiles.has(p)) fail(`internal: gated file ${p} not in artifact files`);
 if (artifact.change.diffSha256 !== diffSha) fail('internal: diffSha mismatch');
 for (const r of artifact.architectRuling.reasons) {
   const p = standardPathFromRef(r.standard ?? '');

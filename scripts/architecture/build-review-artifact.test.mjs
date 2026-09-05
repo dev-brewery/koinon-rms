@@ -51,12 +51,14 @@ function writeRecord(repo, rec) {
   writeFileSync(join(repo, '.claude', 'approvals', `${rec.sha}.json`), JSON.stringify(rec, null, 2));
 }
 
-function runBuilder(repo, recordSha) {
+function runBuilder(repo, recordSha, out) {
+  const args = ['--record', recordSha];
+  if (out) args.push('--out', out);
   try {
-    const out = execFileSync('node',
-      [join(repo, 'scripts', 'architecture', 'build-review-artifact.mjs'), '--record', recordSha],
+    const out2 = execFileSync('node',
+      [join(repo, 'scripts', 'architecture', 'build-review-artifact.mjs'), ...args],
       { cwd: repo, encoding: 'utf8' });
-    return { code: 0, out, err: '' };
+    return { code: 0, out: out2, err: '' };
   } catch (e) {
     return { code: e.status ?? 1, out: e.stdout?.toString() ?? '', err: e.stderr?.toString() ?? '' };
   }
@@ -77,9 +79,10 @@ test('happy path: APPROVED record builds a correct artifact', () => {
     commitFile(repo, 'src/foo.py', 'print("v1")\n');
     const fileSha = sha256(readFileSync(join(repo, 'src', 'foo.py')));
     writeRecord(repo, approvedRecord('a', [{ path: 'src/foo.py', hash: fileSha }]));
-    const r = runBuilder(repo, 'a'.repeat(64));
+    const outPath = join(repo, 'docs', 'architecture', 'reviews', 'happy-path-out.json');
+    const r = runBuilder(repo, 'a'.repeat(64), outPath);
     assert.equal(r.code, 0, `builder failed: ${r.err}`);
-    const art = JSON.parse(readFileSync(join(repo, 'docs', 'architecture', 'reviews', '2026-09-04-issue-750.json'), 'utf8'));
+    const art = JSON.parse(readFileSync(outPath, 'utf8'));
     assert.equal(art.architectRuling.ruling, 'APPROVED');
     assert.equal(art.change.files[0].sha256, fileSha);
     assert.equal(art.impact.semantic.standardsRetrieved[0].path, 'docs/reference/conventions.md');
