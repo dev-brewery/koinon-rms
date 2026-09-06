@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "reviewType": "architect-code-review",
+  "repository": "https://github.com/dev-brewery/koinon-rms",
+  "baseCommit": "552ec404f39aeb3e8b11618b4015705663d4297f",
+  "headCommit": "ae6d0469cd68dc077ed23d88a8d58e9f436402c5",
+  "createdAt": "2026-09-05T17:03:20.766Z",
+  "change": {
+    "diffSha256": "9a8afd2cbc8348087d01a621dd2417f165076898ffd2f9a22c3f0e1d0faba341",
+    "files": [
+      {
+        "path": "scripts/architecture/build-review-artifact.mjs",
+        "sha256": "553ae717c6bf04e8a2c4cd24ac36cf0e145a9533868c9a7b2cab158cd9e56b2f"
+      },
+      {
+        "path": "scripts/architecture/build-review-artifact.test.mjs",
+        "sha256": "3a4c7a02e8db6c142adee994407315b9f6e59e2eecec675672a2d030a3f9d450"
+      }
+    ]
+  },
+  "architectRuling": {
+    "ruling": "APPROVED",
+    "reasons": [
+      {
+        "standard": "docs/reference/conventions.md § Process",
+        "finding": "Condition 2 is met: ae6d046 deletes the local createHash/sha256File reimplementation in build-review-artifact.mjs and imports sha256Hex from verify-review-artifact.mjs (exported at line 25), so the builder no longer has a second way to hash what the verifier already hashes; this also satisfies issue #750 acceptance criterion 4."
+      },
+      {
+        "standard": "CLAUDE.md § Don'ts",
+        "finding": "Condition 1 is met in-change rather than deferred: the happy-path test now passes --out (a flag the builder already parses at line 33) and reads that path, removing the hard-coded 2026-09-04 filename that would have failed on any later date."
+      },
+      {
+        "standard": "CLAUDE.md § Non-negotiable invariants",
+        "finding": "Condition 3 is met: the internal gated-file assertion iterates path strings and interpolates ${p} instead of ${f.path} on a string, so the fail-closed message names the actual file instead of 'undefined'; the fail-closed invariant the harness depends on is intact."
+      },
+      {
+        "standard": "docs/adr/0006-standards-rag-collection.md § Context",
+        "finding": "Diff a81ad15..ae6d046 touches exactly the two ruled files (12 insertions, 16 deletions) and no verifier, signer, or schema file, consistent with the issue's stated out-of-scope boundary; the builder still verifies each cited standard path exists on disk, matching the gate's requirement that rulings cite retrievable standards."
+      },
+      {
+        "standard": "docs/reference/conventions.md § Process",
+        "finding": "Verification note: the sandbox denied execution of the test suites and of gh in this review session, so the developer's 15/15 pass claim and the existence of follow-up issue #751 were not independently reproduced here; the static diff supports both fixes, and CI's Architecture Review Artifact check plus the test:architecture run will exercise the suites on the PR before merge. This is not a collision with any standard and does not condition the approval."
+      }
+    ],
+    "conditions": []
+  },
+  "impact": {
+    "semantic": {
+      "standardsRetrieved": [
+        {
+          "path": "docs/reference/conventions.md"
+        },
+        {
+          "path": "CLAUDE.md"
+        },
+        {
+          "path": "docs/adr/0006-standards-rag-collection.md"
+        }
+      ]
+    }
+  },
+  "agentSignature": {
+    "keyId": "koinon-agent-artifact-2026-09",
+    "algorithm": "ed25519",
+    "publicKeySha256": "b063efa215b7f8cb99a5215f60f6d245bae636b65e773f7aabc680b19696bfda",
+    "signedPayloadSha256": "d31dfc4e95c0b589f6dd6d393b52811cf067f4965cff8b18e26d9b19ef41dcba",
+    "signature": "gKL/62T0cdgiH6ZTpcf1Kt23Y9hHfTigI2S7D+1uVenUhn2eSVf4FltNMUzwKEHeTMIohkkIwwXC1aQAngJQAw=="
+  }
+}
