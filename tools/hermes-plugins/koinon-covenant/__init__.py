@@ -120,8 +120,33 @@ ARCHITECT_SCHEMA = {
 }
 
 
-def _architect_review(files: str, deduced: str, proposed: str, issue: str = "", **_):
-    """Submit a change for isolated architect review, mandates attached."""
+def _architect_review(args, **kw):
+    """Submit a change for isolated architect review, mandates attached.
+
+    Dispatch convention (#753): the Hermes registry calls plugin tools as
+    ``handler(args_dict, **kwargs)`` — the whole arguments object as ONE
+    positional parameter (tools/registry.py dispatch; canonical pattern
+    ``_handle_spotify_playback(args: dict, **kw)``). Unpack here; the
+    validation the old Python signature provided is preserved by the
+    explicit empty-argument refusal below.
+    """
+    if not isinstance(args, dict):
+        return (
+            "HALT: architect_review received a malformed dispatch "
+            f"(args must be an object, got {type(args).__name__}). Summon the owner."
+        )
+    files = str(args.get("files") or "").strip()
+    deduced = str(args.get("deduced") or "").strip()
+    proposed = str(args.get("proposed") or "").strip()
+    issue = str(args.get("issue") or "").strip()
+    if not files or not deduced or not proposed:
+        missing = [n for n, v in (("files", files), ("deduced", deduced), ("proposed", proposed)) if not v]
+        return (
+            "HALT: architect_review requires non-empty 'files', 'deduced' and "
+            f"'proposed' (missing: {', '.join(missing)}). No review was run and "
+            "no code is unlocked. Resubmit with all required arguments."
+        )
+
     script = repo_root() / "scripts" / "hooks" / "architect-review.mjs"
     if not script.exists():
         return (
